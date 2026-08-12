@@ -24,6 +24,7 @@ DevTime is a **frontend-only** developer work-time tracker (SvelteKit + TypeScri
 - `npm run check` — `svelte-kit sync` + `svelte-check`
 - `npm run lint` / `npm run format` — Prettier + ESLint
 - `npm test` / `npm run test:watch` — Vitest unit tests (pure domain + mock repo)
+- `npm run test:e2e` — Playwright e2e (builds + previews app; see `e2e/`)
 
 ### Docs
 

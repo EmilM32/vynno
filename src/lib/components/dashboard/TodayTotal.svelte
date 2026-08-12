@@ -19,7 +19,9 @@
 		></span>
 	</div>
 	<div class="mt-auto">
-		<div class="font-mono text-code-display tracking-tight text-primary">{totalLabel}</div>
+		<div class="font-mono text-code-display tracking-tight text-primary" data-testid="today-total">
+			{totalLabel}
+		</div>
 		<div class="mt-1 flex items-center gap-1 text-body-sm text-on-surface-variant">
 			<span
 				class="material-symbols-outlined text-[14px] {deltaPositive

@@ -24,7 +24,9 @@
 			>Total Time</span
 		>
 		<div class="mt-4 flex items-baseline gap-2">
-			<span class="font-mono text-code-display text-primary">{totalLabel}</span>
+			<span class="font-mono text-code-display text-primary" data-testid="kpi-total-time"
+				>{totalLabel}</span
+			>
 			<span class="font-mono text-code-label text-on-surface-variant">
 				this {stats.period}
 			</span>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import RecentTasks from './RecentTasks.svelte';
 	import TaskInput from './TaskInput.svelte';
@@ -15,7 +16,7 @@
 			<button
 				type="button"
 				class="focus-ring shrink-0 underline"
-				onclick={() => sessionStore.clearError()}>dismiss</button
+				onclick={() => sessionStore.clearError()}>{m.common_dismiss()}</button
 			>
 		</div>
 	{/if}

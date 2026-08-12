@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 
 	const session = $derived(sessionStore.activeSession);
@@ -18,7 +19,7 @@
 		<div class="mb-4 flex items-center justify-between">
 			<div class="flex items-center gap-2">
 				<span class="text-body-sm tracking-wider text-on-surface-variant uppercase"
-					>Current Focus</span
+					>{m.dashboard_current_focus()}</span
 				>
 				{#if session.ticketId}
 					<div class="rounded-DEFAULT border border-outline-variant bg-surface-container-high px-2 py-0.5">
@@ -26,13 +27,13 @@
 					</div>
 				{/if}
 				{#if isPaused}
-					<span class="font-mono text-code-label text-tertiary">PAUSED</span>
+					<span class="font-mono text-code-label text-tertiary">{m.timer_status_paused()}</span>
 				{/if}
 			</div>
 			<a
 				href={resolve('/timer')}
 				class="rounded-DEFAULT border border-outline-variant bg-surface-container p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
-				aria-label="Open timer"
+				aria-label={m.dashboard_open_timer()}
 			>
 				<span class="material-symbols-outlined text-[18px]" aria-hidden="true">open_in_new</span>
 			</a>
@@ -74,11 +75,11 @@
 	{:else}
 		<div class="mb-4 flex items-center justify-between">
 			<span class="text-body-sm tracking-wider text-on-surface-variant uppercase"
-				>Current Focus</span
+				>{m.dashboard_current_focus()}</span
 			>
 		</div>
 		<p class="mb-4 text-body-md text-on-surface-variant">
-			No active session. Start tracking from the Timer.
+			{m.dashboard_no_active()}
 		</p>
 		<div class="mt-auto border-t border-outline-variant/50 pt-4">
 			<a
@@ -86,7 +87,7 @@
 				class="inline-flex items-center gap-2 rounded border border-primary/20 bg-primary px-3 py-1.5 font-mono text-code-data text-on-primary transition-colors hover:bg-primary-container"
 			>
 				<span class="material-symbols-outlined text-[18px]" aria-hidden="true">play_arrow</span>
-				Start session
+				{m.dashboard_start_session()}
 			</a>
 		</div>
 	{/if}

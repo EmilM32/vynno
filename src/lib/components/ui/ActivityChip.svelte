@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ACTIVITY_CHIP_CLASS } from '$lib/time/activity-styles';
-	import { ACTIVITY_LABELS, type ActivityType } from '$lib/types/domain';
+	import { activityLabel, type ActivityType } from '$lib/types/domain';
 
 	let {
 		type,
@@ -10,7 +10,7 @@
 		class?: string;
 	} = $props();
 
-	const label = $derived(ACTIVITY_LABELS[type]);
+	const label = $derived(activityLabel(type));
 	const colorClass = $derived(ACTIVITY_CHIP_CLASS[type]);
 </script>
 

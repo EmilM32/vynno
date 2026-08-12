@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { APP_NAME } from './nav';
@@ -26,7 +27,7 @@
 		<button
 			type="button"
 			class="focus-ring rounded p-1 text-on-surface-variant hover:bg-surface-container hover:text-primary"
-			aria-label="Open command palette"
+			aria-label={m.shell_open_command_palette()}
 			title="⌘K"
 			onclick={() => commandPalette.show()}
 		>
@@ -39,7 +40,11 @@
 					: 'text-tertiary'
 				: 'text-outline-variant/40'}"
 			style={live ? "font-variation-settings: 'FILL' 1" : undefined}
-			aria-label={live ? (isActive ? 'Session recording' : 'Session paused') : 'No active session'}
+			aria-label={live
+				? isActive
+					? m.shell_session_recording()
+					: m.shell_session_paused()
+				: m.shell_no_active_session()}
 			role="status">fiber_manual_record</span
 		>
 	</div>

@@ -1,5 +1,7 @@
 /** Domain types for DevTime frontend — see docs/domain-model.md */
 
+import { m } from '$lib/paraglide/messages.js';
+
 export type SessionStatus = 'active' | 'paused' | 'stopped';
 
 export type ActivityType =
@@ -12,16 +14,29 @@ export type ActivityType =
 	| 'research'
 	| 'other';
 
-export const ACTIVITY_LABELS: Record<ActivityType, string> = {
-	deep_work: 'Deep Work',
-	meeting: 'Meeting',
-	maintenance: 'Maintenance',
-	coding: 'Coding',
-	debugging: 'Debug',
-	docs: 'Docs',
-	research: 'Research',
-	other: 'Other'
-};
+/** Localized display label for an activity type (UI only). */
+export function activityLabel(type: ActivityType): string {
+	switch (type) {
+		case 'deep_work':
+			return m.activity_deep_work();
+		case 'meeting':
+			return m.activity_meeting();
+		case 'maintenance':
+			return m.activity_maintenance();
+		case 'coding':
+			return m.activity_coding();
+		case 'debugging':
+			return m.activity_debugging();
+		case 'docs':
+			return m.activity_docs();
+		case 'research':
+			return m.activity_research();
+		case 'other':
+			return m.activity_other();
+	}
+}
+
+
 
 export interface Project {
 	id: string;

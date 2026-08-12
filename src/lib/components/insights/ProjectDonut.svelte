@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { formatHoursMinutes } from '$lib/time/duration';
 	import type { NamedTotal } from '$lib/time/aggregates';
 
@@ -28,10 +29,10 @@
 
 <section
 	class="flex h-96 flex-col rounded-lg border border-outline-variant bg-surface-container p-6"
-	aria-label="Time by project"
+	aria-label={m.insights_time_by_project_aria()}
 >
 	<div class="mb-4 flex items-center justify-between">
-		<h2 class="text-headline-md text-on-surface">Time by Project</h2>
+		<h2 class="text-headline-md text-on-surface">{m.insights_time_by_project()}</h2>
 	</div>
 
 	<div class="relative flex w-full flex-1 items-center justify-center pb-4">
@@ -39,7 +40,7 @@
 			class="relative h-48 w-48 rounded-full"
 			style:background={gradient}
 			role="img"
-			aria-label="Project distribution, total {formatHoursMinutes(totalMs)}"
+			aria-label={m.insights_project_distribution_aria({ total: formatHoursMinutes(totalMs) })}
 		>
 			<div
 				class="absolute inset-[18%] flex flex-col items-center justify-center rounded-full bg-surface-container"
@@ -47,7 +48,7 @@
 				<span class="font-mono text-code-display text-on-surface"
 					>{formatHoursMinutes(totalMs)}</span
 				>
-				<span class="font-mono text-code-label text-on-surface-variant">Total</span>
+				<span class="font-mono text-code-label text-on-surface-variant">{m.insights_total()}</span>
 			</div>
 		</div>
 	</div>
@@ -63,7 +64,7 @@
 			</div>
 		{/each}
 		{#if items.length === 0}
-			<span class="col-span-2 text-body-sm text-on-surface-variant">No data for this period.</span>
+			<span class="col-span-2 text-body-sm text-on-surface-variant">{m.insights_no_data()}</span>
 		{/if}
 	</div>
 </section>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { filterSessions, groupSessionsByDate } from '$lib/time/aggregates';
 	import { localDateKeyFromDate } from '$lib/time/duration';
@@ -17,9 +18,9 @@
 		class="flex flex-col justify-between gap-4 border-b border-outline-variant pb-4 md:flex-row md:items-end"
 	>
 		<div>
-			<h1 class="text-headline-lg text-on-surface">System Logs</h1>
+			<h1 class="text-headline-lg text-on-surface">{m.logs_title()}</h1>
 			<p class="mt-1 text-body-sm text-on-surface-variant">
-				Detailed chronological execution records.
+				{m.logs_subtitle()}
 			</p>
 		</div>
 		<div class="group relative w-full md:w-64">
@@ -30,16 +31,16 @@
 			<input
 				class="w-full rounded-DEFAULT border border-outline-variant bg-surface-container-low py-2 pr-3 pl-9 font-mono text-code-label text-on-surface transition-all placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
 				type="search"
-				placeholder="grep 'project' or 'note'..."
+				placeholder={m.logs_search_placeholder()}
 				bind:value={query}
-				aria-label="Search logs"
+				aria-label={m.logs_search_aria()}
 			/>
 		</div>
 	</div>
 
 	{#if groups.length === 0}
 		<p class="py-12 text-center text-body-md text-on-surface-variant">
-			{query.trim() ? 'No logs match that filter.' : 'No completed sessions yet.'}
+			{query.trim() ? m.logs_no_match() : m.logs_no_completed()}
 		</p>
 	{:else}
 		{#each groups as group, i (group.dateKey)}

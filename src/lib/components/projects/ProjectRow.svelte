@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import type { Project } from '$lib/types/domain';
 
 	interface Props {
@@ -24,6 +25,9 @@
 	}: Props = $props();
 
 	const archived = $derived(Boolean(project.isArchived));
+	const sessionWord = $derived(
+		sessionCount === 1 ? m.projects_session_one() : m.projects_session_other()
+	);
 </script>
 
 <li
@@ -49,13 +53,13 @@
 				{/if}
 				{#if archived}
 					<span class="font-mono text-[10px] tracking-wide text-outline uppercase"
-						>Archived</span
+						>{m.projects_archived_badge()}</span
 					>
 				{/if}
 			</div>
 			<p class="mt-0.5 font-mono text-code-label text-on-surface-variant">
 				{sessionCount}
-				{sessionCount === 1 ? 'session' : 'sessions'}
+				{sessionWord}
 			</p>
 		</div>
 	</div>
@@ -67,16 +71,16 @@
 				class="focus-ring rounded border border-outline-variant px-2.5 py-1.5 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant"
 				onclick={onedit}
 			>
-				Edit
+				{m.projects_edit()}
 			</button>
 			<button
 				type="button"
 				class="focus-ring rounded border border-outline-variant px-2.5 py-1.5 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
 				onclick={onarchive}
 				disabled={!canArchive}
-				title={!canArchive ? 'Cannot archive the last active project' : undefined}
+				title={!canArchive ? m.projects_cannot_archive_last() : undefined}
 			>
-				Archive
+				{m.projects_archive()}
 			</button>
 		{:else}
 			<button
@@ -84,7 +88,7 @@
 				class="focus-ring rounded border border-outline-variant px-2.5 py-1.5 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant"
 				onclick={onrestore}
 			>
-				Restore
+				{m.projects_restore()}
 			</button>
 		{/if}
 		<button
@@ -94,11 +98,11 @@
 			disabled={!canDelete}
 			title={!canDelete
 				? sessionCount > 0
-					? 'Projects with sessions cannot be deleted — archive instead'
-					: 'Cannot delete the last active project'
+					? m.projects_cannot_delete_has_sessions()
+					: m.projects_cannot_delete_last()
 				: undefined}
 		>
-			Delete
+			{m.projects_delete()}
 		</button>
 	</div>
 </li>

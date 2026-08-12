@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { formatHoursDecimal } from '$lib/time/duration';
 
@@ -10,13 +11,13 @@
 
 <section
 	class="flex h-[300px] flex-col rounded-lg border border-outline-variant bg-surface-container p-4"
-	aria-label="Weekly overview"
+	aria-label={m.dashboard_weekly_overview_aria()}
 >
 	<div class="mb-6 flex items-center justify-between">
-		<span class="text-headline-md">Weekly Overview</span>
+		<span class="text-headline-md">{m.dashboard_weekly_overview()}</span>
 		<div class="flex items-center gap-2">
 			<span class="h-2 w-2 rounded-sm bg-primary" aria-hidden="true"></span>
-			<span class="text-body-sm text-on-surface-variant">Hours</span>
+			<span class="text-body-sm text-on-surface-variant">{m.dashboard_hours()}</span>
 		</div>
 	</div>
 
@@ -49,7 +50,7 @@
 						<div
 							class="absolute -top-8 z-10 whitespace-nowrap rounded border border-outline-variant bg-surface-container-high px-2 py-1 font-mono text-code-label text-on-surface opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
 						>
-							{formatHoursDecimal(day.ms)}{day.isToday ? ' (Today)' : ''}
+							{formatHoursDecimal(day.ms)}{day.isToday ? m.dashboard_today_paren() : ''}
 						</div>
 					{/if}
 				</div>

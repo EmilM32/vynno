@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ActivityChip from '$lib/components/ui/ActivityChip.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { formatCompact, formatTimeRange, sessionElapsedMs } from '$lib/time/duration';
 	import type { TimeSession } from '$lib/types/domain';
@@ -22,7 +23,9 @@
 				style:background-color={project?.color ?? '#64748b'}
 				aria-hidden="true"
 			></div>
-			<span class="truncate text-body-sm text-on-surface">{project?.name ?? 'Unknown'}</span>
+			<span class="truncate text-body-sm text-on-surface"
+				>{project?.name ?? m.common_unknown()}</span
+			>
 		</div>
 		<div
 			class="min-w-0 flex-1 truncate font-mono text-code-data text-on-surface-variant"

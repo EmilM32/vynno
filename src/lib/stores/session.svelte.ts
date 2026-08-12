@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { MockTimeTrackingRepository } from '$lib/data/mock-repository';
 import type { TimeTrackingRepository } from '$lib/data/repository';
+import { m } from '$lib/paraglide/messages.js';
 import { prefsStore } from '$lib/stores/prefs.svelte';
 import {
 	projectWeekSummaries,
@@ -126,7 +127,7 @@ class SessionStore {
 			this.refresh();
 			return project;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : 'Failed to create project';
+			this.error = e instanceof Error ? e.message : m.error_failed_create_project();
 			return null;
 		}
 	};
@@ -138,7 +139,7 @@ class SessionStore {
 			this.refresh();
 			return project;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : 'Failed to update project';
+			this.error = e instanceof Error ? e.message : m.error_failed_update_project();
 			return null;
 		}
 	};
@@ -150,7 +151,7 @@ class SessionStore {
 			this.refresh();
 			return true;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : 'Failed to archive project';
+			this.error = e instanceof Error ? e.message : m.error_failed_archive_project();
 			return false;
 		}
 	};
@@ -162,7 +163,7 @@ class SessionStore {
 			this.refresh();
 			return true;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : 'Failed to restore project';
+			this.error = e instanceof Error ? e.message : m.error_failed_restore_project();
 			return false;
 		}
 	};
@@ -174,7 +175,7 @@ class SessionStore {
 			this.refresh();
 			return true;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : 'Failed to delete project';
+			this.error = e instanceof Error ? e.message : m.error_failed_delete_project();
 			return false;
 		}
 	};
@@ -193,7 +194,7 @@ class SessionStore {
 			});
 			this.refresh();
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : 'Failed to start session';
+			this.error = e instanceof Error ? e.message : m.error_failed_start_session();
 		}
 	};
 
@@ -203,7 +204,7 @@ class SessionStore {
 	 */
 	restartFromTask = (input: StartSessionInput): boolean => {
 		if (this.activeSession) {
-			this.error = 'Stop the current session before starting a new one.';
+			this.error = m.error_stop_before_start();
 			return false;
 		}
 		this.start(input);
@@ -214,7 +215,7 @@ class SessionStore {
 	restartFromSession = (sessionId: string): boolean => {
 		const s = this.sessions.find((x) => x.id === sessionId);
 		if (!s) {
-			this.error = 'Session not found.';
+			this.error = m.error_session_not_found();
 			return false;
 		}
 		return this.restartFromTask({
@@ -234,7 +235,7 @@ class SessionStore {
 			this.#repo.pauseSession(s.id);
 			this.refresh();
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : 'Failed to pause';
+			this.error = e instanceof Error ? e.message : m.error_failed_pause();
 		}
 	};
 
@@ -246,7 +247,7 @@ class SessionStore {
 			this.#repo.resumeSession(s.id);
 			this.refresh();
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : 'Failed to resume';
+			this.error = e instanceof Error ? e.message : m.error_failed_resume();
 		}
 	};
 
@@ -261,7 +262,7 @@ class SessionStore {
 			this.draftProjectId = stopped.projectId;
 			this.refresh();
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : 'Failed to stop';
+			this.error = e instanceof Error ? e.message : m.error_failed_stop();
 		}
 	};
 

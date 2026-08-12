@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { formatHoursDecimal, formatHoursMinutes } from '$lib/time/duration';
 
@@ -12,7 +13,9 @@
 	class="relative flex flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container p-4 md:col-span-4"
 >
 	<div class="mb-2 flex items-start justify-between">
-		<span class="text-body-sm tracking-wider text-on-surface-variant uppercase">Today's Total</span>
+		<span class="text-body-sm tracking-wider text-on-surface-variant uppercase"
+			>{m.dashboard_today_total()}</span
+		>
 		<span
 			class="h-2 w-2 rounded-full bg-secondary-fixed shadow-[0_0_8px_rgba(109,254,156,0.5)]"
 			aria-hidden="true"
@@ -34,7 +37,7 @@
 			<span class={deltaPositive ? 'text-secondary' : 'text-tertiary'}>
 				{formatHoursDecimal(deltaAbs)}
 			</span>
-			<span>vs yesterday</span>
+			<span>{m.dashboard_vs_yesterday()}</span>
 		</div>
 	</div>
 	<div class="pointer-events-none absolute right-0 bottom-0 opacity-10" aria-hidden="true">

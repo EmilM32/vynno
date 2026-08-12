@@ -1,5 +1,6 @@
+import { m } from '$lib/paraglide/messages.js';
 import type { ActivityType, Project, TimeSession } from '$lib/types/domain';
-import { ACTIVITY_LABELS } from '$lib/types/domain';
+import { activityLabel } from '$lib/types/domain';
 import {
 	calendarDaysInclusive,
 	DEFAULT_DAILY_TARGET_MS,
@@ -335,7 +336,7 @@ export function periodStats(
 			const p = projectName.get(id);
 			return {
 				id,
-				label: p?.name ?? 'Unknown',
+				label: p?.name ?? m.common_unknown(),
 				color: p?.color ?? '#64748b',
 				ms,
 				percent: pct(ms)
@@ -346,7 +347,7 @@ export function periodStats(
 	const byActivity: NamedTotal[] = [...activityTotals.entries()]
 		.map(([id, ms]) => ({
 			id,
-			label: ACTIVITY_LABELS[id],
+			label: activityLabel(id),
 			color: ACTIVITY_COLORS[id],
 			ms,
 			percent: pct(ms)
@@ -358,10 +359,10 @@ export function periodStats(
 			const p = projectName.get(row.projectId);
 			return {
 				projectId: row.projectId,
-				projectName: p?.name ?? 'Unknown',
+				projectName: p?.name ?? m.common_unknown(),
 				projectColor: p?.color ?? '#64748b',
 				activityType: row.activityType,
-				activityLabel: ACTIVITY_LABELS[row.activityType],
+				activityLabel: activityLabel(row.activityType),
 				ms: row.ms,
 				percent: pct(row.ms)
 			};

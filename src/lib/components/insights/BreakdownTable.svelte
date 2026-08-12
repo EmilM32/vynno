@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { formatCompact } from '$lib/time/duration';
 	import type { BreakdownRow } from '$lib/time/aggregates';
 
@@ -7,24 +8,24 @@
 
 <section
 	class="mt-0 overflow-hidden rounded-lg border border-outline-variant bg-surface-container"
-	aria-label="Activity breakdown"
+	aria-label={m.insights_breakdown_aria()}
 >
 	<div class="border-b border-outline-variant p-4">
-		<h2 class="text-headline-md text-on-surface">Activity Breakdown</h2>
+		<h2 class="text-headline-md text-on-surface">{m.insights_breakdown()}</h2>
 	</div>
 
 	<div class="flex flex-col">
 		<div
 			class="grid grid-cols-12 gap-4 border-b border-outline-variant bg-surface-container-low px-4 py-2 font-mono text-code-label text-on-surface-variant uppercase"
 		>
-			<div class="col-span-6 md:col-span-4">Project</div>
-			<div class="col-span-4 hidden md:col-span-3 md:block">Activity</div>
-			<div class="col-span-4 md:col-span-3">Duration</div>
+			<div class="col-span-6 md:col-span-4">{m.insights_col_project()}</div>
+			<div class="col-span-4 hidden md:col-span-3 md:block">{m.insights_col_activity()}</div>
+			<div class="col-span-4 md:col-span-3">{m.insights_col_duration()}</div>
 			<div class="col-span-2 text-right md:col-span-2">%</div>
 		</div>
 
 		{#if rows.length === 0}
-			<p class="p-4 text-body-sm text-on-surface-variant">No rows for this period.</p>
+			<p class="p-4 text-body-sm text-on-surface-variant">{m.insights_no_rows()}</p>
 		{:else}
 			{#each rows as row, i (row.projectId + row.activityType)}
 				<div

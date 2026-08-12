@@ -119,6 +119,14 @@
 
 **Exit criteria:** App runs against mock **or** real API without UI rewrites.
 
+### After Phase 5 — SSR enablement (SSR-1)
+
+**Deferred.** The app intentionally uses `export const ssr = false` while mock session state is a process-wide module singleton. Enabling full server rendering without hydration bugs requires request-scoped seed data from `load`, context-based stores, and a shared time/timezone contract.
+
+- Analysis and plan: [ssr-enablement.md](./ssr-enablement.md)  
+- Backlog: **SSR-1** in [p2-backlog.md](./p2-backlog.md)  
+- Best window: after HTTP repository + auth so first paint is per-user API data, not a shared mock.
+
 ---
 
 ## Suggested implementation order (components)
@@ -144,5 +152,6 @@ Use this roadmap as the checklist. Optionally split Phase 1+ into GitHub issues 
 
 - [prd.md](./prd.md)  
 - [p2-backlog.md](./p2-backlog.md)  
+- [ssr-enablement.md](./ssr-enablement.md)  
 - [adr/0001-frontend-stack.md](./adr/0001-frontend-stack.md)  
 - [adr/0002-frontend-only-separation.md](./adr/0002-frontend-only-separation.md)  

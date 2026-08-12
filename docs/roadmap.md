@@ -19,29 +19,29 @@
 
 ---
 
-## Phase 0 — Planning (current)
+## Phase 0 — Planning
 
 **Done when:**
 
 - [x] Stitch assets analyzed  
 - [x] `docs/` published (PRD, domain, screens, design, roadmap, ADRs)  
 - [x] Root README points to docs  
-- [ ] Team/user accepts priorities and defaults in PRD  
+- [x] Priorities and defaults accepted for scaffold  
 
 **Exit criteria:** No application code required; product and architecture clear enough to scaffold without re-litigating stack.
 
 ---
 
-## Phase 1 — Scaffold
+## Phase 1 — Scaffold (current)
 
 **Goals**
 
-- Initialize SvelteKit (TypeScript, recommended tooling).  
-- Add Tailwind CSS; map design tokens from [design-system.md](./design-system.md).  
-- Global fonts (Inter, JetBrains Mono) + Material Symbols strategy.  
-- App shell layout: desktop sidebar + mobile bottom nav.  
-- Routes: `/timer`, `/dashboard`, `/logs`, `/insights`, `/settings` with placeholders.  
-- Path aliases, lint/format baseline.
+- [x] Initialize SvelteKit (TypeScript, recommended tooling).  
+- [x] Add Tailwind CSS; map design tokens from [design-system.md](./design-system.md).  
+- [x] Global fonts (Inter, JetBrains Mono) + Material Symbols strategy.  
+- [x] App shell layout: desktop sidebar + mobile bottom nav.  
+- [x] Routes: `/timer`, `/dashboard`, `/logs`, `/insights`, `/settings` with placeholders.  
+- [x] Path aliases, lint/format baseline.
 
 **Non-goals:** Real data, charts, production deploy.
 

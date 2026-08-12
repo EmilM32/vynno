@@ -12,6 +12,43 @@ Developer-focused work-time tracker: projects, tasks, sessions, and insights —
 | Mock / in-memory data for development | Persistence and multi-device sync |
 | Design system implementation from Stitch mockups | Business rules that must stay on the server |
 
+## Stack
+
+- **SvelteKit** (Svelte 5) + **TypeScript**
+- **Tailwind CSS** v4 with Dev-Density Dark tokens
+- Node **≥ 20.19** (see `.nvmrc`)
+
+## Developing
+
+```sh
+# if you use nvm
+nvm use
+
+npm install
+npm run dev
+```
+
+App opens at the Vite URL (usually `http://localhost:5173`). `/` redirects to `/dashboard`.
+
+| Script | Purpose |
+|--------|---------|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run check` | `svelte-check` + sync |
+| `npm run lint` | Prettier + ESLint |
+| `npm run format` | Format with Prettier |
+
+## Routes
+
+| Path | Screen |
+|------|--------|
+| `/timer` | Active timer |
+| `/dashboard` | Dashboard (default) |
+| `/logs` | Activity logs |
+| `/insights` | Analytics |
+| `/settings` | Settings stub |
+
 ## Documentation
 
 Start here: **[docs/README.md](./docs/README.md)**
@@ -31,4 +68,5 @@ Google Stitch export: [`stitch_personal_dev_tracker/`](./stitch_personal_dev_tra
 
 ## Status
 
-Planning complete (Phase 0). App scaffold not started.
+- **Phase 0:** Planning docs complete  
+- **Phase 1:** App scaffold + shell + placeholder routes  

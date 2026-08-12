@@ -88,3 +88,101 @@ export function startOfYesterday(d = new Date()): number {
 	x.setHours(0, 0, 0, 0);
 	return x.getTime();
 }
+
+/** Local time HH:MM. */
+export function formatLocalTime(iso: string): string {
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return '--:--';
+	return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/** Time range label: `09:30 - 11:45`. */
+export function formatTimeRange(startedAt: string, endedAt?: string): string {
+	const start = formatLocalTime(startedAt);
+	if (!endedAt) return `${start} - …`;
+	return `${start} - ${formatLocalTime(endedAt)}`;
+}
+
+/** Mock daily hour target for Insights delta (Settings later). */
+export const DEFAULT_DAILY_TARGET_MS = 8 * 3_600_000;
+
+const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+const WEEKDAY_LONG = [
+	'Sunday',
+	'Monday',
+	'Tuesday',
+	'Wednesday',
+	'Thursday',
+	'Friday',
+	'Saturday'
+] as const;
+
+export function weekdayShort(d: Date): string {
+	return WEEKDAY_SHORT[d.getDay()] ?? '';
+}
+
+export function weekdayLong(d: Date): string {
+	return WEEKDAY_LONG[d.getDay()] ?? '';
+}
+
+/**
+ * Monday 00:00 local of the week containing `d`.
+ * Matches Stitch Mon–Sun weekly overview.
+ */
+export function startOfWeekMonday(d = new Date()): Date {
+	const x = new Date(d);
+	x.setHours(0, 0, 0, 0);
+	const day = x.getDay(); // 0 Sun … 6 Sat
+	const diff = day === 0 ? -6 : 1 - day;
+	x.setDate(x.getDate() + diff);
+	return x;
+}
+
+/** End of week (Sunday 23:59:59.999 local). */
+export function endOfWeekSunday(d = new Date()): Date {
+	const start = startOfWeekMonday(d);
+	const end = new Date(start);
+	end.setDate(end.getDate() + 6);
+	end.setHours(23, 59, 59, 999);
+	return end;
+}
+
+/** First day of month 00:00 local. */
+export function startOfMonth(d = new Date()): Date {
+	const x = new Date(d.getFullYear(), d.getMonth(), 1);
+	x.setHours(0, 0, 0, 0);
+	return x;
+}
+
+/** Last moment of month local. */
+export function endOfMonth(d = new Date()): Date {
+	const x = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+	x.setHours(23, 59, 59, 999);
+	return x;
+}
+
+export type PeriodKind = 'week' | 'month';
+
+export function periodBounds(
+	period: PeriodKind,
+	now = new Date()
+): { start: Date; end: Date } {
+	if (period === 'week') {
+		const start = startOfWeekMonday(now);
+		// Cap end at now for averages "so far"
+		const weekEnd = endOfWeekSunday(now);
+		const end = now.getTime() < weekEnd.getTime() ? new Date(now) : weekEnd;
+		return { start, end };
+	}
+	const start = startOfMonth(now);
+	const monthEnd = endOfMonth(now);
+	const end = now.getTime() < monthEnd.getTime() ? new Date(now) : monthEnd;
+	return { start, end };
+}
+
+/** Inclusive calendar day count from start→end (local). */
+export function calendarDaysInclusive(start: Date, end: Date): number {
+	const a = startOfLocalDay(start);
+	const b = startOfLocalDay(end);
+	return Math.max(1, Math.round((b - a) / 86_400_000) + 1);
+}

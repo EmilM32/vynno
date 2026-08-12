@@ -1,8 +1,18 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { formatClock, sessionElapsedMs } from '$lib/time/duration';
 
 	const logs = $derived(sessionStore.recentLogs);
+	const busy = $derived(!!sessionStore.activeSession);
+
+	function restart(sessionId: string) {
+		const ok = sessionStore.restartFromSession(sessionId);
+		if (ok) {
+			void goto(resolve('/timer'));
+		}
+	}
 </script>
 
 <div class="flex h-[300px] flex-col rounded-lg border border-outline-variant bg-surface-container">
@@ -21,7 +31,7 @@
 				{@const project = sessionStore.getProject(log.projectId)}
 				{@const duration = sessionElapsedMs(log)}
 				<div
-					class="group flex cursor-default items-center justify-between rounded-DEFAULT border border-transparent p-2 transition-colors hover:border-outline-variant/50 hover:bg-surface-container-high"
+					class="group flex items-center justify-between rounded-DEFAULT border border-transparent p-2 transition-colors hover:border-outline-variant/50 hover:bg-surface-container-high"
 				>
 					<div class="flex min-w-0 items-center gap-3 overflow-hidden">
 						<div
@@ -36,15 +46,22 @@
 							</span>
 						</div>
 					</div>
-					<div class="flex shrink-0 items-center gap-4 pl-2">
+					<div class="flex shrink-0 items-center gap-2 pl-2">
 						<span class="font-mono text-code-data tabular-nums text-on-surface">
 							{formatClock(duration)}
 						</span>
-						<span
-							class="material-symbols-outlined text-[16px] text-on-surface-variant opacity-0 transition-opacity group-hover:opacity-40"
-							title="Restart in Phase 3"
-							aria-hidden="true">play_arrow</span
+						<button
+							type="button"
+							class="rounded p-0.5 text-on-surface-variant opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary disabled:cursor-not-allowed disabled:opacity-30"
+							disabled={busy}
+							onclick={() => restart(log.id)}
+							title={busy ? 'Stop the current session first' : 'Restart this task'}
+							aria-label="Restart {log.note}"
 						>
+							<span class="material-symbols-outlined text-[16px]" aria-hidden="true"
+								>play_arrow</span
+							>
+						</button>
 					</div>
 				</div>
 			{/each}

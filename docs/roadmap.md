@@ -13,7 +13,7 @@
 | **0** | Planning | PRD, domain model, screens, design system, ADRs | Docs only |
 | **1** | Scaffold | SvelteKit + TS + Tailwind, tokens, app shell, empty routes | Done |
 | **2** | Core timer UX | Mock data, session lifecycle, Timer + Dashboard P0 | Done |
-| **3** | Logs & Insights | Full list, search, charts, aggregates | Yes |
+| **3** | Logs & Insights | Full list, search, charts, aggregates | Done |
 | **4** | Polish | Settings stub, P2 UI, a11y, visual QA vs Stitch | Yes |
 | **5** | API readiness | HTTP repository, env config, wire to backend when available | Yes |
 
@@ -49,7 +49,7 @@
 
 ---
 
-## Phase 2 — Core timer UX (current)
+## Phase 2 — Core timer UX
 
 **Goals**
 
@@ -63,15 +63,15 @@
 
 ---
 
-## Phase 3 — Logs & Insights
+## Phase 3 — Logs & Insights (current)
 
 **Goals**
 
-- Logs: date grouping, duration/range formatting, activity chips, search filter.  
-- Aggregations for week/month.  
-- Insights: KPIs, project donut, activity bar, breakdown table.  
-- Dashboard P1: weekly chart, active projects strip, deltas.  
-- Recent-task restart on Timer/Dashboard.
+- [x] Logs: date grouping, duration/range formatting, activity chips, search filter.  
+- [x] Aggregations for week/month.  
+- [x] Insights: KPIs, project donut, activity bar, breakdown table.  
+- [x] Dashboard P1: weekly chart, active projects strip, deltas.  
+- [x] Recent-task restart on Timer/Dashboard.
 
 **Exit criteria:** Flows D–G work; Insights matches mock data narrative.
 

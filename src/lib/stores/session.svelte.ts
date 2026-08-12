@@ -1,7 +1,14 @@
 import { browser } from '$app/environment';
 import { MockTimeTrackingRepository } from '$lib/data/mock-repository';
 import type { TimeTrackingRepository } from '$lib/data/repository';
-import { recentStoppedSessions, recentTasks, todayDeltaMs, todayTotalMs } from '$lib/time/aggregates';
+import {
+	projectWeekSummaries,
+	recentStoppedSessions,
+	recentTasks,
+	todayDeltaMs,
+	todayTotalMs,
+	weeklyDayTotals
+} from '$lib/time/aggregates';
 import { formatClock, sessionElapsedMs } from '$lib/time/duration';
 import type { Project, StartSessionInput, TimeSession } from '$lib/types/domain';
 
@@ -66,6 +73,12 @@ class SessionStore {
 
 	recentTaskItems = $derived.by(() => recentTasks(this.sessions, 5));
 
+	weekDayTotals = $derived.by(() => weeklyDayTotals(this.sessions, new Date(this.nowMs)));
+
+	projectWeekSummaries = $derived.by(() =>
+		projectWeekSummaries(this.sessions, this.projects, new Date(this.nowMs))
+	);
+
 	getProject = (id: string): Project | undefined => {
 		return this.projects.find((p) => p.id === id);
 	};
@@ -97,6 +110,35 @@ class SessionStore {
 		} catch (e) {
 			this.error = e instanceof Error ? e.message : 'Failed to start session';
 		}
+	};
+
+	/**
+	 * Start a new session from a recent task/log (Flow D).
+	 * Blocks if another session is already active or paused.
+	 */
+	restartFromTask = (input: StartSessionInput): boolean => {
+		if (this.activeSession) {
+			this.error = 'Stop the current session before starting a new one.';
+			return false;
+		}
+		this.start(input);
+		return this.error == null;
+	};
+
+	/** Restart using a historical session id. */
+	restartFromSession = (sessionId: string): boolean => {
+		const s = this.sessions.find((x) => x.id === sessionId);
+		if (!s) {
+			this.error = 'Session not found.';
+			return false;
+		}
+		return this.restartFromTask({
+			projectId: s.projectId,
+			note: s.note,
+			ticketId: s.ticketId,
+			activityType: s.activityType,
+			tags: s.tags
+		});
 	};
 
 	pause = (): void => {
@@ -136,6 +178,10 @@ class SessionStore {
 		} catch (e) {
 			this.error = e instanceof Error ? e.message : 'Failed to stop';
 		}
+	};
+
+	clearError = (): void => {
+		this.error = null;
 	};
 
 	#startClock = (): void => {

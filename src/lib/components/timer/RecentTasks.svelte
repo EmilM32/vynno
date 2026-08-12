@@ -3,6 +3,17 @@
 	import { formatCompact } from '$lib/time/duration';
 
 	const items = $derived(sessionStore.recentTaskItems);
+	const busy = $derived(!!sessionStore.activeSession);
+
+	function restart(item: (typeof items)[number]) {
+		sessionStore.restartFromTask({
+			projectId: item.projectId,
+			note: item.note,
+			ticketId: item.ticketId,
+			activityType: item.activityType,
+			tags: item.tags
+		});
+	}
 </script>
 
 <div class="flex flex-col gap-3">
@@ -20,8 +31,12 @@
 			{#each items as item (item.sessionId)}
 				{@const project = sessionStore.getProject(item.projectId)}
 				<li>
-					<div
-						class="group flex w-full items-center justify-between rounded border border-outline-variant bg-surface-container p-3 transition-colors hover:bg-surface-variant"
+					<button
+						type="button"
+						class="group flex w-full items-center justify-between rounded border border-outline-variant bg-surface-container p-3 text-left transition-colors hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-60"
+						disabled={busy}
+						onclick={() => restart(item)}
+						title={busy ? 'Stop the current session first' : 'Start this task'}
 					>
 						<div class="flex min-w-0 flex-col">
 							<span
@@ -37,12 +52,11 @@
 								{formatCompact(item.durationMs)}
 							</span>
 							<span
-								class="material-symbols-outlined text-outline-variant opacity-40"
-								title="Restart in Phase 3"
+								class="material-symbols-outlined text-outline-variant opacity-40 transition-all group-hover:text-primary group-hover:opacity-100 group-disabled:opacity-30"
 								aria-hidden="true">play_arrow</span
 							>
 						</div>
-					</div>
+					</button>
 				</li>
 			{/each}
 		</ul>

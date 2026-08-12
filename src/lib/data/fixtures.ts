@@ -51,7 +51,7 @@ export const MOCK_PROFILE: UserProfile = {
 	handle: '@alexdev'
 };
 
-/** Build historical stopped sessions relative to "now" so Today totals stay realistic. */
+/** Build historical stopped sessions relative to "now" so charts stay realistic. */
 export function buildMockSessions(now = new Date()): TimeSession[] {
 	const day = (offsetDays: number, hour: number, minute = 0) => {
 		const d = new Date(now);
@@ -63,37 +63,49 @@ export function buildMockSessions(now = new Date()): TimeSession[] {
 	const ended = (startIso: string, durationMs: number) =>
 		new Date(Date.parse(startIso) + durationMs).toISOString();
 
-	const sessions: TimeSession[] = [
+	const h = (hours: number, mins = 0) => hours * 3_600_000 + mins * 60_000;
+
+	const raw: {
+		id: string;
+		projectId: string;
+		note: string;
+		ticketId?: string;
+		activityType?: TimeSession['activityType'];
+		tags?: string[];
+		offsetDays: number;
+		hour: number;
+		minute?: number;
+		durationMs: number;
+	}[] = [
 		// Today
 		{
 			id: 'sess-today-1',
 			projectId: PROJECT_IDS.alpha,
 			note: 'Database schema migration script',
 			activityType: 'coding',
-			status: 'stopped',
-			startedAt: day(0, 9, 0),
-			endedAt: ended(day(0, 9, 0), 2 * 3_600_000 + 15 * 60_000),
-			pausedMs: 0
+			offsetDays: 0,
+			hour: 9,
+			durationMs: h(2, 15)
 		},
 		{
 			id: 'sess-today-2',
 			projectId: PROJECT_IDS.ui,
 			note: 'Update component library tokens',
 			activityType: 'coding',
-			status: 'stopped',
-			startedAt: day(0, 11, 30),
-			endedAt: ended(day(0, 11, 30), 1 * 3_600_000 + 45 * 60_000 + 30_000),
-			pausedMs: 0
+			offsetDays: 0,
+			hour: 11,
+			minute: 30,
+			durationMs: h(1, 45) + 30_000
 		},
 		{
 			id: 'sess-today-3',
 			projectId: PROJECT_IDS.internal,
 			note: 'Team Sync Meeting',
 			activityType: 'meeting',
-			status: 'stopped',
-			startedAt: day(0, 13, 30),
-			endedAt: ended(day(0, 13, 30), 45 * 60_000),
-			pausedMs: 0
+			offsetDays: 0,
+			hour: 13,
+			minute: 30,
+			durationMs: h(0, 45)
 		},
 		{
 			id: 'sess-today-4',
@@ -101,10 +113,10 @@ export function buildMockSessions(now = new Date()): TimeSession[] {
 			note: 'Setup authentication endpoints',
 			ticketId: 'API-12',
 			activityType: 'coding',
-			status: 'stopped',
-			startedAt: day(0, 14, 30),
-			endedAt: ended(day(0, 14, 30), 42 * 60_000 + 8_000),
-			pausedMs: 0
+			offsetDays: 0,
+			hour: 14,
+			minute: 30,
+			durationMs: h(0, 42) + 8_000
 		},
 		// Yesterday
 		{
@@ -114,54 +126,187 @@ export function buildMockSessions(now = new Date()): TimeSession[] {
 			ticketId: 'DEV-840',
 			activityType: 'deep_work',
 			tags: ['Backend'],
-			status: 'stopped',
-			startedAt: day(-1, 10, 0),
-			endedAt: ended(day(-1, 10, 0), 2 * 3_600_000 + 15 * 60_000),
-			pausedMs: 0
+			offsetDays: -1,
+			hour: 10,
+			durationMs: h(2, 15)
 		},
 		{
 			id: 'sess-yest-2',
 			projectId: PROJECT_IDS.ui,
 			note: 'UI Implementation',
 			activityType: 'coding',
-			status: 'stopped',
-			startedAt: day(-1, 14, 0),
-			endedAt: ended(day(-1, 14, 0), 45 * 60_000),
-			pausedMs: 0
+			offsetDays: -1,
+			hour: 14,
+			durationMs: h(0, 45)
 		},
 		{
 			id: 'sess-yest-3',
 			projectId: PROJECT_IDS.api,
 			note: 'Fixing Bug #402',
 			activityType: 'debugging',
-			status: 'stopped',
-			startedAt: day(-1, 15, 0),
-			endedAt: ended(day(-1, 15, 0), 1 * 3_600_000 + 10 * 60_000),
-			pausedMs: 0
+			offsetDays: -1,
+			hour: 15,
+			durationMs: h(1, 10)
 		},
-		// Earlier this week (for recent tasks variety)
 		{
-			id: 'sess-week-1',
+			id: 'sess-yest-4',
+			projectId: PROJECT_IDS.alpha,
+			note: 'Query plan review',
+			activityType: 'research',
+			offsetDays: -1,
+			hour: 9,
+			durationMs: h(1, 30)
+		},
+		// -2
+		{
+			id: 'sess-d2-1',
 			projectId: PROJECT_IDS.auth,
 			note: 'OAuth callback hardening',
 			ticketId: 'DEV-801',
 			activityType: 'coding',
-			status: 'stopped',
-			startedAt: day(-2, 9, 30),
-			endedAt: ended(day(-2, 9, 30), 3 * 3_600_000),
-			pausedMs: 0
+			offsetDays: -2,
+			hour: 9,
+			minute: 30,
+			durationMs: h(3)
 		},
 		{
-			id: 'sess-week-2',
+			id: 'sess-d2-2',
+			projectId: PROJECT_IDS.internal,
+			note: 'Standup + planning',
+			activityType: 'meeting',
+			offsetDays: -2,
+			hour: 14,
+			durationMs: h(0, 50)
+		},
+		// -3
+		{
+			id: 'sess-d3-1',
 			projectId: PROJECT_IDS.alpha,
 			note: 'API gateway rate limits',
 			activityType: 'coding',
-			status: 'stopped',
-			startedAt: day(-3, 11, 0),
-			endedAt: ended(day(-3, 11, 0), 1 * 3_600_000 + 30 * 60_000),
-			pausedMs: 0
+			offsetDays: -3,
+			hour: 11,
+			durationMs: h(1, 30)
+		},
+		{
+			id: 'sess-d3-2',
+			projectId: PROJECT_IDS.ui,
+			note: 'Token audit docs',
+			activityType: 'docs',
+			offsetDays: -3,
+			hour: 15,
+			durationMs: h(2)
+		},
+		// -4
+		{
+			id: 'sess-d4-1',
+			projectId: PROJECT_IDS.api,
+			note: 'Webhook signature verification',
+			activityType: 'deep_work',
+			offsetDays: -4,
+			hour: 10,
+			durationMs: h(2, 40)
+		},
+		{
+			id: 'sess-d4-2',
+			projectId: PROJECT_IDS.alpha,
+			note: 'Index maintenance',
+			activityType: 'maintenance',
+			offsetDays: -4,
+			hour: 14,
+			durationMs: h(1, 15)
+		},
+		// -5
+		{
+			id: 'sess-d5-1',
+			projectId: PROJECT_IDS.ui,
+			note: 'Dashboard density pass',
+			activityType: 'coding',
+			offsetDays: -5,
+			hour: 9,
+			durationMs: h(3, 20)
+		},
+		{
+			id: 'sess-d5-2',
+			projectId: PROJECT_IDS.auth,
+			note: 'Session cookie review',
+			activityType: 'debugging',
+			offsetDays: -5,
+			hour: 14,
+			durationMs: h(1, 45)
+		},
+		// -6 / -7 (earlier week boundary)
+		{
+			id: 'sess-d6-1',
+			projectId: PROJECT_IDS.internal,
+			note: 'Retrospective notes',
+			activityType: 'docs',
+			offsetDays: -6,
+			hour: 11,
+			durationMs: h(1)
+		},
+		{
+			id: 'sess-d7-1',
+			projectId: PROJECT_IDS.alpha,
+			note: 'Schema ADR draft',
+			activityType: 'docs',
+			offsetDays: -7,
+			hour: 10,
+			durationMs: h(2, 30)
+		},
+		// Earlier in month (~2 weeks ago)
+		{
+			id: 'sess-m1',
+			projectId: PROJECT_IDS.api,
+			note: 'Initial v2 routing structure',
+			activityType: 'deep_work',
+			offsetDays: -12,
+			hour: 10,
+			durationMs: h(4)
+		},
+		{
+			id: 'sess-m2',
+			projectId: PROJECT_IDS.ui,
+			note: 'Sync with UI team regarding button variants',
+			activityType: 'meeting',
+			offsetDays: -14,
+			hour: 13,
+			durationMs: h(0, 45)
+		},
+		{
+			id: 'sess-m3',
+			projectId: PROJECT_IDS.auth,
+			note: 'Passwordless spike',
+			activityType: 'research',
+			offsetDays: -18,
+			hour: 9,
+			durationMs: h(3, 15)
+		},
+		{
+			id: 'sess-m4',
+			projectId: PROJECT_IDS.alpha,
+			note: 'Optimizing index usage on user_events table',
+			activityType: 'maintenance',
+			offsetDays: -20,
+			hour: 14,
+			minute: 15,
+			durationMs: h(1, 15)
 		}
 	];
 
-	return sessions;
+	return raw.map((r) => {
+		const startedAt = day(r.offsetDays, r.hour, r.minute ?? 0);
+		return {
+			id: r.id,
+			projectId: r.projectId,
+			note: r.note,
+			ticketId: r.ticketId,
+			activityType: r.activityType,
+			tags: r.tags,
+			status: 'stopped' as const,
+			startedAt,
+			endedAt: ended(startedAt, r.durationMs),
+			pausedMs: 0
+		};
+	});
 }

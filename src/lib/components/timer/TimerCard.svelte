@@ -59,7 +59,7 @@
 		{#if isIdle}
 			<button
 				type="button"
-				class="flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary transition-colors hover:bg-primary-fixed-dim"
+				class="focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary transition-colors hover:bg-primary-fixed-dim"
 				onclick={() => sessionStore.start()}
 			>
 				<span
@@ -72,7 +72,7 @@
 		{:else if isActive}
 			<button
 				type="button"
-				class="flex flex-1 items-center justify-center gap-2 rounded border border-outline-variant bg-surface-container-highest py-2 text-headline-md text-on-surface transition-colors hover:bg-surface-variant"
+				class="focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-outline-variant bg-surface-container-highest py-2 text-headline-md text-on-surface transition-colors hover:bg-surface-variant"
 				onclick={() => sessionStore.pause()}
 			>
 				<span class="material-symbols-outlined text-tertiary-fixed" aria-hidden="true">pause</span>
@@ -80,7 +80,7 @@
 			</button>
 			<button
 				type="button"
-				class="flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary transition-colors hover:bg-primary-fixed-dim"
+				class="focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary transition-colors hover:bg-primary-fixed-dim"
 				onclick={() => sessionStore.stop()}
 			>
 				<span
@@ -93,7 +93,7 @@
 		{:else}
 			<button
 				type="button"
-				class="flex flex-1 items-center justify-center gap-2 rounded border border-outline-variant bg-surface-container-highest py-2 text-headline-md text-on-surface transition-colors hover:bg-surface-variant"
+				class="focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-outline-variant bg-surface-container-highest py-2 text-headline-md text-on-surface transition-colors hover:bg-surface-variant"
 				onclick={() => sessionStore.resume()}
 			>
 				<span class="material-symbols-outlined text-secondary" aria-hidden="true">play_arrow</span>
@@ -101,7 +101,7 @@
 			</button>
 			<button
 				type="button"
-				class="flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary transition-colors hover:bg-primary-fixed-dim"
+				class="focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary transition-colors hover:bg-primary-fixed-dim"
 				onclick={() => sessionStore.stop()}
 			>
 				<span

@@ -14,7 +14,7 @@
 | **1** | Scaffold | SvelteKit + TS + Tailwind, tokens, app shell, empty routes | Done |
 | **2** | Core timer UX | Mock data, session lifecycle, Timer + Dashboard P0 | Done |
 | **3** | Logs & Insights | Full list, search, charts, aggregates | Done |
-| **4** | Polish | Settings stub, P2 UI, a11y, visual QA vs Stitch | Yes |
+| **4** | Polish | Settings stub, P2 UI, a11y, visual QA vs Stitch | Done |
 | **5** | API readiness | HTTP repository, env config, wire to backend when available | Yes |
 
 ---
@@ -63,7 +63,7 @@
 
 ---
 
-## Phase 3 — Logs & Insights (current)
+## Phase 3 — Logs & Insights
 
 **Goals**
 
@@ -77,15 +77,15 @@
 
 ---
 
-## Phase 4 — Polish
+## Phase 4 — Polish (current)
 
 **Goals**
 
-- Visual QA against Stitch screenshots (spacing, type, chips).  
-- Settings stub + optional profile block.  
-- P2 candidates as capacity allows: CMD+K shell, Quick Command panel, session targets.  
-- Accessibility pass (focus, contrast, reduced motion).  
-- Empty states and error-less mock edge cases.
+- [x] Visual QA against Stitch screenshots (spacing, type, chips).  
+- [x] Settings stub + optional profile block.  
+- [x] P2 candidates as capacity allows: CMD+K shell; session targets / Quick Command deferred — see [p2-backlog.md](./p2-backlog.md).  
+- [x] Accessibility pass (focus, contrast, reduced motion).  
+- [x] Empty states and error-less mock edge cases.
 
 **Exit criteria:** P0+P1 requirements in PRD satisfied; known P2 backlog listed.
 
@@ -129,5 +129,6 @@ Use this roadmap as the checklist. Optionally split Phase 1+ into GitHub issues 
 ## Related documents
 
 - [prd.md](./prd.md)  
+- [p2-backlog.md](./p2-backlog.md)  
 - [adr/0001-frontend-stack.md](./adr/0001-frontend-stack.md)  
 - [adr/0002-frontend-only-separation.md](./adr/0002-frontend-only-separation.md)  

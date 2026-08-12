@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { prefsStore } from '$lib/stores/prefs.svelte';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { periodStats } from '$lib/time/aggregates';
 	import type { PeriodKind } from '$lib/time/duration';
@@ -11,7 +12,13 @@
 	let period = $state<PeriodKind>('week');
 
 	const stats = $derived(
-		periodStats(sessionStore.sessions, sessionStore.projects, period, new Date(sessionStore.nowMs))
+		periodStats(
+			sessionStore.sessions,
+			sessionStore.projects,
+			period,
+			new Date(sessionStore.nowMs),
+			prefsStore.dailyTargetMs
+		)
 	);
 </script>
 

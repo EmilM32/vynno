@@ -16,7 +16,7 @@
 	{#each [['week', 'Week'], ['month', 'Month']] as [id, label] (id)}
 		<button
 			type="button"
-			class="rounded-sm px-3 py-1 font-mono text-code-label transition-colors {value === id
+			class="focus-ring rounded-sm px-3 py-1 font-mono text-code-label transition-colors {value === id
 				? 'bg-primary/15 text-primary'
 				: 'text-on-surface-variant hover:text-on-surface'}"
 			aria-pressed={value === id}

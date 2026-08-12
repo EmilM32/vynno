@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { NAV_ITEMS, isNavActive } from './nav';
 </script>
@@ -10,8 +11,10 @@
 	{#each NAV_ITEMS as item (item.href)}
 		{@const active = isNavActive(page.url.pathname, item.href)}
 		<a
-			href={item.href}
-			class="flex min-w-0 flex-col items-center justify-center rounded-xl px-3 py-1 transition-transform active:scale-90 {active
+			href={resolve(
+				item.href as '/timer' | '/dashboard' | '/logs' | '/insights' | '/settings'
+			)}
+			class="focus-ring flex min-w-0 flex-col items-center justify-center rounded-xl px-3 py-1 transition-transform active:scale-90 motion-reduce:active:scale-100 {active
 				? 'bg-secondary-container/20 text-primary'
 				: 'text-on-surface-variant hover:text-primary'}"
 			aria-current={active ? 'page' : undefined}

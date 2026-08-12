@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { MockTimeTrackingRepository } from '$lib/data/mock-repository';
 import type { TimeTrackingRepository } from '$lib/data/repository';
+import { prefsStore } from '$lib/stores/prefs.svelte';
 import {
 	projectWeekSummaries,
 	recentStoppedSessions,
@@ -39,13 +40,15 @@ class SessionStore {
 		this.#repo = repo;
 		this.projects = repo.listProjects();
 		this.sessions = repo.listSessions();
-		this.draftProjectId = this.projects[0]?.id ?? '';
+		this.draftProjectId = prefsStore.defaultProjectId || this.projects[0]?.id || '';
 
-		// Prefill draft from most recent stopped session if present
+		// Prefill note from most recent stopped session; keep default project unless unknown
 		const recent = this.sessions.find((s) => s.status === 'stopped');
 		if (recent) {
 			this.draftNote = recent.note;
-			this.draftProjectId = recent.projectId;
+		}
+		if (!this.projects.some((p) => p.id === this.draftProjectId)) {
+			this.draftProjectId = this.projects[0]?.id ?? '';
 		}
 
 		if (browser) {

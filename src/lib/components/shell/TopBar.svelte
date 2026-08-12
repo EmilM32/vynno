@@ -1,7 +1,15 @@
 <script lang="ts">
+	import { commandPalette } from '$lib/stores/command-palette.svelte';
+	import { sessionStore } from '$lib/stores/session.svelte';
 	import { APP_NAME } from './nav';
 
 	let { title = '' }: { title?: string } = $props();
+
+	const live = $derived(
+		sessionStore.activeSession?.status === 'active' ||
+			sessionStore.activeSession?.status === 'paused'
+	);
+	const isActive = $derived(sessionStore.activeSession?.status === 'active');
 </script>
 
 <header
@@ -11,7 +19,28 @@
 		<span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">terminal</span>
 		<span class="text-headline-md font-bold text-primary">{APP_NAME}</span>
 	</div>
-	{#if title}
-		<span class="text-body-sm text-on-surface-variant">{title}</span>
-	{/if}
+	<div class="flex items-center gap-3">
+		{#if title}
+			<span class="text-body-sm text-on-surface-variant">{title}</span>
+		{/if}
+		<button
+			type="button"
+			class="focus-ring rounded p-1 text-on-surface-variant hover:bg-surface-container hover:text-primary"
+			aria-label="Open command palette"
+			title="⌘K"
+			onclick={() => commandPalette.show()}
+		>
+			<span class="material-symbols-outlined text-[22px]" aria-hidden="true">search</span>
+		</button>
+		<span
+			class="material-symbols-outlined text-[18px] {live
+				? isActive
+					? 'text-secondary-fixed blink'
+					: 'text-tertiary'
+				: 'text-outline-variant/40'}"
+			style={live ? "font-variation-settings: 'FILL' 1" : undefined}
+			aria-label={live ? (isActive ? 'Session recording' : 'Session paused') : 'No active session'}
+			role="status">fiber_manual_record</span
+		>
+	</div>
 </header>

@@ -18,7 +18,7 @@
 			aria-hidden="true">prompt_suggestion</span
 		>
 		<input
-			class="w-full rounded border border-outline-variant bg-surface-container-low py-3 pr-4 pl-10 font-mono text-code-data text-on-surface outline-none transition-all placeholder:text-outline-variant focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70"
+			class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-3 pr-4 pl-10 font-mono text-code-data text-on-surface outline-none transition-all placeholder:text-outline-variant focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70"
 			type="text"
 			placeholder="What are you working on? (e.g. 'Fixing Bug #402')"
 			bind:value={sessionStore.draftNote}
@@ -34,7 +34,7 @@
 		>
 		<select
 			id="project-select"
-			class="min-w-[10rem] flex-1 rounded border border-outline-variant bg-surface-container-low px-3 py-1.5 font-mono text-code-label text-on-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none"
+			class="focus-ring min-w-[10rem] flex-1 rounded border border-outline-variant bg-surface-container-low px-3 py-1.5 font-mono text-code-label text-on-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none"
 			bind:value={sessionStore.draftProjectId}
 			disabled={locked}
 		>

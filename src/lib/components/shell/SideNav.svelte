@@ -1,6 +1,17 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { prefsStore } from '$lib/stores/prefs.svelte';
 	import { APP_NAME, APP_VERSION, NAV_ITEMS, isNavActive } from './nav';
+
+	const initials = $derived(
+		prefsStore.displayName
+			.split(/\s+/)
+			.map((w) => w[0])
+			.join('')
+			.slice(0, 2)
+			.toUpperCase()
+	);
 </script>
 
 <nav
@@ -19,8 +30,8 @@
 
 	<div class="mb-4 px-4">
 		<a
-			href="/timer"
-			class="flex w-full items-center justify-center gap-2 rounded-DEFAULT border border-primary/20 bg-primary px-4 py-2 font-mono text-code-data font-medium text-background transition-colors hover:bg-primary-container"
+			href={resolve('/timer')}
+			class="focus-ring flex w-full items-center justify-center gap-2 rounded-DEFAULT border border-primary/20 bg-primary px-4 py-2 font-mono text-code-data font-medium text-background transition-colors hover:bg-primary-container"
 		>
 			<span class="material-symbols-outlined text-[18px]" aria-hidden="true">play_arrow</span>
 			Start New Session
@@ -32,8 +43,10 @@
 			{@const active = isNavActive(page.url.pathname, item.href)}
 			<li>
 				<a
-					href={item.href}
-					class="group flex items-center gap-3 rounded-DEFAULT border-l-2 px-3 py-2 transition-colors duration-150 {active
+					href={resolve(
+						item.href as '/timer' | '/dashboard' | '/logs' | '/insights' | '/settings'
+					)}
+					class="focus-ring group flex items-center gap-3 rounded-DEFAULT border-l-2 px-3 py-2 transition-colors duration-150 {active
 						? 'border-primary bg-surface-container-high text-primary'
 						: 'border-transparent text-on-surface-variant hover:bg-surface-variant hover:text-primary'}"
 					aria-current={active ? 'page' : undefined}
@@ -50,4 +63,22 @@
 			</li>
 		{/each}
 	</ul>
+
+	<div class="mt-auto border-t border-outline-variant px-3 pt-3">
+		<a
+			href={resolve('/settings')}
+			class="focus-ring flex items-center gap-3 rounded-DEFAULT px-3 py-2 transition-colors hover:bg-surface-variant"
+		>
+			<div
+				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-DEFAULT border border-outline-variant bg-surface-container-high font-mono text-body-sm text-primary"
+				aria-hidden="true"
+			>
+				{initials}
+			</div>
+			<div class="min-w-0">
+				<p class="truncate text-body-sm font-medium text-on-surface">{prefsStore.displayName}</p>
+				<p class="truncate font-mono text-[10px] text-on-surface-variant">{prefsStore.handle}</p>
+			</div>
+		</a>
+	</div>
 </nav>

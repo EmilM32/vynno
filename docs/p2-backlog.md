@@ -17,6 +17,7 @@ These are intentionally **not** built yet. Prioritize when polishing for power u
 | SET-3+ | Persist daily target | Prefs are in-memory only today |
 | SET-4+ | Full preferences | Theme (N/A dark-only), notifications, default activity type |
 | DATA | localStorage hydrate | Optional convenience before real API |
+| **SSR-1** | **Enable SvelteKit SSR** | **Deferred until Phase 5 (real API).** App is SPA (`ssr = false`) because mock session state is a module singleton. See [ssr-enablement.md](./ssr-enablement.md) for why, risks, hydration requirements, and implementation plan. Do not flip the flag without that work. |
 | CHART | Chart.js / library | CSS charts sufficient for mock; revisit if product wants interaction |
 | A11Y | Full focus trap in palette | Light dialog today; roving tabindex / focus trap libraries later |
 

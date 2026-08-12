@@ -29,6 +29,7 @@ The UI must support a live timer, lists of sessions, and aggregates for Dashboar
 
 - In-memory data is not multi-tab or durable without extra work.  
 - Aggregates computed on the client may later move server-side for large histories — interface should allow either.  
+- Module-level session store + mock fixtures are incompatible with safe SSR; the app keeps `ssr = false` until a request-scoped seed / API path exists — see [ssr-enablement.md](../ssr-enablement.md) (**SSR-1**).  
 
 ## Alternatives considered
 

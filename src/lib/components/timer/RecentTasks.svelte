@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { formatCompact } from '$lib/time/duration';
 
@@ -18,13 +19,13 @@
 
 <div class="flex flex-col gap-3">
 	<div class="flex items-center justify-between border-b border-outline-variant pb-2">
-		<h2 class="text-headline-md text-on-surface-variant">Recent Tasks</h2>
-		<span class="font-mono text-code-label text-outline">Press [CMD+K] to search</span>
+		<h2 class="text-headline-md text-on-surface-variant">{m.timer_recent_tasks()}</h2>
+		<span class="font-mono text-code-label text-outline">{m.timer_recent_search_hint()}</span>
 	</div>
 
 	{#if items.length === 0}
 		<p class="py-4 text-center text-body-sm text-on-surface-variant">
-			No completed sessions yet. Start the timer to log work.
+			{m.timer_recent_empty()}
 		</p>
 	{:else}
 		<ul class="flex flex-col gap-2" data-testid="recent-tasks">
@@ -36,7 +37,7 @@
 						class="group flex w-full items-center justify-between rounded border border-outline-variant bg-surface-container p-3 text-left transition-colors hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-60"
 						disabled={busy}
 						onclick={() => restart(item)}
-						title={busy ? 'Stop the current session first' : 'Start this task'}
+						title={busy ? m.timer_stop_first() : m.timer_start_this_task()}
 						data-testid="recent-task-restart"
 					>
 						<div class="flex min-w-0 flex-col">
@@ -45,7 +46,7 @@
 								>{item.note}</span
 							>
 							<span class="font-mono text-code-label text-outline-variant">
-								Project: {project?.name ?? 'Unknown'}
+								{m.timer_project_line({ name: project?.name ?? m.common_unknown() })}
 							</span>
 						</div>
 						<div class="flex shrink-0 items-center gap-3 pl-3">

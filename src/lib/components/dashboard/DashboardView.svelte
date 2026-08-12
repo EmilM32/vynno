@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import ActiveProjects from './ActiveProjects.svelte';
 	import CurrentFocus from './CurrentFocus.svelte';
@@ -17,7 +18,7 @@
 			<button
 				type="button"
 				class="ml-2 underline"
-				onclick={() => sessionStore.clearError()}>dismiss</button
+				onclick={() => sessionStore.clearError()}>{m.common_dismiss()}</button
 			>
 		</div>
 	{/if}

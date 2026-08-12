@@ -1,3 +1,4 @@
+import { m } from '$lib/paraglide/messages.js';
 import { isPaletteColor } from './palette';
 
 export const PROJECT_NAME_MAX = 80;
@@ -35,22 +36,22 @@ export function normalizeProjectFields(input: ProjectFieldValues): NormalizedPro
 
 /**
  * Validate create/update field values (not uniqueness — that needs the repository).
- * Returns error message or null if valid.
+ * Returns localized error message or null if valid.
  */
 export function validateProjectFields(input: ProjectFieldValues): string | null {
 	const name = input.name.trim();
-	if (!name) return 'Name is required.';
-	if (name.length > PROJECT_NAME_MAX) return `Name must be at most ${PROJECT_NAME_MAX} characters.`;
+	if (!name) return m.validation_name_required();
+	if (name.length > PROJECT_NAME_MAX) return m.validation_name_max({ max: PROJECT_NAME_MAX });
 
-	if (!isPaletteColor(input.color)) return 'Choose a color from the palette.';
+	if (!isPaletteColor(input.color)) return m.validation_color_palette();
 
 	const code = normalizeCode(input.code);
 	if (code != null) {
 		if (code.length > PROJECT_CODE_MAX) {
-			return `Code must be at most ${PROJECT_CODE_MAX} characters.`;
+			return m.validation_code_max({ max: PROJECT_CODE_MAX });
 		}
 		if (!PROJECT_CODE_PATTERN.test(code)) {
-			return 'Code may only contain A–Z, 0–9, and hyphens.';
+			return m.validation_code_chars();
 		}
 	}
 

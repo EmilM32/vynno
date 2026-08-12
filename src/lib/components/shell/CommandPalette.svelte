@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { m } from '$lib/paraglide/messages.js';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
 	import { NAV_ITEMS, type AppRoute } from './nav';
 
@@ -21,7 +22,7 @@
 	const commands = $derived.by((): Command[] => {
 		const navCmds: Command[] = NAV_ITEMS.map((item) => ({
 			id: item.href,
-			label: `Go to ${item.label}`,
+			label: m.command_go_to({ page: item.label() }),
 			hint: item.href,
 			icon: item.icon,
 			run: () => {
@@ -32,7 +33,7 @@
 		return [
 			{
 				id: 'start',
-				label: 'Start new session',
+				label: m.command_start_session(),
 				hint: '/timer',
 				icon: 'play_arrow',
 				run: () => {
@@ -122,14 +123,14 @@
 		<button
 			type="button"
 			class="absolute inset-0 bg-surface-dim/80 backdrop-blur-[2px]"
-			aria-label="Close command palette"
+			aria-label={m.command_palette_close()}
 			onclick={closePalette}
 		></button>
 		<div
 			class="relative z-10 w-full max-w-lg overflow-hidden rounded-lg border border-outline-variant bg-surface-container shadow-xl"
 			role="dialog"
 			aria-modal="true"
-			aria-label="Command palette"
+			aria-label={m.command_palette_aria()}
 		>
 			<div class="flex items-center gap-2 border-b border-outline-variant px-3">
 				<span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true"
@@ -141,8 +142,8 @@
 					oninput={onQueryInput}
 					onkeydown={onInputKey}
 					class="focus-ring w-full bg-transparent py-3 font-mono text-code-data text-on-surface outline-none placeholder:text-outline"
-					placeholder="Type a command…"
-					aria-label="Filter commands"
+					placeholder={m.command_palette_placeholder()}
+					aria-label={m.command_palette_filter_aria()}
 					autocomplete="off"
 				/>
 				<kbd
@@ -152,7 +153,9 @@
 			</div>
 			<ul class="max-h-72 overflow-y-auto py-1" role="listbox">
 				{#if filtered.length === 0}
-					<li class="px-4 py-6 text-center text-body-sm text-on-surface-variant">No matches.</li>
+					<li class="px-4 py-6 text-center text-body-sm text-on-surface-variant">
+						{m.command_palette_no_matches()}
+					</li>
 				{:else}
 					{#each filtered as cmd, i (cmd.id)}
 						<li role="option" aria-selected={i === activeIndex}>
@@ -179,7 +182,7 @@
 				{/if}
 			</ul>
 			<div class="border-t border-outline-variant px-3 py-2 font-mono text-[10px] text-outline">
-				↑↓ navigate · enter select · esc close
+				{m.command_palette_hints()}
 			</div>
 		</div>
 	</div>

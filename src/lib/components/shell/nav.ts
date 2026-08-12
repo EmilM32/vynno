@@ -1,3 +1,5 @@
+import { m } from '$lib/paraglide/messages.js';
+
 export type AppRoute =
 	| '/timer'
 	| '/dashboard'
@@ -8,17 +10,18 @@ export type AppRoute =
 
 export type NavItem = {
 	href: AppRoute;
-	label: string;
+	/** Localized label — call at render time. */
+	label: () => string;
 	icon: string;
 };
 
 export const NAV_ITEMS: NavItem[] = [
-	{ href: '/timer', label: 'Timer', icon: 'timer' },
-	{ href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-	{ href: '/logs', label: 'Logs', icon: 'list_alt' },
-	{ href: '/insights', label: 'Insights', icon: 'analytics' },
-	{ href: '/projects', label: 'Projects', icon: 'folder_managed' },
-	{ href: '/settings', label: 'Settings', icon: 'settings' }
+	{ href: '/timer', label: () => m.nav_timer(), icon: 'timer' },
+	{ href: '/dashboard', label: () => m.nav_dashboard(), icon: 'dashboard' },
+	{ href: '/logs', label: () => m.nav_logs(), icon: 'list_alt' },
+	{ href: '/insights', label: () => m.nav_insights(), icon: 'analytics' },
+	{ href: '/projects', label: () => m.nav_projects(), icon: 'folder_managed' },
+	{ href: '/settings', label: () => m.nav_settings(), icon: 'settings' }
 ];
 
 export const APP_NAME = 'DevTime';

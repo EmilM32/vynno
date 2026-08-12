@@ -1,0 +1,26 @@
+# ADR-0007: i18n with Paraglide JS
+
+## Status
+
+Accepted
+
+## Context
+
+UI copy was hardcoded English in Svelte components. We need type-safe, tree-shakable translations and an easy path to add languages without coupling locale to routes.
+
+## Decision
+
+Use **Paraglide JS** (`@inlang/paraglide-js`) — SvelteKit’s recommended i18n library.
+
+- Message source: `messages/{locale}.json`
+- Generated runtime: `src/lib/paraglide/` (gitignored; produced by Vite plugin)
+- Locale strategy: `localStorage` → `cookie` → `preferredLanguage` → `baseLocale` (**no URL strategy**)
+- Language switcher lives in Settings; `setLocale()` reloads the document
+- Translate **typical product UI copy** (labels, buttons, headings, empty states, dialogs, validation/errors shown in UI)
+- Do **not** translate technical identifiers (Material icon ligatures, test ids, routes) or user/mock content (project names, session notes)
+
+## Consequences
+
+- Adding a language: extend `project.inlang` locales + add `messages/<tag>.json`
+- Locale change reloads the SPA (resets in-memory mock session state for v1)
+- e2e continues to assert English (base locale)

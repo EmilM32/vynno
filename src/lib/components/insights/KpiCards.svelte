@@ -1,8 +1,6 @@
 <script lang="ts">
-	import {
-		formatHoursDecimal,
-		formatHoursMinutes
-	} from '$lib/time/duration';
+	import { m } from '$lib/paraglide/messages.js';
+	import { formatHoursDecimal, formatHoursMinutes } from '$lib/time/duration';
 	import type { PeriodStats } from '$lib/time/aggregates';
 
 	let { stats }: { stats: PeriodStats } = $props();
@@ -14,6 +12,9 @@
 	const vsTargetPct = $derived(
 		vsTarget != null ? `${vsTarget >= 0 ? '+' : ''}${Math.round(vsTarget * 100)}%` : null
 	);
+	const periodWord = $derived(
+		stats.period === 'week' ? m.insights_period_week().toLowerCase() : m.insights_period_month().toLowerCase()
+	);
 </script>
 
 <div class="grid grid-cols-1 gap-gutter sm:grid-cols-3">
@@ -21,14 +22,14 @@
 		class="flex flex-col justify-between rounded-lg border border-outline-variant bg-surface-container p-4"
 	>
 		<span class="font-mono text-code-label tracking-wider text-on-surface-variant uppercase"
-			>Total Time</span
+			>{m.insights_kpi_total_time()}</span
 		>
 		<div class="mt-4 flex items-baseline gap-2">
 			<span class="font-mono text-code-display text-primary" data-testid="kpi-total-time"
 				>{totalLabel}</span
 			>
 			<span class="font-mono text-code-label text-on-surface-variant">
-				this {stats.period}
+				{m.insights_kpi_this_period({ period: periodWord })}
 			</span>
 		</div>
 	</div>
@@ -37,7 +38,7 @@
 		class="flex flex-col justify-between rounded-lg border border-outline-variant bg-surface-container p-4"
 	>
 		<span class="font-mono text-code-label tracking-wider text-on-surface-variant uppercase"
-			>Most Productive Day</span
+			>{m.insights_kpi_most_productive()}</span
 		>
 		<div class="mt-4 flex items-baseline gap-2">
 			<span class="font-mono text-code-display text-on-surface">
@@ -45,7 +46,7 @@
 			</span>
 			{#if productive}
 				<span class="font-mono text-code-label text-on-surface-variant">
-					{formatHoursDecimal(productive.ms)} peak
+					{m.insights_kpi_peak({ hours: formatHoursDecimal(productive.ms) })}
 				</span>
 			{/if}
 		</div>
@@ -55,7 +56,7 @@
 		class="flex flex-col justify-between rounded-lg border border-outline-variant bg-surface-container p-4"
 	>
 		<span class="font-mono text-code-label tracking-wider text-on-surface-variant uppercase"
-			>Daily Average</span
+			>{m.insights_kpi_daily_average()}</span
 		>
 		<div class="mt-4 flex items-baseline gap-2">
 			<span class="font-mono text-code-display text-on-surface">{avgLabel}</span>
@@ -65,7 +66,7 @@
 						? 'text-secondary'
 						: 'text-error'}"
 				>
-					{vsTargetPct} vs target
+					{m.insights_kpi_vs_target({ pct: vsTargetPct })}
 				</span>
 			{/if}
 		</div>

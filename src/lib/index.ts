@@ -8,7 +8,7 @@ export type {
 	UpdateProjectInput,
 	UserProfile
 } from './types/domain';
-export { ACTIVITY_LABELS } from './types/domain';
+export { activityLabel } from './types/domain';
 export type { TimeTrackingRepository } from './data/repository';
 export { MockTimeTrackingRepository } from './data/mock-repository';
 export {

@@ -20,6 +20,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"@inlang/paraglide-js": "^2.18.2",
 		"@playwright/test": "^1.62.1",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/kit": "^2.63.0",

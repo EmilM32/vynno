@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { periodStats } from '$lib/time/aggregates';
@@ -27,9 +28,9 @@
 		class="flex flex-col justify-between gap-4 border-b border-outline-variant pb-4 sm:flex-row sm:items-end"
 	>
 		<div>
-			<h1 class="text-headline-lg text-on-surface">Insights</h1>
+			<h1 class="text-headline-lg text-on-surface">{m.insights_title()}</h1>
 			<p class="mt-1 text-body-sm text-on-surface-variant">
-				Where your time went — by project and activity.
+				{m.insights_subtitle()}
 			</p>
 		</div>
 		<PeriodToggle bind:value={period} />

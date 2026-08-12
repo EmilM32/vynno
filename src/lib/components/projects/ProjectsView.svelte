@@ -1,7 +1,8 @@
 <script lang="ts">
+	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import type { Project } from '$lib/types/domain';
-	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import ProjectForm from './ProjectForm.svelte';
 	import ProjectRow from './ProjectRow.svelte';
 
@@ -80,9 +81,9 @@
 <div class="mx-auto flex w-full max-w-2xl flex-col gap-6">
 	<div class="flex flex-col gap-3 border-b border-outline-variant pb-4 sm:flex-row sm:items-end sm:justify-between">
 		<div>
-			<h1 class="text-headline-lg text-on-surface">Projects</h1>
+			<h1 class="text-headline-lg text-on-surface">{m.projects_title()}</h1>
 			<p class="mt-1 text-body-sm text-on-surface-variant">
-				Manage work containers. Changes apply this session (mock data).
+				{m.projects_subtitle()}
 			</p>
 		</div>
 		<button
@@ -91,7 +92,7 @@
 			onclick={openCreate}
 			data-testid="new-project"
 		>
-			New project
+			{m.projects_new()}
 		</button>
 	</div>
 
@@ -107,7 +108,7 @@
 					class="focus-ring shrink-0 text-body-sm underline"
 					onclick={() => sessionStore.clearError()}
 				>
-					Dismiss
+					{m.common_dismiss_capital()}
 				</button>
 			</div>
 		</div>
@@ -127,7 +128,7 @@
 	<div
 		class="flex gap-1 rounded-DEFAULT border border-outline-variant bg-surface-container p-1"
 		role="tablist"
-		aria-label="Project status"
+		aria-label={m.projects_status_aria()}
 	>
 		<button
 			type="button"
@@ -140,7 +141,7 @@
 				: 'text-on-surface-variant hover:text-on-surface'}"
 			onclick={() => (tab = 'active')}
 		>
-			Active
+			{m.projects_tab_active()}
 			<span class="ml-1 font-mono text-code-label opacity-70">({activeList.length})</span>
 		</button>
 		<button
@@ -154,7 +155,7 @@
 				: 'text-on-surface-variant hover:text-on-surface'}"
 			onclick={() => (tab = 'archived')}
 		>
-			Archived
+			{m.projects_tab_archived()}
 			<span class="ml-1 font-mono text-code-label opacity-70">({archivedList.length})</span>
 		</button>
 	</div>
@@ -165,7 +166,7 @@
 				class="rounded-lg border border-dashed border-outline-variant bg-surface-container/40 px-4 py-10 text-center"
 			>
 				<p class="text-body-md text-on-surface-variant">
-					{tab === 'active' ? 'No active projects.' : 'No archived projects.'}
+					{tab === 'active' ? m.projects_empty_active() : m.projects_empty_archived()}
 				</p>
 				{#if tab === 'active'}
 					<button
@@ -173,7 +174,7 @@
 						class="focus-ring mt-3 text-body-sm text-primary underline"
 						onclick={openCreate}
 					>
-						Create a project
+						{m.projects_create_one()}
 					</button>
 				{/if}
 			</div>
@@ -201,11 +202,11 @@
 
 <ConfirmDialog
 	open={deleteTarget != null}
-	title="Delete project?"
+	title={m.projects_delete_title()}
 	message={deleteTarget
-		? `Permanently remove “${deleteTarget.name}”? This cannot be undone in this session.`
+		? m.projects_delete_message({ name: deleteTarget.name })
 		: ''}
-	confirmLabel="Delete"
+	confirmLabel={m.projects_delete()}
 	destructive
 	onconfirm={confirmDelete}
 	oncancel={cancelDelete}

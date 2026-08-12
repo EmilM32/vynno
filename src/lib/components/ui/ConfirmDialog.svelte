@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
+
 	interface Props {
 		open: boolean;
 		title: string;
@@ -14,12 +16,15 @@
 		open,
 		title,
 		message,
-		confirmLabel = 'Confirm',
-		cancelLabel = 'Cancel',
+		confirmLabel,
+		cancelLabel,
 		destructive = false,
 		onconfirm,
 		oncancel
 	}: Props = $props();
+
+	const confirmText = $derived(confirmLabel ?? m.common_confirm());
+	const cancelText = $derived(cancelLabel ?? m.common_cancel());
 
 	let confirmBtn: HTMLButtonElement | undefined = $state();
 
@@ -45,7 +50,7 @@
 		<button
 			type="button"
 			class="absolute inset-0 bg-surface-dim/80 backdrop-blur-[2px]"
-			aria-label="Dismiss dialog"
+			aria-label={m.dialog_dismiss_aria()}
 			onclick={oncancel}
 		></button>
 		<div
@@ -65,7 +70,7 @@
 					class="focus-ring rounded border border-outline-variant bg-surface-container-low px-3 py-2 text-body-md text-on-surface transition-colors hover:border-outline"
 					onclick={oncancel}
 				>
-					{cancelLabel}
+					{cancelText}
 				</button>
 				<button
 					bind:this={confirmBtn}
@@ -75,7 +80,7 @@
 						: 'bg-primary text-background hover:bg-primary-container'}"
 					onclick={onconfirm}
 				>
-					{confirmLabel}
+					{confirmText}
 				</button>
 			</div>
 		</div>

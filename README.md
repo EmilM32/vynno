@@ -16,6 +16,7 @@ Developer-focused work-time tracker: projects, tasks, sessions, and insights —
 
 - **SvelteKit** (Svelte 5) + **TypeScript**
 - **Tailwind CSS** v4 with Dev-Density Dark tokens
+- **Paraglide JS** for UI i18n (`messages/en.json`)
 - Node **≥ 20.19** (see `.nvmrc`)
 
 ## Developing
@@ -52,7 +53,18 @@ App opens at the Vite URL (usually `http://localhost:5173`). `/` redirects to `/
 | `/dashboard` | Dashboard (default) |
 | `/logs` | Activity logs |
 | `/insights` | Analytics |
-| `/settings` | Settings stub |
+| `/projects` | Project management |
+| `/settings` | Preferences + language |
+
+## i18n
+
+UI copy lives in `messages/en.json` and is compiled by Paraglide into `$lib/paraglide`. Components use `m.some_key()` from `$lib/paraglide/messages.js`.
+
+- **Locale strategy:** app-level only (`localStorage` / cookie) — no `/en/…` URL prefixes
+- **Switcher:** Settings → Language
+- **Add a language:** add the tag to `project.inlang/settings.json` and create `messages/<tag>.json` with the same keys
+
+See [ADR-0007](./docs/adr/0007-i18n-paraglide.md).
 
 ## Documentation
 

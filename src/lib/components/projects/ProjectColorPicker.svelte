@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { PROJECT_COLOR_PALETTE } from '$lib/projects/palette';
 
 	interface Props {
@@ -15,14 +16,14 @@
 	}
 </script>
 
-<div class="flex flex-wrap gap-2" role="radiogroup" aria-label="Project color" id={id}>
+<div class="flex flex-wrap gap-2" role="radiogroup" aria-label={m.projects_color_aria()} id={id}>
 	{#each PROJECT_COLOR_PALETTE as color (color)}
 		{@const selected = value.toLowerCase() === color.toLowerCase()}
 		<button
 			type="button"
 			role="radio"
 			aria-checked={selected}
-			aria-label="Color {color}"
+			aria-label={m.projects_color_option_aria({ color })}
 			class="focus-ring h-8 w-8 rounded-DEFAULT border-2 transition-transform {selected
 				? 'scale-110 border-on-surface'
 				: 'border-transparent hover:scale-105'}"

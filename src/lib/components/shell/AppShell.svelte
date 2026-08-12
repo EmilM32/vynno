@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { m } from '$lib/paraglide/messages.js';
 	import BottomNav from './BottomNav.svelte';
 	import CommandPalette from './CommandPalette.svelte';
 	import SideNav from './SideNav.svelte';
@@ -12,7 +13,7 @@
 	href="#main-content"
 	class="focus-ring bg-primary text-on-primary sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[200] focus:rounded focus:px-3 focus:py-2"
 >
-	Skip to content
+	{m.shell_skip_to_content()}
 </a>
 
 <div class="flex min-h-dvh flex-col bg-surface text-on-surface">

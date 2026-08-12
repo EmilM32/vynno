@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 
 	const session = $derived(sessionStore.activeSession);
@@ -8,7 +9,9 @@
 	const isPaused = $derived(status === 'paused');
 	const isIdle = $derived(!session);
 
-	const statusLabel = $derived(isActive ? 'ACTIVE' : isPaused ? 'PAUSED' : 'IDLE');
+	const statusLabel = $derived(
+		isActive ? m.timer_status_active() : isPaused ? m.timer_status_paused() : m.timer_status_idle()
+	);
 	const statusColor = $derived(
 		isActive ? 'text-secondary-fixed' : isPaused ? 'text-tertiary' : 'text-on-surface-variant'
 	);
@@ -31,7 +34,7 @@
 <div
 	class="relative flex flex-col items-center justify-center rounded-lg border bg-surface-container p-8 {cardBorder}"
 	role="region"
-	aria-label="Session timer"
+	aria-label={m.timer_session_aria()}
 	aria-live="polite"
 >
 	<div class="absolute top-4 left-4 flex items-center gap-2">
@@ -47,7 +50,7 @@
 				class="rounded border border-primary/20 bg-primary/10 px-2 py-1 font-mono text-code-label text-primary"
 				data-testid="timer-project"
 			>
-				PROJ: {projectCode}
+				{m.timer_proj_prefix({ code: projectCode })}
 			</span>
 		</div>
 	{/if}
@@ -71,7 +74,7 @@
 					style="font-variation-settings: 'FILL' 1"
 					aria-hidden="true">play_arrow</span
 				>
-				Start
+				{m.timer_start()}
 			</button>
 		{:else if isActive}
 			<button
@@ -80,7 +83,7 @@
 				onclick={() => sessionStore.pause()}
 			>
 				<span class="material-symbols-outlined text-tertiary-fixed" aria-hidden="true">pause</span>
-				Pause
+				{m.timer_pause()}
 			</button>
 			<button
 				type="button"
@@ -92,7 +95,7 @@
 					style="font-variation-settings: 'FILL' 1"
 					aria-hidden="true">stop</span
 				>
-				Stop
+				{m.timer_stop()}
 			</button>
 		{:else}
 			<button
@@ -101,7 +104,7 @@
 				onclick={() => sessionStore.resume()}
 			>
 				<span class="material-symbols-outlined text-secondary" aria-hidden="true">play_arrow</span>
-				Resume
+				{m.timer_resume()}
 			</button>
 			<button
 				type="button"
@@ -113,7 +116,7 @@
 					style="font-variation-settings: 'FILL' 1"
 					aria-hidden="true">stop</span
 				>
-				Stop
+				{m.timer_stop()}
 			</button>
 		{/if}
 	</div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 
 	const locked = $derived(!!sessionStore.activeSession);
@@ -20,17 +21,17 @@
 		<input
 			class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-3 pr-4 pl-10 font-mono text-code-data text-on-surface outline-none transition-all placeholder:text-outline-variant focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70"
 			type="text"
-			placeholder="What are you working on? (e.g. 'Fixing Bug #402')"
+			placeholder={m.timer_task_placeholder()}
 			bind:value={sessionStore.draftNote}
 			disabled={locked}
 			onkeydown={onKeydown}
-			aria-label="Task description"
+			aria-label={m.timer_task_aria()}
 		/>
 	</div>
 
 	<div class="flex flex-wrap items-center gap-2">
 		<label class="font-mono text-code-label text-on-surface-variant" for="project-select"
-			>Project</label
+			>{m.timer_project_label()}</label
 		>
 		<select
 			id="project-select"

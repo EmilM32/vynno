@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { m } from '$lib/paraglide/messages.js';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
 	import { APP_NAME, APP_VERSION, NAV_ITEMS, isNavActive } from './nav';
 
@@ -16,7 +17,7 @@
 
 <nav
 	class="fixed top-0 left-0 z-50 hidden h-screen w-sidebar flex-col border-r border-outline-variant bg-surface py-4 md:flex"
-	aria-label="Main"
+	aria-label={m.nav_main_aria()}
 >
 	<div class="mb-8 flex items-center gap-3 px-6">
 		<span class="material-symbols-outlined text-3xl text-primary" aria-hidden="true">timer</span>
@@ -34,7 +35,7 @@
 			class="focus-ring flex w-full items-center justify-center gap-2 rounded-DEFAULT border border-primary/20 bg-primary px-4 py-2 font-mono text-code-data font-medium text-background transition-colors hover:bg-primary-container"
 		>
 			<span class="material-symbols-outlined text-[18px]" aria-hidden="true">play_arrow</span>
-			Start New Session
+			{m.nav_start_new_session()}
 		</a>
 	</div>
 
@@ -56,7 +57,7 @@
 						style={active ? "font-variation-settings: 'FILL' 1" : undefined}
 						aria-hidden="true">{item.icon}</span
 					>
-					<span class="text-body-md font-medium">{item.label}</span>
+					<span class="text-body-md font-medium">{item.label()}</span>
 				</a>
 			</li>
 		{/each}

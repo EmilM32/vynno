@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { formatCompact } from '$lib/time/duration';
 
@@ -7,11 +8,11 @@
 
 <section
 	class="flex flex-col rounded-lg border border-outline-variant bg-surface-container p-4"
-	aria-label="Active projects"
+	aria-label={m.dashboard_active_projects_aria()}
 >
 	<div class="mb-4 flex items-center justify-between">
-		<span class="text-headline-md">Active Projects</span>
-		<span class="text-body-sm text-primary">This week</span>
+		<span class="text-headline-md">{m.dashboard_active_projects()}</span>
+		<span class="text-body-sm text-primary">{m.dashboard_this_week()}</span>
 	</div>
 	<div class="no-scrollbar -mx-2 flex gap-4 overflow-x-auto px-2 pb-2">
 		{#each items as item (item.project.id)}
@@ -43,7 +44,7 @@
 				{/if}
 				<div class="mt-1 flex items-center justify-between">
 					<span class="text-body-sm text-on-surface-variant">
-						{formatCompact(item.ms)} logged this week
+						{m.dashboard_logged_this_week({ duration: formatCompact(item.ms) })}
 					</span>
 					<span class="material-symbols-outlined text-[16px] text-on-surface-variant" aria-hidden="true"
 						>arrow_forward</span

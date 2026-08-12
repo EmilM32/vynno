@@ -13,7 +13,6 @@ These are intentionally **not** built yet. Prioritize when polishing for power u
 | SHELL-5+ | Desktop top bar chrome | Search/notifications exist on mobile TopBar; full desktop header optional |
 | LOG-6 | Edit / delete log entries | Needs repository mutations + confirmation UI |
 | LOG-7 | Manual time entry | Form without running timer |
-| PRJ-5 | Project CRUD UI | Create/rename/archive/color picker |
 | PRJ-6 | Task list management | Separate task entity beyond session notes |
 | SET-3+ | Persist daily target | Prefs are in-memory only today |
 | SET-4+ | Full preferences | Theme (N/A dark-only), notifications, default activity type |
@@ -28,6 +27,10 @@ These are intentionally **not** built yet. Prioritize when polishing for power u
 - SET-4 (partial) — Default project preference  
 - TMR-11 (shell) — CMD+K route palette  
 - SHELL-5 (partial) — Mobile search affordance + live recording indicator  
+
+## In progress / implemented post–Phase 4
+
+- **PRJ-5** — Project management page (`/projects`): create, edit, archive, restore, hard delete (unused only); primary nav; mock repository mutations — see [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md)
 
 ## Related
 

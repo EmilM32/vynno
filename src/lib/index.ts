@@ -1,9 +1,11 @@
 export type {
 	ActivityType,
+	CreateProjectInput,
 	Project,
 	SessionStatus,
 	StartSessionInput,
 	TimeSession,
+	UpdateProjectInput,
 	UserProfile
 } from './types/domain';
 export { ACTIVITY_LABELS } from './types/domain';

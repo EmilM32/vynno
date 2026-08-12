@@ -15,6 +15,7 @@
 | **2** | Core timer UX | Mock data, session lifecycle, Timer + Dashboard P0 | Done |
 | **3** | Logs & Insights | Full list, search, charts, aggregates | Done |
 | **4** | Polish | Settings stub, P2 UI, a11y, visual QA vs Stitch | Done |
+| **4b** | Project management | `/projects` CRUD (PRJ-5), mock mutations, primary nav | Done |
 | **5** | API readiness | HTTP repository, env config, wire to backend when available | Yes |
 
 ---
@@ -88,6 +89,19 @@
 - [x] Empty states and error-less mock edge cases.
 
 **Exit criteria:** P0+P1 requirements in PRD satisfied; known P2 backlog listed.
+
+---
+
+## Phase 4b — Project management (PRJ-5)
+
+**Goals**
+
+- [x] Dedicated `/projects` route in primary nav.  
+- [x] Mock repository: create / update / archive / restore / hard delete with lifecycle guards ([ADR-0006](./adr/0006-project-lifecycle.md)).  
+- [x] UI: Active/Archived lists, inline form, color palette, delete confirm.  
+- [x] Timer/Settings pickers stay on active projects only; default project fallback.  
+
+**Exit criteria:** Flow H in [screens-and-flows.md](./screens-and-flows.md); unit + e2e coverage for create and nav.
 
 ---
 

@@ -6,6 +6,7 @@ const routes = [
 	{ href: '/dashboard', label: 'Dashboard' },
 	{ href: '/logs', label: 'Logs' },
 	{ href: '/insights', label: 'Insights' },
+	{ href: '/projects', label: 'Projects' },
 	{ href: '/settings', label: 'Settings' }
 ] as const;
 
@@ -25,7 +26,7 @@ test.describe('navigation', () => {
 		}
 	});
 
-	test('primary nav reaches all five routes', async ({ page }, testInfo) => {
+	test('primary nav reaches all six routes', async ({ page }, testInfo) => {
 		await page.goto('/dashboard');
 		const nav = testInfo.project.name === 'mobile' ? mobileNav(page) : desktopNav(page);
 

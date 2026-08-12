@@ -32,6 +32,7 @@ describe('NAV_ITEMS', () => {
 			'/dashboard',
 			'/logs',
 			'/insights',
+			'/projects',
 			'/settings'
 		]);
 	});

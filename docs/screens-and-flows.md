@@ -23,6 +23,7 @@ Base path: `stitch_personal_dev_tracker/`
 | `insights_desktop/` | Desktop | `/insights` | Same with sidebar shell |
 | `dev_density_dark/DESIGN.md` | — | — | Design system source |
 | — | — | `/settings` | Stub only (no Stitch screen) |
+| — | — | `/projects` | Project CRUD (no Stitch screen; product-designed) |
 
 Each screen folder:
 
@@ -42,7 +43,7 @@ Each screen folder:
 ### Mobile
 
 - Sticky **top bar**: brand + status/indicators  
-- **Bottom tab bar**: Timer, Dashboard, Logs, Insights, Settings  
+- **Bottom tab bar**: Timer, Dashboard, Logs, Insights, Projects, Settings  
 - Content padded above bottom nav (`pb-safe` pattern in mockups)
 
 ### Navigation model
@@ -53,6 +54,7 @@ Each screen folder:
 | Dashboard | `dashboard` | `/dashboard` |
 | Logs | `list_alt` / `format_list_bulleted` | `/logs` |
 | Insights | `analytics` | `/insights` |
+| Projects | `folder_managed` | `/projects` |
 | Settings | `settings` | `/settings` |
 
 Default landing route (suggestion): `/timer` or `/dashboard` — **recommend `/dashboard`** for returning users, `/timer` for first-run; final choice at scaffold time.
@@ -129,6 +131,28 @@ No Stitch design. Implement a minimal stub:
 - Page title  
 - Placeholder copy: preferences arrive when designed / when API exists  
 - Optional static profile block matching sidebar (“Alex Dev” style) for layout completeness  
+- Default project preference + link to **Manage projects** (`/projects`)
+
+### 3.6 Projects (`/projects`)
+
+No Stitch design. Dev-Density Dark product screen for **PRJ-5**.
+
+**Regions**
+
+1. Header: title “Projects”, mock-data disclaimer, **New project** CTA  
+2. Tabs: **Active** | **Archived**  
+3. List rows: color swatch, name, code chip, session count, actions  
+4. Inline create/edit form: name, code, color palette swatches  
+5. Hard-delete confirm dialog  
+
+**Actions**
+
+| State | Actions |
+|-------|---------|
+| Active row | Edit, Archive, Delete (if zero sessions and not last active) |
+| Archived row | Restore, Delete (if zero sessions) |
+
+**Rules:** see [domain-model.md](./domain-model.md) §4.1 and [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md).
 
 ---
 
@@ -187,17 +211,32 @@ No Stitch design. Implement a minimal stub:
 [Logs] → type in search → filter by project name / note text
 ```
 
+### Flow H — Manage projects
+
+```
+[Projects] → New project → name + color (+ optional code) → Save
+           → project appears in Active list + Timer/Settings pickers
+
+[Projects] → Edit row → change name/color/code → Save
+
+[Projects] → Archive → hidden from pickers; still resolvable on Logs history
+           → Archived tab → Restore
+
+[Projects] → Delete (only if no sessions) → confirm → removed permanently
+```
+
 ---
 
 ## 5. Cross-screen data dependencies
 
 | Screen | Reads | Writes |
 |--------|-------|--------|
-| Timer | Active session, recent sessions, projects | Start/pause/resume/stop |
+| Timer | Active session, recent sessions, **active** projects | Start/pause/resume/stop |
 | Dashboard | Aggregates + active session + recent | Restart (creates session) |
-| Logs | Stopped sessions, projects | Search filter (local); edit later |
+| Logs | Stopped sessions, projects (incl. archived for labels) | Search filter (local); edit later |
 | Insights | Aggregates for period | Period toggle only |
-| Settings | Profile / prefs (stub) | Later |
+| Projects | All projects + session counts | Create/update/archive/restore/delete |
+| Settings | Profile / prefs, active projects | Daily target, default project |
 
 ---
 

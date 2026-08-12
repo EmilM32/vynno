@@ -159,8 +159,28 @@ Priorities: **P0** = MVP UI with mock data, **P1** = full mockup coverage, **P2*
 | PRJ-2 | Tasks/sessions can reference a project | P0 |
 | PRJ-3 | Optional ticket/issue id on task (e.g. DEV-842) | P1 |
 | PRJ-4 | Tags / priority labels on focus cards | P1 |
-| PRJ-5 | Full project CRUD UI | P2 |
+| PRJ-5 | Full project CRUD UI on dedicated `/projects` page | P1 |
 | PRJ-6 | Full task list management UI | P2 |
+
+**PRJ-5 acceptance (project management):**
+
+| ID | Requirement |
+|----|-------------|
+| PM-1 | Route `/projects` with management UI |
+| PM-2 | Primary nav includes Projects (sidebar, bottom nav, CMD+K) |
+| PM-3 | List active projects (color, name, code) |
+| PM-4 | Create: name (required), color (palette), code (optional, auto-suggest) |
+| PM-5 | Edit name, color, code |
+| PM-6 | Archive hides project from Timer/Settings pickers |
+| PM-7 | Restore archived project |
+| PM-8 | Active / Archived filter on management page |
+| PM-9 | Hard delete only when zero sessions reference the project |
+| PM-10 | Mutations refresh store consumers (Timer, Settings, Dashboard, Insights, Logs) |
+| PM-11 | Default/draft project falls back if archived or deleted |
+| PM-13 | Validation: non-empty name; unique non-empty code; palette color |
+| PM-14 | Cannot archive or delete the last remaining active project |
+
+See [screens-and-flows.md](./screens-and-flows.md) §3.6 and [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md).
 
 ### 8.7 Settings
 

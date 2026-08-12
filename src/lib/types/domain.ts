@@ -74,3 +74,21 @@ export interface SessionFilters {
 	/** Max number of sessions (newest first) */
 	limit?: number;
 }
+
+export interface ProjectListOptions {
+	/** When true, include archived projects (default false). */
+	includeArchived?: boolean;
+}
+
+export interface CreateProjectInput {
+	name: string;
+	color: string;
+	code?: string;
+}
+
+export interface UpdateProjectInput {
+	name?: string;
+	color?: string;
+	/** Set to null to clear optional code. */
+	code?: string | null;
+}

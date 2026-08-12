@@ -1,8 +1,16 @@
+import {
+	normalizeCode,
+	normalizeProjectFields,
+	validateProjectFields
+} from '$lib/projects/validate';
 import type {
+	CreateProjectInput,
 	Project,
+	ProjectListOptions,
 	SessionFilters,
 	StartSessionInput,
 	TimeSession,
+	UpdateProjectInput,
 	UserProfile
 } from '$lib/types/domain';
 import { buildMockSessions, MOCK_PROFILE, MOCK_PROJECTS } from './fixtures';
@@ -10,6 +18,10 @@ import type { TimeTrackingRepository } from './repository';
 
 function newId(prefix: string): string {
 	return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+function cloneProject(p: Project): Project {
+	return { ...p };
 }
 
 /**
@@ -27,12 +39,108 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		this.#profile = { ...MOCK_PROFILE };
 	}
 
-	listProjects(): Project[] {
-		return this.#projects.filter((p) => !p.isArchived);
+	listProjects(options: ProjectListOptions = {}): Project[] {
+		const list = options.includeArchived
+			? this.#projects
+			: this.#projects.filter((p) => !p.isArchived);
+		return list.map(cloneProject);
 	}
 
 	getProject(id: string): Project | undefined {
-		return this.#projects.find((p) => p.id === id);
+		const p = this.#projects.find((x) => x.id === id);
+		return p ? cloneProject(p) : undefined;
+	}
+
+	createProject(input: CreateProjectInput): Project {
+		const fields = normalizeProjectFields({
+			name: input.name,
+			color: input.color,
+			code: input.code ?? ''
+		});
+		const err = validateProjectFields({
+			name: fields.name,
+			color: fields.color,
+			code: fields.code ?? ''
+		});
+		if (err) throw new Error(err);
+		this.#assertCodeUnique(fields.code);
+
+		const project: Project = {
+			id: newId('proj'),
+			name: fields.name,
+			color: fields.color,
+			...(fields.code ? { code: fields.code } : {}),
+			isArchived: false
+		};
+		this.#projects.push(project);
+		return cloneProject(project);
+	}
+
+	updateProject(id: string, input: UpdateProjectInput): Project {
+		const project = this.#requireProject(id);
+
+		const nextName = input.name !== undefined ? input.name.trim() : project.name;
+		const nextColor = input.color !== undefined ? input.color : project.color;
+		let nextCode: string | undefined = project.code;
+		if (input.code !== undefined) {
+			nextCode = input.code === null ? undefined : normalizeCode(input.code);
+		}
+
+		const err = validateProjectFields({
+			name: nextName,
+			color: nextColor,
+			code: nextCode ?? ''
+		});
+		if (err) throw new Error(err);
+		this.#assertCodeUnique(nextCode, id);
+
+		project.name = nextName;
+		project.color = nextColor;
+		if (nextCode) project.code = nextCode;
+		else delete project.code;
+
+		return cloneProject(project);
+	}
+
+	archiveProject(id: string): Project {
+		const project = this.#requireProject(id);
+		if (project.isArchived) {
+			throw new Error('Project is already archived.');
+		}
+		this.#assertNotLastActive(id);
+		project.isArchived = true;
+		return cloneProject(project);
+	}
+
+	restoreProject(id: string): Project {
+		const project = this.#requireProject(id);
+		if (!project.isArchived) {
+			throw new Error('Project is not archived.');
+		}
+		project.isArchived = false;
+		return cloneProject(project);
+	}
+
+	deleteProject(id: string): void {
+		const project = this.#requireProject(id);
+		const sessions = this.countSessionsForProject(id);
+		if (sessions > 0) {
+			throw new Error('This project has logged sessions. Archive it instead.');
+		}
+		if (!project.isArchived) {
+			this.#assertNotLastActive(id);
+		} else {
+			// archived: only block if no other active projects exist (edge case)
+			const activeCount = this.#projects.filter((p) => !p.isArchived).length;
+			if (activeCount === 0) {
+				throw new Error('Cannot delete the last remaining active project.');
+			}
+		}
+		this.#projects = this.#projects.filter((p) => p.id !== id);
+	}
+
+	countSessionsForProject(projectId: string): number {
+		return this.#sessions.filter((s) => s.projectId === projectId).length;
 	}
 
 	getProfile(): UserProfile {
@@ -72,7 +180,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		}
 
 		const project = this.getProject(input.projectId);
-		if (!project) {
+		if (!project || project.isArchived) {
 			throw new Error(`Unknown project: ${input.projectId}`);
 		}
 
@@ -137,6 +245,33 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		const session = this.#sessions.find((s) => s.id === id);
 		if (!session) throw new Error(`Session not found: ${id}`);
 		return session;
+	}
+
+	#requireProject(id: string): Project {
+		const project = this.#projects.find((p) => p.id === id);
+		if (!project) throw new Error(`Project not found: ${id}`);
+		return project;
+	}
+
+	#activeProjects(): Project[] {
+		return this.#projects.filter((p) => !p.isArchived);
+	}
+
+	#assertNotLastActive(id: string): void {
+		const active = this.#activeProjects();
+		if (active.length <= 1 && active.some((p) => p.id === id)) {
+			throw new Error('Cannot archive or delete the last remaining active project.');
+		}
+	}
+
+	#assertCodeUnique(code: string | undefined, excludeId?: string): void {
+		if (!code) return;
+		const clash = this.#projects.find(
+			(p) => p.id !== excludeId && p.code && p.code.toUpperCase() === code.toUpperCase()
+		);
+		if (clash) {
+			throw new Error(`Code "${code}" is already in use.`);
+		}
 	}
 }
 

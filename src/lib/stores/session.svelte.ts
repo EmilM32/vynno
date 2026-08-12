@@ -11,7 +11,13 @@ import {
 	weeklyDayTotals
 } from '$lib/time/aggregates';
 import { formatClock, sessionElapsedMs } from '$lib/time/duration';
-import type { Project, StartSessionInput, TimeSession } from '$lib/types/domain';
+import type {
+	CreateProjectInput,
+	Project,
+	StartSessionInput,
+	TimeSession,
+	UpdateProjectInput
+} from '$lib/types/domain';
 
 /**
  * Client session lifecycle + projection of repository data for the UI.
@@ -26,7 +32,11 @@ class SessionStore {
 	/** Full session list mirror (newest-first after refresh). */
 	sessions = $state.raw<TimeSession[]>([]);
 
+	/** Active (non-archived) projects for pickers. */
 	projects = $state.raw<Project[]>([]);
+
+	/** All projects including archived (management UI). */
+	allProjects = $state.raw<Project[]>([]);
 
 	/** Draft fields for the Timer form (idle / pre-start). */
 	draftNote = $state('Refactoring Auth Service');
@@ -39,6 +49,7 @@ class SessionStore {
 	constructor(repo: TimeTrackingRepository = new MockTimeTrackingRepository()) {
 		this.#repo = repo;
 		this.projects = repo.listProjects();
+		this.allProjects = repo.listProjects({ includeArchived: true });
 		this.sessions = repo.listSessions();
 		this.draftProjectId = prefsStore.defaultProjectId || this.projects[0]?.id || '';
 
@@ -47,9 +58,7 @@ class SessionStore {
 		if (recent) {
 			this.draftNote = recent.note;
 		}
-		if (!this.projects.some((p) => p.id === this.draftProjectId)) {
-			this.draftProjectId = this.projects[0]?.id ?? '';
-		}
+		this.#normalizeProjectSelection();
 
 		if (browser) {
 			this.#startClock();
@@ -83,7 +92,7 @@ class SessionStore {
 	);
 
 	getProject = (id: string): Project | undefined => {
-		return this.projects.find((p) => p.id === id);
+		return this.allProjects.find((p) => p.id === id) ?? this.projects.find((p) => p.id === id);
 	};
 
 	activeProject = $derived.by(() => {
@@ -92,9 +101,82 @@ class SessionStore {
 		return this.getProject(s.projectId);
 	});
 
+	countSessionsForProject = (projectId: string): number => {
+		return this.sessions.filter((s) => s.projectId === projectId).length;
+	};
+
+	/** Active projects remaining after a hypothetical archive of `id`. */
+	canArchiveOrDeleteActive = (id: string): boolean => {
+		const active = this.projects;
+		if (active.length <= 1 && active.some((p) => p.id === id)) return false;
+		return true;
+	};
+
 	refresh = (): void => {
 		this.sessions = this.#repo.listSessions();
 		this.projects = this.#repo.listProjects();
+		this.allProjects = this.#repo.listProjects({ includeArchived: true });
+		this.#normalizeProjectSelection();
+	};
+
+	createProject = (input: CreateProjectInput): Project | null => {
+		this.error = null;
+		try {
+			const project = this.#repo.createProject(input);
+			this.refresh();
+			return project;
+		} catch (e) {
+			this.error = e instanceof Error ? e.message : 'Failed to create project';
+			return null;
+		}
+	};
+
+	updateProject = (id: string, input: UpdateProjectInput): Project | null => {
+		this.error = null;
+		try {
+			const project = this.#repo.updateProject(id, input);
+			this.refresh();
+			return project;
+		} catch (e) {
+			this.error = e instanceof Error ? e.message : 'Failed to update project';
+			return null;
+		}
+	};
+
+	archiveProject = (id: string): boolean => {
+		this.error = null;
+		try {
+			this.#repo.archiveProject(id);
+			this.refresh();
+			return true;
+		} catch (e) {
+			this.error = e instanceof Error ? e.message : 'Failed to archive project';
+			return false;
+		}
+	};
+
+	restoreProject = (id: string): boolean => {
+		this.error = null;
+		try {
+			this.#repo.restoreProject(id);
+			this.refresh();
+			return true;
+		} catch (e) {
+			this.error = e instanceof Error ? e.message : 'Failed to restore project';
+			return false;
+		}
+	};
+
+	deleteProject = (id: string): boolean => {
+		this.error = null;
+		try {
+			this.#repo.deleteProject(id);
+			this.refresh();
+			return true;
+		} catch (e) {
+			this.error = e instanceof Error ? e.message : 'Failed to delete project';
+			return false;
+		}
 	};
 
 	start = (input?: Partial<StartSessionInput>): void => {
@@ -185,6 +267,18 @@ class SessionStore {
 
 	clearError = (): void => {
 		this.error = null;
+	};
+
+	#normalizeProjectSelection = (): void => {
+		const activeIds = new Set(this.projects.map((p) => p.id));
+		const fallback = this.projects[0]?.id ?? '';
+
+		if (!activeIds.has(this.draftProjectId)) {
+			this.draftProjectId = fallback;
+		}
+		if (!activeIds.has(prefsStore.defaultProjectId)) {
+			if (fallback) prefsStore.setDefaultProjectId(fallback);
+		}
 	};
 
 	#startClock = (): void => {

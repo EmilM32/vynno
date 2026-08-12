@@ -5,26 +5,24 @@
 </script>
 
 <nav
-	class="fixed right-0 bottom-0 left-0 z-50 flex h-16 items-center justify-around border-t border-outline-variant bg-surface-container px-2 pb-[env(safe-area-inset-bottom,0px)] md:hidden"
+	class="fixed right-0 bottom-0 left-0 z-50 flex h-16 items-center justify-around border-t border-outline-variant bg-surface-container px-1 pb-[env(safe-area-inset-bottom,0px)] md:hidden"
 	aria-label="Main"
 >
 	{#each NAV_ITEMS as item (item.href)}
 		{@const active = isNavActive(page.url.pathname, item.href)}
 		<a
-			href={resolve(
-				item.href as '/timer' | '/dashboard' | '/logs' | '/insights' | '/settings'
-			)}
-			class="focus-ring flex min-w-0 flex-col items-center justify-center rounded-xl px-3 py-1 transition-transform active:scale-90 motion-reduce:active:scale-100 {active
+			href={resolve(item.href)}
+			class="focus-ring flex min-w-0 flex-1 flex-col items-center justify-center rounded-xl px-1 py-1 transition-transform active:scale-90 motion-reduce:active:scale-100 {active
 				? 'bg-secondary-container/20 text-primary'
 				: 'text-on-surface-variant hover:text-primary'}"
 			aria-current={active ? 'page' : undefined}
 		>
 			<span
-				class="material-symbols-outlined mb-0.5 text-[22px]"
+				class="material-symbols-outlined mb-0.5 text-[20px]"
 				style={active ? "font-variation-settings: 'FILL' 1" : undefined}
 				aria-hidden="true">{item.icon}</span
 			>
-			<span class="text-body-sm">{item.label}</span>
+			<span class="max-w-full truncate text-[10px] leading-tight">{item.label}</span>
 		</a>
 	{/each}
 </nav>

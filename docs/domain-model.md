@@ -94,11 +94,19 @@ User (future / display only for now)
 | Field | Type | Notes |
 |-------|------|-------|
 | `id` | string | Stable id |
-| `name` | string | Display name |
-| `color` | string | Hex or token; used for dots/bars |
-| `code` | string? | Short code for chips (`AUTH`, `API`) |
-| `progressPercent` | number? | Shown on Dashboard project cards (0–100) |
-| `isArchived` | boolean | Hide from pickers when true |
+| `name` | string | Display name (required, trimmed, 1–80 chars) |
+| `color` | string | Hex from fixed UI palette; used for dots/bars |
+| `code` | string? | Short code for chips (`AUTH`, `API`); max 8; unique when set (case-insensitive) |
+| `progressPercent` | number? | Shown on Dashboard project cards (0–100); not user-edited in project CRUD v1 |
+| `isArchived` | boolean | Hide from pickers when true; still resolvable via `getProject` for log history |
+
+**Lifecycle (frontend mock):**
+
+- **Active** projects appear in Timer/Settings pickers and default `listProjects()`.  
+- **Archive** soft-hides; **restore** brings back.  
+- **Hard delete** only when no sessions reference the project; otherwise require archive.  
+- Cannot archive or delete the **last remaining active** project (Timer always needs a picker option).  
+- Full rules: [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md).
 
 ### 4.2 TimeSession
 

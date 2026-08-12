@@ -43,9 +43,7 @@
 			{@const active = isNavActive(page.url.pathname, item.href)}
 			<li>
 				<a
-					href={resolve(
-						item.href as '/timer' | '/dashboard' | '/logs' | '/insights' | '/settings'
-					)}
+					href={resolve(item.href)}
 					class="focus-ring group flex items-center gap-3 rounded-DEFAULT border-l-2 px-3 py-2 transition-colors duration-150 {active
 						? 'border-primary bg-surface-container-high text-primary'
 						: 'border-transparent text-on-surface-variant hover:bg-surface-variant hover:text-primary'}"

@@ -161,4 +161,94 @@ describe('MockTimeTrackingRepository', () => {
 			expect(repo.getProfile().handle).toBe('@alexdev');
 		});
 	});
+
+	describe('project CRUD', () => {
+		const color = '#3b82f6';
+
+		it('createProject normalizes name/code and lists it', () => {
+			const p = repo.createProject({ name: '  New Tool  ', color, code: 'tool' });
+			expect(p.name).toBe('New Tool');
+			expect(p.code).toBe('TOOL');
+			expect(p.isArchived).toBe(false);
+			expect(repo.listProjects().some((x) => x.id === p.id)).toBe(true);
+		});
+
+		it('rejects invalid create input', () => {
+			expect(() => repo.createProject({ name: '', color })).toThrow(/required/i);
+			expect(() => repo.createProject({ name: 'X', color: '#fff' })).toThrow(/palette/i);
+		});
+
+		it('rejects duplicate code', () => {
+			expect(() =>
+				repo.createProject({ name: 'Other', color, code: 'AUTH' })
+			).toThrow(/already in use/i);
+		});
+
+		it('updateProject renames and keeps id', () => {
+			const created = repo.createProject({ name: 'Temp', color, code: 'TMP' });
+			const updated = repo.updateProject(created.id, { name: 'Renamed', code: 'RNM' });
+			expect(updated.id).toBe(created.id);
+			expect(updated.name).toBe('Renamed');
+			expect(updated.code).toBe('RNM');
+		});
+
+		it('updateProject can clear code', () => {
+			const created = repo.createProject({ name: 'Temp', color, code: 'TMP' });
+			const updated = repo.updateProject(created.id, { code: null });
+			expect(updated.code).toBeUndefined();
+		});
+
+		it('listProjects includeArchived returns both; archive hides from default list', () => {
+			const created = repo.createProject({ name: 'Ephemeral', color, code: 'EPH' });
+			repo.archiveProject(created.id);
+			expect(repo.listProjects().some((p) => p.id === created.id)).toBe(false);
+			expect(
+				repo.listProjects({ includeArchived: true }).some((p) => p.id === created.id)
+			).toBe(true);
+			expect(repo.getProject(created.id)?.isArchived).toBe(true);
+		});
+
+		it('restoreProject brings project back to pickers', () => {
+			const created = repo.createProject({ name: 'Ephemeral', color, code: 'EPH2' });
+			repo.archiveProject(created.id);
+			const restored = repo.restoreProject(created.id);
+			expect(restored.isArchived).toBe(false);
+			expect(repo.listProjects().some((p) => p.id === created.id)).toBe(true);
+		});
+
+		it('deleteProject fails when sessions exist', () => {
+			expect(repo.countSessionsForProject(PROJECT_IDS.auth)).toBeGreaterThan(0);
+			expect(() => repo.deleteProject(PROJECT_IDS.auth)).toThrow(/logged sessions/i);
+		});
+
+		it('deleteProject removes unused project', () => {
+			const created = repo.createProject({ name: 'Unused', color, code: 'UNU' });
+			expect(repo.countSessionsForProject(created.id)).toBe(0);
+			repo.deleteProject(created.id);
+			expect(repo.getProject(created.id)).toBeUndefined();
+		});
+
+		it('cannot archive or delete last active project', () => {
+			// Two unused projects so delete path can be tested without session conflicts
+			const a = repo.createProject({ name: 'Keep A', color, code: 'KA' });
+			const b = repo.createProject({ name: 'Keep B', color, code: 'KB' });
+			for (const p of repo.listProjects()) {
+				if (p.id !== a.id && p.id !== b.id) {
+					repo.archiveProject(p.id);
+				}
+			}
+			expect(repo.listProjects()).toHaveLength(2);
+			repo.deleteProject(a.id);
+			expect(() => repo.archiveProject(b.id)).toThrow(/last remaining/i);
+			expect(() => repo.deleteProject(b.id)).toThrow(/last remaining/i);
+		});
+
+		it('rejects starting session on archived project', () => {
+			const created = repo.createProject({ name: 'Soon gone', color, code: 'SG' });
+			repo.archiveProject(created.id);
+			expect(() =>
+				repo.startSession({ projectId: created.id, note: 'nope' })
+			).toThrow(/Unknown project/);
+		});
+	});
 });

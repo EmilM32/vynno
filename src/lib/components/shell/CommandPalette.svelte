@@ -2,9 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
-	import { NAV_ITEMS } from './nav';
-
-	type AppRoute = '/timer' | '/dashboard' | '/logs' | '/insights' | '/settings';
+	import { NAV_ITEMS, type AppRoute } from './nav';
 
 	type Command = {
 		id: string;

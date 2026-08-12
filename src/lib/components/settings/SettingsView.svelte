@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
 
@@ -91,6 +92,15 @@
 					{/each}
 				</select>
 			</div>
+			<p class="text-body-sm text-on-surface-variant">
+				<a
+					href={resolve('/projects')}
+					class="focus-ring text-primary underline-offset-2 hover:underline"
+				>
+					Manage projects
+				</a>
+				— create, archive, or recolor work containers.
+			</p>
 		</div>
 	</section>
 

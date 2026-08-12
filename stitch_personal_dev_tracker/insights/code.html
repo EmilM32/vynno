@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevTime - Insights</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#00b55d",
+                        "primary-container": "#38bdf8",
+                        "on-background": "#dae2fd",
+                        "on-secondary-fixed-variant": "#005227",
+                        "surface-dim": "#0b1326",
+                        "surface": "#0b1326",
+                        "surface-bright": "#31394d",
+                        "secondary-fixed": "#6dfe9c",
+                        "on-tertiary-fixed-variant": "#5c4300",
+                        "tertiary-container": "#e1a800",
+                        "inverse-surface": "#dae2fd",
+                        "secondary": "#4de082",
+                        "primary-fixed": "#c4e7ff",
+                        "on-surface-variant": "#bdc8d1",
+                        "on-primary": "#00354a",
+                        "surface-container": "#171f33",
+                        "surface-container-low": "#131b2e",
+                        "on-primary-container": "#004965",
+                        "on-secondary": "#003919",
+                        "inverse-primary": "#00668a",
+                        "on-secondary-container": "#003e1c",
+                        "error-container": "#93000a",
+                        "secondary-fixed-dim": "#4de082",
+                        "on-primary-fixed-variant": "#004c69",
+                        "on-tertiary": "#402d00",
+                        "surface-variant": "#2d3449",
+                        "tertiary-fixed": "#ffdf9f",
+                        "primary": "#8ed5ff",
+                        "surface-container-high": "#222a3d",
+                        "tertiary": "#ffc42f",
+                        "surface-container-highest": "#2d3449",
+                        "on-error": "#690005",
+                        "surface-tint": "#7bd0ff",
+                        "on-secondary-fixed": "#00210c",
+                        "background": "#0b1326",
+                        "tertiary-fixed-dim": "#f9bd22",
+                        "on-tertiary-container": "#584000",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed": "#001e2c",
+                        "inverse-on-surface": "#283044",
+                        "error": "#ffb4ab",
+                        "on-surface": "#dae2fd",
+                        "on-tertiary-fixed": "#261a00",
+                        "outline": "#87929a",
+                        "primary-fixed-dim": "#7bd0ff",
+                        "outline-variant": "#3e484f",
+                        "surface-container-lowest": "#060e20"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container-max": "1200px",
+                        "margin-desktop": "24px",
+                        "gutter": "12px",
+                        "margin-mobile": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "code-data": ["JetBrains Mono"],
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "code-display": ["JetBrains Mono"],
+                        "code-label": ["JetBrains Mono"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "code-data": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "code-display": ["28px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "code-label": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #0b1326; color: #dae2fd; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        
+        /* Subtle grid background */
+        .bg-grid {
+            background-size: 24px 24px;
+            background-image: 
+                linear-gradient(to right, rgba(62, 72, 79, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(62, 72, 79, 0.1) 1px, transparent 1px);
+        }
+        
+        /* Card styles */
+        .insight-card {
+            background-color: #171f33;
+            border: 1px solid #3e484f;
+            border-radius: 0.125rem;
+        }
+    </style>
+</head>
+<body class="bg-background min-h-screen font-body-md flex flex-col md:flex-row pb-20 md:pb-0 bg-grid">
+<!-- TopAppBar (Mobile/Desktop Header) -->
+<header class="w-full top-0 sticky bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant z-40 hidden md:flex flex justify-between items-center px-4 h-14 w-full">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary dark:text-primary">terminal</span>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary">DevTime</span>
+</div>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex gap-6 h-full items-center">
+<a class="text-on-surface-variant hover:bg-surface-container transition-colors duration-200 px-3 py-2 rounded" href="#">Timer</a>
+<a class="text-on-surface-variant hover:bg-surface-container transition-colors duration-200 px-3 py-2 rounded" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:bg-surface-container transition-colors duration-200 px-3 py-2 rounded" href="#">Logs</a>
+<a class="text-primary border-b-2 border-primary transition-colors duration-200 px-3 py-2 h-full flex items-center" href="#">Insights</a>
+<a class="text-on-surface-variant hover:bg-surface-container transition-colors duration-200 px-3 py-2 rounded" href="#">Settings</a>
+</nav>
+<div>
+<span class="material-symbols-outlined text-primary dark:text-primary">fiber_manual_record</span>
+</div>
+</header>
+<!-- Mobile Top Header -->
+<header class="md:hidden w-full top-0 sticky bg-surface border-b border-outline-variant z-40 flex justify-between items-center px-4 h-14">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">terminal</span>
+<span class="font-headline-md text-headline-md font-bold text-primary">DevTime</span>
+</div>
+<span class="font-body-md text-on-surface-variant">Insights</span>
+</header>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-container-max mx-auto p-margin-mobile md:p-margin-desktop space-y-6">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Analytics Overview</h1>
+<p class="font-code-label text-code-label text-on-surface-variant mt-1">LAST 7 DAYS</p>
+</div>
+<div class="flex gap-2">
+<button class="px-3 py-1 border border-outline-variant bg-surface-container text-on-surface font-code-label text-code-label hover:border-primary transition-colors">Week</button>
+<button class="px-3 py-1 border border-outline-variant text-on-surface-variant font-code-label text-code-label hover:text-on-surface transition-colors">Month</button>
+</div>
+</div>
+<!-- Weekly Summary Bento -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="insight-card p-4 flex flex-col justify-between">
+<span class="font-code-label text-code-label text-on-surface-variant uppercase">Total Time Logged</span>
+<div class="mt-4 flex items-baseline gap-2">
+<span class="font-code-display text-code-display text-primary">42h 15m</span>
+<span class="font-code-label text-code-label text-secondary">+12% vs last week</span>
+</div>
+</div>
+<div class="insight-card p-4 flex flex-col justify-between">
+<span class="font-code-label text-code-label text-on-surface-variant uppercase">Most Productive Day</span>
+<div class="mt-4 flex items-baseline gap-2">
+<span class="font-code-display text-code-display text-on-surface">Tuesday</span>
+<span class="font-code-label text-code-label text-on-surface-variant">8.5h avg</span>
+</div>
+</div>
+<div class="insight-card p-4 flex flex-col justify-between">
+<span class="font-code-label text-code-label text-on-surface-variant uppercase">Daily Average</span>
+<div class="mt-4 flex items-baseline gap-2">
+<span class="font-code-display text-code-display text-on-surface">6h 02m</span>
+<span class="font-code-label text-code-label text-error">-4% vs target</span>
+</div>
+</div>
+</div>
+<!-- Charts Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+<!-- Time by Project (Donut) -->
+<div class="insight-card p-6 flex flex-col h-96">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-headline-md text-headline-md text-on-surface">Time by Project</h2>
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-primary">more_horiz</span>
+</div>
+<div class="relative flex-1 flex justify-center items-center h-full w-full pb-4">
+<canvas id="projectDonutChart"></canvas>
+<!-- Center text for donut -->
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+<span class="font-code-display text-code-display text-on-surface">42h</span>
+<span class="font-code-label text-code-label text-on-surface-variant">Total</span>
+</div>
+</div>
+<!-- Custom Legend -->
+<div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-outline-variant">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-primary"></div>
+<span class="font-code-label text-code-label text-on-surface-variant">API Gateway</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-secondary"></div>
+<span class="font-code-label text-code-label text-on-surface-variant">Frontend Rework</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-tertiary"></div>
+<span class="font-code-label text-code-label text-on-surface-variant">DB Migration</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-surface-bright border border-outline-variant"></div>
+<span class="font-code-label text-code-label text-on-surface-variant">Internal Tools</span>
+</div>
+</div>
+</div>
+<!-- Time by Activity (Bar) -->
+<div class="insight-card p-6 flex flex-col h-96">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-headline-md text-headline-md text-on-surface">Time by Activity</h2>
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-primary">more_horiz</span>
+</div>
+<div class="relative flex-1 w-full h-full">
+<canvas id="activityBarChart"></canvas>
+</div>
+</div>
+</div>
+<!-- Detailed Breakdown List (Monospace) -->
+<div class="insight-card p-0 mt-6 overflow-hidden">
+<div class="p-4 border-b border-outline-variant">
+<h2 class="font-headline-md text-headline-md text-on-surface">Activity Breakdown</h2>
+</div>
+<div class="flex flex-col">
+<!-- Header row -->
+<div class="grid grid-cols-12 gap-4 px-4 py-2 border-b border-outline-variant bg-surface-container-low font-code-label text-code-label text-on-surface-variant uppercase">
+<div class="col-span-6 md:col-span-4">Project</div>
+<div class="col-span-4 md:col-span-3 hidden md:block">Activity</div>
+<div class="col-span-4 md:col-span-3">Duration</div>
+<div class="col-span-2 md:col-span-2 text-right">%</div>
+</div>
+<!-- Data rows -->
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-outline-variant hover:bg-surface-container-high transition-colors items-center">
+<div class="col-span-6 md:col-span-4 font-code-data text-code-data text-on-surface flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+                        API Gateway
+                    </div>
+<div class="col-span-4 md:col-span-3 hidden md:block font-code-label text-code-label text-on-surface-variant">Coding</div>
+<div class="col-span-4 md:col-span-3 font-code-data text-code-data text-on-surface">18h 30m</div>
+<div class="col-span-2 md:col-span-2 text-right font-code-data text-code-data text-on-surface-variant">43%</div>
+</div>
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-outline-variant hover:bg-surface-container-high transition-colors items-center">
+<div class="col-span-6 md:col-span-4 font-code-data text-code-data text-on-surface flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+                        Frontend Rework
+                    </div>
+<div class="col-span-4 md:col-span-3 hidden md:block font-code-label text-code-label text-on-surface-variant">Debugging</div>
+<div class="col-span-4 md:col-span-3 font-code-data text-code-data text-on-surface">12h 15m</div>
+<div class="col-span-2 md:col-span-2 text-right font-code-data text-code-data text-on-surface-variant">29%</div>
+</div>
+<div class="grid grid-cols-12 gap-4 px-4 py-3 hover:bg-surface-container-high transition-colors items-center">
+<div class="col-span-6 md:col-span-4 font-code-data text-code-data text-on-surface flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+                        DB Migration
+                    </div>
+<div class="col-span-4 md:col-span-3 hidden md:block font-code-label text-code-label text-on-surface-variant">Documentation</div>
+<div class="col-span-4 md:col-span-3 font-code-data text-code-data text-on-surface">8h 45m</div>
+<div class="col-span-2 md:col-span-2 text-right font-code-data text-code-data text-on-surface-variant">21%</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-surface-container dark:bg-surface-container border-t border-outline-variant dark:border-outline-variant fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 px-2 pb-safe">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-3 py-1 scale-95 active:scale-90 transition-transform hover:text-primary dark:hover:text-primary" href="#">
+<span class="material-symbols-outlined">timer</span>
+<span class="font-body-sm text-body-sm mt-1">Timer</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-3 py-1 scale-95 active:scale-90 transition-transform hover:text-primary dark:hover:text-primary" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-sm text-body-sm mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-3 py-1 scale-95 active:scale-90 transition-transform hover:text-primary dark:hover:text-primary" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-body-sm text-body-sm mt-1">Logs</span>
+</a>
+<!-- Active Tab -->
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary bg-secondary-container/20 rounded-xl px-3 py-1 scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-body-sm text-body-sm mt-1">Insights</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-3 py-1 scale-95 active:scale-90 transition-transform hover:text-primary dark:hover:text-primary" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-sm text-body-sm mt-1">Settings</span>
+</a>
+</nav>
+<script>
+        // Chart.js Configuration
+        
+        // Colors from theme
+        const colors = {
+            primary: '#8ed5ff',
+            secondary: '#4de082',
+            tertiary: '#ffc42f',
+            surfaceBright: '#31394d',
+            outlineVariant: '#3e484f',
+            onSurfaceVariant: '#bdc8d1',
+            onSurface: '#dae2fd',
+            surface: '#0b1326'
+        };
+
+        // Common Chart Defaults for "Terminal" aesthetic
+        Chart.defaults.font.family = "'JetBrains Mono', monospace";
+        Chart.defaults.color = colors.onSurfaceVariant;
+        Chart.defaults.plugins.tooltip.backgroundColor = colors.surfaceBright;
+        Chart.defaults.plugins.tooltip.titleColor = colors.onSurface;
+        Chart.defaults.plugins.tooltip.bodyColor = colors.onSurfaceVariant;
+        Chart.defaults.plugins.tooltip.borderColor = colors.outlineVariant;
+        Chart.defaults.plugins.tooltip.borderWidth = 1;
+        Chart.defaults.plugins.tooltip.cornerRadius = 2;
+        Chart.defaults.plugins.tooltip.padding = 8;
+        Chart.defaults.plugins.tooltip.displayColors = false;
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // 1. Project Donut Chart
+            const ctxDonut = document.getElementById('projectDonutChart').getContext('2d');
+            new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['API Gateway', 'Frontend', 'DB Migration', 'Internal'],
+                    datasets: [{
+                        data: [18.5, 12.25, 8.75, 2.5],
+                        backgroundColor: [
+                            colors.primary,
+                            colors.secondary,
+                            colors.tertiary,
+                            colors.surfaceBright
+                        ],
+                        borderWidth: 2,
+                        borderColor: colors.surface,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: false // Using custom HTML legend below
+                        }
+                    },
+                    layout: {
+                        padding: 10
+                    }
+                }
+            });
+
+            // 2. Activity Bar Chart
+            const ctxBar = document.getElementById('activityBarChart').getContext('2d');
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Coding', 'Debug', 'Docs', 'Research', 'Meetings'],
+                    datasets: [{
+                        label: 'Hours',
+                        data: [16, 8.5, 4.5, 6, 7],
+                        backgroundColor: colors.primary,
+                        borderColor: colors.primary,
+                        borderWidth: 1,
+                        borderRadius: 2,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(62, 72, 79, 0.3)', // subtle outline-variant
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body></html>

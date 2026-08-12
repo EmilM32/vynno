@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DevTime - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#bdc8d1",
+                        "on-tertiary-fixed": "#261a00",
+                        "surface-tint": "#7bd0ff",
+                        "primary-fixed": "#c4e7ff",
+                        "on-secondary-container": "#003e1c",
+                        "on-secondary": "#003919",
+                        "on-primary-container": "#004965",
+                        "outline-variant": "#3e484f",
+                        "secondary-container": "#00b55d",
+                        "secondary-fixed-dim": "#4de082",
+                        "tertiary-fixed": "#ffdf9f",
+                        "on-secondary-fixed": "#00210c",
+                        "background": "#0b1326",
+                        "primary-fixed-dim": "#7bd0ff",
+                        "surface-container-high": "#222a3d",
+                        "on-tertiary-fixed-variant": "#5c4300",
+                        "surface-dim": "#0b1326",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#005227",
+                        "surface-variant": "#2d3449",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#004c69",
+                        "error": "#ffb4ab",
+                        "surface-bright": "#31394d",
+                        "on-primary-fixed": "#001e2c",
+                        "surface-container": "#171f33",
+                        "on-primary": "#00354a",
+                        "primary": "#8ed5ff",
+                        "inverse-primary": "#00668a",
+                        "on-tertiary-container": "#584000",
+                        "surface-container-lowest": "#060e20",
+                        "on-surface": "#dae2fd",
+                        "surface": "#0b1326",
+                        "on-error": "#690005",
+                        "primary-container": "#38bdf8",
+                        "inverse-on-surface": "#283044",
+                        "secondary-fixed": "#6dfe9c",
+                        "on-tertiary": "#402d00",
+                        "secondary": "#4de082",
+                        "tertiary": "#ffc42f",
+                        "tertiary-container": "#e1a800",
+                        "inverse-surface": "#dae2fd",
+                        "on-background": "#dae2fd",
+                        "surface-container-low": "#131b2e",
+                        "surface-container-highest": "#2d3449",
+                        "tertiary-fixed-dim": "#f9bd22",
+                        "outline": "#87929a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "container-max": "1200px",
+                        "margin-desktop": "24px",
+                        "gutter": "12px",
+                        "margin-mobile": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "code-label": ["JetBrains Mono"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "code-display": ["JetBrains Mono"],
+                        "code-data": ["JetBrains Mono"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "code-label": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "code-display": ["28px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "code-data": ["14px", { "lineHeight": "20px", "fontWeight": "500" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #0b1326; /* surface */
+            color: #dae2fd; /* on-surface */
+            overflow-x: hidden;
+        }
+        .border-base {
+            border-color: #3e484f; /* outline-variant */
+        }
+        
+        /* Terminal Cursor Blink */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .cursor-blink::after {
+            content: '█';
+            animation: blink 1s step-end infinite;
+            color: #8ed5ff; /* primary */
+            margin-left: 2px;
+            font-size: 0.9em;
+        }
+
+        /* Minimal scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1326;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2d3449;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3e484f;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased bg-surface text-on-surface h-screen flex overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar (Shared Component) -->
+<nav class="w-[240px] h-screen fixed left-0 top-0 bg-surface dark:bg-surface border-r border-outline-variant dark:border-outline-variant flex flex-col h-full py-4 z-50">
+<!-- Brand -->
+<div class="px-6 mb-8 flex items-center space-x-3">
+<span class="material-symbols-outlined text-primary dark:text-primary text-3xl">timer</span>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary leading-tight">DevTime</h1>
+<p class="font-code-label text-code-label text-on-surface-variant text-[10px] uppercase opacity-70">v1.0.4-stable</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 flex flex-col space-y-1 px-3">
+<!-- Timer -->
+<a class="flex items-center space-x-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors text-xl">timer</span>
+<span class="font-body-md text-body-md font-medium">Timer</span>
+</a>
+<!-- Dashboard (ACTIVE) -->
+<a class="flex items-center space-x-3 px-3 py-2 rounded-DEFAULT text-primary dark:text-primary border-l-2 border-primary bg-surface-container-high dark:bg-surface-container-high transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-body-md text-body-md font-medium">Dashboard</span>
+</a>
+<!-- Logs -->
+<a class="flex items-center space-x-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors text-xl">format_list_bulleted</span>
+<span class="font-body-md text-body-md font-medium">Logs</span>
+</a>
+<!-- Insights -->
+<a class="flex items-center space-x-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors text-xl">analytics</span>
+<span class="font-body-md text-body-md font-medium">Insights</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center space-x-3 px-3 py-2 rounded-DEFAULT text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-colors duration-150 group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors text-xl">settings</span>
+<span class="font-body-md text-body-md font-medium">Settings</span>
+</a>
+</div>
+<!-- CTA & Profile -->
+<div class="px-6 mt-auto flex flex-col space-y-4">
+<button class="w-full bg-primary text-surface font-body-md text-body-md font-semibold py-2 px-4 rounded-DEFAULT hover:bg-primary-fixed transition-colors flex items-center justify-center space-x-2">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+<span>Start New Session</span>
+</button>
+<div class="flex items-center space-x-3 pt-4 border-t border-outline-variant">
+<img alt="Developer Profile Avatar" class="w-8 h-8 rounded-full bg-surface-variant object-cover border border-outline-variant" data-alt="A small, stylized avatar image of a developer, tech-focused, minimal color palette matching the dark slate and electric blue aesthetic. Professional and abstract." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_XyDIFmmejVd3ZCpDSStfPySNFsVfNRacHqF-JlwAgWvWQhbBYbPEDWOcTdsueOyGtjXoeZ3sb62WUTdfmqxEq_RgoNN7oL2d-C-R3TdWXLdW4f_Lr55VwsXLyEsTU7tEbeJAusbNvqFNspUHZRJr4u6cyMeG6faL4Om6-chChol8NwY9zcgSHKuWwVz9rc5H5UybVIKVfvs0pSmwlKM04VBEmBvMtchTim7s4Mg_To2DlzNf38PJ"/>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-medium text-on-surface">Alex Dev</span>
+<span class="font-code-label text-code-label text-on-surface-variant text-[10px]">@alexdev</span>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Area Wrapper -->
+<div class="ml-[240px] flex-1 flex flex-col h-screen relative">
+<!-- TopAppBar (Shared Component) -->
+<header class="h-12 fixed top-0 right-0 left-[240px] bg-surface-container dark:bg-surface-container border-b border-outline-variant dark:border-outline-variant flex justify-between items-center px-gutter w-full z-40">
+<!-- Left Side (Breadcrumb/Context) -->
+<div class="flex items-center space-x-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">dashboard</span>
+<span class="font-code-label text-code-label">/</span>
+<span class="font-code-label text-code-label text-primary font-bold">Overview</span>
+</div>
+<!-- Right Side (Search & Actions) -->
+<div class="flex items-center space-x-4">
+<!-- Search -->
+<div class="relative flex items-center group">
+<span class="material-symbols-outlined absolute left-2 text-on-surface-variant text-sm group-focus-within:text-primary transition-colors">search</span>
+<input class="bg-surface-dim border border-outline-variant rounded-DEFAULT h-8 pl-8 pr-3 font-code-label text-code-label text-on-surface focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none w-48 transition-all duration-200" placeholder="CMD+K to search..." type="text"/>
+</div>
+<!-- Trailing Actions -->
+<div class="flex items-center space-x-2 border-l border-outline-variant pl-4">
+<button class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors p-1 rounded hover:bg-surface-variant scale-95 hover:scale-100 duration-100">
+<span class="material-symbols-outlined text-xl">terminal</span>
+</button>
+<button class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors p-1 rounded hover:bg-surface-variant scale-95 hover:scale-100 duration-100 relative">
+<span class="material-symbols-outlined text-xl">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full border border-surface-container"></span>
+</button>
+<button class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-colors p-1 rounded hover:bg-surface-variant scale-95 hover:scale-100 duration-100">
+<span class="material-symbols-outlined text-xl">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 mt-12 overflow-y-auto p-gutter bg-surface">
+<!-- 12-column grid layout -->
+<div class="grid grid-cols-12 gap-gutter h-full">
+<!-- LEFT COLUMN (Focus & Stats) - 8 cols -->
+<div class="col-span-12 xl:col-span-8 flex flex-col gap-gutter">
+<!-- Top Row: Stats & Focus -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Today's Total Card -->
+<div class="bg-[#1e293b] border border-[#334155] rounded-DEFAULT p-4 flex flex-col justify-between relative overflow-hidden group hover:border-primary transition-colors duration-300">
+<!-- Background accent -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-full blur-2xl -mr-10 -mt-10 group-hover:opacity-10 transition-opacity"></div>
+<div class="flex justify-between items-start z-10">
+<div>
+<h2 class="font-code-label text-code-label text-on-surface-variant uppercase tracking-wider mb-1">Total Logged Today</h2>
+<div class="font-code-display text-code-display text-on-surface font-bold tracking-tight">06:42:15</div>
+</div>
+<div class="bg-surface-variant rounded p-1.5 border border-outline-variant">
+<span class="material-symbols-outlined text-primary text-lg">schedule</span>
+</div>
+</div>
+<div class="mt-6 z-10 flex items-end justify-between">
+<div class="flex items-center space-x-2 text-secondary-fixed-dim text-sm">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span class="font-code-label text-code-label">+1.2h vs yesterday</span>
+</div>
+<!-- CSS Sparkline abstraction -->
+<div class="flex items-end space-x-1 h-8 opacity-70">
+<div class="w-1.5 bg-outline-variant h-[30%] rounded-t-sm"></div>
+<div class="w-1.5 bg-outline-variant h-[50%] rounded-t-sm"></div>
+<div class="w-1.5 bg-outline-variant h-[40%] rounded-t-sm"></div>
+<div class="w-1.5 bg-outline-variant h-[70%] rounded-t-sm"></div>
+<div class="w-1.5 bg-outline-variant h-[60%] rounded-t-sm"></div>
+<div class="w-1.5 bg-primary h-[90%] rounded-t-sm shadow-[0_0_8px_rgba(142,213,255,0.4)]"></div>
+</div>
+</div>
+</div>
+<!-- Current Focus Card (Active Timer) -->
+<div class="bg-[#1e293b] border border-primary rounded-DEFAULT p-4 flex flex-col justify-between relative shadow-[0_0_15px_rgba(142,213,255,0.05)]">
+<div class="flex justify-between items-start">
+<div class="flex items-center space-x-2 mb-1">
+<div class="w-2 h-2 rounded-full bg-secondary-fixed-dim animate-pulse"></div>
+<h2 class="font-code-label text-code-label text-secondary-fixed-dim uppercase tracking-wider">Active Focus</h2>
+</div>
+<span class="font-code-label text-code-label bg-surface-variant border border-outline-variant px-2 py-0.5 rounded text-on-surface-variant text-[10px]">DEV-842</span>
+</div>
+<div class="mt-2">
+<h3 class="font-headline-md text-headline-md text-on-surface font-semibold mb-1 truncate">Implement Redis Caching Layer</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">Migrating session state to Redis cluster to reduce database load and improve response latency on high-traffic endpoints.</p>
+</div>
+<div class="mt-4 flex items-center justify-between border-t border-[#334155] pt-3">
+<div class="font-code-display text-code-display text-primary cursor-blink">01:15:32</div>
+<div class="flex space-x-2">
+<button class="bg-surface border border-[#334155] hover:border-outline-variant text-on-surface p-1.5 rounded transition-colors" title="Pause">
+<span class="material-symbols-outlined text-sm">pause</span>
+</button>
+<button class="bg-error/10 border border-error/30 hover:bg-error/20 text-error p-1.5 rounded transition-colors" title="Stop">
+<span class="material-symbols-outlined text-sm">stop</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Middle Row: Active Projects Progress -->
+<div class="bg-[#1e293b] border border-[#334155] rounded-DEFAULT p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-code-label text-code-label text-on-surface-variant uppercase tracking-wider">Project Allocation (This Week)</h2>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">more_horiz</span>
+</button>
+</div>
+<div class="flex-1 flex flex-col justify-around space-y-4">
+<!-- Project 1 -->
+<div>
+<div class="flex justify-between items-center mb-1">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="font-code-data text-code-data text-on-surface">Core API v2</span>
+</div>
+<span class="font-code-label text-code-label text-on-surface-variant">14.5h / 20h</span>
+</div>
+<div class="w-full bg-surface-dim h-1.5 rounded-full overflow-hidden border border-[#334155]">
+<div class="bg-primary-container h-full rounded-full" style="width: 72%"></div>
+</div>
+</div>
+<!-- Project 2 -->
+<div>
+<div class="flex justify-between items-center mb-1">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-code-data text-code-data text-on-surface">Frontend Refactor</span>
+</div>
+<span class="font-code-label text-code-label text-on-surface-variant">8.2h / 15h</span>
+</div>
+<div class="w-full bg-surface-dim h-1.5 rounded-full overflow-hidden border border-[#334155]">
+<div class="bg-tertiary h-full rounded-full" style="width: 54%"></div>
+</div>
+</div>
+<!-- Project 3 -->
+<div>
+<div class="flex justify-between items-center mb-1">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-code-data text-code-data text-on-surface">DevOps / CI/CD</span>
+</div>
+<span class="font-code-label text-code-label text-on-surface-variant">3.1h / 5h</span>
+</div>
+<div class="w-full bg-surface-dim h-1.5 rounded-full overflow-hidden border border-[#334155]">
+<div class="bg-secondary h-full rounded-full" style="width: 62%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN (Logs & Chart) - 4 cols -->
+<div class="col-span-12 xl:col-span-4 flex flex-col gap-gutter h-full">
+<!-- Recent Logs Panel -->
+<div class="bg-[#1e293b] border border-[#334155] rounded-DEFAULT flex flex-col flex-1 overflow-hidden">
+<div class="p-4 border-b border-[#334155] flex justify-between items-center bg-surface-container-highest/50">
+<h2 class="font-code-label text-code-label text-on-surface-variant uppercase tracking-wider">Recent Logs</h2>
+<button class="font-code-label text-code-label text-primary hover:text-primary-fixed transition-colors text-[11px] uppercase">View All</button>
+</div>
+<!-- Log List (Compact) -->
+<div class="flex-1 overflow-y-auto p-2 space-y-1">
+<!-- Log Item 1 -->
+<div class="p-2 hover:bg-surface-variant/50 rounded-DEFAULT transition-colors flex justify-between items-center border border-transparent hover:border-[#334155] group cursor-pointer">
+<div class="flex items-center space-x-3 overflow-hidden">
+<div class="bg-primary/10 text-primary p-1.5 rounded border border-primary/20 shrink-0">
+<span class="material-symbols-outlined text-[14px]">bug_report</span>
+</div>
+<div class="min-w-0">
+<div class="font-body-sm text-body-sm font-medium text-on-surface truncate">Fix auth token race condition</div>
+<div class="font-code-label text-code-label text-on-surface-variant text-[10px] flex items-center space-x-2 mt-0.5">
+<span class="px-1 bg-surface-dim rounded border border-outline-variant">CORE-112</span>
+<span>10:30 AM</span>
+</div>
+</div>
+</div>
+<div class="font-code-data text-code-data text-on-surface shrink-0 ml-2">01:45:00</div>
+</div>
+<!-- Log Item 2 -->
+<div class="p-2 hover:bg-surface-variant/50 rounded-DEFAULT transition-colors flex justify-between items-center border border-transparent hover:border-[#334155] group cursor-pointer">
+<div class="flex items-center space-x-3 overflow-hidden">
+<div class="bg-tertiary/10 text-tertiary p-1.5 rounded border border-tertiary/20 shrink-0">
+<span class="material-symbols-outlined text-[14px]">code</span>
+</div>
+<div class="min-w-0">
+<div class="font-body-sm text-body-sm font-medium text-on-surface truncate">UI Component Review</div>
+<div class="font-code-label text-code-label text-on-surface-variant text-[10px] flex items-center space-x-2 mt-0.5">
+<span class="px-1 bg-surface-dim rounded border border-outline-variant">FE-994</span>
+<span>08:15 AM</span>
+</div>
+</div>
+</div>
+<div class="font-code-data text-code-data text-on-surface shrink-0 ml-2">00:42:15</div>
+</div>
+<!-- Log Item 3 -->
+<div class="p-2 hover:bg-surface-variant/50 rounded-DEFAULT transition-colors flex justify-between items-center border border-transparent hover:border-[#334155] group cursor-pointer opacity-70">
+<div class="flex items-center space-x-3 overflow-hidden">
+<div class="bg-secondary/10 text-secondary p-1.5 rounded border border-secondary/20 shrink-0">
+<span class="material-symbols-outlined text-[14px]">dns</span>
+</div>
+<div class="min-w-0">
+<div class="font-body-sm text-body-sm font-medium text-on-surface truncate">Server Provisioning Script</div>
+<div class="font-code-label text-code-label text-on-surface-variant text-[10px] flex items-center space-x-2 mt-0.5">
+<span class="px-1 bg-surface-dim rounded border border-outline-variant">OPS-22</span>
+<span>Yesterday</span>
+</div>
+</div>
+</div>
+<div class="font-code-data text-code-data text-on-surface shrink-0 ml-2">03:10:00</div>
+</div>
+<!-- Log Item 4 -->
+<div class="p-2 hover:bg-surface-variant/50 rounded-DEFAULT transition-colors flex justify-between items-center border border-transparent hover:border-[#334155] group cursor-pointer opacity-70">
+<div class="flex items-center space-x-3 overflow-hidden">
+<div class="bg-primary/10 text-primary p-1.5 rounded border border-primary/20 shrink-0">
+<span class="material-symbols-outlined text-[14px]">meeting_room</span>
+</div>
+<div class="min-w-0">
+<div class="font-body-sm text-body-sm font-medium text-on-surface truncate">Sprint Planning</div>
+<div class="font-code-label text-code-label text-on-surface-variant text-[10px] flex items-center space-x-2 mt-0.5">
+<span class="px-1 bg-surface-dim rounded border border-outline-variant">MGMT</span>
+<span>Yesterday</span>
+</div>
+</div>
+</div>
+<div class="font-code-data text-code-data text-on-surface shrink-0 ml-2">01:00:00</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script>
+        // Minimal interactive logic for demo purposes
+        document.querySelectorAll('.group.cursor-pointer').forEach(item => {
+            item.addEventListener('click', () => {
+                // Flash effect on click
+                item.classList.add('bg-primary/10', 'border-primary/50');
+                setTimeout(() => {
+                    item.classList.remove('bg-primary/10', 'border-primary/50');
+                }, 150);
+            });
+        });
+    </script>
+</body></html>

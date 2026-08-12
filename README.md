@@ -38,6 +38,8 @@ App opens at the Vite URL (usually `http://localhost:5173`). `/` redirects to `/
 | `npm run check` | `svelte-check` + sync |
 | `npm run lint` | Prettier + ESLint |
 | `npm run format` | Format with Prettier |
+| `npm test` | Vitest unit tests (run once) |
+| `npm run test:watch` | Vitest watch mode |
 
 ## Routes
 

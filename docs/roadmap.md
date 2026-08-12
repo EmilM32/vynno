@@ -11,8 +11,8 @@
 | Phase | Name | Deliverable | Code? |
 |-------|------|-------------|-------|
 | **0** | Planning | PRD, domain model, screens, design system, ADRs | Docs only |
-| **1** | Scaffold | SvelteKit + TS + Tailwind, tokens, app shell, empty routes | Yes |
-| **2** | Core timer UX | Mock data, session lifecycle, Timer + Dashboard P0 | Yes |
+| **1** | Scaffold | SvelteKit + TS + Tailwind, tokens, app shell, empty routes | Done |
+| **2** | Core timer UX | Mock data, session lifecycle, Timer + Dashboard P0 | Done |
 | **3** | Logs & Insights | Full list, search, charts, aggregates | Yes |
 | **4** | Polish | Settings stub, P2 UI, a11y, visual QA vs Stitch | Yes |
 | **5** | API readiness | HTTP repository, env config, wire to backend when available | Yes |
@@ -32,7 +32,7 @@
 
 ---
 
-## Phase 1 — Scaffold (current)
+## Phase 1 — Scaffold
 
 **Goals**
 
@@ -49,15 +49,15 @@
 
 ---
 
-## Phase 2 — Core timer UX
+## Phase 2 — Core timer UX (current)
 
 **Goals**
 
-- Domain types + mock fixtures (projects, sessions).  
-- In-memory session store (active session + list).  
-- Repository interface + mock implementation ([ADR-0004](./adr/0004-state-and-data-strategy.md)).  
-- Timer: start / pause / resume / stop, live clock, project chip.  
-- Dashboard P0: today’s total, current focus (if active), basic recent logs.  
+- [x] Domain types + mock fixtures (projects, sessions).  
+- [x] In-memory session store (active session + list).  
+- [x] Repository interface + mock implementation ([ADR-0004](./adr/0004-state-and-data-strategy.md)).  
+- [x] Timer: start / pause / resume / stop, live clock, project chip.  
+- [x] Dashboard P0: today’s total, current focus (if active), basic recent logs.  
 
 **Exit criteria:** Complete Flow A–C from [screens-and-flows.md](./screens-and-flows.md) with mock data.
 

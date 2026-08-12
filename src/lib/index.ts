@@ -1,1 +1,17 @@
-// place files you want to import through the `$lib` alias in this folder.
+export type {
+	ActivityType,
+	Project,
+	SessionStatus,
+	StartSessionInput,
+	TimeSession,
+	UserProfile
+} from './types/domain';
+export { ACTIVITY_LABELS } from './types/domain';
+export type { TimeTrackingRepository } from './data/repository';
+export { MockTimeTrackingRepository } from './data/mock-repository';
+export {
+	formatClock,
+	formatCompact,
+	formatHoursMinutes,
+	sessionElapsedMs
+} from './time/duration';

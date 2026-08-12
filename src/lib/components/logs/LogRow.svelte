@@ -13,6 +13,7 @@
 
 <div
 	class="group flex flex-col justify-between gap-3 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline hover:bg-surface-container md:flex-row md:items-center md:gap-6"
+	data-testid="log-row"
 >
 	<div class="flex min-w-0 flex-1 items-center gap-4 overflow-hidden">
 		<div class="flex min-w-[120px] items-center gap-2">

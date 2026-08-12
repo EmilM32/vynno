@@ -40,6 +40,9 @@ App opens at the Vite URL (usually `http://localhost:5173`). `/` redirects to `/
 | `npm run format` | Format with Prettier |
 | `npm test` | Vitest unit tests (run once) |
 | `npm run test:watch` | Vitest watch mode |
+| `npm run test:e2e` | Playwright e2e (builds + previews app) |
+| `npm run test:e2e:ui` | Playwright UI mode |
+| `npm run test:e2e:headed` | Playwright headed browser |
 
 ## Routes
 

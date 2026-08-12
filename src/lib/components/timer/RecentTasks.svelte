@@ -27,7 +27,7 @@
 			No completed sessions yet. Start the timer to log work.
 		</p>
 	{:else}
-		<ul class="flex flex-col gap-2">
+		<ul class="flex flex-col gap-2" data-testid="recent-tasks">
 			{#each items as item (item.sessionId)}
 				{@const project = sessionStore.getProject(item.projectId)}
 				<li>
@@ -37,6 +37,7 @@
 						disabled={busy}
 						onclick={() => restart(item)}
 						title={busy ? 'Stop the current session first' : 'Start this task'}
+						data-testid="recent-task-restart"
 					>
 						<div class="flex min-w-0 flex-col">
 							<span

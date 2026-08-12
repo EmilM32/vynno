@@ -36,13 +36,16 @@
 >
 	<div class="absolute top-4 left-4 flex items-center gap-2">
 		<div class="h-2 w-2 rounded-full {statusDot}" aria-hidden="true"></div>
-		<span class="font-mono text-code-label uppercase {statusColor}">{statusLabel}</span>
+		<span class="font-mono text-code-label uppercase {statusColor}" data-testid="timer-status"
+			>{statusLabel}</span
+		>
 	</div>
 
 	{#if !isIdle}
 		<div class="absolute top-4 right-4">
 			<span
 				class="rounded border border-primary/20 bg-primary/10 px-2 py-1 font-mono text-code-label text-primary"
+				data-testid="timer-project"
 			>
 				PROJ: {projectCode}
 			</span>
@@ -51,6 +54,7 @@
 
 	<div
 		class="mt-6 mb-8 font-mono text-4xl font-bold tracking-tight tabular-nums text-primary sm:text-5xl md:text-[3.5rem] md:leading-none"
+		data-testid="timer-elapsed"
 	>
 		{clockLabel}
 	</div>

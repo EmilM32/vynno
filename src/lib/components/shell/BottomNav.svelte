@@ -10,7 +10,7 @@
 	aria-label={m.nav_main_aria()}
 >
 	{#each NAV_ITEMS as item (item.href)}
-		{@const active = isNavActive(page.url.pathname, item.href)}
+		{const active = $derived(isNavActive(page.url.pathname, item.href))}
 		<a
 			href={resolve(item.href)}
 			class="focus-ring flex min-w-0 flex-1 flex-col items-center justify-center rounded-xl px-1 py-1 transition-transform active:scale-90 motion-reduce:active:scale-100 {active

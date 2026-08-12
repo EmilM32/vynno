@@ -32,8 +32,10 @@
 		</div>
 
 		{#each days as day (day.key)}
-			{@const heightPct = day.ms > 0 ? Math.max(8, day.ratio * 100) : 5}
-			{@const future = !day.isToday && day.ms === 0 && todayKey !== '' && day.key > todayKey}
+			{const heightPct = $derived(day.ms > 0 ? Math.max(8, day.ratio * 100) : 5)}
+			{const future = $derived(
+				!day.isToday && day.ms === 0 && todayKey !== '' && day.key > todayKey
+			)}
 			<div class="group ml-0 flex flex-1 flex-col items-center gap-2 first:ml-4">
 				<div
 					class="relative flex w-full items-end justify-center rounded-t-sm transition-colors
@@ -48,14 +50,14 @@
 				>
 					{#if day.ms > 0}
 						<div
-							class="absolute -top-8 z-10 whitespace-nowrap rounded border border-outline-variant bg-surface-container-high px-2 py-1 font-mono text-code-label text-on-surface opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+							class="absolute -top-8 z-10 rounded border border-outline-variant bg-surface-container-high px-2 py-1 font-mono text-code-label whitespace-nowrap text-on-surface opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
 						>
 							{formatHoursDecimal(day.ms)}{day.isToday ? m.dashboard_today_paren() : ''}
 						</div>
 					{/if}
 				</div>
 				<span
-					class="font-mono text-[10px] text-code-label {day.isToday
+					class="font-mono text-code-label text-[10px] {day.isToday
 						? 'font-bold text-primary'
 						: future
 							? 'text-on-surface-variant/50'

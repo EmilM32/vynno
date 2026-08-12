@@ -16,7 +16,7 @@
 	</div>
 	<div class="no-scrollbar -mx-2 flex gap-4 overflow-x-auto px-2 pb-2">
 		{#each items as item (item.project.id)}
-			{@const pct = item.progressPercent ?? 0}
+			{const pct = $derived(item.progressPercent ?? 0)}
 			<div
 				class="flex min-w-[280px] shrink-0 cursor-default flex-col gap-3 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline"
 			>
@@ -46,8 +46,9 @@
 					<span class="text-body-sm text-on-surface-variant">
 						{m.dashboard_logged_this_week({ duration: formatCompact(item.ms) })}
 					</span>
-					<span class="material-symbols-outlined text-[16px] text-on-surface-variant" aria-hidden="true"
-						>arrow_forward</span
+					<span
+						class="material-symbols-outlined text-[16px] text-on-surface-variant"
+						aria-hidden="true">arrow_forward</span
 					>
 				</div>
 			</div>

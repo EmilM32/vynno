@@ -4,14 +4,15 @@
 
 DevTime is a **frontend-only** developer work-time tracker (SvelteKit + TypeScript + Tailwind).
 
-| In this repo | Separate (later) |
-|--------------|------------------|
-| SvelteKit UI, routing, design system | API, database, auth |
-| Mock / in-memory data | Persistence and multi-device sync |
+| In this repo                         | Separate (later)                  |
+| ------------------------------------ | --------------------------------- |
+| SvelteKit UI, routing, design system | API, database, auth               |
+| Mock / in-memory data                | Persistence and multi-device sync |
 
 ### Stack conventions
 
 - **Svelte 5** with runes (`$state`, `$derived`, `$effect`, `$props`) — no Svelte 4 legacy patterns
+- Use declaration tags `{const x = $derived(y)}` (Svelte ≥ 5.56) instead of legacy `{@const x = y}`
 - **SvelteKit** file-based routes under `src/routes/`
 - **TypeScript** for new modules
 - **Tailwind CSS v4** with Dev-Density Dark tokens (see `docs/design-system.md`)

@@ -26,11 +26,13 @@
 
 	<div class="no-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto p-2">
 		{#if logs.length === 0}
-			<p class="p-4 text-center text-body-sm text-on-surface-variant">{m.dashboard_no_completed()}</p>
+			<p class="p-4 text-center text-body-sm text-on-surface-variant">
+				{m.dashboard_no_completed()}
+			</p>
 		{:else}
 			{#each logs as log (log.id)}
-				{@const project = sessionStore.getProject(log.projectId)}
-				{@const duration = sessionElapsedMs(log)}
+				{const project = $derived(sessionStore.getProject(log.projectId))}
+				{const duration = $derived(sessionElapsedMs(log))}
 				<div
 					class="group flex items-center justify-between rounded-DEFAULT border border-transparent p-2 transition-colors hover:border-outline-variant/50 hover:bg-surface-container-high"
 				>
@@ -42,13 +44,13 @@
 						></div>
 						<div class="flex min-w-0 flex-col">
 							<span class="truncate text-body-sm text-on-surface">{log.note}</span>
-							<span class="font-mono text-[10px] text-code-label text-on-surface-variant">
+							<span class="font-mono text-code-label text-[10px] text-on-surface-variant">
 								{project?.name ?? m.common_unknown()}
 							</span>
 						</div>
 					</div>
 					<div class="flex shrink-0 items-center gap-2 pl-2">
-						<span class="font-mono text-code-data tabular-nums text-on-surface">
+						<span class="font-mono text-code-data text-on-surface tabular-nums">
 							{formatClock(duration)}
 						</span>
 						<button

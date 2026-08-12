@@ -79,7 +79,9 @@
 </script>
 
 <div class="mx-auto flex w-full max-w-2xl flex-col gap-6">
-	<div class="flex flex-col gap-3 border-b border-outline-variant pb-4 sm:flex-row sm:items-end sm:justify-between">
+	<div
+		class="flex flex-col gap-3 border-b border-outline-variant pb-4 sm:flex-row sm:items-end sm:justify-between"
+	>
 		<div>
 			<h1 class="text-headline-lg text-on-surface">{m.projects_title()}</h1>
 			<p class="mt-1 text-body-sm text-on-surface-variant">
@@ -181,7 +183,7 @@
 		{:else}
 			<ul class="flex flex-col gap-2" data-testid="project-list">
 				{#each visible as project (project.id)}
-					{@const count = sessionStore.countSessionsForProject(project.id)}
+					{const count = $derived(sessionStore.countSessionsForProject(project.id))}
 					<ProjectRow
 						{project}
 						sessionCount={count}
@@ -203,9 +205,7 @@
 <ConfirmDialog
 	open={deleteTarget != null}
 	title={m.projects_delete_title()}
-	message={deleteTarget
-		? m.projects_delete_message({ name: deleteTarget.name })
-		: ''}
+	message={deleteTarget ? m.projects_delete_message({ name: deleteTarget.name }) : ''}
 	confirmLabel={m.projects_delete()}
 	destructive
 	onconfirm={confirmDelete}

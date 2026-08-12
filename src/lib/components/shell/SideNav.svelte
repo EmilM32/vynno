@@ -41,7 +41,7 @@
 
 	<ul class="flex flex-1 flex-col gap-1 px-3">
 		{#each NAV_ITEMS as item (item.href)}
-			{@const active = isNavActive(page.url.pathname, item.href)}
+			{const active = $derived(isNavActive(page.url.pathname, item.href))}
 			<li>
 				<a
 					href={resolve(item.href)}

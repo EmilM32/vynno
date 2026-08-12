@@ -30,7 +30,7 @@
 	{:else}
 		<ul class="flex flex-col gap-2" data-testid="recent-tasks">
 			{#each items as item (item.sessionId)}
-				{@const project = sessionStore.getProject(item.projectId)}
+				{const project = $derived(sessionStore.getProject(item.projectId))}
 				<li>
 					<button
 						type="button"

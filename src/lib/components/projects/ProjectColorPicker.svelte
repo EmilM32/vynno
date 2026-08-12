@@ -16,9 +16,9 @@
 	}
 </script>
 
-<div class="flex flex-wrap gap-2" role="radiogroup" aria-label={m.projects_color_aria()} id={id}>
+<div class="flex flex-wrap gap-2" role="radiogroup" aria-label={m.projects_color_aria()} {id}>
 	{#each PROJECT_COLOR_PALETTE as color (color)}
-		{@const selected = value.toLowerCase() === color.toLowerCase()}
+		{const selected = $derived(value.toLowerCase() === color.toLowerCase())}
 		<button
 			type="button"
 			role="radio"

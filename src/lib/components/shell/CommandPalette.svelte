@@ -148,16 +148,19 @@
 			aria-modal="true"
 			aria-label={m.command_palette_aria()}
 		>
-			<div class="flex items-center gap-2 border-b border-outline-variant px-3">
-				<span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true"
-					>search</span
+			<div
+				class="group flex items-center gap-2 border-b border-outline-variant px-3 transition-colors focus-within:border-primary focus-within:shadow-[inset_0_-1px_0_var(--color-primary)]"
+			>
+				<span
+					class="material-symbols-outlined text-on-surface-variant transition-colors group-focus-within:text-primary"
+					aria-hidden="true">search</span
 				>
 				<input
 					bind:this={inputEl}
 					bind:value={query}
 					oninput={onQueryInput}
 					onkeydown={onInputKey}
-					class="focus-ring w-full bg-transparent py-3 font-mono text-code-data text-on-surface placeholder:text-on-surface-variant"
+					class="focus-flush w-full bg-transparent py-3 font-mono text-code-data text-on-surface placeholder:text-on-surface-variant"
 					placeholder={m.command_palette_placeholder()}
 					role="combobox"
 					aria-expanded="true"

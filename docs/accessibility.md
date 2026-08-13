@@ -17,16 +17,17 @@ Axe runs every route under `dark`, `light`, and `deep-dark` against `wcag2a`, `w
 
 ## Patterns
 
-| Widget             | Implementation                                                                                                                     |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Skip link          | `AppShell` → `#main-content`                                                                                                       |
-| Live status        | `announce()` in `src/lib/a11y/announce.ts` — session start/pause/resume/stop only. **Never** put `aria-live` on the ticking clock. |
-| Dialogs            | `trapFocus()` + `inert` on background; Escape; restore focus. Destructive confirm focuses **Cancel**.                              |
-| Command palette    | Combobox dialog: `role="combobox"` + `listbox` / `option`, `aria-activedescendant`. No nested buttons.                             |
-| Projects tabs      | APG tabs: roving tabindex, arrows, one `tabpanel`.                                                                                 |
-| Color radios       | Roving tabindex, arrow keys, named colors (not hex).                                                                               |
-| Insights breakdown | Semantic `<table>` with column headers.                                                                                            |
-| Weekly bars        | Focusable buttons; tooltip on focus and hover; Escape dismisses.                                                                   |
+| Widget             | Implementation                                                                                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Skip link          | `AppShell` → `#main-content`                                                                                                                                                   |
+| Live status        | `announce()` in `src/lib/a11y/announce.ts` — session start/pause/resume/stop only. **Never** put `aria-live` on the ticking clock.                                             |
+| Dialogs            | `trapFocus()` + `inert` on background; Escape; restore focus. Destructive confirm focuses **Cancel**.                                                                          |
+| Command palette    | Combobox dialog: `role="combobox"` + `listbox` / `option`, `aria-activedescendant`. No nested buttons. Search-row `:focus-within` is the focus indicator (not an offset ring). |
+| Focus indication   | Two-tier, `:focus-visible` only. Fields: on-border primary + 1px `box-shadow`. Chrome: 2px primary outline, 1px offset. Meets 2.4.7 + 1.4.11; 2.4.13 (AAA) is not a target.    |
+| Projects tabs      | APG tabs: roving tabindex, arrows, one `tabpanel`.                                                                                                                             |
+| Color radios       | Roving tabindex, arrow keys, named colors (not hex).                                                                                                                           |
+| Insights breakdown | Semantic `<table>` with column headers.                                                                                                                                        |
+| Weekly bars        | Focusable buttons; tooltip on focus and hover; Escape dismisses.                                                                                                               |
 
 ## Tokens
 

@@ -23,7 +23,7 @@
 	</label>
 	<select
 		id="ui-theme"
-		class="native-select focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface sm:w-56"
+		class="native-select w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface sm:w-56"
 		value={themeStore.themeId}
 		onchange={onChange}
 	>

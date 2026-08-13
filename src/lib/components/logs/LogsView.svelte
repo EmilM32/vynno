@@ -29,7 +29,7 @@
 				aria-hidden="true">search</span
 			>
 			<input
-				class="focus-ring w-full rounded-DEFAULT border border-outline-variant bg-surface-container-low py-2 pr-3 pl-9 font-mono text-code-label text-on-surface transition-all placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary"
+				class="w-full rounded-DEFAULT border border-outline-variant bg-surface-container-low py-2 pr-3 pl-9 font-mono text-code-label text-on-surface transition-colors placeholder:text-on-surface-variant"
 				type="search"
 				placeholder={m.logs_search_placeholder()}
 				bind:value={query}

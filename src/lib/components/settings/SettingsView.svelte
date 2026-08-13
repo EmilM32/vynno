@@ -86,7 +86,7 @@
 					value={prefsStore.dailyTargetHours}
 					oninput={onTargetInput}
 					aria-describedby="daily-target-hint"
-					class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface sm:w-28"
+					class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface sm:w-28"
 				/>
 			</div>
 
@@ -99,7 +99,7 @@
 				</label>
 				<select
 					id="default-project"
-					class="native-select focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface sm:w-56"
+					class="native-select w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface sm:w-56"
 					bind:value={prefsStore.defaultProjectId}
 					onchange={() => {
 						// Keep timer draft in sync when idle
@@ -125,7 +125,7 @@
 				</label>
 				<select
 					id="ui-locale"
-					class="native-select focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface sm:w-56"
+					class="native-select w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface sm:w-56"
 					value={getLocale()}
 					onchange={onLocaleChange}
 				>
@@ -136,10 +136,7 @@
 			</div>
 
 			<p class="text-body-sm text-on-surface-variant">
-				<a
-					href={resolve('/projects')}
-					class="focus-ring text-primary underline underline-offset-2"
-				>
+				<a href={resolve('/projects')} class="focus-ring text-primary underline underline-offset-2">
 					{m.settings_manage_projects()}
 				</a>
 				{m.settings_manage_projects_suffix()}

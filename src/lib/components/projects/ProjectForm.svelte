@@ -70,7 +70,7 @@
 				oninput={onNameInput}
 				aria-invalid={fieldErrors.name ? 'true' : undefined}
 				aria-describedby={fieldErrors.name ? 'project-name-error' : undefined}
-				class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 text-body-md text-on-surface"
+				class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 text-body-md text-on-surface"
 				placeholder={m.projects_name_placeholder()}
 				autocomplete="off"
 			/>
@@ -92,7 +92,7 @@
 				maxlength="8"
 				value={code}
 				oninput={onCodeInput}
-				class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface uppercase sm:max-w-xs"
+				class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface uppercase sm:max-w-xs"
 				placeholder={m.projects_code_placeholder()}
 				autocomplete="off"
 				spellcheck="false"

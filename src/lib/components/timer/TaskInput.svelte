@@ -24,7 +24,7 @@
 			>
 			<input
 				id="task-note"
-				class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-3 pr-4 pl-10 font-mono text-code-data text-on-surface transition-all placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70"
+				class="w-full rounded border border-outline-variant bg-surface-container-low py-3 pr-4 pl-10 font-mono text-code-data text-on-surface transition-colors placeholder:text-on-surface-variant disabled:cursor-not-allowed disabled:opacity-70"
 				type="text"
 				placeholder={m.timer_task_placeholder()}
 				bind:value={sessionStore.draftNote}
@@ -40,7 +40,7 @@
 		>
 		<select
 			id="project-select"
-			class="native-select focus-ring min-w-[10rem] flex-1 rounded border border-outline-variant bg-surface-container-low py-1.5 pl-3 font-mono text-code-label text-on-surface focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none"
+			class="native-select min-w-[10rem] flex-1 rounded border border-outline-variant bg-surface-container-low py-1.5 pl-3 font-mono text-code-label text-on-surface disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none"
 			bind:value={sessionStore.draftProjectId}
 			disabled={locked}
 		>

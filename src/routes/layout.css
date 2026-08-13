@@ -82,12 +82,12 @@
 		display: none;
 	}
 
-	/* Keyboard focus — terminal primary ring (global; .focus-ring is an alias) */
+	/* Keyboard focus — two tiers (see docs/accessibility.md).
+	   Chrome (buttons, links, tabs): 2px primary ring with a 1px gap so the
+	   indicator stays visible on primary-filled controls (1.4.11).
+	   Fields (input/select/textarea): on-border treatment, no offset frame. */
 	a:focus-visible,
 	button:focus-visible,
-	input:focus-visible,
-	select:focus-visible,
-	textarea:focus-visible,
 	summary:focus-visible,
 	[role='button']:focus-visible,
 	[role='tab']:focus-visible,
@@ -96,11 +96,34 @@
 	[tabindex]:not([tabindex='-1']):focus-visible,
 	.focus-ring:focus-visible {
 		outline: 2px solid var(--color-primary);
-		outline-offset: 2px;
+		outline-offset: 1px;
 	}
 
-	.focus-ring:focus:not(:focus-visible) {
+	input:focus-visible,
+	select:focus-visible,
+	textarea:focus-visible,
+	input.focus-ring:focus-visible,
+	select.focus-ring:focus-visible,
+	textarea.focus-ring:focus-visible {
 		outline: none;
+		border-color: var(--color-primary);
+		box-shadow: 0 0 0 1px var(--color-primary);
+	}
+
+	/* Borderless fields (command palette): parent :focus-within is the indicator. */
+	.focus-flush:focus-visible,
+	input.focus-flush:focus-visible,
+	select.focus-flush:focus-visible,
+	textarea.focus-flush:focus-visible {
+		outline: none;
+		border-color: transparent;
+		box-shadow: none;
+	}
+
+	.focus-ring:focus:not(:focus-visible),
+	.focus-flush:focus:not(:focus-visible) {
+		outline: none;
+		box-shadow: none;
 	}
 
 	.today-glow {

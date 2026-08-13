@@ -173,6 +173,12 @@ Not design-system tokens — per-project:
 
 Active element: **border color → primary**, not lift/shadow.
 
+Focus is two-tier (always `:focus-visible`):
+
+- **Fields** (`input` / `select` / `textarea`): on-border — `border-color` + 1px `box-shadow` in `primary`. No offset outline.
+- **Chrome** (buttons, links, tabs): 2px `primary` outline, 1px offset (gap keeps the ring visible on primary-filled controls).
+- **Flush / borderless fields** (command palette): parent `:focus-within` recolors the row hairline. Do not put an offset ring on the input.
+
 ---
 
 ## 7. Motion
@@ -202,7 +208,7 @@ Keep motion subtle; respect `prefers-reduced-motion` at implementation time.
 - **Primary button** — solid primary fill, dark text
 - **Ghost / secondary button** — bordered, Pause style
 - **Destructive-tinged Stop** — error border/fill on desktop mock
-- **Text input** — dark field, primary focus ring
+- **Text input** — dark field, primary on-border focus (not an offset ring)
 - **Command / quick input** — mono, terminal prompt aesthetic
 - **Project chip** — short code, primary tint background
 - **Activity chip** — near-square pill with type color
@@ -248,7 +254,7 @@ Conformance target: **WCAG 2.2 AA**. Full statement: [accessibility.md](./access
 - Do not rely on color alone for project identity (include name). Color swatches have named accessible labels.
 - Ensure Pause/Stop and other primary mobile actions ≥ 40px where possible; other controls ≥ 24×24 (WCAG 2.5.8).
 - Timer updates: **never** put `aria-live` on the ticking clock. Announce start / pause / resume / stop via `announce()`.
-- Focus ring is global (`:focus-visible`, 2px `primary`). Do not use `outline-none` without a replacement.
+- Focus is global and two-tier (`:focus-visible`): fields use an on-border primary edge; chrome uses a 2px primary outline at 1px offset. Do not use `outline-none` without a replacement (`.focus-flush` is only valid when a parent `:focus-within` indicator exists).
 - Dialogs use `trapFocus()`; destructive confirms focus Cancel first.
 
 ---

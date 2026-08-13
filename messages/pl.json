@@ -1,6 +1,5 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-
 	"app_name": "Vynno",
 	"title_app": "{page} · Vynno",
 	"title_timer": "Timer",
@@ -9,7 +8,6 @@
 	"title_insights": "Analizy",
 	"title_projects": "Projekty",
 	"title_settings": "Ustawienia",
-
 	"nav_timer": "Timer",
 	"nav_dashboard": "Pulpit",
 	"nav_logs": "Logi",
@@ -17,18 +15,16 @@
 	"nav_projects": "Projekty",
 	"nav_settings": "Ustawienia",
 	"nav_main_aria": "Główne",
-	"nav_start_new_session": "Rozpocznij nową sesję",
+	"nav_start_new_session": "Rozpocznij sesję",
 	"shell_skip_to_content": "Przejdź do treści",
 	"announce_session_started": "Sesja rozpoczęta",
 	"announce_session_paused": "Sesja wstrzymana",
 	"announce_session_resumed": "Sesja wznowiona",
 	"announce_session_stopped": "Sesja zatrzymana",
-
 	"shell_open_command_palette": "Otwórz paletę poleceń",
 	"shell_session_recording": "Sesja w toku",
 	"shell_session_paused": "Sesja wstrzymana",
 	"shell_no_active_session": "Brak aktywnej sesji",
-
 	"command_palette_aria": "Paleta poleceń",
 	"command_palette_close": "Zamknij paletę poleceń",
 	"command_palette_placeholder": "Wpisz polecenie…",
@@ -37,7 +33,6 @@
 	"command_palette_hints": "↑↓ nawigacja · enter wybierz · esc zamknij",
 	"command_go_to": "Przejdź do: {page}",
 	"command_start_session": "Rozpocznij nową sesję",
-
 	"common_dismiss": "zamknij",
 	"common_dismiss_capital": "Zamknij",
 	"common_cancel": "Anuluj",
@@ -45,7 +40,6 @@
 	"common_unknown": "Nieznane",
 	"common_today": "Dzisiaj",
 	"common_project": "Projekt",
-
 	"timer_title": "Timer",
 	"timer_subtitle": "Uruchom, wstrzymaj i zatrzymaj bieżącą sesję skupienia.",
 	"timer_session_aria": "Timer sesji",
@@ -69,7 +63,6 @@
 	"timer_today_aria": "Podsumowanie dnia",
 	"timer_today_target": "Dzienny cel",
 	"timer_today_of_target": "{logged} z {target}",
-
 	"dashboard_title": "Pulpit",
 	"dashboard_subtitle": "Suma z dzisiaj, bieżące skupienie i ten tydzień.",
 	"dashboard_today_total": "Suma z dzisiaj",
@@ -90,14 +83,12 @@
 	"dashboard_no_completed": "Brak zakończonych sesji.",
 	"dashboard_restart_task": "Wznów to zadanie",
 	"dashboard_restart_aria": "Wznów {note}",
-
 	"logs_title": "Dziennik systemowy",
 	"logs_subtitle": "Szczegółowy chronologiczny zapis sesji.",
 	"logs_search_placeholder": "grep 'projekt' lub 'notatka'...",
 	"logs_search_aria": "Szukaj w dzienniku",
 	"logs_no_match": "Żadne wpisy nie pasują do filtra.",
 	"logs_no_completed": "Brak zakończonych sesji.",
-
 	"insights_title": "Analizy",
 	"insights_subtitle": "Na co poszedł czas — według projektu i aktywności.",
 	"insights_period_aria": "Okres",
@@ -124,7 +115,6 @@
 	"insights_col_activity": "Aktywność",
 	"insights_col_duration": "Czas trwania",
 	"insights_no_rows": "Brak wierszy dla tego okresu.",
-
 	"projects_title": "Projekty",
 	"projects_subtitle": "Zarządzaj kontenerami pracy. Zmiany dotyczą tej sesji (dane mock).",
 	"projects_new": "Nowy projekt",
@@ -169,7 +159,6 @@
 	"projects_cannot_archive_last": "Nie można zarchiwizować ostatniego aktywnego projektu",
 	"projects_cannot_delete_has_sessions": "Projektów z sesjami nie można usunąć — zarchiwizuj zamiast tego",
 	"projects_cannot_delete_last": "Nie można usunąć ostatniego aktywnego projektu",
-
 	"settings_title": "Ustawienia",
 	"settings_subtitle": "Lokalne preferencje dla tej sesji. Synchronizacja konta pojawi się wraz z API.",
 	"settings_profile": "Profil",
@@ -195,17 +184,13 @@
 	"settings_about_oneliner": "{name} to timer skupienia — projekty, sesje i czytelny tydzień.",
 	"settings_about_coined": "Nazwa wymyślona — podwójne n to właściwa pisownia.",
 	"settings_about_version": "Wersja",
-
 	"settings_coming_later": "Wkrótce",
 	"settings_later_notifications": "Powiadomienia i integracje z kalendarzem",
 	"settings_later_account": "Konto / uwierzytelnianie (osobny backend)",
 	"settings_later_persisted": "Trwałe preferencje na wielu urządzeniach",
-
 	"locale_en": "angielski",
 	"locale_pl": "polski",
-
 	"dialog_dismiss_aria": "Zamknij okno",
-
 	"activity_deep_work": "Głęboka praca",
 	"activity_meeting": "Spotkanie",
 	"activity_maintenance": "Utrzymanie",
@@ -214,13 +199,11 @@
 	"activity_docs": "Dokumentacja",
 	"activity_research": "Badania",
 	"activity_other": "Inne",
-
 	"validation_name_required": "Nazwa jest wymagana.",
 	"validation_name_max": "Nazwa może mieć najwyżej {max} znaków.",
 	"validation_color_palette": "Wybierz kolor z palety.",
 	"validation_code_max": "Kod może mieć najwyżej {max} znaków.",
 	"validation_code_chars": "Kod może zawierać tylko A–Z, 0–9 i myślniki.",
-
 	"error_failed_create_project": "Nie udało się utworzyć projektu",
 	"error_failed_update_project": "Nie udało się zaktualizować projektu",
 	"error_failed_archive_project": "Nie udało się zarchiwizować projektu",
@@ -232,7 +215,6 @@
 	"error_failed_pause": "Nie udało się wstrzymać",
 	"error_failed_resume": "Nie udało się wznowić",
 	"error_failed_stop": "Nie udało się zatrzymać",
-
 	"placeholder_scaffold": "// zastępczy szkielet",
 	"placeholder_phase_note": "Interfejs funkcji pojawi się w późniejszej fazie.",
 	"placeholder_design_ref": "Odniesienie projektowe: stitch_personal_dev_tracker/ · docs/screens-and-flows.md"

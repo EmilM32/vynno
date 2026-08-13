@@ -21,10 +21,10 @@
 
 	const cardBorder = $derived(
 		isActive
-			? 'border-primary pulse-border'
+			? 'border-outline-variant max-lg:border-primary max-lg:pulse-border lg:border-transparent'
 			: isPaused
-				? 'border-tertiary/60'
-				: 'border-outline-variant'
+				? 'border-outline-variant max-lg:border-tertiary/60 lg:border-transparent'
+				: 'border-outline-variant lg:border-transparent'
 	);
 
 	const clockLabel = $derived(isIdle ? '00:00:00' : sessionStore.elapsedLabel);
@@ -32,36 +32,31 @@
 </script>
 
 <div
-	class="relative flex flex-col items-center justify-center rounded-lg border bg-surface-container p-8 {cardBorder}"
+	class="flex flex-col items-center rounded-lg border bg-surface-container px-6 py-7 lg:rounded-none lg:bg-transparent lg:px-5 lg:py-10 {cardBorder}"
 	role="region"
 	aria-label={m.timer_session_aria()}
 >
-	<div class="absolute top-4 left-4 flex items-center gap-2">
-		<div class="h-2 w-2 rounded-full {statusDot}" aria-hidden="true"></div>
-		<span class="font-mono text-code-label uppercase {statusColor}" data-testid="timer-status"
-			>{statusLabel}</span
-		>
-	</div>
-
-	{#if !isIdle}
-		<div class="absolute top-4 right-4">
-			<span
-				class="rounded border border-primary/20 bg-primary/10 px-2 py-1 font-mono text-code-label text-primary"
-				data-testid="timer-project"
-			>
-				{m.timer_proj_prefix({ code: projectCode })}
-			</span>
-		</div>
-	{/if}
-
 	<div
-		class="mt-6 mb-8 font-mono text-4xl font-bold tracking-tight text-primary tabular-nums sm:text-5xl md:text-[3.5rem] md:leading-none"
+		class="font-mono text-4xl font-bold tracking-tight text-primary tabular-nums sm:text-5xl md:text-[3.5rem] md:leading-none"
 		data-testid="timer-elapsed"
 	>
 		{clockLabel}
 	</div>
 
-	<div class="flex w-full max-w-[300px] gap-4">
+	<div class="mt-3 flex items-center gap-2">
+		<div class="h-1.5 w-1.5 rounded-full {statusDot}" aria-hidden="true"></div>
+		<span class="font-mono text-code-label uppercase {statusColor}" data-testid="timer-status"
+			>{statusLabel}</span
+		>
+		{#if !isIdle}
+			<span class="text-on-surface-variant" aria-hidden="true">·</span>
+			<span class="font-mono text-code-label text-primary" data-testid="timer-project">
+				{m.timer_proj_prefix({ code: projectCode })}
+			</span>
+		{/if}
+	</div>
+
+	<div class="mt-6 flex w-full max-w-[280px] gap-3">
 		{#if isIdle}
 			<button
 				type="button"

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
 	import { sessionStore } from '$lib/stores/session.svelte';
@@ -23,18 +24,12 @@
 	);
 </script>
 
-<div class="mx-auto flex w-full max-w-container-max flex-col gap-6">
-	<div
-		class="flex flex-col justify-between gap-4 border-b border-outline-variant pb-4 sm:flex-row sm:items-end"
-	>
-		<div>
-			<h1 class="text-headline-lg text-on-surface">{m.insights_title()}</h1>
-			<p class="mt-1 text-body-sm text-on-surface-variant">
-				{m.insights_subtitle()}
-			</p>
-		</div>
-		<PeriodToggle bind:value={period} />
-	</div>
+<div class="flex w-full flex-col gap-6" data-testid="page-view">
+	<PageHeader title={m.insights_title()} description={m.insights_subtitle()}>
+		{#snippet actions()}
+			<PeriodToggle bind:value={period} />
+		{/snippet}
+	</PageHeader>
 
 	<KpiCards {stats} />
 

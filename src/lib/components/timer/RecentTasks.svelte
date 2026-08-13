@@ -17,12 +17,10 @@
 	}
 </script>
 
-<div class="flex flex-col gap-3">
-	<div class="flex items-center justify-between border-b border-outline-variant pb-2">
-		<h2 class="text-headline-md text-on-surface-variant">{m.timer_recent_tasks()}</h2>
-		<span class="font-mono text-code-label text-on-surface-variant"
-			>{m.timer_recent_search_hint()}</span
-		>
+<div class="flex flex-col">
+	<div class="mb-1 flex items-baseline justify-between border-b border-outline-variant pb-2">
+		<h2 class="text-headline-md text-on-surface">{m.timer_recent_tasks()}</h2>
+		<span class="text-body-sm text-on-surface-variant">{m.timer_recent_search_hint()}</span>
 	</div>
 
 	{#if items.length === 0}
@@ -30,13 +28,13 @@
 			{m.timer_recent_empty()}
 		</p>
 	{:else}
-		<ul class="flex flex-col gap-2" data-testid="recent-tasks">
+		<ul data-testid="recent-tasks">
 			{#each items as item (item.sessionId)}
 				{const project = $derived(sessionStore.getProject(item.projectId))}
-				<li>
+				<li class="border-b border-outline-variant last:border-b-0">
 					<button
 						type="button"
-						class="focus-ring group flex w-full items-center justify-between rounded border border-outline-variant bg-surface-container p-3 text-left transition-colors hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-60"
+						class="focus-ring group flex w-full items-center justify-between py-2.5 text-left transition-colors hover:bg-surface-container/80 disabled:cursor-not-allowed disabled:opacity-60"
 						disabled={busy}
 						onclick={() => restart(item)}
 						title={busy ? m.timer_stop_first() : m.timer_start_this_task()}
@@ -48,7 +46,7 @@
 								>{item.note}</span
 							>
 							<span class="font-mono text-code-label text-on-surface-variant">
-								{m.timer_project_line({ name: project?.name ?? m.common_unknown() })}
+								{project?.name ?? m.common_unknown()}
 							</span>
 						</div>
 						<div class="flex shrink-0 items-center gap-3 pl-3">
@@ -56,7 +54,7 @@
 								{formatCompact(item.durationMs)}
 							</span>
 							<span
-								class="material-symbols-outlined text-on-surface-variant transition-colors group-hover:text-primary group-disabled:opacity-50"
+								class="material-symbols-outlined text-[18px] text-on-surface-variant transition-colors group-hover:text-primary group-disabled:opacity-50"
 								aria-hidden="true">play_arrow</span
 							>
 						</div>

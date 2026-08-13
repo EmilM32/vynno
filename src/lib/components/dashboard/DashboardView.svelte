@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import ActiveProjects from './ActiveProjects.svelte';
@@ -8,11 +9,8 @@
 	import WeeklyOverview from './WeeklyOverview.svelte';
 </script>
 
-<div class="flex flex-col gap-gutter">
-	<div class="border-b border-outline-variant pb-4">
-		<h1 class="text-headline-lg text-on-surface">{m.dashboard_title()}</h1>
-		<p class="mt-1 text-body-sm text-on-surface-variant">{m.dashboard_subtitle()}</p>
-	</div>
+<div class="flex flex-col gap-gutter" data-testid="page-view">
+	<PageHeader title={m.dashboard_title()} description={m.dashboard_subtitle()} />
 
 	{#if sessionStore.error}
 		<div

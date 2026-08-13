@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
@@ -96,25 +97,22 @@
 	}
 </script>
 
-<div class="mx-auto flex w-full max-w-2xl flex-col gap-6">
-	<div
-		class="flex flex-col gap-3 border-b border-outline-variant pb-4 sm:flex-row sm:items-end sm:justify-between"
-	>
-		<div>
-			<h1 class="text-headline-lg text-on-surface">{m.projects_title()}</h1>
-			<p class="mt-1 text-body-sm text-on-surface-variant">
-				{m.projects_subtitle()}
-			</p>
-		</div>
-		<button
-			type="button"
-			class="focus-ring shrink-0 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary transition-colors hover:bg-primary-container"
-			onclick={openCreate}
-			data-testid="new-project"
-		>
-			{m.projects_new()}
-		</button>
-	</div>
+<div
+	class="mx-auto flex w-full max-w-2xl flex-col gap-6 md:mx-0 md:max-w-none"
+	data-testid="page-view"
+>
+	<PageHeader title={m.projects_title()} description={m.projects_subtitle()}>
+		{#snippet actions()}
+			<button
+				type="button"
+				class="focus-ring shrink-0 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary transition-colors hover:bg-primary-container"
+				onclick={openCreate}
+				data-testid="new-project"
+			>
+				{m.projects_new()}
+			</button>
+		{/snippet}
+	</PageHeader>
 
 	{#if sessionStore.error}
 		<div

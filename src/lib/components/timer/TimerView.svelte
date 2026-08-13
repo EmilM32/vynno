@@ -1,16 +1,27 @@
 <script lang="ts">
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import RecentTasks from './RecentTasks.svelte';
 	import TaskInput from './TaskInput.svelte';
 	import TimerCard from './TimerCard.svelte';
+	import TodaySummary from './TodaySummary.svelte';
+
+	const status = $derived(sessionStore.activeSession?.status);
+	const sessionChrome = $derived(
+		status === 'active'
+			? 'lg:border-primary lg:pulse-border'
+			: status === 'paused'
+				? 'lg:border-tertiary/60'
+				: 'lg:border-outline-variant'
+	);
 </script>
 
-<div class="mx-auto flex w-full max-w-[600px] flex-col gap-8">
-	<div class="border-b border-outline-variant pb-4">
-		<h1 class="text-headline-lg text-on-surface">{m.timer_title()}</h1>
-		<p class="mt-1 text-body-sm text-on-surface-variant">{m.timer_subtitle()}</p>
-	</div>
+<div
+	class="mx-auto flex w-full max-w-[600px] flex-col gap-8 md:mx-0 md:max-w-none"
+	data-testid="page-view"
+>
+	<PageHeader title={m.timer_title()} description={m.timer_subtitle()} />
 
 	{#if sessionStore.error}
 		<div
@@ -26,7 +37,15 @@
 		</div>
 	{/if}
 
-	<TaskInput />
-	<TimerCard />
+	<div
+		class="flex flex-col gap-6 lg:gap-0 lg:overflow-hidden lg:rounded-lg lg:border lg:bg-surface-container {sessionChrome}"
+		data-testid="timer-session"
+	>
+		<div class="lg:border-b lg:border-outline-variant lg:px-5 lg:py-3">
+			<TaskInput />
+		</div>
+		<TimerCard />
+		<TodaySummary />
+	</div>
 	<RecentTasks />
 </div>

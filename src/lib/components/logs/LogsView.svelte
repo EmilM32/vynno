@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { filterSessions, groupSessionsByDate } from '$lib/time/aggregates';
@@ -13,30 +14,24 @@
 	const todayKey = $derived(localDateKeyFromDate(new Date(sessionStore.nowMs)));
 </script>
 
-<div class="mx-auto w-full max-w-container-max space-y-6">
-	<div
-		class="flex flex-col justify-between gap-4 border-b border-outline-variant pb-4 md:flex-row md:items-end"
-	>
-		<div>
-			<h1 class="text-headline-lg text-on-surface">{m.logs_title()}</h1>
-			<p class="mt-1 text-body-sm text-on-surface-variant">
-				{m.logs_subtitle()}
-			</p>
-		</div>
-		<div class="group relative w-full md:w-64">
-			<span
-				class="material-symbols-outlined absolute top-1/2 left-3 -translate-y-1/2 text-[18px] text-on-surface-variant transition-colors group-focus-within:text-primary"
-				aria-hidden="true">search</span
-			>
-			<input
-				class="w-full rounded-DEFAULT border border-outline-variant bg-surface-container-low py-2 pr-3 pl-9 font-mono text-code-label text-on-surface transition-colors placeholder:text-on-surface-variant"
-				type="search"
-				placeholder={m.logs_search_placeholder()}
-				bind:value={query}
-				aria-label={m.logs_search_aria()}
-			/>
-		</div>
-	</div>
+<div class="flex w-full flex-col gap-6" data-testid="page-view">
+	<PageHeader title={m.logs_title()} description={m.logs_subtitle()}>
+		{#snippet actions()}
+			<div class="group relative w-full md:w-64">
+				<span
+					class="material-symbols-outlined absolute top-1/2 left-3 -translate-y-1/2 text-[18px] text-on-surface-variant transition-colors group-focus-within:text-primary"
+					aria-hidden="true">search</span
+				>
+				<input
+					class="w-full rounded-DEFAULT border border-outline-variant bg-surface-container-low py-2 pr-3 pl-9 font-mono text-code-label text-on-surface transition-colors placeholder:text-on-surface-variant"
+					type="search"
+					placeholder={m.logs_search_placeholder()}
+					bind:value={query}
+					aria-label={m.logs_search_aria()}
+				/>
+			</div>
+		{/snippet}
+	</PageHeader>
 
 	{#if groups.length === 0}
 		<p class="py-12 text-center text-body-md text-on-surface-variant">

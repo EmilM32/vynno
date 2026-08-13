@@ -136,17 +136,17 @@ Not design-system tokens — per-project:
 
 ## 4. Layout & spacing
 
-| Token              | Value   |
-| ------------------ | ------- |
-| Spacing unit       | 4px     |
-| Gutter             | 12px    |
-| Margin mobile      | 16px    |
-| Margin desktop     | 24px    |
-| Container max      | 1200px  |
-| Sidebar width      | 240px   |
-| Compact row height | 32–40px |
+| Token              | Value                                             |
+| ------------------ | ------------------------------------------------- |
+| Spacing unit       | 4px                                               |
+| Gutter             | 12px                                              |
+| Margin mobile      | 16px                                              |
+| Margin desktop     | 24px                                              |
+| Container max      | 1200px (token kept; not applied to the app shell) |
+| Sidebar width      | 240px                                             |
+| Compact row height | 32–40px                                           |
 
-- Desktop: 12-column fluid grid, narrow gutters
+- Desktop: main column is full remaining width beside the sidebar (24px margin); page headers stick and collapse the subtitle
 - Mobile: single column
 - Prefer density over large empty regions; define regions with 1px borders
 

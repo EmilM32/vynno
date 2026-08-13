@@ -4,6 +4,7 @@
 	import { getLocale, locales, setLocale, type Locale } from '$lib/paraglide/runtime.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
 	import ThemeSelect from './ThemeSelect.svelte';
 
@@ -25,13 +26,11 @@
 	}
 </script>
 
-<div class="mx-auto flex w-full max-w-2xl flex-col gap-8">
-	<div class="border-b border-outline-variant pb-4">
-		<h1 class="text-headline-lg text-on-surface">{m.settings_title()}</h1>
-		<p class="mt-1 text-body-sm text-on-surface-variant">
-			{m.settings_subtitle()}
-		</p>
-	</div>
+<div
+	class="mx-auto flex w-full max-w-2xl flex-col gap-8 md:mx-0 md:max-w-none"
+	data-testid="page-view"
+>
+	<PageHeader title={m.settings_title()} description={m.settings_subtitle()} />
 
 	<!-- Profile -->
 	<section

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
+	import PageHeader from './PageHeader.svelte';
 
 	let {
 		title,
@@ -15,10 +16,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	<div class="border-b border-outline-variant pb-4">
-		<h1 class="text-headline-lg text-on-surface">{title}</h1>
-		<p class="mt-1 text-body-md text-on-surface-variant">{description}</p>
-	</div>
+	<PageHeader {title} {description} />
 
 	<div
 		class="rounded-lg border border-outline-variant bg-surface-container p-6 font-mono text-code-label text-on-surface-variant"

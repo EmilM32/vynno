@@ -66,6 +66,9 @@
 	"timer_stop_first": "Stop the current session first",
 	"timer_start_this_task": "Start this task",
 	"timer_project_line": "Project: {name}",
+	"timer_today_aria": "Today's summary",
+	"timer_today_target": "Daily target",
+	"timer_today_of_target": "{logged} of {target}",
 
 	"dashboard_title": "Dashboard",
 	"dashboard_subtitle": "Today’s total, current focus, and this week.",

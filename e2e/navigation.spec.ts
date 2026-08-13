@@ -53,4 +53,33 @@ test.describe('navigation', () => {
 			'page'
 		);
 	});
+
+	test('mobile timer stays full-width without today summary', async ({ page }, testInfo) => {
+		test.skip(testInfo.project.name !== 'mobile', 'desktop timer layout is covered in layout.spec');
+		await page.goto('/timer');
+		await expect(page.getByTestId('timer-today-summary')).toBeHidden();
+		const timer = page.getByRole('region', { name: 'Session timer' });
+		const box = await timer.boundingBox();
+		expect(box).toBeTruthy();
+		expect(box!.width).toBeGreaterThan(300);
+	});
+
+	test('mobile page header does not collapse on scroll', async ({ page }, testInfo) => {
+		test.skip(
+			testInfo.project.name !== 'mobile',
+			'desktop header collapse is covered in layout.spec'
+		);
+		await page.goto('/logs');
+		const header = page.getByTestId('page-header');
+		const description = page.getByTestId('page-header-description');
+		await expect(header).toHaveAttribute('data-compact', 'false');
+		await expect(description).toBeVisible();
+
+		await page.locator('#main-content').evaluate((el) => {
+			el.scrollTop = 400;
+		});
+
+		await expect(header).toHaveAttribute('data-compact', 'false');
+		await expect(description).toBeVisible();
+	});
 });

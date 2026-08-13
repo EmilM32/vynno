@@ -1,0 +1,60 @@
+/* High-Density Technical Light — stitch_personal_dev_tracker_light/high_density_technical_light/DESIGN.md */
+
+[data-theme='light'] {
+	color-scheme: light;
+
+	--dt-background: #f8f9ff;
+	--dt-on-background: #0b1c30;
+	--dt-surface: #f8f9ff;
+	--dt-surface-dim: #cbdbf5;
+	--dt-surface-bright: #f8f9ff;
+	--dt-surface-container-lowest: #ffffff;
+	--dt-surface-container-low: #eff4ff;
+	--dt-surface-container: #e5eeff;
+	--dt-surface-container-high: #dce9ff;
+	--dt-surface-container-highest: #d3e4fe;
+	--dt-surface-variant: #d3e4fe;
+	--dt-surface-tint: #006398;
+
+	--dt-on-surface: #0b1c30;
+	--dt-on-surface-variant: #3f4850;
+
+	--dt-outline: #707881;
+	--dt-outline-variant: #bfc7d2;
+
+	--dt-primary: #006194;
+	--dt-on-primary: #ffffff;
+	--dt-primary-container: #007bb9;
+	--dt-on-primary-container: #fdfcff;
+	--dt-primary-fixed: #cce5ff;
+	--dt-primary-fixed-dim: #93ccff;
+	--dt-on-primary-fixed: #001d31;
+	--dt-on-primary-fixed-variant: #004b73;
+	--dt-inverse-primary: #93ccff;
+
+	--dt-secondary: #006e2d;
+	--dt-on-secondary: #ffffff;
+	--dt-secondary-container: #7cf994;
+	--dt-on-secondary-container: #007230;
+	--dt-secondary-fixed: #7ffc97;
+	--dt-secondary-fixed-dim: #62df7d;
+	--dt-on-secondary-fixed: #002109;
+	--dt-on-secondary-fixed-variant: #005320;
+
+	--dt-tertiary: #8d4b00;
+	--dt-on-tertiary: #ffffff;
+	--dt-tertiary-container: #b15f00;
+	--dt-on-tertiary-container: #fffbff;
+	--dt-tertiary-fixed: #ffdcc3;
+	--dt-tertiary-fixed-dim: #ffb77d;
+	--dt-on-tertiary-fixed: #2f1500;
+	--dt-on-tertiary-fixed-variant: #6e3900;
+
+	--dt-error: #ba1a1a;
+	--dt-on-error: #ffffff;
+	--dt-error-container: #ffdad6;
+	--dt-on-error-container: #93000a;
+
+	--dt-inverse-surface: #213145;
+	--dt-inverse-on-surface: #eaf1ff;
+}

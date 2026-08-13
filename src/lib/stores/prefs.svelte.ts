@@ -3,6 +3,7 @@ import { MOCK_PROFILE, PROJECT_IDS } from '$lib/data/fixtures';
 /**
  * Client-only user preferences for the mock SPA.
  * Not persisted (reload resets) — durable prefs land with backend / Phase 5+.
+ * Theme is the exception: see `$lib/theme`.
  */
 class PrefsStore {
 	displayName = $state(MOCK_PROFILE.displayName);

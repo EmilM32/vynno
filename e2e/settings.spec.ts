@@ -19,6 +19,22 @@ test.describe('settings', () => {
 		await expect(input).toHaveValue('6');
 	});
 
+	test('theme select switches and persists', async ({ page }) => {
+		const select = page.locator('#ui-theme');
+		await expect(select).toBeVisible();
+		await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+
+		await select.selectOption('light');
+		await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+
+		await page.reload();
+		await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+		await expect(page.locator('#ui-theme')).toHaveValue('light');
+
+		await page.locator('#ui-theme').selectOption('dark');
+		await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+	});
+
 	test('default project select changes', async ({ page }) => {
 		const select = page.locator('#default-project');
 		await expect(select).toBeVisible();

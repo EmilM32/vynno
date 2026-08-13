@@ -1,14 +1,10 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
-	import {
-		getLocale,
-		locales,
-		setLocale,
-		type Locale
-	} from '$lib/paraglide/runtime.js';
+	import { getLocale, locales, setLocale, type Locale } from '$lib/paraglide/runtime.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
+	import ThemeSelect from './ThemeSelect.svelte';
 
 	function onTargetInput(e: Event) {
 		const v = Number((e.currentTarget as HTMLInputElement).value);
@@ -41,7 +37,9 @@
 		class="rounded-lg border border-outline-variant bg-surface-container p-4"
 		aria-labelledby="settings-profile"
 	>
-		<h2 id="settings-profile" class="mb-4 text-headline-md text-on-surface">{m.settings_profile()}</h2>
+		<h2 id="settings-profile" class="mb-4 text-headline-md text-on-surface">
+			{m.settings_profile()}
+		</h2>
 		<div class="flex items-center gap-4">
 			<div
 				class="flex h-14 w-14 shrink-0 items-center justify-center rounded-DEFAULT border border-primary/30 bg-primary/10 font-mono text-lg font-medium text-primary"
@@ -67,7 +65,9 @@
 		class="rounded-lg border border-outline-variant bg-surface-container p-4"
 		aria-labelledby="settings-prefs"
 	>
-		<h2 id="settings-prefs" class="mb-4 text-headline-md text-on-surface">{m.settings_preferences()}</h2>
+		<h2 id="settings-prefs" class="mb-4 text-headline-md text-on-surface">
+			{m.settings_preferences()}
+		</h2>
 		<div class="flex flex-col gap-5">
 			<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<label class="text-body-md text-on-surface" for="daily-target">
@@ -112,6 +112,8 @@
 				</select>
 			</div>
 
+			<ThemeSelect />
+
 			<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<label class="text-body-md text-on-surface" for="ui-locale">
 					{m.settings_language()}
@@ -152,7 +154,6 @@
 			{m.settings_coming_later()}
 		</h2>
 		<ul class="list-inside list-disc space-y-1 text-body-sm text-outline">
-			<li>{m.settings_later_theme()}</li>
 			<li>{m.settings_later_notifications()}</li>
 			<li>{m.settings_later_account()}</li>
 			<li>{m.settings_later_persisted()}</li>

@@ -1,10 +1,13 @@
-# Design System — Dev-Density Dark
+# Design System — DevTime
 
 **Status:** Condensed from Stitch  
-**Last updated:** 2026-08-12  
-**Source of truth:** `stitch_personal_dev_tracker/dev_density_dark/DESIGN.md` + screen mockups  
+**Last updated:** 2026-08-13  
+**Source of truth:**
 
-When Stitch and this doc diverge, prefer **screenshots** for layout and **DESIGN.md** for tokens; update this doc after intentional product decisions.
+- Dark: `stitch_personal_dev_tracker/dev_density_dark/DESIGN.md` + screen mockups
+- Light: `stitch_personal_dev_tracker_light/high_density_technical_light/DESIGN.md` + screen mockups
+
+When Stitch and this doc diverge, prefer **screenshots** for layout and **DESIGN.md YAML** for tokens; update this doc after intentional product decisions. Named theme implementation: [adr/0008-named-themes.md](./adr/0008-named-themes.md).
 
 ---
 
@@ -12,7 +15,7 @@ When Stitch and this doc diverge, prefer **screenshots** for layout and **DESIGN
 
 - **Aesthetic:** Minimalist-technical, high information density, terminal / IDE feel  
 - **Audience:** Engineers and power users  
-- **Mode:** Dark only  
+- **Mode:** Named color themes (`dark`, `light`; list is open for a third palette). Not a boolean.  
 - **Elevation:** Tonal layers + 1px borders; avoid soft material shadows  
 - **Emotion:** Focused productivity, systemic reliability  
 
@@ -20,7 +23,9 @@ When Stitch and this doc diverge, prefer **screenshots** for layout and **DESIGN
 
 ## 2. Color tokens
 
-From design export (Material-style naming). Primary brand accents:
+Material-style names are **shared** across themes. Hex values live in `src/lib/theme/dark.css` and `src/lib/theme/light.css` as `--dt-*`; Tailwind utilities (`bg-surface`, `text-primary`) resolve through `@theme inline`.
+
+### Dark (Dev-Density)
 
 | Role | Token | Hex | Usage |
 |------|-------|-----|-------|
@@ -39,6 +44,30 @@ From design export (Material-style naming). Primary brand accents:
 | **Secondary** | `secondary` / `secondary-fixed` | `#4de082` / `#6dfe9c` | Active success, positive deltas |
 | **Tertiary** | `tertiary` | `#ffc42f` | Warnings, idle/pending, amber chips |
 | Error | `error` | `#ffb4ab` | Destructive (Stop emphasis on desktop) |
+
+### Light (High-Density Technical)
+
+YAML from `high_density_technical_light/DESIGN.md` (prefer YAML over prose hexes in that file).
+
+| Role | Token | Hex |
+|------|-------|-----|
+| Background / surface | `surface`, `background` | `#f8f9ff` |
+| Surface lowest | `surface-container-lowest` | `#ffffff` |
+| Surface low | `surface-container-low` | `#eff4ff` |
+| Surface container | `surface-container` | `#e5eeff` |
+| Surface high | `surface-container-high` | `#dce9ff` |
+| Surface highest / variant | `surface-container-highest`, `surface-variant` | `#d3e4fe` |
+| On surface | `on-surface` | `#0b1c30` |
+| On surface variant | `on-surface-variant` | `#3f4850` |
+| Outline | `outline` | `#707881` |
+| Outline variant | `outline-variant` | `#bfc7d2` |
+| **Primary** | `primary` | `#006194` |
+| Primary container | `primary-container` | `#007bb9` |
+| On primary | `on-primary` | `#ffffff` |
+| **Secondary** | `secondary` | `#006e2d` |
+| Secondary fixed | `secondary-fixed` | `#7ffc97` |
+| **Tertiary** | `tertiary` | `#8d4b00` |
+| Error | `error` | `#ba1a1a` |
 
 ### Semantic mapping
 
@@ -115,7 +144,7 @@ Not design-system tokens — per-project:
 
 | Level | Treatment |
 |-------|-----------|
-| 0 Background | `#0b1326` / deep slate |
+| 0 Background | Theme `surface` / `background` |
 | 1 Cards | Slightly lighter fill + `1px` `outline-variant` border |
 | 2 Modals | Lighter fill + stronger border; hard shadow only if needed |
 
@@ -166,14 +195,24 @@ Material Symbols Outlined (FILL variation for active nav items).
 
 ---
 
-## 9. Tailwind implementation notes (future)
+## 9. Tailwind + named themes
 
-When scaffolding:
+Implemented:
 
-1. Map tokens into Tailwind theme `colors`, `fontFamily`, `fontSize`, `spacing`, `borderRadius`.  
-2. Enable `class` dark mode or hard-code dark (dark-only product).  
-3. Load Inter + JetBrains Mono (fontsource or Google Fonts).  
-4. Do not ship Stitch CDN Tailwind config as production; rewrite cleanly in CSS variables if preferred.
+1. Shared type/radius/spacing in `src/lib/theme/tokens.css` (`@theme`).  
+2. Color utilities via `@theme inline` → `--dt-*`.  
+3. Each palette is `[data-theme='<id>']` in its own CSS file. Default first paint is `data-theme="dark"` on `<html>`.  
+4. Switcher iterates `THEMES` in `src/lib/theme/themes.ts` (Settings → Appearance). Not a light/dark toggle.  
+5. Theme id is persisted to `localStorage` (`devtime-theme`) to avoid FOUC. Other prefs stay in-memory.  
+6. Do **not** use `dark:` / `light:` variants as the theming mechanism.
+
+### Adding a third theme
+
+1. Add a `ThemeDefinition` to `THEMES`.  
+2. Add `src/lib/theme/<id>.css` with the full `--dt-*` set (copy `dark.css` or `light.css`).  
+3. `@import` it from `src/routes/layout.css`.  
+4. Add a Paraglide message for `labelKey`.  
+5. No switcher or component changes.
 
 ---
 

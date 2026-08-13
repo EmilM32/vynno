@@ -19,7 +19,7 @@ test.describe('projects', () => {
 		await page.getByRole('button', { name: 'Create project' }).click();
 
 		await expect(page.getByTestId('project-list').getByText(name)).toBeVisible();
-		await expect(page.getByRole('alert')).toHaveCount(0);
+		await expect(page.getByRole('alert')).toHaveCount(0); // no validation / store errors
 	});
 
 	test('new project appears in Timer picker', async ({ page }) => {

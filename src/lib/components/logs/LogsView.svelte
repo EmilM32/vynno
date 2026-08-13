@@ -29,7 +29,7 @@
 				aria-hidden="true">search</span
 			>
 			<input
-				class="w-full rounded-DEFAULT border border-outline-variant bg-surface-container-low py-2 pr-3 pl-9 font-mono text-code-label text-on-surface transition-all placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
+				class="focus-ring w-full rounded-DEFAULT border border-outline-variant bg-surface-container-low py-2 pr-3 pl-9 font-mono text-code-label text-on-surface transition-all placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary"
 				type="search"
 				placeholder={m.logs_search_placeholder()}
 				bind:value={query}
@@ -48,13 +48,13 @@
 				<div
 					class="font-mono text-code-label {group.dateKey === todayKey
 						? 'text-primary'
-						: 'text-outline'}"
+						: 'text-on-surface-variant'}"
 				>
 					{group.dateKey}
 				</div>
 				<div class="flex-1 border-t border-dashed border-outline-variant"></div>
 			</div>
-			<div class="space-y-2 {group.dateKey !== todayKey ? 'opacity-80' : ''}">
+			<div class="space-y-2">
 				{#each group.sessions as session (session.id)}
 					<LogRow {session} />
 				{/each}

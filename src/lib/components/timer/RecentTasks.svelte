@@ -20,7 +20,9 @@
 <div class="flex flex-col gap-3">
 	<div class="flex items-center justify-between border-b border-outline-variant pb-2">
 		<h2 class="text-headline-md text-on-surface-variant">{m.timer_recent_tasks()}</h2>
-		<span class="font-mono text-code-label text-outline">{m.timer_recent_search_hint()}</span>
+		<span class="font-mono text-code-label text-on-surface-variant"
+			>{m.timer_recent_search_hint()}</span
+		>
 	</div>
 
 	{#if items.length === 0}
@@ -34,7 +36,7 @@
 				<li>
 					<button
 						type="button"
-						class="group flex w-full items-center justify-between rounded border border-outline-variant bg-surface-container p-3 text-left transition-colors hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-60"
+						class="focus-ring group flex w-full items-center justify-between rounded border border-outline-variant bg-surface-container p-3 text-left transition-colors hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-60"
 						disabled={busy}
 						onclick={() => restart(item)}
 						title={busy ? m.timer_stop_first() : m.timer_start_this_task()}
@@ -45,7 +47,7 @@
 								class="truncate text-body-md text-on-surface transition-colors group-hover:text-primary"
 								>{item.note}</span
 							>
-							<span class="font-mono text-code-label text-outline-variant">
+							<span class="font-mono text-code-label text-on-surface-variant">
 								{m.timer_project_line({ name: project?.name ?? m.common_unknown() })}
 							</span>
 						</div>
@@ -54,7 +56,7 @@
 								{formatCompact(item.durationMs)}
 							</span>
 							<span
-								class="material-symbols-outlined text-outline-variant opacity-40 transition-all group-hover:text-primary group-hover:opacity-100 group-disabled:opacity-30"
+								class="material-symbols-outlined text-on-surface-variant transition-colors group-hover:text-primary group-disabled:opacity-50"
 								aria-hidden="true">play_arrow</span
 							>
 						</div>

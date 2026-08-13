@@ -22,7 +22,7 @@ test.describe('navigation', () => {
 		if (testInfo.project.name === 'mobile') {
 			await expect(page.getByRole('banner').getByText('Vynno')).toBeVisible();
 		} else {
-			await expect(desktopNav(page).getByRole('heading', { name: 'Vynno' })).toBeVisible();
+			await expect(desktopNav(page).getByText('Vynno', { exact: true })).toBeVisible();
 		}
 	});
 

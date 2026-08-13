@@ -22,8 +22,8 @@
 	<div class="mb-8 flex items-center gap-3 px-6">
 		<span class="material-symbols-outlined text-3xl text-primary" aria-hidden="true">timer</span>
 		<div>
-			<h1 class="text-headline-md leading-tight font-bold text-primary">{m.app_name()}</h1>
-			<p class="font-mono text-[10px] text-on-surface-variant uppercase opacity-70">
+			<p class="text-headline-md leading-tight font-bold text-primary">{m.app_name()}</p>
+			<p class="font-mono text-[10px] text-on-surface-variant uppercase">
 				{APP_VERSION}
 			</p>
 		</div>

@@ -13,10 +13,10 @@
 		isActive ? m.timer_status_active() : isPaused ? m.timer_status_paused() : m.timer_status_idle()
 	);
 	const statusColor = $derived(
-		isActive ? 'text-secondary-fixed' : isPaused ? 'text-tertiary' : 'text-on-surface-variant'
+		isActive ? 'text-secondary' : isPaused ? 'text-tertiary' : 'text-on-surface-variant'
 	);
 	const statusDot = $derived(
-		isActive ? 'bg-secondary-fixed blink' : isPaused ? 'bg-tertiary' : 'bg-outline-variant'
+		isActive ? 'bg-secondary blink' : isPaused ? 'bg-tertiary' : 'bg-outline-variant'
 	);
 
 	const cardBorder = $derived(
@@ -35,7 +35,6 @@
 	class="relative flex flex-col items-center justify-center rounded-lg border bg-surface-container p-8 {cardBorder}"
 	role="region"
 	aria-label={m.timer_session_aria()}
-	aria-live="polite"
 >
 	<div class="absolute top-4 left-4 flex items-center gap-2">
 		<div class="h-2 w-2 rounded-full {statusDot}" aria-hidden="true"></div>
@@ -56,7 +55,7 @@
 	{/if}
 
 	<div
-		class="mt-6 mb-8 font-mono text-4xl font-bold tracking-tight tabular-nums text-primary sm:text-5xl md:text-[3.5rem] md:leading-none"
+		class="mt-6 mb-8 font-mono text-4xl font-bold tracking-tight text-primary tabular-nums sm:text-5xl md:text-[3.5rem] md:leading-none"
 		data-testid="timer-elapsed"
 	>
 		{clockLabel}

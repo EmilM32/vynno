@@ -9,6 +9,11 @@
 </script>
 
 <div class="flex flex-col gap-gutter">
+	<div class="border-b border-outline-variant pb-4">
+		<h1 class="text-headline-lg text-on-surface">{m.dashboard_title()}</h1>
+		<p class="mt-1 text-body-sm text-on-surface-variant">{m.dashboard_subtitle()}</p>
+	</div>
+
 	{#if sessionStore.error}
 		<div
 			class="rounded border border-error/40 bg-error-container/20 px-3 py-2 font-mono text-code-label text-error"
@@ -17,7 +22,7 @@
 			{sessionStore.error}
 			<button
 				type="button"
-				class="ml-2 underline"
+				class="focus-ring ml-2 underline"
 				onclick={() => sessionStore.clearError()}>{m.common_dismiss()}</button
 			>
 		</div>

@@ -82,14 +82,25 @@
 		display: none;
 	}
 
-	/* Keyboard focus — terminal primary ring */
-	.focus-ring:focus {
-		outline: none;
-	}
-
+	/* Keyboard focus — terminal primary ring (global; .focus-ring is an alias) */
+	a:focus-visible,
+	button:focus-visible,
+	input:focus-visible,
+	select:focus-visible,
+	textarea:focus-visible,
+	summary:focus-visible,
+	[role='button']:focus-visible,
+	[role='tab']:focus-visible,
+	[role='radio']:focus-visible,
+	[role='option']:focus-visible,
+	[tabindex]:not([tabindex='-1']):focus-visible,
 	.focus-ring:focus-visible {
 		outline: 2px solid var(--color-primary);
 		outline-offset: 2px;
+	}
+
+	.focus-ring:focus:not(:focus-visible) {
+		outline: none;
 	}
 
 	.today-glow {

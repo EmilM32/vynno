@@ -18,11 +18,13 @@
 	{#if session}
 		<div class="mb-4 flex items-center justify-between">
 			<div class="flex items-center gap-2">
-				<span class="text-body-sm tracking-wider text-on-surface-variant uppercase"
-					>{m.dashboard_current_focus()}</span
-				>
+				<h2 class="text-body-sm tracking-wider text-on-surface-variant uppercase">
+					{m.dashboard_current_focus()}
+				</h2>
 				{#if session.ticketId}
-					<div class="rounded-DEFAULT border border-outline-variant bg-surface-container-high px-2 py-0.5">
+					<div
+						class="rounded-DEFAULT border border-outline-variant bg-surface-container-high px-2 py-0.5"
+					>
 						<span class="font-mono text-code-label text-primary">{session.ticketId}</span>
 					</div>
 				{/if}
@@ -32,14 +34,14 @@
 			</div>
 			<a
 				href={resolve('/timer')}
-				class="rounded-DEFAULT border border-outline-variant bg-surface-container p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
+				class="focus-ring flex min-h-6 min-w-6 items-center justify-center rounded-DEFAULT border border-outline-variant bg-surface-container p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
 				aria-label={m.dashboard_open_timer()}
 			>
 				<span class="material-symbols-outlined text-[18px]" aria-hidden="true">open_in_new</span>
 			</a>
 		</div>
 
-		<h2 class="mb-2 text-headline-md text-on-surface">{session.note}</h2>
+		<p class="mb-2 text-headline-md text-on-surface">{session.note}</p>
 
 		<div class="mt-auto flex items-center gap-4 border-t border-outline-variant/50 pt-4">
 			<div class="flex items-center gap-2">
@@ -74,9 +76,9 @@
 		</div>
 	{:else}
 		<div class="mb-4 flex items-center justify-between">
-			<span class="text-body-sm tracking-wider text-on-surface-variant uppercase"
-				>{m.dashboard_current_focus()}</span
-			>
+			<h2 class="text-body-sm tracking-wider text-on-surface-variant uppercase">
+				{m.dashboard_current_focus()}
+			</h2>
 		</div>
 		<p class="mb-4 text-body-md text-on-surface-variant">
 			{m.dashboard_no_active()}

@@ -22,7 +22,7 @@
 	{#each options as opt (opt.id)}
 		<button
 			type="button"
-			class="focus-ring rounded-sm px-3 py-1 font-mono text-code-label transition-colors {value ===
+			class="focus-ring min-h-6 rounded-sm px-3 py-1 font-mono text-code-label transition-colors {value ===
 			opt.id
 				? 'bg-primary/15 text-primary'
 				: 'text-on-surface-variant hover:text-on-surface'}"

@@ -18,7 +18,7 @@
 
 <div class="flex h-[300px] flex-col rounded-lg border border-outline-variant bg-surface-container">
 	<div class="flex items-center justify-between border-b border-outline-variant p-4">
-		<span class="text-headline-md">{m.dashboard_recent_logs()}</span>
+		<h2 class="text-headline-md">{m.dashboard_recent_logs()}</h2>
 		<span class="text-on-surface-variant" aria-hidden="true">
 			<span class="material-symbols-outlined text-[20px]">filter_list</span>
 		</span>
@@ -55,7 +55,7 @@
 						</span>
 						<button
 							type="button"
-							class="rounded p-0.5 text-on-surface-variant opacity-0 transition-opacity group-hover:opacity-100 hover:text-primary disabled:cursor-not-allowed disabled:opacity-30"
+							class="focus-ring flex min-h-6 min-w-6 items-center justify-center rounded p-1 text-on-surface-variant opacity-100 transition-opacity group-focus-within:opacity-100 hover:text-primary focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-30 md:opacity-0 md:group-hover:opacity-100"
 							disabled={busy}
 							onclick={() => restart(log.id)}
 							title={busy ? m.timer_stop_first() : m.dashboard_restart_task()}

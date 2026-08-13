@@ -58,7 +58,7 @@
 				<p class="font-mono text-code-label text-on-surface-variant">{prefsStore.handle}</p>
 			</div>
 		</div>
-		<p class="mt-3 text-body-sm text-outline">{m.settings_profile_mock()}</p>
+		<p class="mt-3 text-body-sm text-on-surface-variant">{m.settings_profile_mock()}</p>
 	</section>
 
 	<!-- Preferences -->
@@ -73,7 +73,7 @@
 			<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<label class="text-body-md text-on-surface" for="daily-target">
 					{m.settings_daily_target()}
-					<span class="mt-0.5 block text-body-sm text-on-surface-variant">
+					<span id="daily-target-hint" class="mt-0.5 block text-body-sm text-on-surface-variant">
 						{m.settings_daily_target_hint()}
 					</span>
 				</label>
@@ -85,7 +85,8 @@
 					step="0.5"
 					value={prefsStore.dailyTargetHours}
 					oninput={onTargetInput}
-					class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface outline-none sm:w-28"
+					aria-describedby="daily-target-hint"
+					class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface sm:w-28"
 				/>
 			</div>
 
@@ -98,7 +99,7 @@
 				</label>
 				<select
 					id="default-project"
-					class="native-select focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface outline-none sm:w-56"
+					class="native-select focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface sm:w-56"
 					bind:value={prefsStore.defaultProjectId}
 					onchange={() => {
 						// Keep timer draft in sync when idle
@@ -124,7 +125,7 @@
 				</label>
 				<select
 					id="ui-locale"
-					class="native-select focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface outline-none sm:w-56"
+					class="native-select focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface sm:w-56"
 					value={getLocale()}
 					onchange={onLocaleChange}
 				>
@@ -137,7 +138,7 @@
 			<p class="text-body-sm text-on-surface-variant">
 				<a
 					href={resolve('/projects')}
-					class="focus-ring text-primary underline-offset-2 hover:underline"
+					class="focus-ring text-primary underline underline-offset-2"
 				>
 					{m.settings_manage_projects()}
 				</a>
@@ -181,7 +182,7 @@
 		<h2 id="settings-later" class="mb-2 text-headline-md text-on-surface-variant">
 			{m.settings_coming_later()}
 		</h2>
-		<ul class="list-inside list-disc space-y-1 text-body-sm text-outline">
+		<ul class="list-inside list-disc space-y-1 text-body-sm text-on-surface-variant">
 			<li>{m.settings_later_notifications()}</li>
 			<li>{m.settings_later_account()}</li>
 			<li>{m.settings_later_persisted()}</li>

@@ -35,8 +35,8 @@ test.describe('command palette', () => {
 		await page.getByRole('button', { name: 'Open command palette' }).click();
 		const dialog = page.getByRole('dialog', { name: 'Command palette' });
 		await expect(dialog).toBeVisible();
-		await page.getByRole('textbox', { name: 'Filter commands' }).fill('Logs');
-		await dialog.getByRole('button', { name: 'Go to Logs' }).click();
+		await page.getByRole('combobox', { name: 'Filter commands' }).fill('Logs');
+		await dialog.getByRole('option', { name: 'Go to Logs' }).click();
 		await expect(page).toHaveURL(/\/logs$/);
 		await expect(page.getByRole('dialog', { name: 'Command palette' })).toHaveCount(0);
 	});

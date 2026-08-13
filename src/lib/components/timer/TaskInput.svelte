@@ -13,20 +13,25 @@
 </script>
 
 <div class="flex w-full flex-col gap-3">
-	<div class="group relative w-full">
-		<span
-			class="material-symbols-outlined absolute top-1/2 left-3 -translate-y-1/2 text-outline-variant transition-colors group-focus-within:text-primary"
-			aria-hidden="true">prompt_suggestion</span
+	<div class="flex flex-col gap-1.5">
+		<label class="font-mono text-code-label text-on-surface-variant" for="task-note"
+			>{m.timer_task_aria()}</label
 		>
-		<input
-			class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-3 pr-4 pl-10 font-mono text-code-data text-on-surface outline-none transition-all placeholder:text-outline-variant focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70"
-			type="text"
-			placeholder={m.timer_task_placeholder()}
-			bind:value={sessionStore.draftNote}
-			disabled={locked}
-			onkeydown={onKeydown}
-			aria-label={m.timer_task_aria()}
-		/>
+		<div class="group relative w-full">
+			<span
+				class="material-symbols-outlined absolute top-1/2 left-3 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary"
+				aria-hidden="true">prompt_suggestion</span
+			>
+			<input
+				id="task-note"
+				class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-3 pr-4 pl-10 font-mono text-code-data text-on-surface transition-all placeholder:text-on-surface-variant focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70"
+				type="text"
+				placeholder={m.timer_task_placeholder()}
+				bind:value={sessionStore.draftNote}
+				disabled={locked}
+				onkeydown={onKeydown}
+			/>
+		</div>
 	</div>
 
 	<div class="flex flex-wrap items-center gap-2">
@@ -35,7 +40,7 @@
 		>
 		<select
 			id="project-select"
-			class="native-select focus-ring min-w-[10rem] flex-1 rounded border border-outline-variant bg-surface-container-low py-1.5 pl-3 font-mono text-code-label text-on-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none"
+			class="native-select focus-ring min-w-[10rem] flex-1 rounded border border-outline-variant bg-surface-container-low py-1.5 pl-3 font-mono text-code-label text-on-surface focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none"
 			bind:value={sessionStore.draftProjectId}
 			disabled={locked}
 		>

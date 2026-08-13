@@ -76,6 +76,24 @@
 		if (!project.isArchived) return sessionStore.canArchiveOrDeleteActive(project.id);
 		return true;
 	}
+
+	function onTabListKey(e: KeyboardEvent) {
+		if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+			e.preventDefault();
+			tab = tab === 'active' ? 'archived' : 'active';
+			queueMicrotask(() => {
+				document.getElementById(tab === 'active' ? 'tab-active' : 'tab-archived')?.focus();
+			});
+		} else if (e.key === 'Home') {
+			e.preventDefault();
+			tab = 'active';
+			queueMicrotask(() => document.getElementById('tab-active')?.focus());
+		} else if (e.key === 'End') {
+			e.preventDefault();
+			tab = 'archived';
+			queueMicrotask(() => document.getElementById('tab-archived')?.focus());
+		}
+	}
 </script>
 
 <div class="mx-auto flex w-full max-w-2xl flex-col gap-6">
@@ -90,7 +108,7 @@
 		</div>
 		<button
 			type="button"
-			class="focus-ring shrink-0 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-background transition-colors hover:bg-primary-container"
+			class="focus-ring shrink-0 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary transition-colors hover:bg-primary-container"
 			onclick={openCreate}
 			data-testid="new-project"
 		>
@@ -130,13 +148,17 @@
 	<div
 		class="flex gap-1 rounded-DEFAULT border border-outline-variant bg-surface-container p-1"
 		role="tablist"
+		tabindex="-1"
 		aria-label={m.projects_status_aria()}
+		onkeydown={onTabListKey}
 	>
 		<button
 			type="button"
 			role="tab"
 			aria-selected={tab === 'active'}
+			aria-controls="projects-panel"
 			id="tab-active"
+			tabindex={tab === 'active' ? 0 : -1}
 			class="focus-ring flex-1 rounded px-3 py-1.5 text-body-sm font-medium transition-colors {tab ===
 			'active'
 				? 'bg-surface-container-high text-primary'
@@ -144,13 +166,15 @@
 			onclick={() => (tab = 'active')}
 		>
 			{m.projects_tab_active()}
-			<span class="ml-1 font-mono text-code-label opacity-70">({activeList.length})</span>
+			<span class="ml-1 font-mono text-code-label">({activeList.length})</span>
 		</button>
 		<button
 			type="button"
 			role="tab"
 			aria-selected={tab === 'archived'}
+			aria-controls="projects-panel"
 			id="tab-archived"
+			tabindex={tab === 'archived' ? 0 : -1}
 			class="focus-ring flex-1 rounded px-3 py-1.5 text-body-sm font-medium transition-colors {tab ===
 			'archived'
 				? 'bg-surface-container-high text-primary'
@@ -158,11 +182,15 @@
 			onclick={() => (tab = 'archived')}
 		>
 			{m.projects_tab_archived()}
-			<span class="ml-1 font-mono text-code-label opacity-70">({archivedList.length})</span>
+			<span class="ml-1 font-mono text-code-label">({archivedList.length})</span>
 		</button>
 	</div>
 
-	<section aria-labelledby={tab === 'active' ? 'tab-active' : 'tab-archived'}>
+	<div
+		id="projects-panel"
+		role="tabpanel"
+		aria-labelledby={tab === 'active' ? 'tab-active' : 'tab-archived'}
+	>
 		{#if visible.length === 0}
 			<div
 				class="rounded-lg border border-dashed border-outline-variant bg-surface-container/40 px-4 py-10 text-center"
@@ -199,7 +227,7 @@
 				{/each}
 			</ul>
 		{/if}
-	</section>
+	</div>
 </div>
 
 <ConfirmDialog

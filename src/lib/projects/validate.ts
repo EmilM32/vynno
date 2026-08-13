@@ -38,22 +38,33 @@ export function normalizeProjectFields(input: ProjectFieldValues): NormalizedPro
  * Validate create/update field values (not uniqueness — that needs the repository).
  * Returns localized error message or null if valid.
  */
-export function validateProjectFields(input: ProjectFieldValues): string | null {
-	const name = input.name.trim();
-	if (!name) return m.validation_name_required();
-	if (name.length > PROJECT_NAME_MAX) return m.validation_name_max({ max: PROJECT_NAME_MAX });
+export type ProjectFieldErrorKey = 'name' | 'code' | 'color';
 
-	if (!isPaletteColor(input.color)) return m.validation_color_palette();
+export function validateProjectFieldErrors(
+	input: ProjectFieldValues
+): Partial<Record<ProjectFieldErrorKey, string>> {
+	const errors: Partial<Record<ProjectFieldErrorKey, string>> = {};
+	const name = input.name.trim();
+	if (!name) errors.name = m.validation_name_required();
+	else if (name.length > PROJECT_NAME_MAX) {
+		errors.name = m.validation_name_max({ max: PROJECT_NAME_MAX });
+	}
+
+	if (!isPaletteColor(input.color)) errors.color = m.validation_color_palette();
 
 	const code = normalizeCode(input.code);
 	if (code != null) {
 		if (code.length > PROJECT_CODE_MAX) {
-			return m.validation_code_max({ max: PROJECT_CODE_MAX });
-		}
-		if (!PROJECT_CODE_PATTERN.test(code)) {
-			return m.validation_code_chars();
+			errors.code = m.validation_code_max({ max: PROJECT_CODE_MAX });
+		} else if (!PROJECT_CODE_PATTERN.test(code)) {
+			errors.code = m.validation_code_chars();
 		}
 	}
 
-	return null;
+	return errors;
+}
+
+export function validateProjectFields(input: ProjectFieldValues): string | null {
+	const errors = validateProjectFieldErrors(input);
+	return errors.name ?? errors.color ?? errors.code ?? null;
 }

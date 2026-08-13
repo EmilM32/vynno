@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { announce } from '$lib/a11y/announce';
 import { MockTimeTrackingRepository } from '$lib/data/mock-repository';
 import type { TimeTrackingRepository } from '$lib/data/repository';
 import { m } from '$lib/paraglide/messages.js';
@@ -193,6 +194,7 @@ class SessionStore {
 				tags: input?.tags
 			});
 			this.refresh();
+			announce(m.announce_session_started());
 		} catch (e) {
 			this.error = e instanceof Error ? e.message : m.error_failed_start_session();
 		}
@@ -234,6 +236,7 @@ class SessionStore {
 		try {
 			this.#repo.pauseSession(s.id);
 			this.refresh();
+			announce(m.announce_session_paused());
 		} catch (e) {
 			this.error = e instanceof Error ? e.message : m.error_failed_pause();
 		}
@@ -246,6 +249,7 @@ class SessionStore {
 		try {
 			this.#repo.resumeSession(s.id);
 			this.refresh();
+			announce(m.announce_session_resumed());
 		} catch (e) {
 			this.error = e instanceof Error ? e.message : m.error_failed_resume();
 		}
@@ -261,6 +265,7 @@ class SessionStore {
 			this.draftNote = stopped.note;
 			this.draftProjectId = stopped.projectId;
 			this.refresh();
+			announce(m.announce_session_stopped());
 		} catch (e) {
 			this.error = e instanceof Error ? e.message : m.error_failed_stop();
 		}

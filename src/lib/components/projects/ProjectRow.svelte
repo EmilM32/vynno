@@ -52,7 +52,7 @@
 					</span>
 				{/if}
 				{#if archived}
-					<span class="font-mono text-[10px] tracking-wide text-outline uppercase"
+					<span class="font-mono text-[10px] tracking-wide text-on-surface-variant uppercase"
 						>{m.projects_archived_badge()}</span
 					>
 				{/if}
@@ -78,10 +78,15 @@
 				class="focus-ring rounded border border-outline-variant px-2.5 py-1.5 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
 				onclick={onarchive}
 				disabled={!canArchive}
-				title={!canArchive ? m.projects_cannot_archive_last() : undefined}
+				aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
 			>
 				{m.projects_archive()}
 			</button>
+			{#if !canArchive}
+				<span id={`${project.id}-archive-reason`} class="sr-only"
+					>{m.projects_cannot_archive_last()}</span
+				>
+			{/if}
 		{:else}
 			<button
 				type="button"
@@ -96,13 +101,16 @@
 			class="focus-ring rounded border border-error/40 px-2.5 py-1.5 text-body-sm text-error transition-colors hover:bg-error-container/20 disabled:cursor-not-allowed disabled:opacity-40"
 			onclick={ondelete}
 			disabled={!canDelete}
-			title={!canDelete
-				? sessionCount > 0
-					? m.projects_cannot_delete_has_sessions()
-					: m.projects_cannot_delete_last()
-				: undefined}
+			aria-describedby={!canDelete ? `${project.id}-delete-reason` : undefined}
 		>
 			{m.projects_delete()}
 		</button>
+		{#if !canDelete}
+			<span id={`${project.id}-delete-reason`} class="sr-only">
+				{sessionCount > 0
+					? m.projects_cannot_delete_has_sessions()
+					: m.projects_cannot_delete_last()}
+			</span>
+		{/if}
 	</div>
 </li>

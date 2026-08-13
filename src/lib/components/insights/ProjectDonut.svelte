@@ -59,7 +59,7 @@
 				<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
 				<span class="truncate font-mono text-code-label text-on-surface-variant">
 					{item.label}
-					<span class="text-outline">· {item.percent}%</span>
+					<span class="text-on-surface-variant">· {item.percent}%</span>
 				</span>
 			</div>
 		{/each}

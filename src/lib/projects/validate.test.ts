@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { PROJECT_COLOR_PALETTE } from './palette';
-import { normalizeCode, normalizeProjectFields, validateProjectFields } from './validate';
+import {
+	normalizeCode,
+	normalizeProjectFields,
+	validateProjectFieldErrors,
+	validateProjectFields
+} from './validate';
 
 const color = PROJECT_COLOR_PALETTE[0];
 
@@ -32,6 +37,14 @@ describe('validateProjectFields', () => {
 	it('accepts valid fields', () => {
 		expect(validateProjectFields({ name: 'Identity', color, code: 'AUTH' })).toBeNull();
 		expect(validateProjectFields({ name: 'Identity', color, code: '' })).toBeNull();
+	});
+
+	it('maps errors to fields', () => {
+		expect(validateProjectFieldErrors({ name: '  ', color, code: '' }).name).toMatch(/required/i);
+		expect(validateProjectFieldErrors({ name: 'X', color: '#fff', code: '' }).color).toMatch(
+			/palette/i
+		);
+		expect(validateProjectFieldErrors({ name: 'X', color, code: 'A_B' }).code).toMatch(/code/i);
 	});
 });
 

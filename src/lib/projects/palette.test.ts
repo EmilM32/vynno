@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { defaultProjectColor, isPaletteColor, PROJECT_COLOR_PALETTE, suggestCode } from './palette';
+import {
+	defaultProjectColor,
+	isPaletteColor,
+	PROJECT_COLOR_LABEL_KEY,
+	PROJECT_COLOR_PALETTE,
+	suggestCode
+} from './palette';
 
 describe('PROJECT_COLOR_PALETTE', () => {
 	it('has stable hex colors', () => {
 		expect(PROJECT_COLOR_PALETTE.length).toBeGreaterThanOrEqual(8);
 		for (const c of PROJECT_COLOR_PALETTE) {
 			expect(c).toMatch(/^#[0-9a-f]{6}$/i);
+			expect(PROJECT_COLOR_LABEL_KEY[c]).toMatch(/^color_/);
 		}
 	});
 });

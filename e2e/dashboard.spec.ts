@@ -7,7 +7,7 @@ test.describe('dashboard', () => {
 
 		await expect(page.getByText("Today's Total")).toBeVisible();
 		await expect(page.getByTestId('today-total')).toBeVisible();
-		await expect(page.getByText('Current Focus')).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Current Focus' })).toBeVisible();
 		await expect(page.getByRole('region', { name: 'Active projects' })).toBeVisible();
 		await expect(page.getByRole('region', { name: 'Weekly overview' })).toBeVisible();
 		await expect(page.getByText('Recent Logs')).toBeVisible();
@@ -17,10 +17,10 @@ test.describe('dashboard', () => {
 		await page.goto('/dashboard');
 		const week = page.getByRole('region', { name: 'Weekly overview' });
 		await expect(week.getByText('Weekly Overview')).toBeVisible();
-		// Day labels Mon–Sun (bars use role=img; assert labels which are always visible)
+		// Day labels Mon–Sun (bars are focusable buttons)
 		await expect(week.getByText('Mon', { exact: true })).toBeVisible();
 		await expect(week.getByText('Sun', { exact: true })).toBeVisible();
-		await expect(week.getByRole('img', { name: /Mon:/ })).toBeAttached();
+		await expect(week.getByRole('button', { name: /Mon:/ })).toBeVisible();
 	});
 
 	test('current focus empty when idle', async ({ page }) => {
@@ -37,7 +37,7 @@ test.describe('dashboard active focus (SPA)', () => {
 		const note = uniqueNote('focus-spa');
 		await startSession(page, note);
 		await spaGo(page, 'Dashboard', '/dashboard');
-		await expect(page.getByRole('heading', { name: note })).toBeVisible();
+		await expect(page.getByText(note, { exact: true })).toBeVisible();
 		await expect(page.getByText('No active session')).toHaveCount(0);
 	});
 });

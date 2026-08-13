@@ -25,7 +25,7 @@
 	>
 		<p class="text-primary">{m.placeholder_scaffold()}</p>
 		<p class="mt-2">{note}</p>
-		<p class="mt-4 text-[11px] text-outline">
+		<p class="mt-4 text-[11px] text-on-surface-variant">
 			{m.placeholder_design_ref()}
 		</p>
 	</div>

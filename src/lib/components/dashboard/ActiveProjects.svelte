@@ -11,10 +11,16 @@
 	aria-label={m.dashboard_active_projects_aria()}
 >
 	<div class="mb-4 flex items-center justify-between">
-		<span class="text-headline-md">{m.dashboard_active_projects()}</span>
+		<h2 class="text-headline-md">{m.dashboard_active_projects()}</h2>
 		<span class="text-body-sm text-primary">{m.dashboard_this_week()}</span>
 	</div>
-	<div class="no-scrollbar -mx-2 flex gap-4 overflow-x-auto px-2 pb-2">
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+	<div
+		class="no-scrollbar -mx-2 flex gap-4 overflow-x-auto px-2 pb-2"
+		tabindex="0"
+		role="region"
+		aria-label={m.dashboard_this_week()}
+	>
 		{#each items as item (item.project.id)}
 			{const pct = $derived(item.progressPercent ?? 0)}
 			<div

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { bindAnnouncers } from '$lib/a11y/announce';
 	import { m } from '$lib/paraglide/messages.js';
 	import BottomNav from './BottomNav.svelte';
 	import CommandPalette from './CommandPalette.svelte';
@@ -7,14 +8,25 @@
 	import TopBar from './TopBar.svelte';
 
 	let { children, pageTitle = '' }: { children: Snippet; pageTitle?: string } = $props();
+
+	let politeEl: HTMLElement | undefined = $state();
+	let assertiveEl: HTMLElement | undefined = $state();
+
+	$effect(() => {
+		if (!politeEl || !assertiveEl) return;
+		bindAnnouncers(politeEl, assertiveEl);
+	});
 </script>
 
 <a
 	href="#main-content"
-	class="focus-ring bg-primary text-on-primary sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[200] focus:rounded focus:px-3 focus:py-2"
+	class="focus-ring sr-only bg-primary text-on-primary focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[200] focus:rounded focus:px-3 focus:py-2 focus-visible:not-sr-only focus-visible:absolute focus-visible:top-2 focus-visible:left-2 focus-visible:z-[200] focus-visible:rounded focus-visible:px-3 focus-visible:py-2"
 >
 	{m.shell_skip_to_content()}
 </a>
+
+<div bind:this={politeEl} class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+<div bind:this={assertiveEl} class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 
 <div class="flex min-h-dvh flex-col bg-surface text-on-surface">
 	<SideNav />
@@ -22,7 +34,7 @@
 		<TopBar title={pageTitle} />
 		<main
 			id="main-content"
-			class="flex-1 overflow-y-auto px-margin-mobile py-6 pb-24 md:px-margin-desktop md:pb-6"
+			class="flex-1 scroll-pt-16 overflow-y-auto px-margin-mobile py-6 pb-24 md:scroll-pt-0 md:px-margin-desktop md:pb-6"
 			tabindex="-1"
 		>
 			<div class="mx-auto w-full max-w-container-max">

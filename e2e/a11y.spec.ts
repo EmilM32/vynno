@@ -1,0 +1,84 @@
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test, type Page } from '@playwright/test';
+
+const routes = ['/timer', '/dashboard', '/logs', '/insights', '/projects', '/settings'] as const;
+
+const themes = ['dark', 'light', 'deep-dark'] as const;
+
+async function expectNoViolations(page: Page) {
+	const results = await new AxeBuilder({ page })
+		.withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+		.analyze();
+	expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
+}
+
+test.describe('WCAG 2.2 AA (axe)', () => {
+	for (const theme of themes) {
+		test.describe(`theme ${theme}`, () => {
+			test.use({
+				storageState: {
+					cookies: [],
+					origins: [
+						{
+							origin: 'http://127.0.0.1:4173',
+							localStorage: [{ name: 'devtime-theme', value: theme }]
+						}
+					]
+				}
+			});
+
+			for (const route of routes) {
+				test(route, async ({ page }) => {
+					await page.goto(route);
+					await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+					await expectNoViolations(page);
+				});
+			}
+		});
+	}
+
+	test('command palette open', async ({ page }) => {
+		await page.setViewportSize({ width: 390, height: 844 });
+		await page.goto('/dashboard');
+		await page.getByRole('button', { name: 'Open command palette' }).click();
+		await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible();
+		await expectNoViolations(page);
+	});
+
+	test('projects form open', async ({ page }) => {
+		await page.goto('/projects');
+		await page.getByTestId('new-project').click();
+		await expect(page.getByRole('heading', { name: 'New project' })).toBeVisible();
+		await expectNoViolations(page);
+	});
+
+	test('insights month period', async ({ page }) => {
+		await page.goto('/insights');
+		await page.getByRole('button', { name: 'Month' }).click();
+		await expectNoViolations(page);
+	});
+});
+
+test.describe('keyboard', () => {
+	test('skip link moves focus to main', async ({ page }) => {
+		await page.goto('/dashboard');
+		const skip = page.getByRole('link', { name: 'Skip to content' });
+		await skip.focus();
+		await expect(skip).toBeFocused();
+		await skip.press('Enter');
+		await expect(page.locator('#main-content')).toBeFocused();
+	});
+
+	test('palette traps focus and restores on Escape', async ({ page }) => {
+		await page.setViewportSize({ width: 390, height: 844 });
+		await page.goto('/dashboard');
+		const opener = page.getByRole('button', { name: 'Open command palette' });
+		await opener.click();
+		const filter = page.getByRole('combobox', { name: 'Filter commands' });
+		await expect(filter).toBeFocused();
+		await page.keyboard.press('Tab');
+		await expect(filter).toBeFocused();
+		await page.keyboard.press('Escape');
+		await expect(page.getByRole('dialog', { name: 'Command palette' })).toHaveCount(0);
+	});
+});

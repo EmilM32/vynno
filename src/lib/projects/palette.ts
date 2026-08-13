@@ -14,6 +14,20 @@ export const PROJECT_COLOR_PALETTE = [
 
 export type ProjectPaletteColor = (typeof PROJECT_COLOR_PALETTE)[number];
 
+/** Paraglide message keys for accessible color names (not hex). */
+export const PROJECT_COLOR_LABEL_KEY: Record<ProjectPaletteColor, string> = {
+	'#3b82f6': 'color_blue',
+	'#8b5cf6': 'color_purple',
+	'#10b981': 'color_green',
+	'#f59e0b': 'color_amber',
+	'#ef4444': 'color_red',
+	'#06b6d4': 'color_cyan',
+	'#ec4899': 'color_pink',
+	'#64748b': 'color_slate',
+	'#14b8a6': 'color_teal',
+	'#a855f7': 'color_violet'
+};
+
 export function isPaletteColor(color: string): color is ProjectPaletteColor {
 	return (PROJECT_COLOR_PALETTE as readonly string[]).includes(color);
 }

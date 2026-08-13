@@ -13,10 +13,10 @@
 	class="relative flex flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container p-4 md:col-span-4"
 >
 	<div class="mb-2 flex items-start justify-between">
-		<span class="text-body-sm tracking-wider text-on-surface-variant uppercase"
-			>{m.dashboard_today_total()}</span
-		>
-		<span class="today-glow h-2 w-2 rounded-full bg-secondary-fixed" aria-hidden="true"></span>
+		<h2 class="text-body-sm tracking-wider text-on-surface-variant uppercase">
+			{m.dashboard_today_total()}
+		</h2>
+		<span class="today-glow h-2 w-2 rounded-full bg-secondary" aria-hidden="true"></span>
 	</div>
 	<div class="mt-auto">
 		<div class="font-mono text-code-display tracking-tight text-primary" data-testid="today-total">

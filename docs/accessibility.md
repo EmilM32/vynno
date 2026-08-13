@@ -37,7 +37,7 @@ Contrast pairs live in `src/lib/a11y/contrast.ts` and are unit-tested.
 
 ## N/A for this frontend-only mock
 
-1.2 time-based media, 1.4.2 audio control, 2.2.1 session timeouts, 2.5.7 dragging, 3.1.2 language of parts (English only), 3.2.6 consistent help, 3.3.7 redundant entry, 3.3.8 accessible authentication (no login yet).
+1.2 time-based media, 1.4.2 audio control, 2.2.1 session timeouts, 2.5.7 dragging, 3.1.2 language of parts, 3.2.6 consistent help, 3.3.7 redundant entry, 3.3.8 accessible authentication (no login yet).
 
 Re-audit when auth lands.
 

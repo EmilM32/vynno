@@ -43,6 +43,21 @@ test.describe('settings', () => {
 		await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 	});
 
+	test('language switch reloads into Polish and back', async ({ page }) => {
+		const select = page.locator('#ui-locale');
+		await expect(select).toBeVisible();
+		await expect(select).toHaveValue('en');
+
+		await select.selectOption('pl');
+		await expect(page.locator('html')).toHaveAttribute('lang', 'pl');
+		await expect(page.getByRole('heading', { name: 'Ustawienia' })).toBeVisible();
+		await expect(page.locator('#ui-locale')).toHaveValue('pl');
+
+		await page.locator('#ui-locale').selectOption('en');
+		await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+		await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+	});
+
 	test('about card shows name, pronunciation, and version', async ({ page }) => {
 		const about = page.getByRole('region', { name: 'About Vynno' });
 		await expect(about).toBeVisible();

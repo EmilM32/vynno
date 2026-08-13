@@ -104,7 +104,8 @@
 	"insights_period_week": "Week",
 	"insights_period_month": "Month",
 	"insights_kpi_total_time": "Total Time",
-	"insights_kpi_this_period": "this {period}",
+	"insights_kpi_this_week": "this week",
+	"insights_kpi_this_month": "this month",
 	"insights_kpi_most_productive": "Most Productive Day",
 	"insights_kpi_peak": "{hours} peak",
 	"insights_kpi_daily_average": "Daily Average",
@@ -160,6 +161,7 @@
 	"projects_save": "Save changes",
 	"projects_archived_badge": "Archived",
 	"projects_session_one": "session",
+	"projects_session_few": "sessions",
 	"projects_session_other": "sessions",
 	"projects_edit": "Edit",
 	"projects_archive": "Archive",
@@ -200,6 +202,7 @@
 	"settings_later_persisted": "Persisted preferences across devices",
 
 	"locale_en": "English",
+	"locale_pl": "Polish",
 
 	"dialog_dismiss_aria": "Dismiss dialog",
 

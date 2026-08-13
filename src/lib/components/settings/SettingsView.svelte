@@ -14,8 +14,12 @@
 	}
 
 	function localeDisplayName(locale: Locale): string {
-		if (locale === 'en') return m.locale_en();
-		return locale;
+		switch (locale) {
+			case 'en':
+				return m.locale_en();
+			case 'pl':
+				return m.locale_pl();
+		}
 	}
 
 	function onLocaleChange(e: Event) {

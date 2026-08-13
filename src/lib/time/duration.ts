@@ -1,3 +1,4 @@
+import { getLocale } from '$lib/paraglide/runtime.js';
 import type { TimeSession } from '$lib/types/domain';
 
 /** Elapsed working time in ms (excludes completed pause intervals and current pause). */
@@ -106,23 +107,12 @@ export function formatTimeRange(startedAt: string, endedAt?: string): string {
 /** Mock daily hour target for Insights delta (Settings later). */
 export const DEFAULT_DAILY_TARGET_MS = 8 * 3_600_000;
 
-const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
-const WEEKDAY_LONG = [
-	'Sunday',
-	'Monday',
-	'Tuesday',
-	'Wednesday',
-	'Thursday',
-	'Friday',
-	'Saturday'
-] as const;
-
-export function weekdayShort(d: Date): string {
-	return WEEKDAY_SHORT[d.getDay()] ?? '';
+export function weekdayShort(d: Date, locale = getLocale()): string {
+	return new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(d);
 }
 
-export function weekdayLong(d: Date): string {
-	return WEEKDAY_LONG[d.getDay()] ?? '';
+export function weekdayLong(d: Date, locale = getLocale()): string {
+	return new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(d);
 }
 
 /**
@@ -163,10 +153,7 @@ export function endOfMonth(d = new Date()): Date {
 
 export type PeriodKind = 'week' | 'month';
 
-export function periodBounds(
-	period: PeriodKind,
-	now = new Date()
-): { start: Date; end: Date } {
+export function periodBounds(period: PeriodKind, now = new Date()): { start: Date; end: Date } {
 	if (period === 'week') {
 		const start = startOfWeekMonday(now);
 		// Cap end at now for averages "so far"

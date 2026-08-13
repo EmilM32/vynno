@@ -24,10 +24,20 @@
 		ondelete
 	}: Props = $props();
 
+	/** one / few (2–4, excluding 12–14) / other — covers Polish and English. */
+	function sessionCountWord(n: number): string {
+		const abs = Math.abs(n);
+		if (abs === 1) return m.projects_session_one();
+		const mod10 = abs % 10;
+		const mod100 = abs % 100;
+		if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+			return m.projects_session_few();
+		}
+		return m.projects_session_other();
+	}
+
 	const archived = $derived(Boolean(project.isArchived));
-	const sessionWord = $derived(
-		sessionCount === 1 ? m.projects_session_one() : m.projects_session_other()
-	);
+	const sessionWord = $derived(sessionCountWord(sessionCount));
 </script>
 
 <li

@@ -12,8 +12,8 @@
 	const vsTargetPct = $derived(
 		vsTarget != null ? `${vsTarget >= 0 ? '+' : ''}${Math.round(vsTarget * 100)}%` : null
 	);
-	const periodWord = $derived(
-		stats.period === 'week' ? m.insights_period_week().toLowerCase() : m.insights_period_month().toLowerCase()
+	const periodPhrase = $derived(
+		stats.period === 'week' ? m.insights_kpi_this_week() : m.insights_kpi_this_month()
 	);
 </script>
 
@@ -29,7 +29,7 @@
 				>{totalLabel}</span
 			>
 			<span class="font-mono text-code-label text-on-surface-variant">
-				{m.insights_kpi_this_period({ period: periodWord })}
+				{periodPhrase}
 			</span>
 		</div>
 	</div>
@@ -62,9 +62,7 @@
 			<span class="font-mono text-code-display text-on-surface">{avgLabel}</span>
 			{#if vsTargetPct}
 				<span
-					class="font-mono text-code-label {(vsTarget ?? 0) >= 0
-						? 'text-secondary'
-						: 'text-error'}"
+					class="font-mono text-code-label {(vsTarget ?? 0) >= 0 ? 'text-secondary' : 'text-error'}"
 				>
 					{m.insights_kpi_vs_target({ pct: vsTargetPct })}
 				</span>

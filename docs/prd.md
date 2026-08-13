@@ -208,7 +208,7 @@ See [screens-and-flows.md](./screens-and-flows.md) §3.6 and [adr/0006-project-l
 | Theme         | Dark mode only for v1                                                                   |
 | Performance   | Instant navigation between shell routes; timer tick without jank                        |
 | Accessibility | Semantic landmarks, keyboard for primary actions, sufficient contrast per design tokens |
-| i18n          | Paraglide JS; English messages for v1; app-level locale switcher (no URL prefixes)      |
+| i18n          | Paraglide JS; English + Polish messages; app-level locale switcher (no URL prefixes)    |
 | Security      | No secrets in frontend; when API lands, token handling via secure patterns (later)      |
 
 ## 10. Domain summary

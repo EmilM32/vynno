@@ -20,7 +20,7 @@ Name, spelling, and voice: **[docs/brand.md](./docs/brand.md)**. This git repo i
 
 - **SvelteKit** (Svelte 5) + **TypeScript**
 - **Tailwind CSS** v4 with Dev-Density Dark tokens
-- **Paraglide JS** for UI i18n (`messages/en.json`)
+- **Paraglide JS** for UI i18n (`messages/en.json`, `messages/pl.json`)
 - Node **≥ 20.19** (see `.nvmrc`)
 
 ## Developing
@@ -62,7 +62,7 @@ App opens at the Vite URL (usually `http://localhost:5173`). `/` redirects to `/
 
 ## i18n
 
-UI copy lives in `messages/en.json` and is compiled by Paraglide into `$lib/paraglide`. Components use `m.some_key()` from `$lib/paraglide/messages.js`.
+UI copy lives in `messages/en.json` and `messages/pl.json` and is compiled by Paraglide into `$lib/paraglide`. Components use `m.some_key()` from `$lib/paraglide/messages.js`.
 
 - **Locale strategy:** app-level only (`localStorage` / cookie) — no `/en/…` URL prefixes
 - **Switcher:** Settings → Language

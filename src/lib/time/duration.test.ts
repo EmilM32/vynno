@@ -239,4 +239,9 @@ describe('weekday labels', () => {
 		expect(weekdayShort(FIXED_NOW)).toBe('Wed');
 		expect(weekdayLong(FIXED_NOW)).toBe('Wednesday');
 	});
+
+	it('formats weekdays in the given locale', () => {
+		expect(weekdayShort(FIXED_NOW, 'pl')).toMatch(/śr/i);
+		expect(weekdayLong(FIXED_NOW, 'pl')).toMatch(/środ/i);
+	});
 });

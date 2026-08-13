@@ -6,6 +6,7 @@
 
 - Dark: `stitch_personal_dev_tracker/dev_density_dark/DESIGN.md` + screen mockups
 - Light: `stitch_personal_dev_tracker_light/high_density_technical_light/DESIGN.md` + screen mockups
+- Deep Dark: `stitch_personal_dev_tracker_deep_dark/deep_dark/DESIGN.md` + screen mockups
 
 When Stitch and this doc diverge, prefer **screenshots** for layout and **DESIGN.md YAML** for tokens; update this doc after intentional product decisions. Named theme implementation: [adr/0008-named-themes.md](./adr/0008-named-themes.md).
 
@@ -15,7 +16,7 @@ When Stitch and this doc diverge, prefer **screenshots** for layout and **DESIGN
 
 - **Aesthetic:** Minimalist-technical, high information density, terminal / IDE feel  
 - **Audience:** Engineers and power users  
-- **Mode:** Named color themes (`dark`, `light`; list is open for a third palette). Not a boolean.  
+- **Mode:** Named color themes (`dark`, `light`, `deep-dark`). Not a boolean.  
 - **Elevation:** Tonal layers + 1px borders; avoid soft material shadows  
 - **Emotion:** Focused productivity, systemic reliability  
 
@@ -23,7 +24,7 @@ When Stitch and this doc diverge, prefer **screenshots** for layout and **DESIGN
 
 ## 2. Color tokens
 
-Material-style names are **shared** across themes. Hex values live in `src/lib/theme/dark.css` and `src/lib/theme/light.css` as `--dt-*`; Tailwind utilities (`bg-surface`, `text-primary`) resolve through `@theme inline`.
+Material-style names are **shared** across themes. Hex values live in `src/lib/theme/dark.css`, `src/lib/theme/light.css`, and `src/lib/theme/deep-dark.css` as `--dt-*`; Tailwind utilities (`bg-surface`, `text-primary`) resolve through `@theme inline`.
 
 ### Dark (Dev-Density)
 
@@ -69,13 +70,35 @@ YAML from `high_density_technical_light/DESIGN.md` (prefer YAML over prose hexes
 | **Tertiary** | `tertiary` | `#8d4b00` |
 | Error | `error` | `#ba1a1a` |
 
+### Deep Dark
+
+YAML from `deep_dark/DESIGN.md`. Surfaces and outlines copy YAML 1:1. Accent roles use the saturated YAML tones (`primary-container`, `secondary-container`, `tertiary-container`) so `text-primary` / `text-secondary` / `text-tertiary` stay readable — the raw YAML `primary` / `secondary` / `tertiary` values are near-white and collide with `on-surface`.
+
+| Role | Token | Hex | Usage |
+|------|-------|-----|-------|
+| Background / surface | `surface`, `background` | `#131313` | OLED charcoal (no navy cast) |
+| Surface low | `surface-container-low` | `#1c1b1b` | Inputs, subtle panels |
+| Surface container | `surface-container` | `#201f1f` | Cards, nav chrome |
+| Surface high | `surface-container-high` | `#2a2a2a` | Active nav, elevated rows |
+| Surface highest / variant | `surface-container-highest`, `surface-variant` | `#353534` | Hover, chips base |
+| On surface | `on-surface` | `#e5e2e1` | Primary text |
+| On surface variant | `on-surface-variant` | `#bac9cc` | Secondary text |
+| Outline | `outline` | `#849396` | Secondary borders |
+| Outline variant | `outline-variant` | `#3b494c` | Default hairline borders |
+| **Primary** | `primary` | `#00e5ff` | Electric cyan — focus, timer, links |
+| Primary container | `primary-container` | `#c3f5ff` | Ice hover / lighter fill |
+| On primary | `on-primary` | `#00363d` | Text on primary buttons |
+| **Secondary** | `secondary` / `secondary-fixed` | `#34ff8d` / `#60ff99` | Neon success, live dots |
+| **Tertiary** | `tertiary` | `#dfc6ff` | Paused / warning (lavender, not amber) |
+| Error | `error` | `#ffb4ab` | Destructive |
+
 ### Semantic mapping
 
 | Semantic | Color |
 |----------|-------|
-| Active timer / focus | Primary blue + pulse border |
-| Success / active indicator | Terminal green |
-| Paused / warning | Soft amber |
+| Active timer / focus | Primary (sky / electric cyan) + pulse border |
+| Success / active indicator | Terminal / neon green |
+| Paused / warning | Soft amber (`dark`, `light`) or lavender (`deep-dark`) |
 | Stopped / neutral status | Slate / outline |
 
 ### Project colors (examples from mockups)
@@ -206,7 +229,7 @@ Implemented:
 5. Theme id is persisted to `localStorage` (`devtime-theme`) to avoid FOUC. Other prefs stay in-memory.  
 6. Do **not** use `dark:` / `light:` variants as the theming mechanism.
 
-### Adding a third theme
+### Adding another theme
 
 1. Add a `ThemeDefinition` to `THEMES`.  
 2. Add `src/lib/theme/<id>.css` with the full `--dt-*` set (copy `dark.css` or `light.css`).  

@@ -22,6 +22,7 @@ Visual and HTML mockups from Google Stitch live at:
 ```
 stitch_personal_dev_tracker/            # Dark mockups + DESIGN.md
 stitch_personal_dev_tracker_light/      # Light mockups + DESIGN.md
+stitch_personal_dev_tracker_deep_dark/  # Deep Dark mockups + DESIGN.md
 ```
 
 Each screen folder contains `screen.png` (reference UI) and `code.html` (generated Tailwind HTML — **not** production code). Named themes: [adr/0008-named-themes.md](./adr/0008-named-themes.md).

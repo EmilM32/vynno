@@ -10,6 +10,7 @@ The product UI was prototyped in Google Stitch and exported as:
 
 - `stitch_personal_dev_tracker/` — dark screens + `dev_density_dark/DESIGN.md`
 - `stitch_personal_dev_tracker_light/` — light screens + `high_density_technical_light/DESIGN.md`
+- `stitch_personal_dev_tracker_deep_dark/` — Deep Dark screens + `deep_dark/DESIGN.md`
 
 Each folder has `screen.png` per viewport and `code.html` (CDN Tailwind + Material Symbols).
 

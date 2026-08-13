@@ -15,7 +15,7 @@ These are intentionally **not** built yet. Prioritize when polishing for power u
 | LOG-7 | Manual time entry | Form without running timer |
 | PRJ-6 | Task list management | Separate task entity beyond session notes |
 | SET-3+ | Persist daily target | Prefs are in-memory only today |
-| SET-4+ | Full preferences | Theme list is local (dark + light); notifications, default activity type still open |
+| SET-4+ | Full preferences | Theme list is local (`dark`, `light`, `deep-dark`); notifications, default activity type still open |
 | DATA | localStorage hydrate | Optional convenience before real API |
 | **SSR-1** | **Enable SvelteKit SSR** | **Deferred until Phase 5 (real API).** App is SPA (`ssr = false`) because mock session state is a module singleton. See [ssr-enablement.md](./ssr-enablement.md) for why, risks, hydration requirements, and implementation plan. Do not flip the flag without that work. |
 | CHART | Chart.js / library | CSS charts sufficient for mock; revisit if product wants interaction |

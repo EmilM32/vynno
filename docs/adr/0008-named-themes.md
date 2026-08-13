@@ -6,7 +6,7 @@
 
 ## Context
 
-The app shipped with a single hardcoded dark `@theme` block. Light mockups use the same Material token names with different hex values, and a third palette is expected later.
+The app shipped with a single hardcoded dark `@theme` block. Light mockups use the same Material token names with different hex values, and a third palette (`deep-dark`) is now registered the same way.
 
 A sun/moon toggle or Tailwind `dark:` variants would have to be rewritten when the third theme arrives.
 

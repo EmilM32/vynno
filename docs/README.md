@@ -1,19 +1,23 @@
-# DevTime Documentation
+# Vynno Documentation
 
-Planning and architecture docs for the **DevTime** frontend. This repository implements only the UI layer (SvelteKit + Tailwind + TypeScript). Backend and database live in a separate project later.
+Planning and architecture docs for the **Vynno** frontend (repository still named `dev-time`). This repository implements only the UI layer (SvelteKit + Tailwind + TypeScript). Backend and database live in a separate project later.
+
+Brand: say **VIN-oh**. See [brand.md](./brand.md).
 
 ## Contents
 
-| Document | Purpose |
-|----------|---------|
-| [prd.md](./prd.md) | Product requirements, goals, priorities, out of scope |
-| [domain-model.md](./domain-model.md) | Entities, relationships, glossary, session rules |
-| [screens-and-flows.md](./screens-and-flows.md) | Screen inventory, Stitch asset map, user flows |
-| [design-system.md](./design-system.md) | Design tokens and UI rules from Stitch |
-| [roadmap.md](./roadmap.md) | Phased frontend delivery plan |
-| [p2-backlog.md](./p2-backlog.md) | Deferred P2 items (incl. **SSR-1**) |
-| [ssr-enablement.md](./ssr-enablement.md) | Why SSR is off, risks, hydration rules, future enablement plan |
-| [adr/](./adr/) | Architecture Decision Records |
+| Document                                       | Purpose                                                        |
+| ---------------------------------------------- | -------------------------------------------------------------- |
+| [brand.md](./brand.md)                         | Product name, pronunciation, meaning, voice                    |
+| [rename-process.md](./rename-process.md)       | How to change the public name (vs plumbing)                    |
+| [prd.md](./prd.md)                             | Product requirements, goals, priorities, out of scope          |
+| [domain-model.md](./domain-model.md)           | Entities, relationships, glossary, session rules               |
+| [screens-and-flows.md](./screens-and-flows.md) | Screen inventory, Stitch asset map, user flows                 |
+| [design-system.md](./design-system.md)         | Design tokens and UI rules from Stitch                         |
+| [roadmap.md](./roadmap.md)                     | Phased frontend delivery plan                                  |
+| [p2-backlog.md](./p2-backlog.md)               | Deferred P2 items (incl. **SSR-1**)                            |
+| [ssr-enablement.md](./ssr-enablement.md)       | Why SSR is off, risks, hydration rules, future enablement plan |
+| [adr/](./adr/)                                 | Architecture Decision Records                                  |
 
 ## Design source material
 

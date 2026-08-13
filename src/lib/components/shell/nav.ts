@@ -1,12 +1,6 @@
 import { m } from '$lib/paraglide/messages.js';
 
-export type AppRoute =
-	| '/timer'
-	| '/dashboard'
-	| '/logs'
-	| '/insights'
-	| '/projects'
-	| '/settings';
+export type AppRoute = '/timer' | '/dashboard' | '/logs' | '/insights' | '/projects' | '/settings';
 
 export type NavItem = {
 	href: AppRoute;
@@ -24,7 +18,6 @@ export const NAV_ITEMS: NavItem[] = [
 	{ href: '/settings', label: () => m.nav_settings(), icon: 'settings' }
 ];
 
-export const APP_NAME = 'DevTime';
 export const APP_VERSION = 'v0.1.0-alpha';
 
 export function isNavActive(pathname: string, href: string): boolean {

@@ -16,13 +16,13 @@ test.describe('navigation', () => {
 		await expect(page).toHaveURL(/\/dashboard$/);
 	});
 
-	test('brand DevTime is visible in shell', async ({ page }, testInfo) => {
+	test('brand Vynno is visible in shell', async ({ page }, testInfo) => {
 		await page.goto('/dashboard');
 		// Desktop: sidebar h1; mobile: top bar
 		if (testInfo.project.name === 'mobile') {
-			await expect(page.getByRole('banner').getByText('DevTime')).toBeVisible();
+			await expect(page.getByRole('banner').getByText('Vynno')).toBeVisible();
 		} else {
-			await expect(desktopNav(page).getByRole('heading', { name: 'DevTime' })).toBeVisible();
+			await expect(desktopNav(page).getByRole('heading', { name: 'Vynno' })).toBeVisible();
 		}
 	});
 
@@ -33,9 +33,10 @@ test.describe('navigation', () => {
 		for (const route of routes) {
 			await nav.getByRole('link', { name: route.label, exact: true }).click();
 			await expect(page).toHaveURL(new RegExp(`${route.href}$`));
-			await expect(
-				nav.getByRole('link', { name: route.label, exact: true })
-			).toHaveAttribute('aria-current', 'page');
+			await expect(nav.getByRole('link', { name: route.label, exact: true })).toHaveAttribute(
+				'aria-current',
+				'page'
+			);
 		}
 	});
 

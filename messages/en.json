@@ -1,8 +1,8 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 
-	"app_name": "DevTime",
-	"title_app": "{page} · DevTime",
+	"app_name": "Vynno",
+	"title_app": "{page} · Vynno",
 	"title_timer": "Timer",
 	"title_dashboard": "Dashboard",
 	"title_logs": "Logs",
@@ -165,6 +165,14 @@
 	"theme_dark": "Dark",
 	"theme_light": "Light",
 	"theme_deep_dark": "Deep Dark",
+	"settings_about": "About {name}",
+	"settings_about_pronounced": "Pronounced",
+	"settings_about_pronunciation": "VIN-oh",
+	"settings_about_tagline": "Where the hours went.",
+	"settings_about_oneliner": "{name} is a focus timer — projects, sessions, and a clear week.",
+	"settings_about_coined": "Coined name — the double n is the spelling.",
+	"settings_about_version": "Version",
+
 	"settings_coming_later": "Coming later",
 	"settings_later_notifications": "Notifications & calendar integrations",
 	"settings_later_account": "Account / auth (separate backend)",

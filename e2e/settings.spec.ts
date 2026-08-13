@@ -43,6 +43,15 @@ test.describe('settings', () => {
 		await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 	});
 
+	test('about card shows name, pronunciation, and version', async ({ page }) => {
+		const about = page.getByRole('region', { name: 'About Vynno' });
+		await expect(about).toBeVisible();
+		await expect(about.getByText('VIN-oh')).toBeVisible();
+		await expect(about.getByText('Where the hours went.')).toBeVisible();
+		await expect(about.getByText(/double n/i)).toBeVisible();
+		await expect(about.getByText('v0.1.0-alpha')).toBeVisible();
+	});
+
 	test('default project select changes', async ({ page }) => {
 		const select = page.locator('#default-project');
 		await expect(select).toBeVisible();

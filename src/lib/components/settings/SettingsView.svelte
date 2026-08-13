@@ -4,6 +4,7 @@
 	import { getLocale, locales, setLocale, type Locale } from '$lib/paraglide/runtime.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
+	import { APP_VERSION } from '$lib/components/shell/nav';
 	import ThemeSelect from './ThemeSelect.svelte';
 
 	function onTargetInput(e: Event) {
@@ -142,6 +143,33 @@
 				</a>
 				{m.settings_manage_projects_suffix()}
 			</p>
+		</div>
+	</section>
+
+	<!-- About -->
+	<section
+		class="rounded-lg border border-outline-variant bg-surface-container p-4"
+		aria-labelledby="settings-about"
+	>
+		<h2 id="settings-about" class="mb-4 text-headline-md text-on-surface">
+			{m.settings_about({ name: m.app_name() })}
+		</h2>
+		<div class="flex flex-col gap-3 text-body-sm">
+			<dl class="flex flex-col gap-3">
+				<div>
+					<dt class="text-on-surface-variant">{m.settings_about_pronounced()}</dt>
+					<dd class="font-mono text-code-label text-on-surface">
+						{m.settings_about_pronunciation()}
+					</dd>
+				</div>
+				<div>
+					<dt class="text-on-surface-variant">{m.settings_about_version()}</dt>
+					<dd class="font-mono text-code-label text-on-surface">{APP_VERSION}</dd>
+				</div>
+			</dl>
+			<p class="text-body-md text-on-surface">{m.settings_about_tagline()}</p>
+			<p class="text-on-surface-variant">{m.settings_about_oneliner({ name: m.app_name() })}</p>
+			<p class="text-on-surface-variant">{m.settings_about_coined()}</p>
 		</div>
 	</section>
 

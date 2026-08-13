@@ -2,7 +2,6 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
 	import { sessionStore } from '$lib/stores/session.svelte';
-	import { APP_NAME } from './nav';
 
 	let { title = '' }: { title?: string } = $props();
 
@@ -18,7 +17,7 @@
 >
 	<div class="flex items-center gap-2">
 		<span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">terminal</span>
-		<span class="text-headline-md font-bold text-primary">{APP_NAME}</span>
+		<span class="text-headline-md font-bold text-primary">{m.app_name()}</span>
 	</div>
 	<div class="flex items-center gap-3">
 		{#if title}
@@ -36,7 +35,7 @@
 		<span
 			class="material-symbols-outlined text-[18px] {live
 				? isActive
-					? 'text-secondary-fixed blink'
+					? 'blink text-secondary-fixed'
 					: 'text-tertiary'
 				: 'text-outline-variant/40'}"
 			style={live ? "font-variation-settings: 'FILL' 1" : undefined}

@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { m } from '$lib/paraglide/messages.js';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
-	import { APP_NAME, APP_VERSION, NAV_ITEMS, isNavActive } from './nav';
+	import { APP_VERSION, NAV_ITEMS, isNavActive } from './nav';
 
 	const initials = $derived(
 		prefsStore.displayName
@@ -22,7 +22,7 @@
 	<div class="mb-8 flex items-center gap-3 px-6">
 		<span class="material-symbols-outlined text-3xl text-primary" aria-hidden="true">timer</span>
 		<div>
-			<h1 class="text-headline-md leading-tight font-bold text-primary">{APP_NAME}</h1>
+			<h1 class="text-headline-md leading-tight font-bold text-primary">{m.app_name()}</h1>
 			<p class="font-mono text-[10px] text-on-surface-variant uppercase opacity-70">
 				{APP_VERSION}
 			</p>

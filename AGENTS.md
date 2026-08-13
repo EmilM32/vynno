@@ -1,8 +1,8 @@
-# DevTime — agent instructions
+# Vynno — agent instructions
 
 ## Project
 
-DevTime is a **frontend-only** developer work-time tracker (SvelteKit + TypeScript + Tailwind).
+Vynno (formerly DevTime; repo `dev-time`) is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwind). Brand: [docs/brand.md](./docs/brand.md).
 
 | In this repo                         | Separate (later)                  |
 | ------------------------------------ | --------------------------------- |

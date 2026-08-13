@@ -98,7 +98,7 @@
 				</label>
 				<select
 					id="default-project"
-					class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface outline-none sm:w-56"
+					class="native-select focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface outline-none sm:w-56"
 					bind:value={prefsStore.defaultProjectId}
 					onchange={() => {
 						// Keep timer draft in sync when idle
@@ -124,7 +124,7 @@
 				</label>
 				<select
 					id="ui-locale"
-					class="focus-ring w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface outline-none sm:w-56"
+					class="native-select focus-ring w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface outline-none sm:w-56"
 					value={getLocale()}
 					onchange={onLocaleChange}
 				>

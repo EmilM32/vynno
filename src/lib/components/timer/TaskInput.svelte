@@ -35,7 +35,7 @@
 		>
 		<select
 			id="project-select"
-			class="focus-ring min-w-[10rem] flex-1 rounded border border-outline-variant bg-surface-container-low px-3 py-1.5 font-mono text-code-label text-on-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none"
+			class="native-select focus-ring min-w-[10rem] flex-1 rounded border border-outline-variant bg-surface-container-low py-1.5 pl-3 font-mono text-code-label text-on-surface outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none"
 			bind:value={sessionStore.draftProjectId}
 			disabled={locked}
 		>

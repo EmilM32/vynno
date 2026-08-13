@@ -99,6 +99,21 @@
 	.bar-today-glow {
 		box-shadow: 0 -2px 10px color-mix(in oklab, var(--color-primary) 20%, transparent);
 	}
+
+	/* Native <select> — hide the OS caret and draw an inset chevron.
+	   Data-URL SVGs cannot use currentColor, so light vs dark stroke is themed. */
+	.native-select {
+		appearance: none;
+		padding-inline-end: 2.25rem;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bdc8d1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 0.75rem center;
+		background-size: 1.125rem;
+	}
+
+	[data-theme='light'] .native-select {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f4850' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+	}
 }
 
 @layer base {

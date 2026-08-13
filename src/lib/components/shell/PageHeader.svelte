@@ -82,8 +82,14 @@
 	@media (min-width: 768px) {
 		.desc {
 			transition:
-				grid-template-rows 200ms ease,
-				opacity 200ms ease;
+				grid-template-rows var(--duration-ui) var(--ease-in-out),
+				opacity var(--duration-ui) var(--ease-in-out);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.desc {
+			transition: opacity var(--duration-ui) ease;
 		}
 	}
 </style>

@@ -29,7 +29,7 @@ Vynno (formerly DevTime; repo `dev-time`) is a **frontend-only** focus-time trac
 
 ### Docs
 
-Product and design context: `docs/README.md`, ADRs under `docs/adr/`.
+Product and design context: `docs/README.md`, ADRs under `docs/adr/`. Motion taste and rules: [docs/motion.md](./docs/motion.md).
 
 ---
 

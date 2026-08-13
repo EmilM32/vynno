@@ -14,6 +14,7 @@ Brand: say **VIN-oh**. See [brand.md](./brand.md).
 | [domain-model.md](./domain-model.md)           | Entities, relationships, glossary, session rules               |
 | [screens-and-flows.md](./screens-and-flows.md) | Screen inventory, Stitch asset map, user flows                 |
 | [design-system.md](./design-system.md)         | Design tokens and UI rules from Stitch                         |
+| [motion.md](./motion.md)                       | Animation personality, gate, tokens, do/don’t                  |
 | [accessibility.md](./accessibility.md)         | WCAG 2.2 AA target, patterns, how to run axe                   |
 | [roadmap.md](./roadmap.md)                     | Phased frontend delivery plan                                  |
 | [p2-backlog.md](./p2-backlog.md)               | Deferred P2 items (incl. **SSR-1**)                            |

@@ -57,9 +57,9 @@
 			aria-checked={selected}
 			aria-label={colorLabel(color)}
 			tabindex={selected ? 0 : -1}
-			class="focus-ring h-8 w-8 rounded-DEFAULT border-2 transition-transform {selected
-				? 'scale-110 border-on-surface'
-				: 'border-transparent hover:scale-105'}"
+			class="focus-ring h-8 w-8 rounded-DEFAULT border-2 transition-colors {selected
+				? 'border-on-surface'
+				: 'border-transparent'}"
 			style:background-color={color}
 			onclick={() => select(color)}
 			onkeydown={(e) => onSwatchKey(e, i)}

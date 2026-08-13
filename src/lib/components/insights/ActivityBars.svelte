@@ -30,7 +30,7 @@
 					</div>
 					<div class="h-2 w-full overflow-hidden rounded-sm bg-surface-dim">
 						<div
-							class="h-full rounded-sm transition-all"
+							class="h-full rounded-sm transition-none"
 							style:width="{(item.ms / maxMs) * 100}%"
 							style:background-color={item.color}
 						></div>

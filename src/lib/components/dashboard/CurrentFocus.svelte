@@ -86,7 +86,7 @@
 		<div class="mt-auto border-t border-outline-variant/50 pt-4">
 			<a
 				href={resolve('/timer')}
-				class="inline-flex items-center gap-2 rounded border border-primary/20 bg-primary px-3 py-1.5 font-mono text-code-data text-on-primary transition-colors hover:bg-primary-container"
+				class="press inline-flex items-center gap-2 rounded border border-primary/20 bg-primary px-3 py-1.5 font-mono text-code-data text-on-primary hover:bg-primary-container"
 			>
 				<span class="material-symbols-outlined text-[18px]" aria-hidden="true">play_arrow</span>
 				{m.dashboard_start_session()}

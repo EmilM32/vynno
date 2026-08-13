@@ -183,14 +183,16 @@ Focus is two-tier (always `:focus-visible`):
 
 ## 7. Motion
 
+Personality, the frequency gate, tokens, and do/don’t: **[motion.md](./motion.md)**. That file is the source of truth.
+
 | Effect              | Use                                         |
 | ------------------- | ------------------------------------------- |
 | Border pulse        | Active timer card                           |
 | Blink / pulse dot   | ACTIVE status, recording indicator          |
 | Cursor blink        | Optional on active text fields              |
 | Hover row highlight | Logs, recent tasks (`surface-variant` tint) |
-
-Keep motion subtle; respect `prefers-reduced-motion` at implementation time.
+| Press scale         | Primary chrome (`.press`)                   |
+| Confirm dialog      | Centered scale + fade, 200ms                |
 
 ---
 

@@ -38,6 +38,21 @@ Same routes; palette only. Tokens: `high_density_technical_light/DESIGN.md`.
 | `insights_mobile_light/` | Mobile | `/insights` |
 | `insights_light/` | Desktop | `/insights` |
 
+### Deep Dark — `stitch_personal_dev_tracker_deep_dark/`
+
+Same routes; palette only. Tokens: `deep_dark/DESIGN.md`.
+
+| Stitch folder | Viewport | Planned route |
+|---------------|----------|---------------|
+| `active_timer_deep_dark/` | Mobile | `/timer` |
+| `active_timer_desktop_deep_dark/` | Desktop | `/timer` |
+| `dashboard_deep_dark/` | Mobile | `/dashboard` |
+| `dashboard_desktop_deep_dark/` | Desktop | `/dashboard` |
+| `activity_logs_deep_dark/` | Mobile | `/logs` |
+| `activity_logs_desktop_deep_dark/` | Desktop | `/logs` |
+| `insights_deep_dark/` | Mobile | `/insights` |
+| `insights_desktop_deep_dark/` | Desktop | `/insights` |
+
 No Stitch screens for `/settings` or `/projects`. Appearance (named theme list) lives in Settings.
 
 Each screen folder:

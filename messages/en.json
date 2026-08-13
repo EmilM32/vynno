@@ -164,6 +164,7 @@
 	"settings_appearance_hint": "Color theme for this device.",
 	"theme_dark": "Dark",
 	"theme_light": "Light",
+	"theme_deep_dark": "Deep Dark",
 	"settings_coming_later": "Coming later",
 	"settings_later_notifications": "Notifications & calendar integrations",
 	"settings_later_account": "Account / auth (separate backend)",

@@ -23,6 +23,7 @@ test.describe('settings', () => {
 		const select = page.locator('#ui-theme');
 		await expect(select).toBeVisible();
 		await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+		await expect(select.locator('option')).toHaveText(['Dark', 'Light', 'Deep Dark']);
 
 		await select.selectOption('light');
 		await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
@@ -30,6 +31,13 @@ test.describe('settings', () => {
 		await page.reload();
 		await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 		await expect(page.locator('#ui-theme')).toHaveValue('light');
+
+		await page.locator('#ui-theme').selectOption('deep-dark');
+		await expect(page.locator('html')).toHaveAttribute('data-theme', 'deep-dark');
+
+		await page.reload();
+		await expect(page.locator('html')).toHaveAttribute('data-theme', 'deep-dark');
+		await expect(page.locator('#ui-theme')).toHaveValue('deep-dark');
 
 		await page.locator('#ui-theme').selectOption('dark');
 		await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');

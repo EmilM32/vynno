@@ -26,6 +26,12 @@ export const THEMES: readonly ThemeDefinition[] = [
 		colorScheme: 'light',
 		themeColor: '#f8f9ff',
 		labelKey: 'theme_light'
+	},
+	{
+		id: 'deep-dark',
+		colorScheme: 'dark',
+		themeColor: '#131313',
+		labelKey: 'theme_deep_dark'
 	}
 ];
 

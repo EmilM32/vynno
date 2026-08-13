@@ -2,6 +2,7 @@
 @import '../lib/theme/tokens.css';
 @import '../lib/theme/dark.css';
 @import '../lib/theme/light.css';
+@import '../lib/theme/deep-dark.css';
 
 @layer base {
 	body {

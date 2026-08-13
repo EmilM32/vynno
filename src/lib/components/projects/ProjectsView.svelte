@@ -105,7 +105,7 @@
 		{#snippet actions()}
 			<button
 				type="button"
-				class="focus-ring shrink-0 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary transition-colors hover:bg-primary-container"
+				class="press focus-ring shrink-0 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container"
 				onclick={openCreate}
 				data-testid="new-project"
 			>

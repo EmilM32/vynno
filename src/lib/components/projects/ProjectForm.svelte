@@ -121,13 +121,13 @@
 		<div class="mt-1 flex flex-wrap gap-2">
 			<button
 				type="submit"
-				class="focus-ring rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary transition-colors hover:bg-primary-container"
+				class="press focus-ring rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container"
 			>
 				{mode === 'create' ? m.projects_create() : m.projects_save()}
 			</button>
 			<button
 				type="button"
-				class="focus-ring rounded border border-outline-variant bg-surface-container-low px-4 py-2 text-body-md text-on-surface transition-colors hover:border-outline"
+				class="press focus-ring rounded border border-outline-variant bg-surface-container-low px-4 py-2 text-body-md text-on-surface hover:border-outline"
 				onclick={oncancel}
 			>
 				{m.common_cancel()}

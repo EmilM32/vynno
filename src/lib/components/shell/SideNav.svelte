@@ -32,7 +32,7 @@
 	<div class="mb-4 px-4">
 		<a
 			href={resolve('/timer')}
-			class="focus-ring flex w-full items-center justify-center gap-2 rounded-DEFAULT border border-primary/20 bg-primary px-4 py-2 font-mono text-code-data font-medium text-background transition-colors hover:bg-primary-container"
+			class="press focus-ring flex w-full items-center justify-center gap-2 rounded-DEFAULT border border-primary/20 bg-primary px-4 py-2 font-mono text-code-data font-medium text-background hover:bg-primary-container"
 		>
 			<span class="material-symbols-outlined text-[18px]" aria-hidden="true">play_arrow</span>
 			{m.nav_start_new_session()}

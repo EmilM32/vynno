@@ -1,0 +1,61 @@
+/* Dev-Density Dark — stitch_personal_dev_tracker/dev_density_dark/DESIGN.md */
+
+:root,
+[data-theme='dark'] {
+	color-scheme: dark;
+
+	--dt-background: #0b1326;
+	--dt-on-background: #dae2fd;
+	--dt-surface: #0b1326;
+	--dt-surface-dim: #0b1326;
+	--dt-surface-bright: #31394d;
+	--dt-surface-container-lowest: #060e20;
+	--dt-surface-container-low: #131b2e;
+	--dt-surface-container: #171f33;
+	--dt-surface-container-high: #222a3d;
+	--dt-surface-container-highest: #2d3449;
+	--dt-surface-variant: #2d3449;
+	--dt-surface-tint: #7bd0ff;
+
+	--dt-on-surface: #dae2fd;
+	--dt-on-surface-variant: #bdc8d1;
+
+	--dt-outline: #87929a;
+	--dt-outline-variant: #3e484f;
+
+	--dt-primary: #8ed5ff;
+	--dt-on-primary: #00354a;
+	--dt-primary-container: #38bdf8;
+	--dt-on-primary-container: #004965;
+	--dt-primary-fixed: #c4e7ff;
+	--dt-primary-fixed-dim: #7bd0ff;
+	--dt-on-primary-fixed: #001e2c;
+	--dt-on-primary-fixed-variant: #004c69;
+	--dt-inverse-primary: #00668a;
+
+	--dt-secondary: #4de082;
+	--dt-on-secondary: #003919;
+	--dt-secondary-container: #00b55d;
+	--dt-on-secondary-container: #003e1c;
+	--dt-secondary-fixed: #6dfe9c;
+	--dt-secondary-fixed-dim: #4de082;
+	--dt-on-secondary-fixed: #00210c;
+	--dt-on-secondary-fixed-variant: #005227;
+
+	--dt-tertiary: #ffc42f;
+	--dt-on-tertiary: #402d00;
+	--dt-tertiary-container: #e1a800;
+	--dt-on-tertiary-container: #584000;
+	--dt-tertiary-fixed: #ffdf9f;
+	--dt-tertiary-fixed-dim: #f9bd22;
+	--dt-on-tertiary-fixed: #261a00;
+	--dt-on-tertiary-fixed-variant: #5c4300;
+
+	--dt-error: #ffb4ab;
+	--dt-on-error: #690005;
+	--dt-error-container: #93000a;
+	--dt-on-error-container: #ffdad6;
+
+	--dt-inverse-surface: #dae2fd;
+	--dt-inverse-on-surface: #283044;
+}

@@ -6,18 +6,19 @@
 
 ## Context
 
-The product UI was prototyped in Google Stitch and exported into `stitch_personal_dev_tracker/` as:
+The product UI was prototyped in Google Stitch and exported as:
 
-- `screen.png` per viewport  
-- `code.html` (CDN Tailwind + Material Symbols)  
-- `dev_density_dark/DESIGN.md` (tokens and component guidance)
+- `stitch_personal_dev_tracker/` — dark screens + `dev_density_dark/DESIGN.md`
+- `stitch_personal_dev_tracker_light/` — light screens + `high_density_technical_light/DESIGN.md`
+
+Each folder has `screen.png` per viewport and `code.html` (CDN Tailwind + Material Symbols).
 
 We need a clear hierarchy so implementation does not treat generated HTML as production code.
 
 ## Decision
 
 1. **Visual layout & composition:** Prefer `screen.png` mockups (mobile + desktop pairs).  
-2. **Tokens, type, spacing, component rules:** Prefer `DESIGN.md`, condensed in [docs/design-system.md](../design-system.md).  
+2. **Tokens, type, spacing, component rules:** Prefer each theme’s `DESIGN.md` YAML, condensed in [docs/design-system.md](../design-system.md). Named palettes: [0008-named-themes.md](./0008-named-themes.md).  
 3. **HTML export:** Reference only for structure hints and class patterns — **do not** copy wholesale into SvelteKit or ship CDN Tailwind/Chart scripts as the app foundation.  
 4. Rebuild UI as **Svelte components** + project Tailwind theme.  
 5. Keep the Stitch folder in-repo as design history; do not delete during early phases.
@@ -47,3 +48,4 @@ We need a clear hierarchy so implementation does not treat generated HTML as pro
 
 - [../design-system.md](../design-system.md)  
 - [../screens-and-flows.md](../screens-and-flows.md)  
+- [0008-named-themes.md](./0008-named-themes.md)  

@@ -41,7 +41,7 @@
 					class="relative flex w-full items-end justify-center rounded-t-sm transition-colors
 						{day.ms > 0
 						? day.isToday
-							? 'border-t border-primary-container bg-primary/80 shadow-[0_-2px_10px_rgba(56,189,248,0.2)] hover:bg-primary'
+							? 'bar-today-glow border-t border-primary-container bg-primary/80 hover:bg-primary'
 							: 'bg-primary/20 hover:bg-primary/40'
 						: 'border border-dashed border-outline-variant bg-surface-container'}"
 					style:height="{heightPct}%"

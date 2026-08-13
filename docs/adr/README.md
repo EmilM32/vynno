@@ -11,6 +11,7 @@ Lightweight ADRs for the DevTime **frontend** repository.
 | [0005](./0005-routing-and-app-shell.md) | Routing and application shell | Accepted |
 | [0006](./0006-project-lifecycle.md) | Project lifecycle (archive + optional hard delete) | Accepted |
 | [0007](./0007-i18n-paraglide.md) | i18n with Paraglide JS | Accepted |
+| [0008](./0008-named-themes.md) | Named color themes (`data-theme` list) | Accepted |
 
 ## Format
 

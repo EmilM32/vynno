@@ -117,11 +117,7 @@ export function sessionsTouchingToday(sessions: TimeSession[], now = new Date())
 }
 
 /** Sessions whose start falls within [start, end] inclusive. */
-export function sessionsInRange(
-	sessions: TimeSession[],
-	start: Date,
-	end: Date
-): TimeSession[] {
+export function sessionsInRange(sessions: TimeSession[], start: Date, end: Date): TimeSession[] {
 	const a = start.getTime();
 	const b = end.getTime();
 	return sessions.filter((s) => {
@@ -270,14 +266,14 @@ export type PeriodStats = {
 };
 
 const ACTIVITY_COLORS: Record<ActivityType, string> = {
-	deep_work: '#8ed5ff',
-	meeting: '#ffc42f',
-	maintenance: '#38bdf8',
-	coding: '#4de082',
-	debugging: '#ffb4ab',
-	docs: '#bdc8d1',
-	research: '#7bd0ff',
-	other: '#64748b'
+	deep_work: 'var(--color-primary)',
+	meeting: 'var(--color-tertiary)',
+	maintenance: 'var(--color-primary-container)',
+	coding: 'var(--color-secondary)',
+	debugging: 'var(--color-error)',
+	docs: 'var(--color-on-surface-variant)',
+	research: 'var(--color-primary-fixed-dim)',
+	other: 'var(--color-outline)'
 };
 
 export function periodStats(
@@ -296,7 +292,10 @@ export function periodStats(
 	const dayTotals = new Map<string, number>();
 	const projectTotals = new Map<string, number>();
 	const activityTotals = new Map<ActivityType, number>();
-	const pairTotals = new Map<string, { projectId: string; activityType: ActivityType; ms: number }>();
+	const pairTotals = new Map<
+		string,
+		{ projectId: string; activityType: ActivityType; ms: number }
+	>();
 
 	for (const s of inRange) {
 		const ms = sessionElapsedMs(s, nowMs);
@@ -326,8 +325,7 @@ export function periodStats(
 
 	const days = calendarDaysInclusive(start, end);
 	const dailyAverageMs = totalMs / days;
-	const vsTargetRatio =
-		dailyTargetMs > 0 ? (dailyAverageMs - dailyTargetMs) / dailyTargetMs : null;
+	const vsTargetRatio = dailyTargetMs > 0 ? (dailyAverageMs - dailyTargetMs) / dailyTargetMs : null;
 
 	const pct = (ms: number) => (totalMs > 0 ? Math.round((ms / totalMs) * 100) : 0);
 

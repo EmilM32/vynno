@@ -1,7 +1,7 @@
 # Screens and Flows — DevTime
 
 **Status:** Draft  
-**Last updated:** 2026-08-12  
+**Last updated:** 2026-08-13  
 
 Maps Google Stitch exports to planned SvelteKit routes and primary user flows.
 
@@ -9,7 +9,7 @@ Maps Google Stitch exports to planned SvelteKit routes and primary user flows.
 
 ## 1. Asset inventory
 
-Base path: `stitch_personal_dev_tracker/`
+### Dark — `stitch_personal_dev_tracker/`
 
 | Stitch folder | Viewport | Planned route | Purpose |
 |---------------|----------|---------------|---------|
@@ -21,9 +21,24 @@ Base path: `stitch_personal_dev_tracker/`
 | `activity_logs_desktop/` | Desktop | `/logs` | Same denser layout |
 | `insights/` | Mobile | `/insights` | Analytics overview |
 | `insights_desktop/` | Desktop | `/insights` | Same with sidebar shell |
-| `dev_density_dark/DESIGN.md` | — | — | Design system source |
-| — | — | `/settings` | Stub only (no Stitch screen) |
-| — | — | `/projects` | Project CRUD (no Stitch screen; product-designed) |
+| `dev_density_dark/DESIGN.md` | — | — | Dark token source |
+
+### Light — `stitch_personal_dev_tracker_light/`
+
+Same routes; palette only. Tokens: `high_density_technical_light/DESIGN.md`.
+
+| Stitch folder | Viewport | Planned route |
+|---------------|----------|---------------|
+| `active_timer_mobile_light/` | Mobile | `/timer` |
+| `active_timer_light/` | Desktop | `/timer` |
+| `dashboard_mobile_light/` | Mobile | `/dashboard` |
+| `dashboard_light/` | Desktop | `/dashboard` |
+| `activity_logs_mobile_light/` | Mobile | `/logs` |
+| `activity_logs_light/` | Desktop | `/logs` |
+| `insights_mobile_light/` | Mobile | `/insights` |
+| `insights_light/` | Desktop | `/insights` |
+
+No Stitch screens for `/settings` or `/projects`. Appearance (named theme list) lives in Settings.
 
 Each screen folder:
 

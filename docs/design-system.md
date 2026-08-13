@@ -94,12 +94,12 @@ YAML from `deep_dark/DESIGN.md`. Surfaces and outlines copy YAML 1:1. Accent rol
 
 ### Semantic mapping
 
-| Semantic                   | Color                                                  |
-| -------------------------- | ------------------------------------------------------ |
-| Active timer / focus       | Primary (sky / electric cyan) + pulse border           |
-| Success / active indicator | Terminal / neon green                                  |
-| Paused / warning           | Soft amber (`dark`, `light`) or lavender (`deep-dark`) |
-| Stopped / neutral status   | Slate / outline                                        |
+| Semantic                   | Color                                                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Active timer / focus       | Primary (sky / electric cyan). Pulse border on Timer only; Current Focus uses a solid primary / tertiary / outline border by status |
+| Success / active indicator | Terminal / neon green                                                                                                               |
+| Paused / warning           | Soft amber (`dark`, `light`) or lavender (`deep-dark`)                                                                              |
+| Stopped / neutral status   | Slate / outline                                                                                                                     |
 
 ### Project colors (examples from mockups)
 

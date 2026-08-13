@@ -10,10 +10,6 @@ export type {
 } from './types/domain';
 export { activityLabel } from './types/domain';
 export type { TimeTrackingRepository } from './data/repository';
-export { MockTimeTrackingRepository } from './data/mock-repository';
-export {
-	formatClock,
-	formatCompact,
-	formatHoursMinutes,
-	sessionElapsedMs
-} from './time/duration';
+export { MemoryTimeTrackingRepository } from './data/memory-repository';
+export { HttpTimeTrackingRepository } from './data/http-repository';
+export { formatClock, formatCompact, formatHoursMinutes, sessionElapsedMs } from './time/duration';

@@ -1,3 +1,4 @@
+import type { AppSeed } from '$lib/api/types';
 import {
 	normalizeCode,
 	normalizeProjectFields,
@@ -13,7 +14,6 @@ import type {
 	UpdateProjectInput,
 	UserProfile
 } from '$lib/types/domain';
-import { buildMockSessions, MOCK_PROFILE, MOCK_PROJECTS } from './fixtures';
 import type { TimeTrackingRepository } from './repository';
 
 function newId(prefix: string): string {
@@ -24,34 +24,41 @@ function cloneProject(p: Project): Project {
 	return { ...p };
 }
 
+function cloneSession(s: TimeSession): TimeSession {
+	return {
+		...s,
+		tags: s.tags ? [...s.tags] : undefined
+	};
+}
+
 /**
- * In-memory repository seeded with fixtures.
+ * In-memory repository seeded from an {@link AppSeed}.
  * Mutations are session-scoped (lost on full page reload).
  */
-export class MockTimeTrackingRepository implements TimeTrackingRepository {
+export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	#projects: Project[];
 	#sessions: TimeSession[];
 	#profile: UserProfile;
 
-	constructor(now = new Date()) {
-		this.#projects = structuredClone(MOCK_PROJECTS);
-		this.#sessions = buildMockSessions(now);
-		this.#profile = { ...MOCK_PROFILE };
+	constructor(seed: AppSeed) {
+		this.#projects = structuredClone(seed.projects);
+		this.#sessions = seed.sessions.map(cloneSession);
+		this.#profile = { ...seed.profile };
 	}
 
-	listProjects(options: ProjectListOptions = {}): Project[] {
+	async listProjects(options: ProjectListOptions = {}): Promise<Project[]> {
 		const list = options.includeArchived
 			? this.#projects
 			: this.#projects.filter((p) => !p.isArchived);
 		return list.map(cloneProject);
 	}
 
-	getProject(id: string): Project | undefined {
+	async getProject(id: string): Promise<Project | undefined> {
 		const p = this.#projects.find((x) => x.id === id);
 		return p ? cloneProject(p) : undefined;
 	}
 
-	createProject(input: CreateProjectInput): Project {
+	async createProject(input: CreateProjectInput): Promise<Project> {
 		const fields = normalizeProjectFields({
 			name: input.name,
 			color: input.color,
@@ -76,7 +83,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneProject(project);
 	}
 
-	updateProject(id: string, input: UpdateProjectInput): Project {
+	async updateProject(id: string, input: UpdateProjectInput): Promise<Project> {
 		const project = this.#requireProject(id);
 
 		const nextName = input.name !== undefined ? input.name.trim() : project.name;
@@ -102,7 +109,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneProject(project);
 	}
 
-	archiveProject(id: string): Project {
+	async archiveProject(id: string): Promise<Project> {
 		const project = this.#requireProject(id);
 		if (project.isArchived) {
 			throw new Error('Project is already archived.');
@@ -112,7 +119,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneProject(project);
 	}
 
-	restoreProject(id: string): Project {
+	async restoreProject(id: string): Promise<Project> {
 		const project = this.#requireProject(id);
 		if (!project.isArchived) {
 			throw new Error('Project is not archived.');
@@ -121,16 +128,15 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneProject(project);
 	}
 
-	deleteProject(id: string): void {
+	async deleteProject(id: string): Promise<void> {
 		const project = this.#requireProject(id);
-		const sessions = this.countSessionsForProject(id);
+		const sessions = this.#sessions.filter((s) => s.projectId === id).length;
 		if (sessions > 0) {
 			throw new Error('This project has logged sessions. Archive it instead.');
 		}
 		if (!project.isArchived) {
 			this.#assertNotLastActive(id);
 		} else {
-			// archived: only block if no other active projects exist (edge case)
 			const activeCount = this.#projects.filter((p) => !p.isArchived).length;
 			if (activeCount === 0) {
 				throw new Error('Cannot delete the last remaining active project.');
@@ -139,15 +145,15 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		this.#projects = this.#projects.filter((p) => p.id !== id);
 	}
 
-	countSessionsForProject(projectId: string): number {
+	async countSessionsForProject(projectId: string): Promise<number> {
 		return this.#sessions.filter((s) => s.projectId === projectId).length;
 	}
 
-	getProfile(): UserProfile {
+	async getProfile(): Promise<UserProfile> {
 		return this.#profile;
 	}
 
-	listSessions(filters: SessionFilters = {}): TimeSession[] {
+	async listSessions(filters: SessionFilters = {}): Promise<TimeSession[]> {
 		let list = [...this.#sessions];
 
 		if (filters.status?.length) {
@@ -164,22 +170,22 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return list.map(cloneSession);
 	}
 
-	getSession(id: string): TimeSession | undefined {
+	async getSession(id: string): Promise<TimeSession | undefined> {
 		const s = this.#sessions.find((x) => x.id === id);
 		return s ? cloneSession(s) : undefined;
 	}
 
-	getActiveSession(): TimeSession | null {
+	async getActiveSession(): Promise<TimeSession | null> {
 		const s = this.#sessions.find((x) => x.status === 'active' || x.status === 'paused');
 		return s ? cloneSession(s) : null;
 	}
 
-	startSession(input: StartSessionInput): TimeSession {
-		if (this.getActiveSession()) {
+	async startSession(input: StartSessionInput): Promise<TimeSession> {
+		if (await this.getActiveSession()) {
 			throw new Error('An active session already exists. Stop it before starting a new one.');
 		}
 
-		const project = this.getProject(input.projectId);
+		const project = await this.getProject(input.projectId);
 		if (!project || project.isArchived) {
 			throw new Error(`Unknown project: ${input.projectId}`);
 		}
@@ -201,7 +207,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneSession(session);
 	}
 
-	pauseSession(id: string): TimeSession {
+	async pauseSession(id: string): Promise<TimeSession> {
 		const session = this.#require(id);
 		if (session.status !== 'active') {
 			throw new Error(`Cannot pause session in status "${session.status}"`);
@@ -211,7 +217,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneSession(session);
 	}
 
-	resumeSession(id: string): TimeSession {
+	async resumeSession(id: string): Promise<TimeSession> {
 		const session = this.#require(id);
 		if (session.status !== 'paused') {
 			throw new Error(`Cannot resume session in status "${session.status}"`);
@@ -225,7 +231,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneSession(session);
 	}
 
-	stopSession(id: string): TimeSession {
+	async stopSession(id: string): Promise<TimeSession> {
 		const session = this.#require(id);
 		if (session.status === 'stopped') {
 			throw new Error('Session is already stopped');
@@ -273,11 +279,4 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 			throw new Error(`Code "${code}" is already in use.`);
 		}
 	}
-}
-
-function cloneSession(s: TimeSession): TimeSession {
-	return {
-		...s,
-		tags: s.tags ? [...s.tags] : undefined
-	};
 }

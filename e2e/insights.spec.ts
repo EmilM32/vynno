@@ -12,9 +12,9 @@ test.describe('insights', () => {
 		await expect(page.getByTestId('kpi-total-time')).toBeVisible();
 		await expect(page.getByTestId('kpi-total-time')).not.toHaveText('');
 
-		await expect(page.getByRole('region', { name: 'Time by project' })).toBeVisible();
-		await expect(page.getByRole('region', { name: 'Time by activity' })).toBeVisible();
-		await expect(page.getByRole('region', { name: 'Activity breakdown' })).toBeVisible();
+		await expect(page.getByRole('region', { name: 'Time by project', exact: true })).toBeVisible();
+		await expect(page.getByRole('region', { name: 'Time by activity', exact: true })).toBeVisible();
+		await expect(page.getByRole('region', { name: 'Activity breakdown', exact: true })).toBeVisible();
 	});
 
 	test('week / month period toggle', async ({ page }) => {

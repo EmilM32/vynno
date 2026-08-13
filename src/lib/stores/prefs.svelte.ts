@@ -1,4 +1,4 @@
-import { MOCK_PROFILE, PROJECT_IDS } from '$lib/data/fixtures';
+import type { UserProfile } from '$lib/types/domain';
 
 /**
  * Client-only user preferences for the mock SPA.
@@ -6,16 +6,21 @@ import { MOCK_PROFILE, PROJECT_IDS } from '$lib/data/fixtures';
  * Theme is the exception: see `$lib/theme`.
  */
 class PrefsStore {
-	displayName = $state(MOCK_PROFILE.displayName);
-	handle = $state(MOCK_PROFILE.handle);
+	displayName = $state('');
+	handle = $state('');
 
 	/** Daily hour goal used by Insights “vs target”. */
 	dailyTargetHours = $state(8);
 
 	/** Default project for new sessions when idle. */
-	defaultProjectId = $state(PROJECT_IDS.auth as string);
+	defaultProjectId = $state('');
 
 	dailyTargetMs = $derived(Math.max(1, this.dailyTargetHours) * 3_600_000);
+
+	hydrateProfile = (profile: UserProfile): void => {
+		this.displayName = profile.displayName;
+		this.handle = profile.handle;
+	};
 
 	setDailyTargetHours = (hours: number): void => {
 		const n = Number.isFinite(hours) ? hours : 8;

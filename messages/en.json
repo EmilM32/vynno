@@ -232,6 +232,9 @@
 	"error_failed_pause": "Failed to pause",
 	"error_failed_resume": "Failed to resume",
 	"error_failed_stop": "Failed to stop",
+	"error_load_title": "Couldn't load workspace",
+	"error_load_body": "Check your connection and try again.",
+	"error_load_retry": "Retry",
 
 	"placeholder_scaffold": "// scaffold placeholder",
 	"placeholder_phase_note": "Feature UI arrives in a later phase.",

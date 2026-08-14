@@ -1,5 +1,5 @@
-/* Deep Dark — stitch_personal_dev_tracker_deep_dark/deep_dark/DESIGN.md
-   YAML hexes; saturated container/fixed tones mapped onto primary/secondary/tertiary
+/* Deep Dark — originally from Google Stitch
+   Saturated container/fixed tones mapped onto primary/secondary/tertiary
    so status ink (text-primary, text-secondary, text-tertiary) stays readable. */
 
 [data-theme='deep-dark'] {

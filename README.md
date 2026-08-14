@@ -6,15 +6,26 @@ Vynno is a focus timer — projects, sessions, and a clear week. High-density UI
 
 Name, spelling, and voice: **[docs/brand.md](./docs/brand.md)**. This git repo is still `dev-time` until a full rename; see [docs/rename-process.md](./docs/rename-process.md).
 
+## Why this repo exists
+
+This repository is also a personal experimental playground for learning to work with AI.
+
+I do not write every line here by hand. I use AI agents to plan, implement, and iterate. Two goals sit side by side:
+
+- Build an application I actually intend to use for daily work — a focus timer I can rely on.
+- Learn how to use AI tools in an efficient and sensible way: what to delegate, what to review, and how to keep the product coherent.
+
+The product still has to work. Agent output is reviewed and held to the same stack and design rules as everything else in this repo.
+
 ## Scope of this repository
 
 **Frontend only.**
 
-| In this repo                                     | Separate repo (later)                       |
-| ------------------------------------------------ | ------------------------------------------- |
-| SvelteKit + TypeScript + Tailwind UI             | API, database, auth                         |
-| HTTP-fetched mock JSON + in-memory writes        | Persistence and multi-device sync           |
-| Design system implementation from Stitch mockups | Business rules that must stay on the server |
+| In this repo                                           | Separate repo (later)                       |
+| ------------------------------------------------------ | ------------------------------------------- |
+| SvelteKit + TypeScript + Tailwind UI                   | API, database, auth                         |
+| HTTP-fetched mock JSON + in-memory writes              | Persistence and multi-device sync           |
+| Design system (originally prototyped in Google Stitch) | Business rules that must stay on the server |
 
 ## Stack
 
@@ -84,10 +95,6 @@ Start here: **[docs/README.md](./docs/README.md)**
 | [docs/design-system.md](./docs/design-system.md)         | Design tokens                 |
 | [docs/roadmap.md](./docs/roadmap.md)                     | Delivery phases               |
 | [docs/adr/](./docs/adr/)                                 | Architecture decisions        |
-
-## Design mockups
-
-Google Stitch export: [`stitch_personal_dev_tracker/`](./stitch_personal_dev_tracker/)
 
 ## Status
 

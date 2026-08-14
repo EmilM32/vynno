@@ -9,7 +9,7 @@ Decision record: [ADR-0009](./adr/0009-product-name.md). Voice and spelling: [br
 | Layer           | What it is                                       | Change on a public rename?             |
 | --------------- | ------------------------------------------------ | -------------------------------------- |
 | **Public name** | What people see and say                          | Yes                                    |
-| **Plumbing**    | Package, CSS prefix, storage key, Stitch folders | No, unless you are doing a full rename |
+| **Plumbing**    | Package, CSS prefix, storage key                 | No, unless you are doing a full rename |
 
 ## Public rename checklist
 
@@ -31,7 +31,6 @@ Do **not** rewrite every historical ADR or domain-model title. Those can keep th
 - `package.json` `"name"` (`dev-time`)
 - CSS tokens `--dt-*`
 - `localStorage` key `devtime-theme` (see ADR-0008)
-- Stitch mockup folder names
 - Historical ADR titles and context that say DevTime
 
 ## After copy edits

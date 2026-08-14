@@ -1,64 +1,25 @@
 # Screens and Flows — DevTime
 
 **Status:** Draft  
-**Last updated:** 2026-08-13  
+**Last updated:** 2026-08-14  
 
-Maps Google Stitch exports to planned SvelteKit routes and primary user flows.
+Screen inventory, viewport notes, and primary user flows. Layouts were originally prototyped in Google Stitch during the design phase; those exports are no longer in the repo.
 
 ---
 
-## 1. Asset inventory
+## 1. Screen inventory
 
-### Dark — `stitch_personal_dev_tracker/`
+Each primary route is one responsive page (mobile + desktop). Settings, Projects, and Login were not in the original Stitch set. Named themes (`dark`, `light`, `deep-dark`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md).
 
-| Stitch folder | Viewport | Planned route | Purpose |
-|---------------|----------|---------------|---------|
-| `active_timer/` | Mobile | `/timer` | Active session control |
-| `active_timer_desktop/` | Desktop | `/timer` | Timer + command panel + recent table |
-| `dashboard/` | Mobile | `/dashboard` | Today, focus, projects, week chart, recent logs |
-| `dashboard_desktop/` | Desktop | `/dashboard` | Same with sidebar shell |
-| `activity_logs/` | Mobile | `/logs` | Chronological system logs |
-| `activity_logs_desktop/` | Desktop | `/logs` | Same denser layout |
-| `insights/` | Mobile | `/insights` | Analytics overview |
-| `insights_desktop/` | Desktop | `/insights` | Same with sidebar shell |
-| `dev_density_dark/DESIGN.md` | — | — | Dark token source |
-
-### Light — `stitch_personal_dev_tracker_light/`
-
-Same routes; palette only. Tokens: `high_density_technical_light/DESIGN.md`.
-
-| Stitch folder | Viewport | Planned route |
-|---------------|----------|---------------|
-| `active_timer_mobile_light/` | Mobile | `/timer` |
-| `active_timer_light/` | Desktop | `/timer` |
-| `dashboard_mobile_light/` | Mobile | `/dashboard` |
-| `dashboard_light/` | Desktop | `/dashboard` |
-| `activity_logs_mobile_light/` | Mobile | `/logs` |
-| `activity_logs_light/` | Desktop | `/logs` |
-| `insights_mobile_light/` | Mobile | `/insights` |
-| `insights_light/` | Desktop | `/insights` |
-
-### Deep Dark — `stitch_personal_dev_tracker_deep_dark/`
-
-Same routes; palette only. Tokens: `deep_dark/DESIGN.md`.
-
-| Stitch folder | Viewport | Planned route |
-|---------------|----------|---------------|
-| `active_timer_deep_dark/` | Mobile | `/timer` |
-| `active_timer_desktop_deep_dark/` | Desktop | `/timer` |
-| `dashboard_deep_dark/` | Mobile | `/dashboard` |
-| `dashboard_desktop_deep_dark/` | Desktop | `/dashboard` |
-| `activity_logs_deep_dark/` | Mobile | `/logs` |
-| `activity_logs_desktop_deep_dark/` | Desktop | `/logs` |
-| `insights_deep_dark/` | Mobile | `/insights` |
-| `insights_desktop_deep_dark/` | Desktop | `/insights` |
-
-No Stitch screens for `/settings` or `/projects`. Appearance (named theme list) lives in Settings.
-
-Each screen folder:
-
-- `screen.png` — visual reference (prefer for layout fidelity)  
-- `code.html` — generated Tailwind HTML (structure/token hints only)
+| Route | Mobile | Desktop | Purpose |
+|-------|--------|---------|---------|
+| `/timer` | Active session control | Timer + command panel + recent table | Active session |
+| `/dashboard` | Today, focus, projects, week chart, recent logs | Same with sidebar shell | Home overview |
+| `/logs` | Chronological system logs | Same denser layout | Activity logs |
+| `/insights` | Analytics overview | Same with sidebar shell | Analytics |
+| `/settings` | Preferences | Same with sidebar shell | No original Stitch screen |
+| `/projects` | Project management | Same with sidebar shell | No original Stitch screen |
+| `/login` | Auth stub | Auth stub | No original Stitch screen |
 
 ---
 
@@ -95,8 +56,6 @@ Default landing: `/login` when signed out; `/dashboard` after the stub session (
 
 ### 3.1 Timer (`/timer`)
 
-**Sources:** `active_timer/screen.png`, `active_timer_desktop/screen.png`
-
 **Mobile layout**
 
 1. Task input: “What are you working on?”  
@@ -121,8 +80,6 @@ Default landing: `/login` when signed out; `/dashboard` after the stub session (
 
 ### 3.2 Dashboard (`/dashboard`)
 
-**Sources:** `dashboard/screen.png`, `dashboard_desktop/screen.png`
-
 **Regions**
 
 1. **Today’s Total** — monospaced duration + delta vs yesterday  
@@ -133,8 +90,6 @@ Default landing: `/login` when signed out; `/dashboard` after the stub session (
 
 ### 3.3 Logs (`/logs`)
 
-**Sources:** `activity_logs/screen.png`, `activity_logs_desktop/screen.png`
-
 **Regions**
 
 1. Title “System Logs” + subtitle  
@@ -143,8 +98,6 @@ Default landing: `/login` when signed out; `/dashboard` after the stub session (
 4. Entries: project color + name, `> note`, optional activity chip, time range, duration  
 
 ### 3.4 Insights (`/insights`)
-
-**Sources:** `insights/screen.png`, `insights_desktop/screen.png`
 
 **Regions**
 

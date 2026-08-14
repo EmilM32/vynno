@@ -1,14 +1,10 @@
 # Design System — DevTime
 
-**Status:** Condensed from Stitch  
-**Last updated:** 2026-08-13  
-**Source of truth:**
+**Status:** Condensed from Google Stitch  
+**Last updated:** 2026-08-14  
+**Source of truth:** this document and the implemented tokens in `src/lib/theme/dark.css`, `src/lib/theme/light.css`, and `src/lib/theme/deep-dark.css`.
 
-- Dark: `stitch_personal_dev_tracker/dev_density_dark/DESIGN.md` + screen mockups
-- Light: `stitch_personal_dev_tracker_light/high_density_technical_light/DESIGN.md` + screen mockups
-- Deep Dark: `stitch_personal_dev_tracker_deep_dark/deep_dark/DESIGN.md` + screen mockups
-
-When Stitch and this doc diverge, prefer **screenshots** for layout and **DESIGN.md YAML** for tokens; update this doc after intentional product decisions. Named theme implementation: [adr/0008-named-themes.md](./adr/0008-named-themes.md).
+The palettes and rules were originally prototyped in Google Stitch. Those exports are no longer in the repo. When this doc and the CSS diverge, prefer the implemented CSS unless the change was an intentional product decision. Named theme implementation: [adr/0008-named-themes.md](./adr/0008-named-themes.md).
 
 ---
 
@@ -48,7 +44,7 @@ Material-style names are **shared** across themes. Hex values live in `src/lib/t
 
 ### Light (High-Density Technical)
 
-YAML from `high_density_technical_light/DESIGN.md` (prefer YAML over prose hexes in that file).
+Originally from the Google Stitch light-theme token YAML.
 
 | Role                      | Token                                          | Hex       |
 | ------------------------- | ---------------------------------------------- | --------- |
@@ -72,7 +68,7 @@ YAML from `high_density_technical_light/DESIGN.md` (prefer YAML over prose hexes
 
 ### Deep Dark
 
-YAML from `deep_dark/DESIGN.md`. Surfaces and outlines copy YAML 1:1. Accent roles use the saturated YAML tones (`primary-container`, `secondary-container`, `tertiary-container`) so `text-primary` / `text-secondary` / `text-tertiary` stay readable — the raw YAML `primary` / `secondary` / `tertiary` values are near-white and collide with `on-surface`.
+Originally from the Google Stitch Deep Dark token YAML. Surfaces and outlines copy those values 1:1. Accent roles use the saturated container tones (`primary-container`, `secondary-container`, `tertiary-container`) so `text-primary` / `text-secondary` / `text-tertiary` stay readable — the raw `primary` / `secondary` / `tertiary` values are near-white and collide with `on-surface`.
 
 | Role                      | Token                                          | Hex                   | Usage                                  |
 | ------------------------- | ---------------------------------------------- | --------------------- | -------------------------------------- |
@@ -118,7 +114,7 @@ Not design-system tokens — per-project:
 | **Inter**          | Labels, headers, instructional UI text                                             |
 | **JetBrains Mono** | Timestamps, durations, project codes, ticket ids, numerical data, “command” inputs |
 
-### Scale (from DESIGN.md)
+### Scale (from original Stitch tokens)
 
 | Token          | Family         | Size / line / weight                                          |
 | -------------- | -------------- | ------------------------------------------------------------- |

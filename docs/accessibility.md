@@ -28,6 +28,7 @@ Axe runs every route under `dark`, `light`, and `deep-dark` against `wcag2a`, `w
 | Color radios       | Roving tabindex, arrow keys, named colors (not hex).                                                                                                                           |
 | Insights breakdown | Semantic `<table>` with column headers.                                                                                                                                        |
 | Weekly bars        | Focusable buttons; tooltip on focus and hover; Escape dismisses.                                                                                                               |
+| Login              | Visible labels, `autocomplete="username"` / `current-password` (3.3.8 password-manager path). Client-only required errors via `role="alert"`. No paste blocking.               |
 
 ## Tokens
 
@@ -37,9 +38,9 @@ Contrast pairs live in `src/lib/a11y/contrast.ts` and are unit-tested.
 
 ## N/A for this frontend-only mock
 
-1.2 time-based media, 1.4.2 audio control, 2.2.1 session timeouts, 2.5.7 dragging, 3.1.2 language of parts, 3.2.6 consistent help, 3.3.7 redundant entry, 3.3.8 accessible authentication (no login yet).
+1.2 time-based media, 1.4.2 audio control, 2.2.1 session timeouts, 2.5.7 dragging, 3.1.2 language of parts, 3.2.6 consistent help, 3.3.7 redundant entry.
 
-Re-audit when auth lands.
+3.3.8 (accessible authentication) is stub-covered for the login view (visible labels + password-manager autocomplete). Re-audit against a real IdP when auth lands.
 
 ## Known AAA exclusions
 

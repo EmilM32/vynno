@@ -3,5 +3,7 @@ import { authStore } from '$lib/stores/auth.svelte';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = () => {
-	redirect(307, authStore.loggedIn ? '/dashboard' : '/login');
+	if (authStore.loggedIn) {
+		redirect(307, '/dashboard');
+	}
 };

@@ -20,12 +20,13 @@ Stitch provides separate mobile and desktop HTML for each feature, but navigatio
    | `/insights` | Analytics |
    | `/projects` | Project management (CRUD) |
    | `/settings` | Settings / preferences |
+   | `/login` | Sign-in (chrome-less; stub until real auth) |
 
 2. **One route per feature** — not separate `/m/` and `/desktop/` trees. Responsive CSS implements both layouts.  
-3. **Shared root layout** provides:
+3. **Root layout** provides document head, theme, and seed hydrate. Feature routes live in the `(app)` group and share:
    - Desktop: fixed left sidebar (~240px) + main content  
    - Mobile: top bar + bottom navigation (six primary destinations)  
-4. **Default entry:** `/dashboard` for general use (revisit at scaffold if product prefers Timer-first). Redirect `/` → chosen default.  
+4. **Default entry:** `/login` when there is no stub session; `/dashboard` after login (and as the signed-in default). Redirect `/` → chosen default. Deep links to feature routes are not gated in this pass.  
 5. Active nav item derived from the current pathname.  
 6. “Start New Session” CTA navigates to `/timer` and/or focuses start action (exact behavior at implementation).  
 7. Nav order: Timer · Dashboard · Logs · Insights · **Projects** · Settings.

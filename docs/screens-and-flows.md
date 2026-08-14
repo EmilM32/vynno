@@ -87,7 +87,7 @@ Each screen folder:
 | Projects | `folder_managed` | `/projects` |
 | Settings | `settings` | `/settings` |
 
-Default landing route (suggestion): `/timer` or `/dashboard` — **recommend `/dashboard`** for returning users, `/timer` for first-run; final choice at scaffold time.
+Default landing: `/login` when signed out; `/dashboard` after the stub session (and for returning signed-in users).
 
 ---
 
@@ -184,6 +184,22 @@ No Stitch design. Dev-Density Dark product screen for **PRJ-5**.
 
 **Rules:** see [domain-model.md](./domain-model.md) §4.1 and [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md).
 
+### 3.7 Login (`/login`)
+
+No Stitch mock. Dev-Density card using the same input/button language as Projects and Settings, plus the sidebar brand (timer icon + Vynno wordmark).
+
+**Layout**
+
+- Full-viewport `surface` background, no sidebar / top bar / bottom nav
+- Centered `max-w-sm` card: brand + tagline, username, password, **Log in**
+- No registration or forgot-password link (registration is a later screen)
+
+**Behavior (stub)**
+
+- Fields required (client-side only). Any non-empty pair proceeds to `/dashboard`.
+- `/` redirects to `/login` when signed out, `/dashboard` after the stub session.
+- Feature routes stay reachable without signing in until real auth lands.
+
 ---
 
 ## 4. Primary user flows
@@ -272,7 +288,7 @@ No Stitch design. Dev-Density Dark product screen for **PRJ-5**.
 
 ## 6. Implementation notes for SvelteKit
 
-- Shared `+layout.svelte` for shell (sidebar / bottom nav).  
+- Shared `(app)/+layout.svelte` for shell (sidebar / bottom nav). `/login` sits outside that group.  
 - Route pages thin; feature UI in components.  
 - Prefer one responsive page per route over separate mobile/desktop route trees; use CSS breakpoints as mockups do.  
 - Keep Stitch HTML out of `src/`; copy patterns manually into components.

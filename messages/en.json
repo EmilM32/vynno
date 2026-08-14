@@ -9,6 +9,7 @@
 	"title_insights": "Insights",
 	"title_projects": "Projects",
 	"title_settings": "Settings",
+	"title_login": "Log in",
 
 	"nav_timer": "Timer",
 	"nav_dashboard": "Dashboard",
@@ -195,6 +196,13 @@
 	"settings_about_oneliner": "{name} is a focus timer — projects, sessions, and a clear week.",
 	"settings_about_coined": "Coined name — the double n is the spelling.",
 	"settings_about_version": "Version",
+
+	"login_tagline": "Where the hours went.",
+	"login_username": "Username",
+	"login_password": "Password",
+	"login_submit": "Log in",
+	"login_username_required": "Username is required.",
+	"login_password_required": "Password is required.",
 
 	"settings_coming_later": "Coming later",
 	"settings_later_notifications": "Notifications & calendar integrations",

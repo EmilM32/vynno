@@ -22,6 +22,7 @@ Brand: say **VIN-oh**. See [brand.md](./brand.md).
 | [api-contract.md](./api-contract.md)           | Proposed REST + JSON DTO contract (backend starting point)     |
 | [api-next.md](./api-next.md)                   | Phase 5b status: HTTP writes shipped; 5c is live API + auth    |
 | [adr/](./adr/)                                 | Architecture Decision Records                                  |
+| [../backend-docs/](../backend-docs/)           | Copy-ready docs kit for the future API repository              |
 
 ## Design source material
 
@@ -45,3 +46,5 @@ See [ADR-0001](./adr/0001-frontend-stack.md) and [ADR-0002](./adr/0002-frontend-
 ## Status
 
 Frontend through Phase 5b: UI, mock HTTP reads **and** writes, contract ready for a separate backend. Next is Phase 5c (live origin + auth). See [roadmap.md](./roadmap.md).
+
+The API is not in this repository. A documentation starter you can copy into a new backend repo lives in [backend-docs/](../backend-docs/).

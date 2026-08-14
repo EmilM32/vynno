@@ -9,7 +9,7 @@
 
 ## Summary
 
-DevTime currently runs as a **client-only SPA**. That was an intentional choice for the mock-first architecture, not a permanent product decision.
+Vynno currently runs as a **client-only SPA**. That was an intentional choice for the mock-first architecture, not a permanent product decision.
 
 **Do not enable SSR until:**
 

@@ -4,7 +4,7 @@
 
 Vynno is a focus timer — projects, sessions, and a clear week. High-density UI inspired by IDE / terminal tools.
 
-Name, spelling, and voice: **[docs/brand.md](./docs/brand.md)**. This git repo is still `dev-time` until a full rename; see [docs/rename-process.md](./docs/rename-process.md).
+Name, spelling, and voice: **[docs/brand.md](./docs/brand.md)**.
 
 ## Why this repo exists
 
@@ -19,13 +19,13 @@ The product still has to work. Agent output is reviewed and held to the same sta
 
 ## Scope of this repository
 
-**Frontend only.**
+**Frontend only.** This repo is the UI. The backend lives in **[vynno-api](https://github.com/EmilM32/vynno-api)**.
 
-| In this repo                                           | Separate repo (later)                       |
-| ------------------------------------------------------ | ------------------------------------------- |
-| SvelteKit + TypeScript + Tailwind UI                   | API, database, auth                         |
-| HTTP-fetched mock JSON + in-memory writes              | Persistence and multi-device sync           |
-| Design system (originally prototyped in Google Stitch) | Business rules that must stay on the server |
+| In this repo                                           | Companion repo                                                          |
+| ------------------------------------------------------ | ----------------------------------------------------------------------- |
+| SvelteKit + TypeScript + Tailwind UI                   | [vynno-api](https://github.com/EmilM32/vynno-api) — API, database, auth |
+| HTTP-fetched mock JSON + in-memory writes              | Persistence and multi-device sync                                       |
+| Design system (originally prototyped in Google Stitch) | Business rules that must stay on the server                             |
 
 ## Stack
 

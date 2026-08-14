@@ -11,7 +11,8 @@
 
 		<script>
 			try {
-				var t = localStorage.getItem('devtime-theme');
+				// Keys must match THEME_STORAGE_KEY / LEGACY_THEME_STORAGE_KEY in $lib/theme.
+				var t = localStorage.getItem('vynno-theme') || localStorage.getItem('devtime-theme');
 				if (t && /^[a-z][a-z0-9-]*$/.test(t)) {
 					document.documentElement.setAttribute('data-theme', t);
 				}

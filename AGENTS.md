@@ -2,9 +2,9 @@
 
 ## Project
 
-Vynno (formerly DevTime; repo `dev-time`) is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwind). Brand: [docs/brand.md](./docs/brand.md).
+Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwind). Brand: [docs/brand.md](./docs/brand.md). Companion API: [vynno-api](https://github.com/EmilM32/vynno-api).
 
-| In this repo                              | Separate (later)                  |
+| In this repo                              | Companion repo                    |
 | ----------------------------------------- | --------------------------------- |
 | SvelteKit UI, routing, design system      | API, database, auth               |
 | HTTP-fetched mock JSON + in-memory writes | Persistence and multi-device sync |

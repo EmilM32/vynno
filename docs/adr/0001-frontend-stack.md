@@ -6,7 +6,7 @@
 
 ## Context
 
-DevTime’s UI is specified via Google Stitch mockups that already use Tailwind utility classes, a dark design-token set, and dense interactive layouts (timer, charts, navigation shells). This repository will implement only the frontend. We need a modern SPA/SSR-capable framework with first-class TypeScript and straightforward Tailwind integration.
+Vynno’s UI is specified via Google Stitch mockups that already use Tailwind utility classes, a dark design-token set, and dense interactive layouts (timer, charts, navigation shells). This repository will implement only the frontend. We need a modern SPA/SSR-capable framework with first-class TypeScript and straightforward Tailwind integration.
 
 ## Decision
 

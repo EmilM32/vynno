@@ -1,4 +1,4 @@
-# P2 Backlog — DevTime Frontend
+# P2 Backlog — Vynno Frontend
 
 **Last updated:** 2026-08-12  
 **Context:** Phase 4 exit criteria require P0+P1 done and remaining P2 items listed here.

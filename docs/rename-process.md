@@ -1,15 +1,15 @@
 # Public name change
 
-How to change the **user-facing** product name (DevTime → Vynno, or the next rename). This is not a git-repo rename.
+How to change the **user-facing** product name. This is not a git-repo rename.
 
 Decision record: [ADR-0009](./adr/0009-product-name.md). Voice and spelling: [brand.md](./brand.md).
 
 ## Two layers
 
-| Layer           | What it is                                       | Change on a public rename?             |
-| --------------- | ------------------------------------------------ | -------------------------------------- |
-| **Public name** | What people see and say                          | Yes                                    |
-| **Plumbing**    | Package, CSS prefix, storage key                 | No, unless you are doing a full rename |
+| Layer           | What it is              | Change on a public rename?              |
+| --------------- | ----------------------- | --------------------------------------- |
+| **Public name** | What people see and say | Yes                                     |
+| **Plumbing**    | CSS prefix (`--dt-*`)   | No, unless you are doing a token rename |
 
 ## Public rename checklist
 
@@ -20,18 +20,13 @@ Decision record: [ADR-0009](./adr/0009-product-name.md). Voice and spelling: [br
 5. Root `README.md` — title, pronunciation, tagline, link to brand.md.
 6. `docs/README.md` — index heading if it uses the product name.
 7. `docs/prd.md` — **Product name** line, SHELL-1, assumption about the name.
-8. `AGENTS.md` — opener (note the former name if agents will hit old docs).
+8. `AGENTS.md` — opener (current public name only).
 9. `e2e/navigation.spec.ts` — shell brand assertion.
-10. Add or amend the product-name ADR if the decision changed.
+10. Amend [ADR-0009](./adr/0009-product-name.md) if the decision changed. Do not invent a new ADR number for a copy-only rename.
 
-Do **not** rewrite every historical ADR or domain-model title. Those can keep the old name as history.
+## Leave alone (unless a token rename)
 
-## Leave alone (unless a full rename)
-
-- `package.json` `"name"` (`dev-time`)
 - CSS tokens `--dt-*`
-- `localStorage` key `devtime-theme` (see ADR-0008)
-- Historical ADR titles and context that say DevTime
 
 ## After copy edits
 

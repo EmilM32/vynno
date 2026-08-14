@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Lightweight ADRs for the Vynno **frontend** repository (historically DevTime).
+Lightweight ADRs for the Vynno **frontend** repository.
 
 | ADR                                        | Title                                              | Status   |
 | ------------------------------------------ | -------------------------------------------------- | -------- |

@@ -1,4 +1,4 @@
-# Screens and Flows — DevTime
+# Screens and Flows — Vynno
 
 **Status:** Draft  
 **Last updated:** 2026-08-14  

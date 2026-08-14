@@ -1,4 +1,4 @@
-/** Domain types for DevTime frontend — see docs/domain-model.md */
+/** Domain types for Vynno frontend — see docs/domain-model.md */
 
 import { m } from '$lib/paraglide/messages.js';
 

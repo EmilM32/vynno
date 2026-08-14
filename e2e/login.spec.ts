@@ -61,7 +61,7 @@ test.describe('login a11y', () => {
 	for (const theme of themes) {
 		test(`axe ${theme}`, async ({ page }) => {
 			await page.addInitScript((id) => {
-				localStorage.setItem('devtime-theme', id);
+				localStorage.setItem('vynno-theme', id);
 			}, theme);
 			await page.goto('/login');
 			await expect(page.locator('html')).toHaveAttribute('data-theme', theme);

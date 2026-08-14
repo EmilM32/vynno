@@ -1,4 +1,4 @@
-# Roadmap — DevTime Frontend
+# Roadmap — Vynno Frontend
 
 **Status:** Draft  
 **Last updated:** 2026-08-12  

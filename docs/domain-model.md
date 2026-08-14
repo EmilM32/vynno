@@ -1,4 +1,4 @@
-# Domain Model — DevTime (Frontend-facing)
+# Domain Model — Vynno (Frontend-facing)
 
 **Status:** Draft  
 **Last updated:** 2026-08-12

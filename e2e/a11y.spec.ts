@@ -21,7 +21,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 					origins: [
 						{
 							origin: 'http://127.0.0.1:4173',
-							localStorage: [{ name: 'devtime-theme', value: theme }]
+							localStorage: [{ name: 'vynno-theme', value: theme }]
 						}
 					]
 				}

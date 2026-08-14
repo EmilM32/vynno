@@ -11,7 +11,7 @@ export type ThemeDefinition = {
 
 export const DEFAULT_THEME_ID = 'dark';
 
-export const THEME_STORAGE_KEY = 'devtime-theme';
+export const THEME_STORAGE_KEY = 'vynno-theme';
 
 /** Named palettes. Add a row here + a `[data-theme='<id>']` CSS file for a new theme. */
 export const THEMES: readonly ThemeDefinition[] = [

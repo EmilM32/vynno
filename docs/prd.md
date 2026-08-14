@@ -1,17 +1,17 @@
 # Product Requirements Document — Vynno (Frontend)
 
 **Status:** Draft  
-**Last updated:** 2026-08-13  
-**Product name:** Vynno (formerly DevTime)  
+**Last updated:** 2026-08-14  
+**Product name:** Vynno  
 **Repository scope:** Frontend application only
 
 ---
 
 ## 1. Vision
 
-DevTime helps individual developers track where their working time goes — by project, task, and activity type — with a dense, technical UI that feels closer to a terminal or IDE than a consumer productivity app.
+Vynno helps individual developers track where their working time goes — by project, task, and activity type — with a dense, technical UI that feels closer to a terminal or IDE than a consumer productivity app.
 
-The first implementation in this repository is a **pixel-faithful frontend** driven by Google Stitch mockups, running on **mock data**. A separate backend repository will provide persistence and APIs later.
+The first implementation in this repository is a **pixel-faithful frontend** driven by Google Stitch mockups, running on **mock data**. Persistence and APIs live in the companion repo [vynno-api](https://github.com/EmilM32/vynno-api).
 
 ## 2. Problem
 
@@ -20,7 +20,7 @@ Developers switch contexts constantly (coding, reviews, meetings, docs). Generic
 - Lack project/task structure and analytics useful for planning and reporting, or
 - Feel slow and ornamental, fighting power-user workflows (keyboard, density, monospaced data).
 
-DevTime optimizes for **fast session control**, **scannable logs**, and **clear weekly attribution** of hours.
+Vynno optimizes for **fast session control**, **scannable logs**, and **clear weekly attribution** of hours.
 
 ## 3. Goals
 
@@ -224,7 +224,7 @@ Core concepts:
 
 ## 11. Assumptions
 
-1. Product name is **Vynno** (see [brand.md](./brand.md)); mockups may still say DevTime.
+1. Product name is **Vynno** (see [brand.md](./brand.md)).
 2. Single concurrent active session (running or paused).
 3. Single-user product for the foreseeable future.
 4. Activity types are a fixed set for MVP (extendable later).

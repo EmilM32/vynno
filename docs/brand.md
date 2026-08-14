@@ -32,11 +32,11 @@ Friendly name, serious tool. The chrome is dense and IDE-like — precise, not c
 
 ## Do / don’t
 
-| Do                                                           | Don’t                                                          |
-| ------------------------------------------------------------ | -------------------------------------------------------------- |
-| Use **Vynno** in the shell, titles, and new user-facing copy | Write **DevTime** in new UI or marketing copy                  |
-| Teach pronunciation once (README, Settings → About)          | Invent a backronym                                             |
-| Link here when someone asks what the name means              | Rename the git repo or `--dt-*` tokens as part of a copy tweak |
+| Do                                                           | Don’t                                             |
+| ------------------------------------------------------------ | ------------------------------------------------- |
+| Use **Vynno** in the shell, titles, and new user-facing copy | Use a former working name in UI or marketing copy |
+| Teach pronunciation once (README, Settings → About)          | Invent a backronym                                |
+| Link here when someone asks what the name means              | Rename `--dt-*` tokens as part of a copy tweak    |
 
 ## Mark
 
@@ -46,7 +46,9 @@ Friendly name, serious tool. The chrome is dense and IDE-like — precise, not c
 
 ## Repo vs product
 
-The public name is **Vynno**. The repository and npm package stay `dev-time` until a deliberate full rename. See [rename-process.md](./rename-process.md).
+The public name, this repository, and the npm package are **Vynno** / `vynno`. The companion API is [vynno-api](https://github.com/EmilM32/vynno-api).
+
+CSS prefix `--dt-*` stays until a deliberate token rename. See [rename-process.md](./rename-process.md).
 
 ## In the product
 

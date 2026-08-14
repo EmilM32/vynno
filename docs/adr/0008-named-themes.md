@@ -16,7 +16,7 @@ A sun/moon toggle or Tailwind `dark:` variants would have to be rewritten when t
 2. Each theme has `id`, `colorScheme` (`light` | `dark` for native controls), `themeColor`, and a Paraglide `labelKey`.  
 3. `<html data-theme="<id>">` selects CSS. Palette files set `--dt-*`; `@theme inline` maps those to `--color-*` utilities.  
 4. The Settings switcher **iterates `THEMES`**. Adding a theme is a registry row + CSS file.  
-5. Persist `themeId` to `localStorage` (`devtime-theme`) and apply it in `app.html` before paint to avoid FOUC. Other prefs stay in-memory.  
+5. Persist `themeId` to `localStorage` (`vynno-theme`) and apply it in `app.html` before paint to avoid FOUC. Other prefs stay in-memory.  
 6. Do not follow `prefers-color-scheme` in v1 (that would look like a third list item).  
 7. Do not use `dark:` / `light:` as the theming mechanism.
 

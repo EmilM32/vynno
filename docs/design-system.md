@@ -1,4 +1,4 @@
-# Design System — DevTime
+# Design System — Vynno
 
 **Status:** Condensed from Google Stitch  
 **Last updated:** 2026-08-14  
@@ -230,7 +230,7 @@ Implemented:
 2. Color utilities via `@theme inline` → `--dt-*`.
 3. Each palette is `[data-theme='<id>']` in its own CSS file. Default first paint is `data-theme="dark"` on `<html>`.
 4. Switcher iterates `THEMES` in `src/lib/theme/themes.ts` (Settings → Appearance). Not a light/dark toggle.
-5. Theme id is persisted to `localStorage` (`devtime-theme`) to avoid FOUC. Other prefs stay in-memory.
+5. Theme id is persisted to `localStorage` (`vynno-theme`) to avoid FOUC. Other prefs stay in-memory.
 6. Do **not** use `dark:` / `light:` variants as the theming mechanism.
 
 ### Adding another theme

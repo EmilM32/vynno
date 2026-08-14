@@ -1,9 +1,0 @@
-[mcp_servers.svelte]
-command = "npx"
-args = [
-    "-y",
-    "@sveltejs/mcp",
-]
-enabled = true
-# Cold-start npx can exceed the default 30s on first pull
-startup_timeout_sec = 60

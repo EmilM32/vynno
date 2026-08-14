@@ -6,10 +6,10 @@
 	import { formatClock, sessionElapsedMs } from '$lib/time/duration';
 
 	const logs = $derived(sessionStore.recentLogs);
-	const busy = $derived(!!sessionStore.activeSession);
+	const busy = $derived(!!sessionStore.activeSession || sessionStore.busy);
 
-	function restart(sessionId: string) {
-		const ok = sessionStore.restartFromSession(sessionId);
+	async function restart(sessionId: string) {
+		const ok = await sessionStore.restartFromSession(sessionId);
 		if (ok) {
 			void goto(resolve('/timer'));
 		}

@@ -29,6 +29,7 @@
 
 	const clockLabel = $derived(isIdle ? '00:00:00' : sessionStore.elapsedLabel);
 	const projectCode = $derived(project?.code ?? project?.name?.slice(0, 4).toUpperCase() ?? '—');
+	const pending = $derived(sessionStore.busy);
 </script>
 
 <div
@@ -60,8 +61,9 @@
 		{#if isIdle}
 			<button
 				type="button"
-				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary hover:bg-primary-fixed-dim"
+				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary hover:bg-primary-fixed-dim disabled:cursor-not-allowed disabled:opacity-60"
 				onclick={() => sessionStore.start()}
+				disabled={pending}
 			>
 				<span
 					class="material-symbols-outlined text-[22px]"
@@ -73,16 +75,18 @@
 		{:else if isActive}
 			<button
 				type="button"
-				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-outline-variant bg-surface-container-highest py-2 text-headline-md text-on-surface hover:bg-surface-variant"
+				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-outline-variant bg-surface-container-highest py-2 text-headline-md text-on-surface hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-60"
 				onclick={() => sessionStore.pause()}
+				disabled={pending}
 			>
 				<span class="material-symbols-outlined text-tertiary-fixed" aria-hidden="true">pause</span>
 				{m.timer_pause()}
 			</button>
 			<button
 				type="button"
-				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary hover:bg-primary-fixed-dim"
+				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary hover:bg-primary-fixed-dim disabled:cursor-not-allowed disabled:opacity-60"
 				onclick={() => sessionStore.stop()}
+				disabled={pending}
 			>
 				<span
 					class="material-symbols-outlined text-[20px]"
@@ -94,16 +98,18 @@
 		{:else}
 			<button
 				type="button"
-				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-outline-variant bg-surface-container-highest py-2 text-headline-md text-on-surface hover:bg-surface-variant"
+				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-outline-variant bg-surface-container-highest py-2 text-headline-md text-on-surface hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-60"
 				onclick={() => sessionStore.resume()}
+				disabled={pending}
 			>
 				<span class="material-symbols-outlined text-secondary" aria-hidden="true">play_arrow</span>
 				{m.timer_resume()}
 			</button>
 			<button
 				type="button"
-				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary hover:bg-primary-fixed-dim"
+				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary hover:bg-primary-fixed-dim disabled:cursor-not-allowed disabled:opacity-60"
 				onclick={() => sessionStore.stop()}
+				disabled={pending}
 			>
 				<span
 					class="material-symbols-outlined text-[20px]"

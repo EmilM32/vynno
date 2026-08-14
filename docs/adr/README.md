@@ -13,6 +13,7 @@ Lightweight ADRs for the Vynno **frontend** repository (historically DevTime).
 | [0007](./0007-i18n-paraglide.md)           | i18n with Paraglide JS                             | Accepted |
 | [0008](./0008-named-themes.md)             | Named color themes (`data-theme` list)             | Accepted |
 | [0009](./0009-product-name.md)             | Public product name is Vynno                       | Accepted |
+| [0010](./0010-http-json-contract.md)       | HTTP JSON contract (DTO-first, mock HTTP)          | Accepted |
 
 ## Format
 

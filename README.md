@@ -13,7 +13,7 @@ Name, spelling, and voice: **[docs/brand.md](./docs/brand.md)**. This git repo i
 | In this repo                                     | Separate repo (later)                       |
 | ------------------------------------------------ | ------------------------------------------- |
 | SvelteKit + TypeScript + Tailwind UI             | API, database, auth                         |
-| Mock / in-memory data for development            | Persistence and multi-device sync           |
+| HTTP-fetched mock JSON + in-memory writes        | Persistence and multi-device sync           |
 | Design system implementation from Stitch mockups | Business rules that must stay on the server |
 
 ## Stack

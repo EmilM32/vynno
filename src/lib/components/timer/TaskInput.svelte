@@ -2,7 +2,7 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { sessionStore } from '$lib/stores/session.svelte';
 
-	const locked = $derived(!!sessionStore.activeSession);
+	const locked = $derived(!!sessionStore.activeSession || sessionStore.busy);
 
 	function onKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter' && !locked) {

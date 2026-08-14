@@ -8,11 +8,12 @@
 	interface Props {
 		mode: 'create' | 'edit';
 		project?: Project;
+		pending?: boolean;
 		onsubmit: (values: { name: string; color: string; code: string }) => void;
 		oncancel: () => void;
 	}
 
-	let { mode, project, onsubmit, oncancel }: Props = $props();
+	let { mode, project, pending = false, onsubmit, oncancel }: Props = $props();
 
 	// Snapshot initial values — parent remounts via {#key} when mode/project changes.
 	// svelte-ignore state_referenced_locally
@@ -39,6 +40,7 @@
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
+		if (pending) return;
 		const errors = validateProjectFieldErrors({ name, color, code });
 		fieldErrors = errors;
 		if (errors.name || errors.code || errors.color) return;
@@ -121,7 +123,8 @@
 		<div class="mt-1 flex flex-wrap gap-2">
 			<button
 				type="submit"
-				class="press focus-ring rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container"
+				class="press focus-ring rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
+				disabled={pending}
 			>
 				{mode === 'create' ? m.projects_create() : m.projects_save()}
 			</button>

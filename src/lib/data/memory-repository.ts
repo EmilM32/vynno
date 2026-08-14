@@ -1,3 +1,4 @@
+import type { AppSeed } from '$lib/api/types';
 import {
 	normalizeCode,
 	normalizeProjectFields,
@@ -13,7 +14,7 @@ import type {
 	UpdateProjectInput,
 	UserProfile
 } from '$lib/types/domain';
-import { buildMockSessions, MOCK_PROFILE, MOCK_PROJECTS } from './fixtures';
+import { DomainError } from './errors';
 import type { TimeTrackingRepository } from './repository';
 
 function newId(prefix: string): string {
@@ -24,34 +25,41 @@ function cloneProject(p: Project): Project {
 	return { ...p };
 }
 
+function cloneSession(s: TimeSession): TimeSession {
+	return {
+		...s,
+		tags: s.tags ? [...s.tags] : undefined
+	};
+}
+
 /**
- * In-memory repository seeded with fixtures.
+ * In-memory repository seeded from an {@link AppSeed}.
  * Mutations are session-scoped (lost on full page reload).
  */
-export class MockTimeTrackingRepository implements TimeTrackingRepository {
+export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	#projects: Project[];
 	#sessions: TimeSession[];
 	#profile: UserProfile;
 
-	constructor(now = new Date()) {
-		this.#projects = structuredClone(MOCK_PROJECTS);
-		this.#sessions = buildMockSessions(now);
-		this.#profile = { ...MOCK_PROFILE };
+	constructor(seed: AppSeed) {
+		this.#projects = structuredClone(seed.projects);
+		this.#sessions = seed.sessions.map(cloneSession);
+		this.#profile = { ...seed.profile };
 	}
 
-	listProjects(options: ProjectListOptions = {}): Project[] {
+	async listProjects(options: ProjectListOptions = {}): Promise<Project[]> {
 		const list = options.includeArchived
 			? this.#projects
 			: this.#projects.filter((p) => !p.isArchived);
 		return list.map(cloneProject);
 	}
 
-	getProject(id: string): Project | undefined {
+	async getProject(id: string): Promise<Project | undefined> {
 		const p = this.#projects.find((x) => x.id === id);
 		return p ? cloneProject(p) : undefined;
 	}
 
-	createProject(input: CreateProjectInput): Project {
+	async createProject(input: CreateProjectInput): Promise<Project> {
 		const fields = normalizeProjectFields({
 			name: input.name,
 			color: input.color,
@@ -62,7 +70,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 			color: fields.color,
 			code: fields.code ?? ''
 		});
-		if (err) throw new Error(err);
+		if (err) throw new DomainError('invalid_body', err);
 		this.#assertCodeUnique(fields.code);
 
 		const project: Project = {
@@ -76,7 +84,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneProject(project);
 	}
 
-	updateProject(id: string, input: UpdateProjectInput): Project {
+	async updateProject(id: string, input: UpdateProjectInput): Promise<Project> {
 		const project = this.#requireProject(id);
 
 		const nextName = input.name !== undefined ? input.name.trim() : project.name;
@@ -91,7 +99,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 			color: nextColor,
 			code: nextCode ?? ''
 		});
-		if (err) throw new Error(err);
+		if (err) throw new DomainError('invalid_body', err);
 		this.#assertCodeUnique(nextCode, id);
 
 		project.name = nextName;
@@ -102,52 +110,57 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneProject(project);
 	}
 
-	archiveProject(id: string): Project {
+	async archiveProject(id: string): Promise<Project> {
 		const project = this.#requireProject(id);
 		if (project.isArchived) {
-			throw new Error('Project is already archived.');
+			throw new DomainError('invalid_transition', 'Project is already archived.');
 		}
 		this.#assertNotLastActive(id);
 		project.isArchived = true;
 		return cloneProject(project);
 	}
 
-	restoreProject(id: string): Project {
+	async restoreProject(id: string): Promise<Project> {
 		const project = this.#requireProject(id);
 		if (!project.isArchived) {
-			throw new Error('Project is not archived.');
+			throw new DomainError('invalid_transition', 'Project is not archived.');
 		}
 		project.isArchived = false;
 		return cloneProject(project);
 	}
 
-	deleteProject(id: string): void {
+	async deleteProject(id: string): Promise<void> {
 		const project = this.#requireProject(id);
-		const sessions = this.countSessionsForProject(id);
+		const sessions = this.#sessions.filter((s) => s.projectId === id).length;
 		if (sessions > 0) {
-			throw new Error('This project has logged sessions. Archive it instead.');
+			throw new DomainError(
+				'project_has_sessions',
+				'This project has logged sessions. Archive it instead.'
+			);
 		}
 		if (!project.isArchived) {
 			this.#assertNotLastActive(id);
 		} else {
-			// archived: only block if no other active projects exist (edge case)
 			const activeCount = this.#projects.filter((p) => !p.isArchived).length;
 			if (activeCount === 0) {
-				throw new Error('Cannot delete the last remaining active project.');
+				throw new DomainError(
+					'last_active_project',
+					'Cannot delete the last remaining active project.'
+				);
 			}
 		}
 		this.#projects = this.#projects.filter((p) => p.id !== id);
 	}
 
-	countSessionsForProject(projectId: string): number {
+	async countSessionsForProject(projectId: string): Promise<number> {
 		return this.#sessions.filter((s) => s.projectId === projectId).length;
 	}
 
-	getProfile(): UserProfile {
+	async getProfile(): Promise<UserProfile> {
 		return this.#profile;
 	}
 
-	listSessions(filters: SessionFilters = {}): TimeSession[] {
+	async listSessions(filters: SessionFilters = {}): Promise<TimeSession[]> {
 		let list = [...this.#sessions];
 
 		if (filters.status?.length) {
@@ -164,24 +177,30 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return list.map(cloneSession);
 	}
 
-	getSession(id: string): TimeSession | undefined {
+	async getSession(id: string): Promise<TimeSession | undefined> {
 		const s = this.#sessions.find((x) => x.id === id);
 		return s ? cloneSession(s) : undefined;
 	}
 
-	getActiveSession(): TimeSession | null {
+	async getActiveSession(): Promise<TimeSession | null> {
 		const s = this.#sessions.find((x) => x.status === 'active' || x.status === 'paused');
 		return s ? cloneSession(s) : null;
 	}
 
-	startSession(input: StartSessionInput): TimeSession {
-		if (this.getActiveSession()) {
-			throw new Error('An active session already exists. Stop it before starting a new one.');
+	async startSession(input: StartSessionInput): Promise<TimeSession> {
+		if (await this.getActiveSession()) {
+			throw new DomainError(
+				'session_already_active',
+				'An active session already exists. Stop it before starting a new one.'
+			);
 		}
 
-		const project = this.getProject(input.projectId);
-		if (!project || project.isArchived) {
-			throw new Error(`Unknown project: ${input.projectId}`);
+		const project = await this.getProject(input.projectId);
+		if (!project) {
+			throw new DomainError('not_found', `Project not found: ${input.projectId}`);
+		}
+		if (project.isArchived) {
+			throw new DomainError('project_archived', `Project is archived: ${input.projectId}`);
 		}
 
 		const session: TimeSession = {
@@ -201,20 +220,26 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneSession(session);
 	}
 
-	pauseSession(id: string): TimeSession {
+	async pauseSession(id: string): Promise<TimeSession> {
 		const session = this.#require(id);
 		if (session.status !== 'active') {
-			throw new Error(`Cannot pause session in status "${session.status}"`);
+			throw new DomainError(
+				'invalid_transition',
+				`Cannot pause session in status "${session.status}"`
+			);
 		}
 		session.status = 'paused';
 		session.pausedAt = new Date().toISOString();
 		return cloneSession(session);
 	}
 
-	resumeSession(id: string): TimeSession {
+	async resumeSession(id: string): Promise<TimeSession> {
 		const session = this.#require(id);
 		if (session.status !== 'paused') {
-			throw new Error(`Cannot resume session in status "${session.status}"`);
+			throw new DomainError(
+				'invalid_transition',
+				`Cannot resume session in status "${session.status}"`
+			);
 		}
 		if (session.pausedAt) {
 			const pausedFor = Date.now() - Date.parse(session.pausedAt);
@@ -225,10 +250,10 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneSession(session);
 	}
 
-	stopSession(id: string): TimeSession {
+	async stopSession(id: string): Promise<TimeSession> {
 		const session = this.#require(id);
 		if (session.status === 'stopped') {
-			throw new Error('Session is already stopped');
+			throw new DomainError('invalid_transition', 'Session is already stopped');
 		}
 		const now = new Date();
 		if (session.status === 'paused' && session.pausedAt) {
@@ -243,13 +268,13 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 
 	#require(id: string): TimeSession {
 		const session = this.#sessions.find((s) => s.id === id);
-		if (!session) throw new Error(`Session not found: ${id}`);
+		if (!session) throw new DomainError('not_found', `Session not found: ${id}`);
 		return session;
 	}
 
 	#requireProject(id: string): Project {
 		const project = this.#projects.find((p) => p.id === id);
-		if (!project) throw new Error(`Project not found: ${id}`);
+		if (!project) throw new DomainError('not_found', `Project not found: ${id}`);
 		return project;
 	}
 
@@ -260,7 +285,10 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 	#assertNotLastActive(id: string): void {
 		const active = this.#activeProjects();
 		if (active.length <= 1 && active.some((p) => p.id === id)) {
-			throw new Error('Cannot archive or delete the last remaining active project.');
+			throw new DomainError(
+				'last_active_project',
+				'Cannot archive or delete the last remaining active project.'
+			);
 		}
 	}
 
@@ -270,14 +298,7 @@ export class MockTimeTrackingRepository implements TimeTrackingRepository {
 			(p) => p.id !== excludeId && p.code && p.code.toUpperCase() === code.toUpperCase()
 		);
 		if (clash) {
-			throw new Error(`Code "${code}" is already in use.`);
+			throw new DomainError('code_in_use', `Code "${code}" is already in use.`);
 		}
 	}
-}
-
-function cloneSession(s: TimeSession): TimeSession {
-	return {
-		...s,
-		tags: s.tags ? [...s.tags] : undefined
-	};
 }

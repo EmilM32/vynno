@@ -13,7 +13,7 @@ DevTime currently runs as a **client-only SPA**. That was an intentional choice 
 
 **Do not enable SSR until:**
 
-1. The real API / HTTP repository path exists (or is imminent), and  
+1. The real API / HTTP repository path exists (or is imminent), and
 2. Session data for the first paint comes from **request-scoped, serializable load data**, not process-wide module singletons.
 
 This document records **why** SSR is off, **what risks** exist if it is flipped naively, **requirements** for zero hydration bugs, and a **concrete future approach**. Revisit after Phase 5 (API readiness).
@@ -36,13 +36,13 @@ Root layout:
 export const ssr = false;
 ```
 
-| Reason | Detail |
-|--------|--------|
-| **Module singletons** | `sessionStore`, `prefsStore` (and related) are constructed at import time. On a long-lived Node server those modules are **shared by all requests**. |
-| **Mutable mock repository** | `MockTimeTrackingRepository` holds in-memory projects/sessions. Mutations would leak across users/requests if the singleton lived on the server. |
-| **Time-relative fixtures** | `buildMockSessions(now = new Date())` seeds “today / yesterday / this week” relative to construction time and **host local timezone**. Server and client would rebuild different histories. |
-| **Live clock** | `nowMs = Date.now()` and a browser interval drive elapsed time and day-based aggregates. Server time ≠ client time → different HTML vs hydrate. |
-| **ADR-0004** | Session lifecycle is deliberately client-side while the product is mock-only; SSR was deferred rather than redesigned. |
+| Reason                      | Detail                                                                                                                                                                                          |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Module singletons**       | `sessionStore`, `prefsStore` (and related) are constructed at import time. On a long-lived Node server those modules are **shared by all requests**.                                            |
+| **Mutable mock repository** | `MemoryTimeTrackingRepository` holds in-memory projects/sessions after HTTP hydrate. Mutations would leak across users/requests if the singleton lived on the server.                           |
+| **Time-relative fixtures**  | Mock `GET /sessions` materializes offset-based seed JSON with `now = new Date()` so charts stay “today / yesterday”. Server and client would rebuild different histories if SSR ran this twice. |
+| **Live clock**              | `nowMs = Date.now()` and a browser interval drive elapsed time and day-based aggregates. Server time ≠ client time → different HTML vs hydrate.                                                 |
+| **ADR-0004**                | Session lifecycle is deliberately client-side while the product is mock-only; SSR was deferred rather than redesigned.                                                                          |
 
 SvelteKit guidance matches this: avoid shared mutable state on the server; module-level stores are safe only when SSR is off. See [State management](https://svelte.dev/docs/kit/state-management).
 
@@ -52,26 +52,26 @@ SvelteKit guidance matches this: avoid shared mutable state on the server; modul
 
 ### Critical (must fix before flipping the flag)
 
-| Risk | Failure mode |
-|------|----------------|
-| Shared mutable store across requests | User A’s mutations appear in User B’s HTML; concurrent e2e flakes; multi-user data leak pattern |
-| Hydration mismatch from `Date.now()` / local TZ | Dashboard totals, log day groups, Insights KPIs, week bars, local times differ server vs client |
-| Double-seeded fixtures | Server builds repo at T₁; client re-runs constructor at T₂ → different ISO timestamps and day buckets |
-| Side effects on module import during SSR | Importing components that pull in `sessionStore` mutates global server state |
+| Risk                                            | Failure mode                                                                                          |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Shared mutable store across requests            | User A’s mutations appear in User B’s HTML; concurrent e2e flakes; multi-user data leak pattern       |
+| Hydration mismatch from `Date.now()` / local TZ | Dashboard totals, log day groups, Insights KPIs, week bars, local times differ server vs client       |
+| Double-seeded fixtures                          | Server builds repo at T₁; client re-runs constructor at T₂ → different ISO timestamps and day buckets |
+| Side effects on module import during SSR        | Importing components that pull in `sessionStore` mutates global server state                          |
 
 ### High
 
-| Risk | Failure mode |
-|------|----------------|
-| Paraglide locale strategy | Order is `localStorage` → `cookie` → `preferredLanguage` → `baseLocale`. Server has no `localStorage`; first paint may disagree with the client |
-| Clock re-init after hydrate | Jumping `nowMs` without matching initial markup can still mismatch if anything re-renders mid-hydrate |
-| Host timezone vs browser timezone | Even with identical ISO strings, `getHours()` / day keys use **host** local zone → server UTC vs user local TZ still hydrates wrong |
+| Risk                              | Failure mode                                                                                                                                    |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Paraglide locale strategy         | Order is `localStorage` → `cookie` → `preferredLanguage` → `baseLocale`. Server has no `localStorage`; first paint may disagree with the client |
+| Clock re-init after hydrate       | Jumping `nowMs` without matching initial markup can still mismatch if anything re-renders mid-hydrate                                           |
+| Host timezone vs browser timezone | Even with identical ISO strings, `getHours()` / day keys use **host** local zone → server UTC vs user local TZ still hydrates wrong             |
 
 ### Medium
 
-| Risk | Failure mode |
-|------|----------------|
-| e2e timing | First paint is full HTML, not empty shell; assertions should wait on content |
+| Risk           | Failure mode                                                                                 |
+| -------------- | -------------------------------------------------------------------------------------------- |
+| e2e timing     | First paint is full HTML, not empty shell; assertions should wait on content                 |
 | Static hosting | Full SSR needs a Node/serverless adapter runtime (not pure static files), unless prerendered |
 
 ### Already relatively safe today
@@ -85,11 +85,11 @@ SvelteKit guidance matches this: avoid shared mutable state on the server; modul
 
 ## When to revisit
 
-| Trigger | Why it helps |
-|---------|----------------|
+| Trigger                        | Why it helps                                                                      |
+| ------------------------------ | --------------------------------------------------------------------------------- |
 | **HTTP repository + real API** | Per-user data comes from the backend; no shared mock singleton as source of truth |
-| **Auth / cookies** | Request identity exists; server load can fetch “my sessions” safely |
-| **Need for SSR** | SEO, faster first contentful paint, no-JS baseline, or hosting that expects SSR |
+| **Auth / cookies**             | Request identity exists; server load can fetch “my sessions” safely               |
+| **Need for SSR**               | SEO, faster first contentful paint, no-JS baseline, or hosting that expects SSR   |
 
 Until then, SPA mode is the correct fit for an in-memory mock tracker.
 
@@ -116,7 +116,7 @@ Treat these as acceptance criteria for the future PR.
 
 ### G1 — Single source of truth for first paint
 
-All first-paint data must come from **serialized layout/page data** built once on the server (`+layout.server.ts`), not from re-running `new MockTimeTrackingRepository()` / `buildMockSessions(new Date())` on client module load. The client must reuse that exact payload for hydrate.
+All first-paint data must come from **serialized layout/page data** built once on the server (`+layout.server.ts`), not from re-running `new MemoryTimeTrackingRepository()` on client module load. The client already hydrates from `+layout.ts` `load` (`loadAppSeed`); SSR must reuse that exact payload for hydrate.
 
 ### G2 — No shared mutable module state on the server
 
@@ -137,8 +137,8 @@ Identical ISO timestamps still hydrate wrong if the server formats with Node’s
 
 **Mitigation options (pick one):**
 
-1. **Preferred:** format SSR-visible times/day keys with an **explicit shared `timeZone`** in the seed (e.g. product default `UTC` or a fixed app zone).  
-2. Later: timezone cookie so server matches the user.  
+1. **Preferred:** format SSR-visible times/day keys with an **explicit shared `timeZone`** in the seed (e.g. product default `UTC` or a fixed app zone).
+2. Later: timezone cookie so server matches the user.
 3. Avoid host-local getters for any string that appears in initial HTML.
 
 ### G5 — Browser-only APIs
@@ -177,22 +177,22 @@ Request
   Components: useSession() → context (SSR) / client singleton (after hydrate)
 ```
 
-| Concern | Handling |
-|---------|----------|
-| Cross-request leaks | Fresh seed + store per server render |
-| Hydration match | Client rebuilds store from the same `data.seed` |
-| SPA timer across routes | Client keeps instance after first creation |
-| Real API later | Server load fetches from HTTP; same seed shape / store factory |
+| Concern                 | Handling                                                       |
+| ----------------------- | -------------------------------------------------------------- |
+| Cross-request leaks     | Fresh seed + store per server render                           |
+| Hydration match         | Client rebuilds store from the same `data.seed`                |
+| SPA timer across routes | Client keeps instance after first creation                     |
+| Real API later          | Server load fetches from HTTP; same seed shape / store factory |
 
 ### Implementation order (for later)
 
-1. Timezone-safe formatters + unit tests.  
-2. Serializable `AppSeed` type + repository snapshot hydrate (or drop mock repo on server once API exists).  
-3. `createSessionStore(seed)` + context helpers (`useSession()`).  
-4. `+layout.server.ts` returns seed (mock **or** API).  
-5. Wire `+layout.svelte`; migrate component imports off process-wide singleton.  
-6. Remove `ssr = false`.  
-7. Hydration pass all routes (including `TZ=UTC` vs local).  
+1. Timezone-safe formatters + unit tests.
+2. Serializable `AppSeed` type + repository snapshot hydrate (or drop mock repo on server once API exists).
+3. `createSessionStore(seed)` + context helpers (`useSession()`).
+4. `+layout.server.ts` returns seed (mock **or** API).
+5. Wire `+layout.svelte`; migrate component imports off process-wide singleton.
+6. Remove `ssr = false`.
+7. Hydration pass all routes (including `TZ=UTC` vs local).
 8. `check` / unit / e2e; write ADR (next number) “SSR + client session state”.
 
 **Do not** flip `ssr = true` before seed + context + timezone-safe first paint are in place.
@@ -201,16 +201,16 @@ Request
 
 ## Code hotspots (current codebase)
 
-| Area | Path | SSR relevance |
-|------|------|----------------|
-| SSR flag | `src/routes/+layout.ts` | Flip last |
-| Session singleton | `src/lib/stores/session.svelte.ts` | Main redesign target |
-| Prefs singleton | `src/lib/stores/prefs.svelte.ts` | Include in seed |
-| Fixtures | `src/lib/data/fixtures.ts` (`buildMockSessions`) | Server-only seed builder or replace with API |
-| Mock repo | `src/lib/data/mock-repository.ts` | Snapshot hydrate; no shared instance |
-| Local time / day keys | `src/lib/time/duration.ts`, aggregates | Explicit timezone for SSR-visible strings |
-| UI consumers | Timer / Dashboard / Logs / Insights / Projects / Settings / TopBar | `useSession()` migration |
-| i18n | `hooks.server.ts`, Paraglide strategy in `vite.config.ts` | Locale parity |
+| Area                  | Path                                                               | SSR relevance                                     |
+| --------------------- | ------------------------------------------------------------------ | ------------------------------------------------- |
+| SSR flag              | `src/routes/+layout.ts`                                            | Flip last                                         |
+| Session singleton     | `src/lib/stores/session.svelte.ts`                                 | Main redesign target                              |
+| Prefs singleton       | `src/lib/stores/prefs.svelte.ts`                                   | Include in seed                                   |
+| Fixtures              | `src/lib/api/fixtures/` + mock GET `/mock/v1`                      | Already HTTP JSON; dates materialized per request |
+| Memory repo           | `src/lib/data/memory-repository.ts`                                | Snapshot hydrate; no shared instance              |
+| Local time / day keys | `src/lib/time/duration.ts`, aggregates                             | Explicit timezone for SSR-visible strings         |
+| UI consumers          | Timer / Dashboard / Logs / Insights / Projects / Settings / TopBar | `useSession()` migration                          |
+| i18n                  | `hooks.server.ts`, Paraglide strategy in `vite.config.ts`          | Locale parity                                     |
 
 Consumers currently import `sessionStore` / `prefsStore` as module singletons (~15+ components under `src/lib/components/`).
 
@@ -231,10 +231,10 @@ Consumers currently import `sessionStore` / `prefsStore` as module singletons (~
 
 ## Related
 
-- [ADR-0002](./adr/0002-frontend-only-separation.md) — frontend-only boundary  
-- [ADR-0004](./adr/0004-state-and-data-strategy.md) — mock repository + client session store  
-- [ADR-0007](./adr/0007-i18n-paraglide.md) — locale strategy (cookie / localStorage)  
-- [roadmap.md](./roadmap.md) Phase 5 — API readiness  
-- [p2-backlog.md](./p2-backlog.md) — **SSR-1**  
-- [SvelteKit: State management](https://svelte.dev/docs/kit/state-management)  
-- [SvelteKit: Page options (`ssr`)](https://svelte.dev/docs/kit/page-options)  
+- [ADR-0002](./adr/0002-frontend-only-separation.md) — frontend-only boundary
+- [ADR-0004](./adr/0004-state-and-data-strategy.md) — mock repository + client session store
+- [ADR-0007](./adr/0007-i18n-paraglide.md) — locale strategy (cookie / localStorage)
+- [roadmap.md](./roadmap.md) Phase 5 — API readiness
+- [p2-backlog.md](./p2-backlog.md) — **SSR-1**
+- [SvelteKit: State management](https://svelte.dev/docs/kit/state-management)
+- [SvelteKit: Page options (`ssr`)](https://svelte.dev/docs/kit/page-options)

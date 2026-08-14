@@ -14,6 +14,19 @@ test.describe('timer lifecycle', () => {
 		await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
 	});
 
+	test('start posts to mock sessions', async ({ page }) => {
+		const note = uniqueNote('http-start');
+		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		const [request] = await Promise.all([
+			page.waitForRequest(
+				(r) => r.method() === 'POST' && /\/mock\/v1\/sessions$/.test(new URL(r.url()).pathname)
+			),
+			page.getByRole('button', { name: 'Start' }).click()
+		]);
+		expect(request.postDataJSON()).toMatchObject({ note });
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+	});
+
 	test('start with note and project (Flow A)', async ({ page }) => {
 		const note = uniqueNote('start');
 		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
@@ -63,7 +76,14 @@ test.describe('timer lifecycle', () => {
 		const note = uniqueNote('stop');
 		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
 		await page.getByRole('button', { name: 'Start' }).click();
-		await page.getByRole('button', { name: 'Stop' }).click();
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+		const [stopReq] = await Promise.all([
+			page.waitForRequest(
+				(r) => r.method() === 'POST' && r.url().includes('/sessions/') && r.url().includes('/stop')
+			),
+			page.getByRole('button', { name: 'Stop' }).click()
+		]);
+		expect(stopReq.method()).toBe('POST');
 
 		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
 		await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();

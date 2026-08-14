@@ -33,9 +33,9 @@
 		formMode = null;
 	}
 
-	function onFormSubmit(values: { name: string; color: string; code: string }) {
+	async function onFormSubmit(values: { name: string; color: string; code: string }) {
 		if (formMode?.kind === 'create') {
-			const created = sessionStore.createProject({
+			const created = await sessionStore.createProject({
 				name: values.name,
 				color: values.color,
 				code: values.code || undefined
@@ -47,7 +47,7 @@
 			return;
 		}
 		if (formMode?.kind === 'edit') {
-			const updated = sessionStore.updateProject(formMode.project.id, {
+			const updated = await sessionStore.updateProject(formMode.project.id, {
 				name: values.name,
 				color: values.color,
 				code: values.code.trim() ? values.code : null
@@ -61,9 +61,9 @@
 		deleteTarget = project;
 	}
 
-	function confirmDelete() {
+	async function confirmDelete() {
 		if (!deleteTarget) return;
-		const ok = sessionStore.deleteProject(deleteTarget.id);
+		const ok = await sessionStore.deleteProject(deleteTarget.id);
 		if (ok) deleteTarget = null;
 	}
 
@@ -137,6 +137,7 @@
 			<ProjectForm
 				mode={formMode.kind}
 				project={formMode.kind === 'edit' ? formMode.project : undefined}
+				pending={sessionStore.pendingAction === 'project'}
 				onsubmit={onFormSubmit}
 				oncancel={closeForm}
 			/>
@@ -215,10 +216,11 @@
 						sessionCount={count}
 						canArchive={sessionStore.canArchiveOrDeleteActive(project.id)}
 						canDelete={canDelete(project)}
+						busy={sessionStore.pendingAction === 'project'}
 						onedit={() => openEdit(project)}
-						onarchive={() => sessionStore.archiveProject(project.id)}
-						onrestore={() => {
-							if (sessionStore.restoreProject(project.id)) tab = 'active';
+						onarchive={() => void sessionStore.archiveProject(project.id)}
+						onrestore={async () => {
+							if (await sessionStore.restoreProject(project.id)) tab = 'active';
 						}}
 						ondelete={() => requestDelete(project)}
 					/>

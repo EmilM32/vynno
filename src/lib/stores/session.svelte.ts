@@ -1,6 +1,8 @@
 import { browser } from '$app/environment';
 import { announce } from '$lib/a11y/announce';
-import { MockTimeTrackingRepository } from '$lib/data/mock-repository';
+import type { AppSeed } from '$lib/api/types';
+import { userMessageForError } from '$lib/api/user-message';
+import { createRepository } from '$lib/data/create-repository';
 import type { TimeTrackingRepository } from '$lib/data/repository';
 import { m } from '$lib/paraglide/messages.js';
 import { prefsStore } from '$lib/stores/prefs.svelte';
@@ -26,7 +28,7 @@ import type {
  * Uses a class with $state fields so navigation does not reset the timer (ADR-0004).
  */
 class SessionStore {
-	#repo: TimeTrackingRepository;
+	#repo: TimeTrackingRepository | null = null;
 
 	/** Wall-clock used for live elapsed (updated on an interval while browser). */
 	nowMs = $state(Date.now());
@@ -46,16 +48,25 @@ class SessionStore {
 
 	error = $state<string | null>(null);
 
+	/** In-flight mutation; blocks double-submit. */
+	pendingAction = $state<'start' | 'pause' | 'resume' | 'stop' | 'project' | null>(null);
+
+	busy = $derived(this.pendingAction != null);
+
 	#tickId: ReturnType<typeof setInterval> | null = null;
 
-	constructor(repo: TimeTrackingRepository = new MockTimeTrackingRepository()) {
-		this.#repo = repo;
-		this.projects = repo.listProjects();
-		this.allProjects = repo.listProjects({ includeArchived: true });
-		this.sessions = repo.listSessions();
-		this.draftProjectId = prefsStore.defaultProjectId || this.projects[0]?.id || '';
+	/**
+	 * Apply a domain seed once. Subsequent load runs (and retries after success)
+	 * must not rebuild the repo or the live timer resets.
+	 */
+	hydrate = (seed: AppSeed): void => {
+		if (this.#repo) return;
+		this.#repo = createRepository();
+		this.projects = seed.projects.filter((p) => !p.isArchived);
+		this.allProjects = seed.projects;
+		this.sessions = seed.sessions;
 
-		// Prefill note from most recent stopped session; keep default project unless unknown
+		this.draftProjectId = prefsStore.defaultProjectId || this.projects[0]?.id || '';
 		const recent = this.sessions.find((s) => s.status === 'stopped');
 		if (recent) {
 			this.draftNote = recent.note;
@@ -65,6 +76,10 @@ class SessionStore {
 		if (browser) {
 			this.#startClock();
 		}
+	};
+
+	get ready(): boolean {
+		return this.#repo != null;
 	}
 
 	activeSession = $derived.by(() => {
@@ -114,89 +129,108 @@ class SessionStore {
 		return true;
 	};
 
-	refresh = (): void => {
-		this.sessions = this.#repo.listSessions();
-		this.projects = this.#repo.listProjects();
-		this.allProjects = this.#repo.listProjects({ includeArchived: true });
+	refresh = async (): Promise<void> => {
+		const repo = this.#requireRepo();
+		this.sessions = await repo.listSessions();
+		this.projects = await repo.listProjects();
+		this.allProjects = await repo.listProjects({ includeArchived: true });
 		this.#normalizeProjectSelection();
 	};
 
-	createProject = (input: CreateProjectInput): Project | null => {
+	createProject = async (input: CreateProjectInput): Promise<Project | null> => {
+		if (!this.#begin('project')) return null;
 		this.error = null;
 		try {
-			const project = this.#repo.createProject(input);
-			this.refresh();
+			const project = await this.#requireRepo().createProject(input);
+			await this.refresh();
 			return project;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_create_project();
+			this.error = userMessageForError(e, m.error_failed_create_project);
 			return null;
+		} finally {
+			this.#end();
 		}
 	};
 
-	updateProject = (id: string, input: UpdateProjectInput): Project | null => {
+	updateProject = async (id: string, input: UpdateProjectInput): Promise<Project | null> => {
+		if (!this.#begin('project')) return null;
 		this.error = null;
 		try {
-			const project = this.#repo.updateProject(id, input);
-			this.refresh();
+			const project = await this.#requireRepo().updateProject(id, input);
+			await this.refresh();
 			return project;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_update_project();
+			this.error = userMessageForError(e, m.error_failed_update_project);
 			return null;
+		} finally {
+			this.#end();
 		}
 	};
 
-	archiveProject = (id: string): boolean => {
+	archiveProject = async (id: string): Promise<boolean> => {
+		if (!this.#begin('project')) return false;
 		this.error = null;
 		try {
-			this.#repo.archiveProject(id);
-			this.refresh();
+			await this.#requireRepo().archiveProject(id);
+			await this.refresh();
 			return true;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_archive_project();
+			this.error = userMessageForError(e, m.error_failed_archive_project);
 			return false;
+		} finally {
+			this.#end();
 		}
 	};
 
-	restoreProject = (id: string): boolean => {
+	restoreProject = async (id: string): Promise<boolean> => {
+		if (!this.#begin('project')) return false;
 		this.error = null;
 		try {
-			this.#repo.restoreProject(id);
-			this.refresh();
+			await this.#requireRepo().restoreProject(id);
+			await this.refresh();
 			return true;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_restore_project();
+			this.error = userMessageForError(e, m.error_failed_restore_project);
 			return false;
+		} finally {
+			this.#end();
 		}
 	};
 
-	deleteProject = (id: string): boolean => {
+	deleteProject = async (id: string): Promise<boolean> => {
+		if (!this.#begin('project')) return false;
 		this.error = null;
 		try {
-			this.#repo.deleteProject(id);
-			this.refresh();
+			await this.#requireRepo().deleteProject(id);
+			await this.refresh();
 			return true;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_delete_project();
+			this.error = userMessageForError(e, m.error_failed_delete_project);
 			return false;
+		} finally {
+			this.#end();
 		}
 	};
 
-	start = (input?: Partial<StartSessionInput>): void => {
+	start = async (input?: Partial<StartSessionInput>): Promise<void> => {
+		if (!this.#begin('start')) return;
 		this.error = null;
 		try {
 			const projectId = input?.projectId ?? this.draftProjectId;
 			const note = input?.note ?? this.draftNote;
-			this.#repo.startSession({
+			await this.#requireRepo().startSession({
 				projectId,
 				note,
 				ticketId: input?.ticketId,
 				activityType: input?.activityType,
 				tags: input?.tags
 			});
-			this.refresh();
+			await this.refresh();
 			announce(m.announce_session_started());
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_start_session();
+			this.error = userMessageForError(e, m.error_failed_start_session);
+		} finally {
+			this.#end();
 		}
 	};
 
@@ -204,17 +238,18 @@ class SessionStore {
 	 * Start a new session from a recent task/log (Flow D).
 	 * Blocks if another session is already active or paused.
 	 */
-	restartFromTask = (input: StartSessionInput): boolean => {
+	restartFromTask = async (input: StartSessionInput): Promise<boolean> => {
 		if (this.activeSession) {
 			this.error = m.error_stop_before_start();
 			return false;
 		}
-		this.start(input);
+		if (this.pendingAction) return false;
+		await this.start(input);
 		return this.error == null;
 	};
 
 	/** Restart using a historical session id. */
-	restartFromSession = (sessionId: string): boolean => {
+	restartFromSession = async (sessionId: string): Promise<boolean> => {
 		const s = this.sessions.find((x) => x.id === sessionId);
 		if (!s) {
 			this.error = m.error_session_not_found();
@@ -229,50 +264,75 @@ class SessionStore {
 		});
 	};
 
-	pause = (): void => {
+	pause = async (): Promise<void> => {
 		const s = this.activeSession;
 		if (!s || s.status !== 'active') return;
+		if (!this.#begin('pause')) return;
 		this.error = null;
 		try {
-			this.#repo.pauseSession(s.id);
-			this.refresh();
+			await this.#requireRepo().pauseSession(s.id);
+			await this.refresh();
 			announce(m.announce_session_paused());
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_pause();
+			this.error = userMessageForError(e, m.error_failed_pause);
+		} finally {
+			this.#end();
 		}
 	};
 
-	resume = (): void => {
+	resume = async (): Promise<void> => {
 		const s = this.activeSession;
 		if (!s || s.status !== 'paused') return;
+		if (!this.#begin('resume')) return;
 		this.error = null;
 		try {
-			this.#repo.resumeSession(s.id);
-			this.refresh();
+			await this.#requireRepo().resumeSession(s.id);
+			await this.refresh();
 			announce(m.announce_session_resumed());
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_resume();
+			this.error = userMessageForError(e, m.error_failed_resume);
+		} finally {
+			this.#end();
 		}
 	};
 
-	stop = (): void => {
+	stop = async (): Promise<void> => {
 		const s = this.activeSession;
 		if (!s) return;
+		if (!this.#begin('stop')) return;
 		this.error = null;
 		try {
-			const stopped = this.#repo.stopSession(s.id);
-			// Keep draft prefilled with what just finished
+			const stopped = await this.#requireRepo().stopSession(s.id);
 			this.draftNote = stopped.note;
 			this.draftProjectId = stopped.projectId;
-			this.refresh();
+			await this.refresh();
 			announce(m.announce_session_stopped());
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_stop();
+			this.error = userMessageForError(e, m.error_failed_stop);
+		} finally {
+			this.#end();
 		}
 	};
 
 	clearError = (): void => {
 		this.error = null;
+	};
+
+	#begin = (action: 'start' | 'pause' | 'resume' | 'stop' | 'project'): boolean => {
+		if (this.pendingAction) return false;
+		this.pendingAction = action;
+		return true;
+	};
+
+	#end = (): void => {
+		this.pendingAction = null;
+	};
+
+	#requireRepo = (): TimeTrackingRepository => {
+		if (!this.#repo) {
+			throw new Error('Session store has not been hydrated');
+		}
+		return this.#repo;
 	};
 
 	#normalizeProjectSelection = (): void => {

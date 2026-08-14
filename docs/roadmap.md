@@ -17,7 +17,9 @@
 | **4**  | Polish             | Settings stub, P2 UI, a11y, visual QA vs Stitch                                   | Done      |
 | **4b** | Project management | `/projects` CRUD (PRJ-5), mock mutations, primary nav                             | Done      |
 | **4c** | WCAG 2.2 AA        | Live regions, contrast, widgets, axe e2e — [accessibility.md](./accessibility.md) | Done      |
-| **5**  | API readiness      | HTTP repository, env config, wire to backend when available                       | Yes       |
+| **5a** | API contract       | HTTP-fetched JSON, DTOs, mock GET `/mock/v1`, async repository                    | Done      |
+| **5b** | HTTP writes        | Store uses HTTP repo; mock POST/PATCH/DELETE; contract docs                       | Done      |
+| **5c** | Live API           | Point `PUBLIC_API_BASE` at the real backend; auth; delete mock tree               | Yes       |
 
 ---
 
@@ -121,21 +123,39 @@
 
 ---
 
-## Phase 5 — API readiness
+## Phase 5a — HTTP JSON contract
+
+**Done when:**
+
+- [x] DTO schemas (Valibot) + mappers + `docs/api-contract.md`
+- [x] Mock GET `/mock/v1/{me,projects,sessions}` returning wire JSON
+- [x] Async repository; memory writes after hydrate; HTTP repo implemented
+- [x] `+layout.ts` load fetches the three GETs; reload still resets writes
+
+**Exit criteria:** DevTools shows JSON requests; UI no longer imports TypeScript fixtures.
+
+## Phase 5b — HTTP writes (mock + live-ready)
+
+**Done when:**
+
+- [x] Session store uses `HttpTimeTrackingRepository` after hydrate
+- [x] Mock `POST`/`PATCH`/`DELETE` under `/mock/v1` (header-scoped workspace)
+- [x] Start/stop/pause and project CRUD appear as HTTP requests
+- [x] Contract docs backend-ready ([api-contract.md](./api-contract.md))
+
+**Exit criteria:** App runs against mock **or** real API without UI rewrites. Brief: [api-next.md](./api-next.md).
+
+## Phase 5c — Live API
 
 **Goals**
 
-- Define frontend-facing API contract (OpenAPI or shared types doc — may live in backend repo).
-- Implement HTTP repository behind same interface as mocks.
-- Feature flag or env switch: `MOCK` vs `API`.
-- Auth handoff (whatever backend chooses: cookie, bearer, etc.).
-- Loading and error UI for network states.
+- Set `PUBLIC_API_BASE=https://…/v1`
+- Auth on `ApiClient`
+- Delete `src/routes/mock/v1/`, `$lib/api/fixtures/`, `$lib/api/mock/`
 
-**Depends on:** Backend repository existing and endpoints available.
+**Depends on:** a backend that implements [api-contract.md](./api-contract.md).
 
-**Exit criteria:** App runs against mock **or** real API without UI rewrites.
-
-### After Phase 5 — SSR enablement (SSR-1)
+### After Phase 5c — SSR enablement (SSR-1)
 
 **Deferred.** The app intentionally uses `export const ssr = false` while mock session state is a process-wide module singleton. Enabling full server rendering without hydration bugs requires request-scoped seed data from `load`, context-based stores, and a shared time/timezone contract.
 

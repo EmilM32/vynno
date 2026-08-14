@@ -20,6 +20,7 @@ test.describe('command palette', () => {
 
 	test('opens via keyboard shortcut (meta/ctrl + k)', async ({ page }) => {
 		await page.goto('/dashboard');
+		await expect(page.getByTestId('page-view')).toBeVisible();
 		// Headless Chromium often swallows real Meta/Control+K (omnibox / OS).
 		// Dispatch the same keydown the app window listener expects.
 		await page.evaluate(() => {

@@ -16,7 +16,13 @@ test.describe('projects', () => {
 		const name = `E2E Project ${Date.now()}`;
 		await page.getByTestId('new-project').click();
 		await page.getByLabel('Name').fill(name);
-		await page.getByRole('button', { name: 'Create project' }).click();
+		const [request] = await Promise.all([
+			page.waitForRequest(
+				(r) => r.method() === 'POST' && /\/mock\/v1\/projects$/.test(new URL(r.url()).pathname)
+			),
+			page.getByRole('button', { name: 'Create project' }).click()
+		]);
+		expect(request.postDataJSON()).toMatchObject({ name });
 
 		await expect(page.getByTestId('project-list').getByText(name)).toBeVisible();
 		await expect(page.getByRole('alert')).toHaveCount(0); // no validation / store errors

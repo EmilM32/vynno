@@ -1,6 +1,6 @@
-# ADR-0010: HTTP JSON contract (DTO-first, mock GET)
+# ADR-0010: HTTP JSON contract (DTO-first, mock HTTP)
 
-**Status:** Accepted  
+**Status:** Accepted (amended 2026-08-14 — writes over HTTP)  
 **Date:** 2026-08-13  
 **Deciders:** Project owner
 
@@ -16,7 +16,7 @@ The backend does not exist yet ([ADR-0002](./0002-frontend-only-separation.md)).
 2. **Proposed REST contract** is documented in [../api-contract.md](../api-contract.md) and encoded in those schemas (executable source of truth).
 3. **Reads go over HTTP.** `+layout.ts` `load` calls `loadAppSeed(fetch)` which GETs `/me`, `/projects`, and `/sessions` from `PUBLIC_API_BASE` (default `/mock/v1`).
 4. **Mock GET handlers** under `src/routes/mock/v1/` materialize fixture JSON (session dates are relative offsets) and return DTO JSON. They are disposable and are **not** the system of record.
-5. **Writes stay in `MemoryTimeTrackingRepository`** after hydrate. Reload still resets mutations (e2e and ADR-0004). `HttpTimeTrackingRepository` implements every method against the contract and is tested with mocked `fetch`; the SPA does not call it until `PUBLIC_API_BASE` points at a live API.
+5. **Writes go through `HttpTimeTrackingRepository`** after hydrate, same as later refreshes. Mock `+server.ts` implements the write verbs against a **header-scoped** in-process store (`X-Mock-Workspace`, one UUID per SPA lifetime) so a full reload still reseeds fixtures (e2e unchanged). `MemoryTimeTrackingRepository` remains the mock engine and the unit-test double.
 6. **No remote functions** for this phase. They are experimental, Kit-specific RPC, and would force a rewrite when the separate backend lands.
 7. **SSR stays off** (`ssr = false`). Seed-from-`load` is the client path that [ssr-enablement.md](../ssr-enablement.md) already required as G1.
 
@@ -31,7 +31,7 @@ The backend does not exist yet ([ADR-0002](./0002-frontend-only-separation.md)).
 ### Negative / tradeoffs
 
 - First paint waits on three local GETs (acceptable; handlers are in-process).
-- Write methods exist in the HTTP repo but are unused in mock mode.
+- Mock write state lives in the Kit process, keyed by request header — not a singleton, not a cookie.
 - Mock routes ship in the app bundle until the live API replaces them.
 
 ## Alternatives considered
@@ -40,7 +40,8 @@ The backend does not exist yet ([ADR-0002](./0002-frontend-only-separation.md)).
 | ------------------------------------ | ------------------------------------------------------------------- |
 | SvelteKit remote functions           | Experimental; not a portable backend contract.                      |
 | Static `static/*.json` only          | Frozen ISO dates rot; query filters would be fake.                  |
-| In-memory POST/PATCH on `+server.ts` | Process-wide state; breaks e2e “reload = reset”; violates ADR-0002. |
+| Process-wide POST memory on `+server.ts` | Breaks e2e “reload = reset”; fights ADR-0002. Header-scoped workspaces avoid this. |
+| Cookie-scoped mock store | Reload would persist mutations and force an e2e reset helper. |
 | Keep TS fixture imports              | Does not exercise fetch, DTOs, or the swap path.                    |
 
 ## Related

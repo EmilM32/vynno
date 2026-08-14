@@ -2,7 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fixtureAppSeed } from '$lib/api/fixtures/load';
 import { PROJECT_IDS } from '$lib/api/fixtures/ids';
 import { FIXED_NOW } from '$lib/test/factories';
+import type { DomainErrorCode } from './errors';
 import { MemoryTimeTrackingRepository } from './memory-repository';
+
+async function expectCode(promise: Promise<unknown>, code: DomainErrorCode) {
+	await expect(promise).rejects.toMatchObject({ name: 'DomainError', code });
+}
 
 describe('MemoryTimeTrackingRepository', () => {
 	let repo: MemoryTimeTrackingRepository;
@@ -76,15 +81,14 @@ describe('MemoryTimeTrackingRepository', () => {
 		});
 
 		it('rejects unknown project', async () => {
-			await expect(repo.startSession({ projectId: 'no-such-project', note: 'x' })).rejects.toThrow(
-				/Unknown project/
-			);
+			await expectCode(repo.startSession({ projectId: 'no-such-project', note: 'x' }), 'not_found');
 		});
 
 		it('rejects a second active session', async () => {
 			await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'A' });
-			await expect(repo.startSession({ projectId: PROJECT_IDS.auth, note: 'B' })).rejects.toThrow(
-				/active session already exists/i
+			await expectCode(
+				repo.startSession({ projectId: PROJECT_IDS.auth, note: 'B' }),
+				'session_already_active'
 			);
 		});
 	});
@@ -101,7 +105,7 @@ describe('MemoryTimeTrackingRepository', () => {
 
 		it('cannot pause non-active session', async () => {
 			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 }))[0]!;
-			await expect(repo.pauseSession(stopped.id)).rejects.toThrow(/Cannot pause/);
+			await expectCode(repo.pauseSession(stopped.id), 'invalid_transition');
 		});
 
 		it('resume accumulates pausedMs and clears pausedAt', async () => {
@@ -117,7 +121,7 @@ describe('MemoryTimeTrackingRepository', () => {
 
 		it('cannot resume non-paused session', async () => {
 			const started = await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'Work' });
-			await expect(repo.resumeSession(started.id)).rejects.toThrow(/Cannot resume/);
+			await expectCode(repo.resumeSession(started.id), 'invalid_transition');
 		});
 
 		it('stop from active sets endedAt and clears active', async () => {
@@ -143,11 +147,11 @@ describe('MemoryTimeTrackingRepository', () => {
 
 		it('cannot stop an already stopped session', async () => {
 			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 }))[0]!;
-			await expect(repo.stopSession(stopped.id)).rejects.toThrow(/already stopped/);
+			await expectCode(repo.stopSession(stopped.id), 'invalid_transition');
 		});
 
 		it('throws when session id is missing', async () => {
-			await expect(repo.pauseSession('missing-id')).rejects.toThrow(/Session not found/);
+			await expectCode(repo.pauseSession('missing-id'), 'not_found');
 		});
 	});
 
@@ -170,14 +174,12 @@ describe('MemoryTimeTrackingRepository', () => {
 		});
 
 		it('rejects invalid create input', async () => {
-			await expect(repo.createProject({ name: '', color })).rejects.toThrow(/required/i);
-			await expect(repo.createProject({ name: 'X', color: '#fff' })).rejects.toThrow(/palette/i);
+			await expectCode(repo.createProject({ name: '', color }), 'invalid_body');
+			await expectCode(repo.createProject({ name: 'X', color: '#fff' }), 'invalid_body');
 		});
 
 		it('rejects duplicate code', async () => {
-			await expect(repo.createProject({ name: 'Other', color, code: 'AUTH' })).rejects.toThrow(
-				/already in use/i
-			);
+			await expectCode(repo.createProject({ name: 'Other', color, code: 'AUTH' }), 'code_in_use');
 		});
 
 		it('updateProject renames and keeps id', async () => {
@@ -214,7 +216,7 @@ describe('MemoryTimeTrackingRepository', () => {
 
 		it('deleteProject fails when sessions exist', async () => {
 			expect(await repo.countSessionsForProject(PROJECT_IDS.auth)).toBeGreaterThan(0);
-			await expect(repo.deleteProject(PROJECT_IDS.auth)).rejects.toThrow(/logged sessions/i);
+			await expectCode(repo.deleteProject(PROJECT_IDS.auth), 'project_has_sessions');
 		});
 
 		it('deleteProject removes unused project', async () => {
@@ -234,15 +236,16 @@ describe('MemoryTimeTrackingRepository', () => {
 			}
 			expect(await repo.listProjects()).toHaveLength(2);
 			await repo.deleteProject(a.id);
-			await expect(repo.archiveProject(b.id)).rejects.toThrow(/last remaining/i);
-			await expect(repo.deleteProject(b.id)).rejects.toThrow(/last remaining/i);
+			await expectCode(repo.archiveProject(b.id), 'last_active_project');
+			await expectCode(repo.deleteProject(b.id), 'last_active_project');
 		});
 
 		it('rejects starting session on archived project', async () => {
 			const created = await repo.createProject({ name: 'Soon gone', color, code: 'SG' });
 			await repo.archiveProject(created.id);
-			await expect(repo.startSession({ projectId: created.id, note: 'nope' })).rejects.toThrow(
-				/Unknown project/
+			await expectCode(
+				repo.startSession({ projectId: created.id, note: 'nope' }),
+				'project_archived'
 			);
 		});
 	});

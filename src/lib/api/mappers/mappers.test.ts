@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { makeProject, makeSession } from '$lib/test/factories';
 import { profileFromDto, profileToDto } from './profile';
-import { createProjectToDto, projectFromDto, projectToDto, updateProjectToDto } from './project';
-import { sessionFromDto, sessionToDto, startSessionToDto } from './session';
+import {
+	createProjectFromDto,
+	createProjectToDto,
+	projectFromDto,
+	projectToDto,
+	updateProjectFromDto,
+	updateProjectToDto
+} from './project';
+import { sessionFromDto, sessionToDto, startSessionFromDto, startSessionToDto } from './session';
 
 describe('project mappers', () => {
 	it('maps archived + null optionals onto omitted domain fields', () => {
@@ -42,6 +49,11 @@ describe('project mappers', () => {
 		});
 		expect(updateProjectToDto({ code: null })).toEqual({ code: null });
 		expect(updateProjectToDto({ name: 'Y' })).toEqual({ name: 'Y' });
+		expect(createProjectFromDto({ name: 'X', color: '#3b82f6', code: null })).toEqual({
+			name: 'X',
+			color: '#3b82f6'
+		});
+		expect(updateProjectFromDto({ code: null })).toEqual({ code: null });
 	});
 });
 
@@ -92,6 +104,19 @@ describe('session mappers', () => {
 			activityType: null,
 			tags: [],
 			targetDurationMs: null
+		});
+		expect(
+			startSessionFromDto({
+				projectId: 'proj-auth',
+				note: 'Work',
+				ticketId: null,
+				activityType: null,
+				tags: [],
+				targetDurationMs: null
+			})
+		).toEqual({
+			projectId: 'proj-auth',
+			note: 'Work'
 		});
 	});
 });

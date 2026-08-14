@@ -4,7 +4,7 @@
 	import { formatCompact } from '$lib/time/duration';
 
 	const items = $derived(sessionStore.recentTaskItems);
-	const busy = $derived(!!sessionStore.activeSession);
+	const busy = $derived(!!sessionStore.activeSession || sessionStore.busy);
 
 	function restart(item: (typeof items)[number]) {
 		sessionStore.restartFromTask({

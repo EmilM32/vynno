@@ -1,7 +1,8 @@
 import { browser } from '$app/environment';
 import { announce } from '$lib/a11y/announce';
 import type { AppSeed } from '$lib/api/types';
-import { MemoryTimeTrackingRepository } from '$lib/data/memory-repository';
+import { userMessageForError } from '$lib/api/user-message';
+import { createRepository } from '$lib/data/create-repository';
 import type { TimeTrackingRepository } from '$lib/data/repository';
 import { m } from '$lib/paraglide/messages.js';
 import { prefsStore } from '$lib/stores/prefs.svelte';
@@ -47,6 +48,11 @@ class SessionStore {
 
 	error = $state<string | null>(null);
 
+	/** In-flight mutation; blocks double-submit. */
+	pendingAction = $state<'start' | 'pause' | 'resume' | 'stop' | 'project' | null>(null);
+
+	busy = $derived(this.pendingAction != null);
+
 	#tickId: ReturnType<typeof setInterval> | null = null;
 
 	/**
@@ -55,7 +61,7 @@ class SessionStore {
 	 */
 	hydrate = (seed: AppSeed): void => {
 		if (this.#repo) return;
-		this.#repo = new MemoryTimeTrackingRepository(seed);
+		this.#repo = createRepository();
 		this.projects = seed.projects.filter((p) => !p.isArchived);
 		this.allProjects = seed.projects;
 		this.sessions = seed.sessions;
@@ -132,66 +138,82 @@ class SessionStore {
 	};
 
 	createProject = async (input: CreateProjectInput): Promise<Project | null> => {
+		if (!this.#begin('project')) return null;
 		this.error = null;
 		try {
 			const project = await this.#requireRepo().createProject(input);
 			await this.refresh();
 			return project;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_create_project();
+			this.error = userMessageForError(e, m.error_failed_create_project);
 			return null;
+		} finally {
+			this.#end();
 		}
 	};
 
 	updateProject = async (id: string, input: UpdateProjectInput): Promise<Project | null> => {
+		if (!this.#begin('project')) return null;
 		this.error = null;
 		try {
 			const project = await this.#requireRepo().updateProject(id, input);
 			await this.refresh();
 			return project;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_update_project();
+			this.error = userMessageForError(e, m.error_failed_update_project);
 			return null;
+		} finally {
+			this.#end();
 		}
 	};
 
 	archiveProject = async (id: string): Promise<boolean> => {
+		if (!this.#begin('project')) return false;
 		this.error = null;
 		try {
 			await this.#requireRepo().archiveProject(id);
 			await this.refresh();
 			return true;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_archive_project();
+			this.error = userMessageForError(e, m.error_failed_archive_project);
 			return false;
+		} finally {
+			this.#end();
 		}
 	};
 
 	restoreProject = async (id: string): Promise<boolean> => {
+		if (!this.#begin('project')) return false;
 		this.error = null;
 		try {
 			await this.#requireRepo().restoreProject(id);
 			await this.refresh();
 			return true;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_restore_project();
+			this.error = userMessageForError(e, m.error_failed_restore_project);
 			return false;
+		} finally {
+			this.#end();
 		}
 	};
 
 	deleteProject = async (id: string): Promise<boolean> => {
+		if (!this.#begin('project')) return false;
 		this.error = null;
 		try {
 			await this.#requireRepo().deleteProject(id);
 			await this.refresh();
 			return true;
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_delete_project();
+			this.error = userMessageForError(e, m.error_failed_delete_project);
 			return false;
+		} finally {
+			this.#end();
 		}
 	};
 
 	start = async (input?: Partial<StartSessionInput>): Promise<void> => {
+		if (!this.#begin('start')) return;
 		this.error = null;
 		try {
 			const projectId = input?.projectId ?? this.draftProjectId;
@@ -206,7 +228,9 @@ class SessionStore {
 			await this.refresh();
 			announce(m.announce_session_started());
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_start_session();
+			this.error = userMessageForError(e, m.error_failed_start_session);
+		} finally {
+			this.#end();
 		}
 	};
 
@@ -219,6 +243,7 @@ class SessionStore {
 			this.error = m.error_stop_before_start();
 			return false;
 		}
+		if (this.pendingAction) return false;
 		await this.start(input);
 		return this.error == null;
 	};
@@ -242,32 +267,39 @@ class SessionStore {
 	pause = async (): Promise<void> => {
 		const s = this.activeSession;
 		if (!s || s.status !== 'active') return;
+		if (!this.#begin('pause')) return;
 		this.error = null;
 		try {
 			await this.#requireRepo().pauseSession(s.id);
 			await this.refresh();
 			announce(m.announce_session_paused());
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_pause();
+			this.error = userMessageForError(e, m.error_failed_pause);
+		} finally {
+			this.#end();
 		}
 	};
 
 	resume = async (): Promise<void> => {
 		const s = this.activeSession;
 		if (!s || s.status !== 'paused') return;
+		if (!this.#begin('resume')) return;
 		this.error = null;
 		try {
 			await this.#requireRepo().resumeSession(s.id);
 			await this.refresh();
 			announce(m.announce_session_resumed());
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_resume();
+			this.error = userMessageForError(e, m.error_failed_resume);
+		} finally {
+			this.#end();
 		}
 	};
 
 	stop = async (): Promise<void> => {
 		const s = this.activeSession;
 		if (!s) return;
+		if (!this.#begin('stop')) return;
 		this.error = null;
 		try {
 			const stopped = await this.#requireRepo().stopSession(s.id);
@@ -276,12 +308,24 @@ class SessionStore {
 			await this.refresh();
 			announce(m.announce_session_stopped());
 		} catch (e) {
-			this.error = e instanceof Error ? e.message : m.error_failed_stop();
+			this.error = userMessageForError(e, m.error_failed_stop);
+		} finally {
+			this.#end();
 		}
 	};
 
 	clearError = (): void => {
 		this.error = null;
+	};
+
+	#begin = (action: 'start' | 'pause' | 'resume' | 'stop' | 'project'): boolean => {
+		if (this.pendingAction) return false;
+		this.pendingAction = action;
+		return true;
+	};
+
+	#end = (): void => {
+		this.pendingAction = null;
 	};
 
 	#requireRepo = (): TimeTrackingRepository => {

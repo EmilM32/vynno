@@ -137,6 +137,7 @@
 			<ProjectForm
 				mode={formMode.kind}
 				project={formMode.kind === 'edit' ? formMode.project : undefined}
+				pending={sessionStore.pendingAction === 'project'}
 				onsubmit={onFormSubmit}
 				oncancel={closeForm}
 			/>
@@ -215,6 +216,7 @@
 						sessionCount={count}
 						canArchive={sessionStore.canArchiveOrDeleteActive(project.id)}
 						canDelete={canDelete(project)}
+						busy={sessionStore.pendingAction === 'project'}
 						onedit={() => openEdit(project)}
 						onarchive={() => void sessionStore.archiveProject(project.id)}
 						onrestore={async () => {

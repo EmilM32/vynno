@@ -46,3 +46,14 @@ export function startSessionToDto(input: StartSessionInput): StartSessionDto {
 		targetDurationMs: input.targetDurationMs ?? null
 	};
 }
+
+export function startSessionFromDto(dto: StartSessionDto): StartSessionInput {
+	return {
+		projectId: dto.projectId,
+		note: dto.note,
+		...(dto.ticketId ? { ticketId: dto.ticketId } : {}),
+		...(dto.activityType ? { activityType: dto.activityType } : {}),
+		...(dto.tags?.length ? { tags: dto.tags } : {}),
+		...(dto.targetDurationMs != null ? { targetDurationMs: dto.targetDurationMs } : {})
+	};
+}

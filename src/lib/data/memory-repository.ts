@@ -14,6 +14,7 @@ import type {
 	UpdateProjectInput,
 	UserProfile
 } from '$lib/types/domain';
+import { DomainError } from './errors';
 import type { TimeTrackingRepository } from './repository';
 
 function newId(prefix: string): string {
@@ -69,7 +70,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			color: fields.color,
 			code: fields.code ?? ''
 		});
-		if (err) throw new Error(err);
+		if (err) throw new DomainError('invalid_body', err);
 		this.#assertCodeUnique(fields.code);
 
 		const project: Project = {
@@ -98,7 +99,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			color: nextColor,
 			code: nextCode ?? ''
 		});
-		if (err) throw new Error(err);
+		if (err) throw new DomainError('invalid_body', err);
 		this.#assertCodeUnique(nextCode, id);
 
 		project.name = nextName;
@@ -112,7 +113,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	async archiveProject(id: string): Promise<Project> {
 		const project = this.#requireProject(id);
 		if (project.isArchived) {
-			throw new Error('Project is already archived.');
+			throw new DomainError('invalid_transition', 'Project is already archived.');
 		}
 		this.#assertNotLastActive(id);
 		project.isArchived = true;
@@ -122,7 +123,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	async restoreProject(id: string): Promise<Project> {
 		const project = this.#requireProject(id);
 		if (!project.isArchived) {
-			throw new Error('Project is not archived.');
+			throw new DomainError('invalid_transition', 'Project is not archived.');
 		}
 		project.isArchived = false;
 		return cloneProject(project);
@@ -132,14 +133,20 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 		const project = this.#requireProject(id);
 		const sessions = this.#sessions.filter((s) => s.projectId === id).length;
 		if (sessions > 0) {
-			throw new Error('This project has logged sessions. Archive it instead.');
+			throw new DomainError(
+				'project_has_sessions',
+				'This project has logged sessions. Archive it instead.'
+			);
 		}
 		if (!project.isArchived) {
 			this.#assertNotLastActive(id);
 		} else {
 			const activeCount = this.#projects.filter((p) => !p.isArchived).length;
 			if (activeCount === 0) {
-				throw new Error('Cannot delete the last remaining active project.');
+				throw new DomainError(
+					'last_active_project',
+					'Cannot delete the last remaining active project.'
+				);
 			}
 		}
 		this.#projects = this.#projects.filter((p) => p.id !== id);
@@ -182,12 +189,18 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 
 	async startSession(input: StartSessionInput): Promise<TimeSession> {
 		if (await this.getActiveSession()) {
-			throw new Error('An active session already exists. Stop it before starting a new one.');
+			throw new DomainError(
+				'session_already_active',
+				'An active session already exists. Stop it before starting a new one.'
+			);
 		}
 
 		const project = await this.getProject(input.projectId);
-		if (!project || project.isArchived) {
-			throw new Error(`Unknown project: ${input.projectId}`);
+		if (!project) {
+			throw new DomainError('not_found', `Project not found: ${input.projectId}`);
+		}
+		if (project.isArchived) {
+			throw new DomainError('project_archived', `Project is archived: ${input.projectId}`);
 		}
 
 		const session: TimeSession = {
@@ -210,7 +223,10 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	async pauseSession(id: string): Promise<TimeSession> {
 		const session = this.#require(id);
 		if (session.status !== 'active') {
-			throw new Error(`Cannot pause session in status "${session.status}"`);
+			throw new DomainError(
+				'invalid_transition',
+				`Cannot pause session in status "${session.status}"`
+			);
 		}
 		session.status = 'paused';
 		session.pausedAt = new Date().toISOString();
@@ -220,7 +236,10 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	async resumeSession(id: string): Promise<TimeSession> {
 		const session = this.#require(id);
 		if (session.status !== 'paused') {
-			throw new Error(`Cannot resume session in status "${session.status}"`);
+			throw new DomainError(
+				'invalid_transition',
+				`Cannot resume session in status "${session.status}"`
+			);
 		}
 		if (session.pausedAt) {
 			const pausedFor = Date.now() - Date.parse(session.pausedAt);
@@ -234,7 +253,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	async stopSession(id: string): Promise<TimeSession> {
 		const session = this.#require(id);
 		if (session.status === 'stopped') {
-			throw new Error('Session is already stopped');
+			throw new DomainError('invalid_transition', 'Session is already stopped');
 		}
 		const now = new Date();
 		if (session.status === 'paused' && session.pausedAt) {
@@ -249,13 +268,13 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 
 	#require(id: string): TimeSession {
 		const session = this.#sessions.find((s) => s.id === id);
-		if (!session) throw new Error(`Session not found: ${id}`);
+		if (!session) throw new DomainError('not_found', `Session not found: ${id}`);
 		return session;
 	}
 
 	#requireProject(id: string): Project {
 		const project = this.#projects.find((p) => p.id === id);
-		if (!project) throw new Error(`Project not found: ${id}`);
+		if (!project) throw new DomainError('not_found', `Project not found: ${id}`);
 		return project;
 	}
 
@@ -266,7 +285,10 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	#assertNotLastActive(id: string): void {
 		const active = this.#activeProjects();
 		if (active.length <= 1 && active.some((p) => p.id === id)) {
-			throw new Error('Cannot archive or delete the last remaining active project.');
+			throw new DomainError(
+				'last_active_project',
+				'Cannot archive or delete the last remaining active project.'
+			);
 		}
 	}
 
@@ -276,7 +298,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			(p) => p.id !== excludeId && p.code && p.code.toUpperCase() === code.toUpperCase()
 		);
 		if (clash) {
-			throw new Error(`Code "${code}" is already in use.`);
+			throw new DomainError('code_in_use', `Code "${code}" is already in use.`);
 		}
 	}
 }

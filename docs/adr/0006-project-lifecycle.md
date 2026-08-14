@@ -15,7 +15,7 @@ Sessions always reference a `projectId`. The UI needs create/edit/remove flows (
 3. **Last active project** cannot be archived or hard-deleted.
 4. **Code uniqueness** applies only when `code` is non-empty (case-insensitive among all non-deleted projects).
 5. **Colors** come from a fixed palette in the UI (not free-form hex) for a11y and consistency.
-6. Mutations stay **in-memory** for the mock repository (lost on full reload), same as sessions (ADR-0004).
+6. Mutations go over HTTP (`POST`/`PATCH`/`DELETE` on `/projects`). On the mock, a full reload still resets because the mock workspace is SPA-scoped (ADR-0010).
 7. Dedicated route **`/projects`** in primary navigation (ADR-0005 updated).
 
 ## Consequences

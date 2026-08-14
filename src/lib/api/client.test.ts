@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import * as v from 'valibot';
 import { ApiClient } from './client';
 import { ApiError } from './errors';
+import { MOCK_WORKSPACE_HEADER } from './mock-workspace';
 import { profileDtoSchema } from './schemas/profile';
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -56,6 +57,25 @@ describe('ApiClient', () => {
 		const fetchFn = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
 		const client = new ApiClient(fetchFn, '/mock/v1');
 		await expect(client.delete('/projects/p1')).resolves.toBeUndefined();
+	});
+
+	it('sends the mock workspace header only for mock bases', async () => {
+		const fetchFn = vi.fn<typeof fetch>(() =>
+			Promise.resolve(
+				jsonResponse({ displayName: 'Alex Dev', handle: '@alexdev', avatarUrl: null })
+			)
+		);
+
+		const mockClient = new ApiClient(fetchFn, '/mock/v1');
+		await mockClient.get('/me', profileDtoSchema);
+		const mockInit = fetchFn.mock.calls[0][1];
+		expect(new Headers(mockInit?.headers).get(MOCK_WORKSPACE_HEADER)).toBeTruthy();
+
+		fetchFn.mockClear();
+		const liveClient = new ApiClient(fetchFn, 'https://api.example.com/v1');
+		await liveClient.get('/me', profileDtoSchema);
+		const liveInit = fetchFn.mock.calls[0][1];
+		expect(new Headers(liveInit?.headers).has(MOCK_WORKSPACE_HEADER)).toBe(false);
 	});
 
 	it('posts JSON and parses the response', async () => {

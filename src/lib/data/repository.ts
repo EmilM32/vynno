@@ -11,7 +11,7 @@ import type {
 
 /**
  * Frontend data access boundary (async).
- * Memory impl for mock writes; HTTP impl for the live API (ADR-0004 / ADR-0010).
+ * HTTP impl is what the SPA uses; memory impl is tests + the mock `+server.ts` engine.
  */
 export interface TimeTrackingRepository {
 	listProjects(options?: ProjectListOptions): Promise<Project[]>;

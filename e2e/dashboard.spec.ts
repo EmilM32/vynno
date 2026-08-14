@@ -48,7 +48,7 @@ test.describe('dashboard active focus (SPA)', () => {
 		await expect(page.getByText(note, { exact: true })).toBeVisible();
 
 		await page.getByRole('button', { name: 'Pause' }).click();
-		await expect(page.getByText('PAUSED')).toBeVisible();
+		await expect(page.getByText('PAUSED', { exact: true })).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
 
 		const frozen = await page.getByRole('button', { name: 'Resume' }).textContent();
@@ -56,7 +56,7 @@ test.describe('dashboard active focus (SPA)', () => {
 		await expect(page.getByRole('button', { name: 'Resume' })).toHaveText(frozen!);
 
 		await page.getByRole('button', { name: 'Resume' }).click();
-		await expect(page.getByText('PAUSED')).toHaveCount(0);
+		await expect(page.getByText('PAUSED', { exact: true })).toHaveCount(0);
 		await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
 
 		await page.getByRole('button', { name: 'Stop' }).click();

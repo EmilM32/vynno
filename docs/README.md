@@ -20,7 +20,7 @@ Brand: say **VIN-oh**. See [brand.md](./brand.md).
 | [p2-backlog.md](./p2-backlog.md)               | Deferred P2 items (incl. **SSR-1**)                            |
 | [ssr-enablement.md](./ssr-enablement.md)       | Why SSR is off, risks, hydration rules, future enablement plan |
 | [api-contract.md](./api-contract.md)           | Proposed REST + JSON DTO contract (backend starting point)     |
-| [api-next.md](./api-next.md)                   | Phase 5b brief: wire mutations through HTTP (what’s left)      |
+| [api-next.md](./api-next.md)                   | Phase 5b status: HTTP writes shipped; 5c is live API + auth    |
 | [adr/](./adr/)                                 | Architecture Decision Records                                  |
 
 ## Design source material
@@ -44,4 +44,4 @@ See [ADR-0001](./adr/0001-frontend-stack.md) and [ADR-0002](./adr/0002-frontend-
 
 ## Status
 
-Phase 0: planning docs only. Application scaffold has not been started yet. See [roadmap.md](./roadmap.md).
+Frontend through Phase 5b: UI, mock HTTP reads **and** writes, contract ready for a separate backend. Next is Phase 5c (live origin + auth). See [roadmap.md](./roadmap.md).

@@ -18,7 +18,8 @@
 | **4b** | Project management | `/projects` CRUD (PRJ-5), mock mutations, primary nav                             | Done      |
 | **4c** | WCAG 2.2 AA        | Live regions, contrast, widgets, axe e2e — [accessibility.md](./accessibility.md) | Done      |
 | **5a** | API contract       | HTTP-fetched JSON, DTOs, mock GET `/mock/v1`, async repository                    | Done      |
-| **5b** | Live API           | Point `PUBLIC_API_BASE` at the real backend; wire HTTP writes + auth              | Yes       |
+| **5b** | HTTP writes        | Store uses HTTP repo; mock POST/PATCH/DELETE; contract docs                       | Done      |
+| **5c** | Live API           | Point `PUBLIC_API_BASE` at the real backend; auth; delete mock tree               | Yes       |
 
 ---
 
@@ -133,21 +134,28 @@
 
 **Exit criteria:** DevTools shows JSON requests; UI no longer imports TypeScript fixtures.
 
-## Phase 5b — Wire mutations + live API
+## Phase 5b — HTTP writes (mock + live-ready)
 
-**Brief:** [api-next.md](./api-next.md) (what 5a already built vs what this stage must do).
+**Done when:**
+
+- [x] Session store uses `HttpTimeTrackingRepository` after hydrate
+- [x] Mock `POST`/`PATCH`/`DELETE` under `/mock/v1` (header-scoped workspace)
+- [x] Start/stop/pause and project CRUD appear as HTTP requests
+- [x] Contract docs backend-ready ([api-contract.md](./api-contract.md))
+
+**Exit criteria:** App runs against mock **or** real API without UI rewrites. Brief: [api-next.md](./api-next.md).
+
+## Phase 5c — Live API
 
 **Goals**
 
-- Session store uses `HttpTimeTrackingRepository` for writes, not only the boot GETs.
-- Mock `POST`/`PATCH`/`DELETE` under `/mock/v1` so Timer and Projects work before the backend exists.
-- Then, when the backend is up: `PUBLIC_API_BASE=https://…/v1`, auth on `ApiClient`, delete mock routes.
+- Set `PUBLIC_API_BASE=https://…/v1`
+- Auth on `ApiClient`
+- Delete `src/routes/mock/v1/`, `$lib/api/fixtures/`, `$lib/api/mock/`
 
-**Depends on:** Phase 5a (done). Real backend only for the last bullet.
+**Depends on:** a backend that implements [api-contract.md](./api-contract.md).
 
-**Exit criteria:** Start/stop/pause and project CRUD appear as HTTP requests; app runs against mock **or** real API without UI rewrites.
-
-### After Phase 5b — SSR enablement (SSR-1)
+### After Phase 5c — SSR enablement (SSR-1)
 
 **Deferred.** The app intentionally uses `export const ssr = false` while mock session state is a process-wide module singleton. Enabling full server rendering without hydration bugs requires request-scoped seed data from `load`, context-based stores, and a shared time/timezone contract.
 

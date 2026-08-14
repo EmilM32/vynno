@@ -39,3 +39,19 @@ export function updateProjectToDto(input: UpdateProjectInput): UpdateProjectDto 
 	if (input.code !== undefined) dto.code = input.code;
 	return dto;
 }
+
+export function createProjectFromDto(dto: CreateProjectDto): CreateProjectInput {
+	return {
+		name: dto.name,
+		color: dto.color,
+		...(dto.code ? { code: dto.code } : {})
+	};
+}
+
+export function updateProjectFromDto(dto: UpdateProjectDto): UpdateProjectInput {
+	const input: UpdateProjectInput = {};
+	if (dto.name !== undefined) input.name = dto.name;
+	if (dto.color !== undefined) input.color = dto.color;
+	if (dto.code !== undefined) input.code = dto.code;
+	return input;
+}

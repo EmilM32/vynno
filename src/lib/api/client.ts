@@ -1,6 +1,7 @@
 import * as v from 'valibot';
-import { apiUrl } from './config';
+import { apiUrl, getApiBase, isMockApi } from './config';
 import { ApiError } from './errors';
+import { getMockWorkspaceId, MOCK_WORKSPACE_HEADER } from './mock-workspace';
 import { errorEnvelopeSchema } from './schemas/common';
 
 export type FetchFn = typeof globalThis.fetch;
@@ -35,6 +36,9 @@ export class ApiClient {
 		const headers = new Headers(init.headers);
 		if (init.body != null && !headers.has('content-type')) {
 			headers.set('content-type', 'application/json');
+		}
+		if (isMockApi(this.baseUrl ?? getApiBase()) && !headers.has(MOCK_WORKSPACE_HEADER)) {
+			headers.set(MOCK_WORKSPACE_HEADER, getMockWorkspaceId());
 		}
 
 		const response = await this.fetchFn(apiUrl(path, this.baseUrl), {

@@ -11,11 +11,11 @@ The UI must support a live timer, lists of sessions, and aggregates for Dashboar
 ## Decision
 
 1. **Repository interface** (name illustrative): e.g. `TimeTrackingRepository` with methods for projects, sessions, and aggregates (or compute aggregates in a pure domain layer from sessions).
-2. **`MemoryTimeTrackingRepository`** holds in-session mutations after the workspace is hydrated from HTTP JSON.
+2. **`MemoryTimeTrackingRepository`** is the unit-test double and the in-process engine behind mock `+server.ts`. The SPA does not construct it after hydrate.
 3. **Session lifecycle state** (active/paused clock) lives in a **client-side store** (runes class) so navigation does not reset the timer.
 4. **No IndexedDB / localStorage persistence required for MVP** — refresh may reset mock writes.
 5. First paint is seeded by `+layout.ts` `load` via `GET ${PUBLIC_API_BASE}/me|projects|sessions`. DTOs + mappers live in `src/lib/api/` ([ADR-0010](./0010-http-json-contract.md)).
-6. **`HttpTimeTrackingRepository`** implements the same async interface against the contract. The SPA uses it when `PUBLIC_API_BASE` points at a live API ([roadmap Phase 5b](../roadmap.md)).
+6. **`HttpTimeTrackingRepository`** is what the session store uses after hydrate (mock `/mock/v1` or a live origin). `PUBLIC_API_BASE` is the only swap.
 7. Domain types in [domain-model.md](../domain-model.md) / `src/lib/types/domain.ts` stay UI-facing; they are not the wire format.
 
 ## Consequences
@@ -39,6 +39,10 @@ The UI must support a live timer, lists of sessions, and aggregates for Dashboar
 | Fetch-only with MSW                | Good option later; mock repository is simpler for early UI. |
 | Local-first DB (Dexie, etc.)       | Extra complexity before API shape is known.                 |
 | Global ad-hoc component state only | Becomes unmaintainable across four feature screens.         |
+
+## Amendment (2026-08-14)
+
+Writes go through `HttpTimeTrackingRepository` like reads. Reload still resets mock data because each SPA lifetime sends a new `X-Mock-Workspace` header; that is a mock property, not a client memory repo.
 
 ## Related
 

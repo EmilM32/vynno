@@ -1,12 +1,14 @@
 # Vynno API contract (frontend-proposed)
 
-**Status:** Draft starting point for the future backend  
-**Last updated:** 2026-08-13  
-**Executable schemas:** `src/lib/api/schemas/`
+**Status:** Implemented on the client (Phase 5b) — backend starting point  
+**Last updated:** 2026-08-14  
+**Executable schemas:** `src/lib/api/schemas/` (source of truth if this doc and code drift)
 
-This is the wire format the SvelteKit app already speaks. The backend should implement these resources. If the live API diverges, change **schemas + mappers only**.
+This is the wire format the SvelteKit app speaks. The backend should implement these resources. If the live API diverges, change **schemas + mappers only** — not views or the session store.
 
-Until a backend exists, GET handlers at `/mock/v1` return this JSON. Set `PUBLIC_API_BASE` to the live origin (including `/v1`) to swap.
+Until a backend exists, `/mock/v1` implements the same contract (GET + writes). Set `PUBLIC_API_BASE` to the live origin (including `/v1`) to swap.
+
+---
 
 ## Conventions
 
@@ -20,30 +22,68 @@ Until a backend exists, GET handlers at `/mock/v1` return this JSON. Set `PUBLIC
 | Absent optionals | JSON `null` (not omitted)                            |
 | IDs              | Opaque strings                                       |
 | Pagination       | Not yet — `limit` query only                         |
+| Auth             | Not specified (see [Out of scope](#out-of-scope))    |
+
+Creates return **`201`**. Other successful writes return **`200`** with the updated resource. `DELETE` returns **`204`** with an empty body.
+
+---
 
 ## Error codes
 
-| Code                     | Typical status | When                                        |
-| ------------------------ | -------------- | ------------------------------------------- |
-| `not_found`              | 404            | Unknown project or session id               |
-| `invalid_query`          | 400            | Bad `status` / `limit`                      |
-| `invalid_json`           | 400/502        | Client could not parse the body             |
-| `invalid_response`       | 502            | Body did not match the contract schema      |
-| `http_error`             | 4xx/5xx        | Non-OK without an envelope                  |
-| `session_not_active`     | 404            | `GET /sessions/active` when idle            |
-| `session_already_active` | 409            | `POST /sessions` while one is active/paused |
-| `project_archived`       | 409            | Start/mutate against an archived project    |
-| `code_in_use`            | 409            | Project `code` not unique                   |
-| `last_active_project`    | 409            | Archive/delete of the last active project   |
-| `project_has_sessions`   | 409            | Hard-delete of a project that has logs      |
+| Code                     | Status | When                                              | UI string                         |
+| ------------------------ | ------ | ------------------------------------------------- | --------------------------------- |
+| `not_found`              | 404    | Unknown project or session id                     | `error_not_found`                 |
+| `invalid_query`          | 400    | Bad `status` / `limit` / missing mock header      | fallback                          |
+| `invalid_json`           | 400    | Request or response body is not JSON              | `error_invalid_response`          |
+| `invalid_body`           | 400    | Write body failed the request schema / validation | fallback (`error_failed_*`)       |
+| `invalid_response`       | 502    | Client: body did not match the response schema    | `error_invalid_response`          |
+| `http_error`             | 4xx/5xx| Non-OK without an envelope                        | fallback                          |
+| `session_not_active`     | 404    | `GET /sessions/active` when idle                  | `error_not_found`                 |
+| `session_already_active` | 409    | `POST /sessions` while one is active/paused       | `error_stop_before_start`         |
+| `project_archived`       | 409    | Start against an archived project                 | `error_project_archived`          |
+| `code_in_use`            | 409    | Project `code` not unique                         | `error_code_in_use`               |
+| `last_active_project`    | 409    | Archive/delete of the last active project         | `error_last_active_project`       |
+| `project_has_sessions`   | 409    | Hard-delete of a project that has logs            | `projects_cannot_delete_has_sessions` |
+| `invalid_transition`     | 409    | Pause/resume/stop (or archive/restore) in a bad state | fallback                      |
 
-Write-side codes are defined now; the mock SPA still enforces them in `MemoryTimeTrackingRepository` (English `Error` messages). The live HTTP repo will map envelope `code` + status.
+Example envelope:
+
+```json
+{
+	"error": {
+		"code": "session_already_active",
+		"message": "An active session already exists. Stop it before starting a new one."
+	}
+}
+```
+
+`message` is for logs / DevTools. The SPA maps `code` to Paraglide strings and does not show the raw English `message` for known codes.
+
+---
+
+## Business rules
+
+These are product rules the API must enforce. Details: [domain-model.md](./domain-model.md), [ADR-0006](./adr/0006-project-lifecycle.md).
+
+1. **One live session.** At most one session with status `active` or `paused`. A second `POST /sessions` is `409 session_already_active`. The client requires an explicit stop — do not auto-stop.
+2. **Restart is a new session.** Restart-from-recent sends `POST /sessions` with the same `projectId` / `note` / optional fields. It is not a resume of a stopped log.
+3. **Session actions are verbs.** Use `/pause`, `/resume`, `/stop` — not a generic `PATCH status`.
+4. **Elapsed time.** `pausedMs` is accumulated pause duration. On resume/stop-from-paused, add `now - pausedAt` into `pausedMs` and clear `pausedAt`.
+5. **Default `GET /projects` omits archived.** Pass `includeArchived=true` for management UI. Archived projects must still resolve via `GET /projects/:id` so logs keep a label.
+6. **Last active project.** Cannot archive or hard-delete the last non-archived project (`409 last_active_project`).
+7. **Hard delete** only when **zero** sessions reference the project. Otherwise `409 project_has_sessions` — archive instead.
+8. **Code uniqueness** is case-insensitive among all non-deleted projects, only when `code` is non-empty.
+9. **Cannot start** on a missing (`404 not_found`) or archived (`409 project_archived`) project.
+
+---
 
 ## Resources
 
 ### Profile
 
-`GET /me` → `ProfileDto`
+| Method | Path  | Body | Success        | Errors |
+| ------ | ----- | ---- | -------------- | ------ |
+| GET    | `/me` | —    | `ProfileDto`   | —      |
 
 ```json
 {
@@ -53,18 +93,22 @@ Write-side codes are defined now; the mock SPA still enforces them in `MemoryTim
 }
 ```
 
+Read-only in this stage. No `PATCH /me`.
+
 ### Projects
 
-| Method | Path                                | Body               | Success                   |
-| ------ | ----------------------------------- | ------------------ | ------------------------- |
-| GET    | `/projects?includeArchived=boolean` | —                  | `{ items: ProjectDto[] }` |
-| GET    | `/projects/:id`                     | —                  | `ProjectDto`              |
-| POST   | `/projects`                         | `CreateProjectDto` | `ProjectDto` `201`        |
-| PATCH  | `/projects/:id`                     | `UpdateProjectDto` | `ProjectDto`              |
-| POST   | `/projects/:id/archive`             | —                  | `ProjectDto`              |
-| POST   | `/projects/:id/restore`             | —                  | `ProjectDto`              |
-| DELETE | `/projects/:id`                     | —                  | `204`                     |
-| GET    | `/projects/:id/session-count`       | —                  | `{ count: number }`       |
+| Method | Path                                | Body               | Success                   | Typical errors |
+| ------ | ----------------------------------- | ------------------ | ------------------------- | -------------- |
+| GET    | `/projects?includeArchived=boolean` | —                  | `{ items: ProjectDto[] }` | —              |
+| GET    | `/projects/:id`                     | —                  | `ProjectDto`              | `not_found`    |
+| POST   | `/projects`                         | `CreateProjectDto` | `ProjectDto` `201`        | `invalid_body`, `code_in_use` |
+| PATCH  | `/projects/:id`                     | `UpdateProjectDto` | `ProjectDto`              | `not_found`, `invalid_body`, `code_in_use` |
+| POST   | `/projects/:id/archive`             | —                  | `ProjectDto`              | `not_found`, `last_active_project`, `invalid_transition` |
+| POST   | `/projects/:id/restore`             | —                  | `ProjectDto`              | `not_found`, `invalid_transition` |
+| DELETE | `/projects/:id`                     | —                  | `204`                     | `not_found`, `last_active_project`, `project_has_sessions` |
+| GET    | `/projects/:id/session-count`       | —                  | `{ "count": number }`     | —              |
+
+`ProjectDto`:
 
 ```json
 {
@@ -77,24 +121,33 @@ Write-side codes are defined now; the mock SPA still enforces them in `MemoryTim
 }
 ```
 
-`CreateProjectDto`: `{ name, color, code? }`  
-`UpdateProjectDto`: all fields optional; `code: null` clears the chip.
+`CreateProjectDto`:
 
-Default `GET /projects` **omits archived**. Pass `includeArchived=true` for management UI.
+```json
+{ "name": "New tool", "color": "#3b82f6", "code": "TOOL" }
+```
+
+`code` may be `null` or omitted. `color` is a `#rrggbb` palette hex.
+
+`UpdateProjectDto` — all fields optional; `code: null` clears the chip:
+
+```json
+{ "name": "Renamed", "code": null }
+```
 
 ### Sessions
 
-Session lifecycle uses **action URLs** (not a generic `PATCH status`) so the single-active-session rule stays explicit.
+| Method | Path                                     | Body              | Success                                | Typical errors |
+| ------ | ---------------------------------------- | ----------------- | -------------------------------------- | -------------- |
+| GET    | `/sessions?status=active,paused&limit=n` | —                 | `{ items: SessionDto[] }` newest-first | `invalid_query` |
+| GET    | `/sessions/active`                       | —                 | `SessionDto`                           | `session_not_active` |
+| GET    | `/sessions/:id`                          | —                 | `SessionDto`                           | `not_found`    |
+| POST   | `/sessions`                              | `StartSessionDto` | `SessionDto` `201`                     | `session_already_active`, `not_found`, `project_archived`, `invalid_body` |
+| POST   | `/sessions/:id/pause`                    | —                 | `SessionDto`                           | `not_found`, `invalid_transition` |
+| POST   | `/sessions/:id/resume`                   | —                 | `SessionDto`                           | `not_found`, `invalid_transition` |
+| POST   | `/sessions/:id/stop`                     | —                 | `SessionDto`                           | `not_found`, `invalid_transition` |
 
-| Method | Path                                     | Body              | Success                                    |
-| ------ | ---------------------------------------- | ----------------- | ------------------------------------------ |
-| GET    | `/sessions?status=active,paused&limit=n` | —                 | `{ items: SessionDto[] }` newest-first     |
-| GET    | `/sessions/active`                       | —                 | `SessionDto` or `404` `session_not_active` |
-| GET    | `/sessions/:id`                          | —                 | `SessionDto`                               |
-| POST   | `/sessions`                              | `StartSessionDto` | `SessionDto` `201`                         |
-| POST   | `/sessions/:id/pause`                    | —                 | `SessionDto`                               |
-| POST   | `/sessions/:id/resume`                   | —                 | `SessionDto`                               |
-| POST   | `/sessions/:id/stop`                     | —                 | `SessionDto`                               |
+`SessionDto`:
 
 ```json
 {
@@ -113,17 +166,55 @@ Session lifecycle uses **action URLs** (not a generic `PATCH status`) so the sin
 }
 ```
 
+`StartSessionDto`:
+
+```json
+{
+	"projectId": "proj-auth",
+	"note": "Refactoring Auth Service",
+	"ticketId": null,
+	"activityType": null,
+	"tags": [],
+	"targetDurationMs": null
+}
+```
+
 `activityType`: `deep_work` \| `meeting` \| `maintenance` \| `coding` \| `debugging` \| `docs` \| `research` \| `other`  
 `status`: `active` \| `paused` \| `stopped`
+
+`GET /sessions/active` returns the active **or paused** session. Idle → `404` `{ "error": { "code": "session_not_active", "message": "…" } }`.
+
+---
 
 ## Domain vs DTO
 
 UI code uses `$lib/types/domain` (`isArchived`, omitted optionals). DTOs use `archived` and JSON `null`. See `src/lib/api/mappers/`.
 
+---
+
+## Out of scope
+
+Not in this contract. Do not invent them to “complete” the API without a contract amendment.
+
+| Area | Client today |
+| --- | --- |
+| Auth / login / `Authorization` | None |
+| Profile edit | `GET /me` only |
+| Prefs (daily target, default project) | In-memory `prefsStore` |
+| Theme / locale | Device-local |
+| Insights / dashboard totals | Computed on the client from the session list |
+| Pagination / cursors | Full session list on boot (`limit` only) |
+| Edit or delete a stopped log | P2 (LOG-6) |
+| Manual time entry | P2 (LOG-7) |
+| Session target duration UI | Field exists on `StartSessionDto`; UI is P2 |
+
+---
+
 ## Swap to a live API
 
-1. Implement this contract.
+1. Implement this contract (schemas in `src/lib/api/schemas/`).
 2. Set `PUBLIC_API_BASE=https://…/v1`.
-3. Point the session store at `HttpTimeTrackingRepository` for writes as well as reads.
-4. Delete `src/routes/mock/v1/` and `$lib/api/fixtures/`.
-5. Add auth on `ApiClient` in one place.
+3. Add auth on `ApiClient` in one place (`src/lib/api/client.ts`).
+4. Delete `src/routes/mock/v1/`, `$lib/api/fixtures/`, and `$lib/api/mock/`.
+
+The SPA already uses `HttpTimeTrackingRepository` for every read and write. No view or store rewrite.

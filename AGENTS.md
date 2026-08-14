@@ -26,6 +26,7 @@ Vynno (formerly DevTime; repo `dev-time`) is a **frontend-only** focus-time trac
 - `npm run lint` / `npm run format` — Prettier + ESLint
 - `npm test` / `npm run test:watch` — Vitest unit tests (pure domain + mock repo)
 - `npm run test:e2e` — Playwright e2e (builds + previews app; see `e2e/`)
+- `npm run test:all` — unit tests then e2e (same as the Husky pre-push hook)
 
 ### Docs
 

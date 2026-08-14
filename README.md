@@ -59,6 +59,9 @@ App opens at the Vite URL (usually `http://localhost:5173`). `/` redirects to `/
 | `npm run test:e2e`        | Playwright e2e (builds + previews app) |
 | `npm run test:e2e:ui`     | Playwright UI mode                     |
 | `npm run test:e2e:headed` | Playwright headed browser              |
+| `npm run test:all`        | Unit tests, then Playwright e2e        |
+
+Git hooks (Husky) run `npm test` on commit and `npm run test:all` on push. A missing Chromium install is the usual e2e failure locally — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
 
 ## Routes
 

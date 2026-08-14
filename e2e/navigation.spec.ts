@@ -11,9 +11,9 @@ const routes = [
 ] as const;
 
 test.describe('navigation', () => {
-	test('root redirects to dashboard', async ({ page }) => {
+	test('root redirects to login', async ({ page }) => {
 		await page.goto('/');
-		await expect(page).toHaveURL(/\/dashboard$/);
+		await expect(page).toHaveURL(/\/login$/);
 	});
 
 	test('brand Vynno is visible in shell', async ({ page }, testInfo) => {

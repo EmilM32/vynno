@@ -1,15 +1,19 @@
 <script lang="ts">
 	import ActivityChip from '$lib/components/ui/ActivityChip.svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import { formatCompact, formatTimeRange, sessionElapsedMs } from '$lib/time/duration';
 	import type { TimeSession } from '$lib/types/domain';
+
+	const sessionStore = useSession();
 
 	let { session }: { session: TimeSession } = $props();
 
 	const project = $derived(sessionStore.getProject(session.projectId));
 	const duration = $derived(sessionElapsedMs(session));
-	const range = $derived(formatTimeRange(session.startedAt, session.endedAt));
+	const range = $derived(
+		formatTimeRange(session.startedAt, session.endedAt, sessionStore.timeZone)
+	);
 </script>
 
 <div
@@ -40,7 +44,7 @@
 				<ActivityChip type={session.activityType} />
 			</div>
 		{/if}
-		<div class="whitespace-nowrap font-mono text-code-data text-on-surface-variant">
+		<div class="font-mono text-code-data whitespace-nowrap text-on-surface-variant">
 			{range}
 		</div>
 		<div

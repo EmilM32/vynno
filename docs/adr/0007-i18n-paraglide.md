@@ -14,7 +14,7 @@ Use **Paraglide JS** (`@inlang/paraglide-js`) — SvelteKit’s recommended i18n
 
 - Message source: `messages/{locale}.json`
 - Generated runtime: `src/lib/paraglide/` (gitignored; produced by Vite plugin)
-- Locale strategy: `localStorage` → `cookie` → `preferredLanguage` → `baseLocale` (**no URL strategy**)
+- Locale strategy: `cookie` → `localStorage` → `preferredLanguage` → `baseLocale` (**no URL strategy**). Cookie is first so SSR and the first HTML agree ([ADR-0011](./0011-ssr-session-state.md)).
 - Language switcher lives in Settings; `setLocale()` reloads the document
 - Translate **typical product UI copy** (labels, buttons, headings, empty states, dialogs, validation/errors shown in UI)
 - Do **not** translate technical identifiers (Material icon ligatures, test ids, routes) or user/mock content (project names, session notes)

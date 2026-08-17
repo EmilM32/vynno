@@ -2,10 +2,12 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { m } from '$lib/paraglide/messages.js';
-	import { prefsStore } from '$lib/stores/prefs.svelte';
+	import { usePrefs } from '$lib/stores/prefs.svelte';
 	import BrandMark from './BrandMark.svelte';
 	import ProfileAvatar from './ProfileAvatar.svelte';
 	import { APP_VERSION, NAV_ITEMS, isNavActive } from './nav';
+
+	const prefsStore = usePrefs();
 </script>
 
 <nav

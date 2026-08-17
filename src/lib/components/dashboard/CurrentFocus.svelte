@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
+
+	const sessionStore = useSession();
 
 	const session = $derived(sessionStore.activeSession);
 	const isActive = $derived(session?.status === 'active');

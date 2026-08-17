@@ -4,10 +4,8 @@ import { expect, type APIRequestContext, type Locator, type Page } from '@playwr
 export const E2E_USERNAME = process.env.E2E_USERNAME ?? 'alexdev';
 export const E2E_PASSWORD = process.env.E2E_PASSWORD ?? 'local-dev-password';
 
-export const API_BASE = (process.env.PUBLIC_API_BASE ?? 'http://localhost:8080/v1').replace(
-	/\/$/,
-	''
-);
+/** Direct vynno-api origin for e2e setup (not the SPA `/v1` proxy). */
+export const API_BASE = (process.env.E2E_API_BASE ?? 'http://localhost:8080/v1').replace(/\/$/, '');
 const API_ORIGIN = new URL(API_BASE).origin;
 const SPA_ORIGIN = 'http://localhost:4173';
 
@@ -21,18 +19,20 @@ export function uniqueNote(prefix = 'e2e'): string {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-export async function registerAccount(request: APIRequestContext): Promise<E2EAccount> {
+export async function registerAccount(_request?: APIRequestContext): Promise<E2EAccount> {
 	const username = `e2e_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 	const password = 'e2epassword';
 	const displayName = `E2E ${username}`;
-	const res = await request.post(`${API_BASE}/auth/register`, {
-		data: { username, password, displayName, rememberMe: true },
-		failOnStatusCode: false
+	// Node fetch so Playwright's page cookie jar is not seeded (SSR would skip /login).
+	const res = await fetch(`${API_BASE}/auth/register`, {
+		method: 'POST',
+		headers: { 'content-type': 'application/json', origin: SPA_ORIGIN },
+		body: JSON.stringify({ username, password, displayName, rememberMe: true })
 	});
-	if (!res.ok()) {
+	if (!res.ok) {
 		const body = await res.text();
 		throw new Error(
-			`Could not register e2e user (${res.status()} ${body}). ` +
+			`Could not register e2e user (${res.status} ${body}). ` +
 				`Start vynno-api on ${API_ORIGIN}, then re-run npm run test:e2e.`
 		);
 	}
@@ -55,7 +55,7 @@ export async function login(page: Page, account?: E2EAccount): Promise<E2EAccoun
 }
 
 async function apiFetch(page: Page, path: string, init: { method?: string; data?: unknown } = {}) {
-	const cookies = await page.context().cookies(API_ORIGIN);
+	const cookies = await page.context().cookies();
 	const cookie = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
 	const url = `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`;
 	return page.request.fetch(url, {

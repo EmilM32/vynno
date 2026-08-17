@@ -10,8 +10,8 @@ UI  →  SessionStore  →  HttpTimeTrackingRepository  →  fetch  →  live /v
 
 `ApiClient` sends `credentials: 'include'`. Login is `POST /auth/login` with remember-me. The mock tree is deleted.
 
-Local `npm run dev` needs vynno-api on `:8080` and `PUBLIC_API_BASE=http://localhost:8080/v1`. The API `SPA_ORIGIN` must include `http://localhost:5173` and `http://localhost:4173`.
+Local `npm run dev` needs vynno-api on `:8080`. The UI calls same-origin `/v1` (Kit proxies to `API_ORIGIN`, default `http://localhost:8080`). The API `SPA_ORIGIN` must include `http://localhost:5173` and `http://localhost:4173`.
 
 `npm test` (Husky commit + push) does not start or require the API. `npm run test:e2e` is the manual full-stack check: vynno-api must be up; the suite registers throwaway users and does not share the bootstrap `alexdev` account.
 
-Not in this stage: SSR, prefs persistence, insights endpoints, log edit/delete.
+Not in this stage: prefs persistence, insights endpoints, log edit/delete. SSR is [ADR-0011](./adr/0011-ssr-session-state.md).

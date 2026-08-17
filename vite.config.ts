@@ -24,7 +24,7 @@ export default defineConfig({
 			outdir: './src/lib/paraglide',
 			emitTsDeclarations: true,
 			// App-level locale only — no URL prefixes (/en/timer).
-			strategy: ['localStorage', 'cookie', 'preferredLanguage', 'baseLocale']
+			strategy: ['cookie', 'localStorage', 'preferredLanguage', 'baseLocale']
 		})
 	],
 	test: {

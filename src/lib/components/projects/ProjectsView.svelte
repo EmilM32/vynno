@@ -2,10 +2,12 @@
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import type { Project } from '$lib/types/domain';
 	import ProjectForm from './ProjectForm.svelte';
 	import ProjectRow from './ProjectRow.svelte';
+
+	const sessionStore = useSession();
 
 	type Tab = 'active' | 'archived';
 	type FormMode = { kind: 'create' } | { kind: 'edit'; project: Project } | null;

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
+
+	const sessionStore = useSession();
 	import { formatCompact } from '$lib/time/duration';
 
 	const items = $derived(sessionStore.projectWeekSummaries);

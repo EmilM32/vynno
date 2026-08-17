@@ -18,7 +18,7 @@ The backend does not exist yet ([ADR-0002](./0002-frontend-only-separation.md)).
 4. **Mock GET handlers** under `src/routes/mock/v1/` materialize fixture JSON (session dates are relative offsets) and return DTO JSON. They are disposable and are **not** the system of record.
 5. **Writes go through `HttpTimeTrackingRepository`** after hydrate, same as later refreshes. Mock `+server.ts` implements the write verbs against a **header-scoped** in-process store (`X-Mock-Workspace`, one UUID per SPA lifetime) so a full reload still reseeds fixtures (e2e unchanged). `MemoryTimeTrackingRepository` remains the mock engine and the unit-test double.
 6. **No remote functions** for this phase. They are experimental, Kit-specific RPC, and would force a rewrite when the separate backend lands.
-7. **SSR stays off** (`ssr = false`). Seed-from-`load` is the client path that [ssr-enablement.md](../ssr-enablement.md) already required as G1.
+7. **SSR is on.** First paint comes from `+layout.server.ts` (`loadAppSeed` + cookie-forwarding `handleFetch`). See [ADR-0011](./0011-ssr-session-state.md).
 
 ## Consequences
 

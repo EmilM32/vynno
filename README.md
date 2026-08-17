@@ -46,7 +46,7 @@ npm run dev
 
 App opens at the Vite URL (usually `http://localhost:5173`). `/` redirects to `/login` when signed out, or `/dashboard` when a session is stored.
 
-Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) at `PUBLIC_API_BASE` (default `http://localhost:8080/v1`). You do **not** need the API running to commit or push.
+Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) through a same-origin `/v1` proxy (API default `http://localhost:8080`). You do **not** need the API running to commit or push.
 
 | Script                    | Purpose                                                            |
 | ------------------------- | ------------------------------------------------------------------ |
@@ -92,7 +92,7 @@ npm run test:e2e
 
 UI copy lives in `messages/en.json` and `messages/pl.json` and is compiled by Paraglide into `$lib/paraglide`. Components use `m.some_key()` from `$lib/paraglide/messages.js`.
 
-- **Locale strategy:** app-level only (`localStorage` / cookie) — no `/en/…` URL prefixes
+- **Locale strategy:** app-level only (`cookie` / `localStorage`) — no `/en/…` URL prefixes
 - **Switcher:** Settings → Language
 - **Add a language:** add the tag to `project.inlang/settings.json` and create `messages/<tag>.json` with the same keys
 

@@ -1,25 +1,45 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import type { AppSeed } from '$lib/api/types';
 	import { m } from '$lib/paraglide/messages.js';
-	import { prefsStore } from '$lib/stores/prefs.svelte';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { authStore } from '$lib/stores/auth.svelte';
+	import { createPrefsStore, setPrefs } from '$lib/stores/prefs.svelte';
+	import { createSessionStore, setSession } from '$lib/stores/session.svelte';
 	import { themeStore } from '$lib/theme/theme.svelte';
 	import { resolveTheme } from '$lib/theme/themes';
+	import { persistTimeZoneCookie } from '$lib/time/timezone';
 
 	let { children, data } = $props();
 
-	const themeColor = $derived(resolveTheme(themeStore.themeId).themeColor);
+	const prefs = createPrefsStore();
+	const session = createSessionStore(prefs);
+	setPrefs(prefs);
+	setSession(session);
 
-	function applySeed(seed: AppSeed | null) {
-		if (!seed) return;
-		prefsStore.hydrateProfile(seed.profile);
-		sessionStore.hydrate(seed);
+	function applySeed() {
+		if (!data.seed) return;
+		prefs.hydrateProfile(data.seed.profile);
+		session.hydrate(data.seed, { nowMs: data.nowMs, timeZone: data.timeZone });
 	}
 
+	// Synchronous so SSR HTML matches hydrate. `$effect.pre` covers login → app
+	// without remounting this layout.
+	applySeed();
+
 	$effect.pre(() => {
-		applySeed(data.seed);
+		applySeed();
+	});
+
+	const themeColor = $derived(resolveTheme(themeStore.themeId).themeColor);
+
+	$effect(() => {
+		persistTimeZoneCookie();
+		if (data.seed) {
+			const handle = data.seed.profile.handle.replace(/^@/, '');
+			if (handle && !authStore.loggedIn) {
+				authStore.applySession(handle);
+			}
+		}
 	});
 </script>
 

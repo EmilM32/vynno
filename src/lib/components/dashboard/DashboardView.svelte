@@ -1,12 +1,14 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import ActiveProjects from './ActiveProjects.svelte';
 	import CurrentFocus from './CurrentFocus.svelte';
 	import RecentLogsList from './RecentLogsList.svelte';
 	import TodayTotal from './TodayTotal.svelte';
 	import WeeklyOverview from './WeeklyOverview.svelte';
+
+	const sessionStore = useSession();
 </script>
 
 <div class="flex flex-col gap-gutter" data-testid="page-view">

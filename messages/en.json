@@ -127,7 +127,7 @@
 	"insights_no_rows": "No rows for this period.",
 
 	"projects_title": "Projects",
-	"projects_subtitle": "Manage work containers. Changes apply this session (mock data).",
+	"projects_subtitle": "Manage work containers.",
 	"projects_new": "New project",
 	"projects_status_aria": "Project status",
 	"projects_tab_active": "Active",
@@ -136,7 +136,7 @@
 	"projects_empty_archived": "No archived projects.",
 	"projects_create_one": "Create a project",
 	"projects_delete_title": "Delete project?",
-	"projects_delete_message": "Permanently remove “{name}”? This cannot be undone in this session.",
+	"projects_delete_message": "Permanently remove “{name}”? This cannot be undone.",
 	"projects_delete": "Delete",
 	"projects_form_new": "New project",
 	"projects_form_edit": "Edit project",
@@ -172,7 +172,7 @@
 	"projects_cannot_delete_last": "Cannot delete the last active project",
 
 	"settings_title": "Settings",
-	"settings_subtitle": "Local preferences for this session. Account sync arrives with the API.",
+	"settings_subtitle": "Theme and daily target stay on this device.",
 	"settings_profile": "Profile",
 	"settings_logout": "Log out",
 	"settings_logout": "Log out",

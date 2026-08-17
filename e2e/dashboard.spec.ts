@@ -15,6 +15,7 @@ test.describe('dashboard', () => {
 	});
 
 	test('weekly overview has day bars', async ({ page }) => {
+		await login(page);
 		await page.goto('/dashboard');
 		const week = page.getByRole('region', { name: 'Weekly overview' });
 		await expect(week.getByText('Weekly Overview')).toBeVisible();
@@ -25,6 +26,7 @@ test.describe('dashboard', () => {
 	});
 
 	test('current focus empty when idle', async ({ page }) => {
+		await login(page);
 		await page.goto('/dashboard');
 		await expect(page.getByText('No active session. Start tracking from the Timer.')).toBeVisible();
 		await expect(page.getByRole('link', { name: /Start session/i })).toBeVisible();

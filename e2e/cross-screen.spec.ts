@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, spaGo, startSession, stopSession, uniqueNote } from './helpers';
+import { spaGo, startSession, stopSession, uniqueNote } from './helpers';
 
 /**
  * Cross-screen flows must use SPA navigation after mutations —
@@ -28,8 +28,8 @@ test.describe('cross-screen data', () => {
 	});
 
 	test('restart from recent tasks (Flow D)', async ({ page }) => {
-		await login(page);
-		await page.goto('/timer');
+		await startSession(page, uniqueNote('recent'));
+		await stopSession(page);
 		const firstTask = page.getByTestId('recent-task-restart').first();
 		await expect(firstTask).toBeEnabled();
 
@@ -51,7 +51,9 @@ test.describe('cross-screen data', () => {
 	});
 
 	test('restart from dashboard recent log while idle', async ({ page }) => {
-		await page.goto('/dashboard');
+		await startSession(page, uniqueNote('restart-dash'));
+		await stopSession(page);
+		await spaGo(page, 'Dashboard', '/dashboard');
 		const restart = page.getByRole('button', { name: /^Restart / }).first();
 		// Button is opacity-0 until hover; force click still runs the handler
 		await restart.click({ force: true });

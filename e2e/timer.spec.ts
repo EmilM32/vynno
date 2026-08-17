@@ -12,7 +12,7 @@ test.describe('timer lifecycle', () => {
 		await expect(timer).toBeVisible();
 		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
 		await expect(page.getByTestId('timer-elapsed')).toHaveText('00:00:00');
-		await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
 	});
 
 	test('start posts to sessions', async ({ page }) => {
@@ -22,7 +22,7 @@ test.describe('timer lifecycle', () => {
 			page.waitForRequest(
 				(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
 			),
-			page.getByRole('button', { name: 'Start' }).click()
+			page.getByRole('button', { name: 'Start', exact: true }).click()
 		]);
 		expect(request.postDataJSON()).toMatchObject({ note });
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
@@ -31,11 +31,11 @@ test.describe('timer lifecycle', () => {
 	test('start with note and project (Flow A)', async ({ page }) => {
 		const note = uniqueNote('start');
 		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
-		await page.locator('#project-select').selectOption({ label: 'Identity' });
-		await page.getByRole('button', { name: 'Start' }).click();
+		await page.locator('#project-select').selectOption({ label: 'Personal' });
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
 
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await expect(page.getByTestId('timer-project')).toContainText('AUTH');
+		await expect(page.getByTestId('timer-project')).toContainText('PERS');
 		await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible();
 		await expect(page.getByTestId('timer-elapsed')).toHaveText(/\d{2}:\d{2}:\d{2}/);
@@ -57,7 +57,7 @@ test.describe('timer lifecycle', () => {
 
 	test('pause and resume (Flow B)', async ({ page }) => {
 		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('pause'));
-		await page.getByRole('button', { name: 'Start' }).click();
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 
 		await page.getByRole('button', { name: 'Pause' }).click();
@@ -76,7 +76,7 @@ test.describe('timer lifecycle', () => {
 	test('stop returns to idle (Flow C)', async ({ page }) => {
 		const note = uniqueNote('stop');
 		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
-		await page.getByRole('button', { name: 'Start' }).click();
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		const [stopReq] = await Promise.all([
 			page.waitForRequest(
@@ -87,7 +87,7 @@ test.describe('timer lifecycle', () => {
 		expect(stopReq.method()).toBe('POST');
 
 		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
-		await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
 		await expect(page.getByRole('textbox', { name: 'Task description' })).toBeEnabled();
 		await expect(page.locator('#project-select')).toBeEnabled();
 		// Draft keeps last finished note
@@ -96,16 +96,21 @@ test.describe('timer lifecycle', () => {
 
 	test('inputs locked while active', async ({ page }) => {
 		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('lock'));
-		await page.getByRole('button', { name: 'Start' }).click();
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByRole('textbox', { name: 'Task description' })).toBeDisabled();
 		await expect(page.locator('#project-select')).toBeDisabled();
 	});
 
 	test('restart from recent task blocked while busy', async ({ page }) => {
-		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('busy'));
-		await page.getByRole('button', { name: 'Start' }).click();
+		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('prior'));
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		// Buttons are disabled when busy — cannot start another session
+		await page.getByRole('button', { name: 'Stop' }).click();
+		await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
+
+		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('busy'));
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		await expect(page.getByTestId('recent-task-restart').first()).toBeDisabled();
 	});
 });

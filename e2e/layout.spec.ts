@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { login } from './helpers';
+import { login, seedStoppedSessions } from './helpers';
 
 async function contentBox(page: Page) {
 	return page.locator('#main-content').evaluate((main) => {
@@ -41,6 +41,7 @@ test.describe('desktop layout', () => {
 
 	test('header stays pinned and hides the description when scrolled', async ({ page }) => {
 		await login(page);
+		await seedStoppedSessions(page, 16);
 		await page.goto('/logs');
 		const header = page.getByTestId('page-header');
 		const title = page.getByRole('heading', { name: 'System Logs', level: 1 });

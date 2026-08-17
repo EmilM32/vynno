@@ -24,7 +24,7 @@ The product still has to work. Agent output is reviewed and held to the same sta
 | In this repo                                           | Companion repo                                                          |
 | ------------------------------------------------------ | ----------------------------------------------------------------------- |
 | SvelteKit + TypeScript + Tailwind UI                   | [vynno-api](https://github.com/EmilM32/vynno-api) — API, database, auth |
-| HTTP-fetched mock JSON + in-memory writes              | Persistence and multi-device sync                                       |
+| HTTP client + cookie auth                              | Persistence and multi-device sync                                       |
 | Design system (originally prototyped in Google Stitch) | Business rules that must stay on the server                             |
 
 ## Stack
@@ -44,24 +44,38 @@ npm install
 npm run dev
 ```
 
-App opens at the Vite URL (usually `http://localhost:5173`). `/` redirects to `/dashboard`.
+App opens at the Vite URL (usually `http://localhost:5173`). `/` redirects to `/login` when signed out, or `/dashboard` when a session is stored.
 
-| Script                    | Purpose                                |
-| ------------------------- | -------------------------------------- |
-| `npm run dev`             | Dev server                             |
-| `npm run build`           | Production build                       |
-| `npm run preview`         | Preview production build               |
-| `npm run check`           | `svelte-check` + sync                  |
-| `npm run lint`            | Prettier + ESLint                      |
-| `npm run format`          | Format with Prettier                   |
-| `npm test`                | Vitest unit tests (run once)           |
-| `npm run test:watch`      | Vitest watch mode                      |
-| `npm run test:e2e`        | Playwright e2e (builds + previews app) |
-| `npm run test:e2e:ui`     | Playwright UI mode                     |
-| `npm run test:e2e:headed` | Playwright headed browser              |
-| `npm run test:all`        | Unit tests, then Playwright e2e        |
+Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) at `PUBLIC_API_BASE` (default `http://localhost:8080/v1`). You do **not** need the API running to commit or push.
 
-Git hooks (Husky) run `npm test` on commit and `npm run test:all` on push. A missing Chromium install is the usual e2e failure locally — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
+| Script                    | Purpose                                                            |
+| ------------------------- | ------------------------------------------------------------------ |
+| `npm run dev`             | Dev server                                                         |
+| `npm run build`           | Production build                                                   |
+| `npm run preview`         | Preview production build                                           |
+| `npm run check`           | `svelte-check` + sync                                              |
+| `npm run lint`            | Prettier + ESLint                                                  |
+| `npm run format`          | Format with Prettier                                               |
+| `npm test`                | Vitest unit tests (run once; no API)                               |
+| `npm run test:watch`      | Vitest watch mode                                                  |
+| `npm run test:e2e`        | Playwright against a running vynno-api (manual; see below)         |
+| `npm run test:e2e:ui`     | Playwright UI mode                                                 |
+| `npm run test:e2e:headed` | Playwright headed browser                                          |
+| `npm run test:all`        | Unit tests, then Playwright e2e (run on purpose, not on git hooks) |
+
+Git hooks (Husky) run `npm test` on commit **and** on push. Playwright is not part of the hook — a font-size change should not require the API.
+
+When you want the full product path (login, timer, projects against the live contract):
+
+```sh
+# in vynno-api
+go run ./cmd/api
+
+# in this repo
+npm run test:e2e
+```
+
+`npm run test:e2e` builds the SPA, starts the preview on `:4173`, and registers throwaway users so it does not leave `alexdev` with a live session. It fails fast if `/healthz` is down. A missing Chromium install is the usual browser-side failure — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
 
 ## Routes
 

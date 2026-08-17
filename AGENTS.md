@@ -4,9 +4,9 @@
 
 Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwind). Brand: [docs/brand.md](./docs/brand.md). Companion API: [vynno-api](https://github.com/EmilM32/vynno-api).
 
-| In this repo                              | Companion repo                    |
-| ----------------------------------------- | --------------------------------- |
-| SvelteKit UI, routing, design system      | API, database, auth               |
+| In this repo                           | Companion repo                     |
+| -------------------------------------- | ---------------------------------- |
+| SvelteKit UI, routing, design system   | API, database, auth                |
 | SvelteKit UI, HTTP client, auth attach | Persistence, `/v1`, session cookie |
 
 ### Stack conventions
@@ -24,9 +24,9 @@ Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwi
 - `npm run dev` — Vite dev server
 - `npm run check` — `svelte-kit sync` + `svelte-check`
 - `npm run lint` / `npm run format` — Prettier + ESLint
-- `npm test` / `npm run test:watch` — Vitest unit tests (domain + HTTP repo with mocked fetch)
-- `npm run test:e2e` — Playwright e2e (builds + previews app; see `e2e/`)
-- `npm run test:all` — unit tests then e2e (same as the Husky pre-push hook)
+- `npm test` / `npm run test:watch` — Vitest unit tests (domain + HTTP repo with mocked fetch). Husky runs this on commit and push.
+- `npm run test:e2e` — Playwright against a **running** vynno-api (`:8080`). Manual / CI; not a git hook. Registers throwaway users.
+- `npm run test:all` — unit tests then e2e (opt-in; not hooked)
 
 ### Docs
 

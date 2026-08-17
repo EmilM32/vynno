@@ -1,17 +1,19 @@
 import { expect, test } from '@playwright/test';
-import { login } from './helpers';
+import { login, type E2EAccount } from './helpers';
 
 test.describe('settings', () => {
+	let account: E2EAccount;
+
 	test.beforeEach(async ({ page }) => {
-		await login(page);
+		account = await login(page);
 		await page.goto('/settings');
 	});
 
 	test('shows profile', async ({ page }) => {
 		await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 		const profile = page.getByRole('region', { name: 'Profile' });
-		await expect(profile.getByText('Alex Dev')).toBeVisible();
-		await expect(profile.getByText('@alexdev')).toBeVisible();
+		await expect(profile.getByText(account.displayName)).toBeVisible();
+		await expect(profile.getByText(`@${account.username}`)).toBeVisible();
 	});
 
 	test('daily target is editable in-session', async ({ page }) => {

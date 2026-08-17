@@ -10,13 +10,14 @@ test.describe('projects', () => {
 	test('shows management heading and seeded projects', async ({ page }) => {
 		await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
 		await expect(page.getByTestId('project-list')).toBeVisible();
-		await expect(page.getByText('Identity')).toBeVisible();
+		await expect(page.getByText('Personal')).toBeVisible();
 	});
 
 	test('creates a project and lists it as active', async ({ page }) => {
 		const name = `E2E Project ${Date.now()}`;
 		await page.getByTestId('new-project').click();
 		await page.getByLabel('Name').fill(name);
+		await page.locator('#project-code').fill('');
 		const [request] = await Promise.all([
 			page.waitForRequest(
 				(r) => r.method() === 'POST' && /\/v1\/projects$/.test(new URL(r.url()).pathname)
@@ -33,6 +34,7 @@ test.describe('projects', () => {
 		const name = `Timer Pick ${Date.now()}`;
 		await page.getByTestId('new-project').click();
 		await page.getByLabel('Name').fill(name);
+		await page.locator('#project-code').fill('');
 		await page.getByRole('button', { name: 'Create project' }).click();
 		await expect(page.getByTestId('project-list').getByText(name)).toBeVisible();
 

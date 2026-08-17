@@ -34,11 +34,11 @@ test.describe('logs', () => {
 	test('search by project name reduces list', async ({ page }) => {
 		const rows = page.getByTestId('log-row');
 		const before = await rows.count();
-		await page.getByRole('searchbox', { name: 'Search logs' }).fill('Identity');
+		await page.getByRole('searchbox', { name: 'Search logs' }).fill('Personal');
 		const after = await rows.count();
 		expect(after).toBeGreaterThan(0);
 		expect(after).toBeLessThanOrEqual(before);
-		await expect(rows.first()).toContainText(/Identity|>/i);
+		await expect(rows.first()).toContainText(/Personal|>/i);
 	});
 
 	test('row shows project, note, and duration shape', async ({ page }) => {

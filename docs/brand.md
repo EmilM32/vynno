@@ -40,9 +40,17 @@ Friendly name, serious tool. The chrome is dense and IDE-like — precise, not c
 
 ## Mark
 
-**Now:** timer icon + **Vynno** wordmark (sidebar and mobile top bar).
+A **session ring** with a **play-V** in the gap (3 o’clock). The ring is focus / elapsed time; the wedge is start, with a V-notch on its left edge. Not a downward letter-V (that silhouette is Vue).
 
-**Later (not this pass):** a V-as-play-button mark. Do not block shipping on a logo.
+| Asset   | Path                                                              | Use                                                            |
+| ------- | ----------------------------------------------------------------- | -------------------------------------------------------------- |
+| Mark    | [`src/lib/assets/logo-mark.svg`](../src/lib/assets/logo-mark.svg) | Symbol only. Change the root `fill` to recolor.                |
+| Lockup  | [`src/lib/assets/logo.svg`](../src/lib/assets/logo.svg)           | Mark + outlined Inter “Vynno”. Same recolor.                   |
+| Favicon | [`src/lib/assets/favicon.svg`](../src/lib/assets/favicon.svg)     | Mark on a rounded tile; dark/light via `prefers-color-scheme`. |
+
+In the product the mark is `BrandMark.svelte` (`currentColor` / `text-primary`) beside the live Inter wordmark — sidebar, mobile top bar, and login. Do not replace the word with the SVG lockup in the UI.
+
+Keep the path `d` identical across the three SVGs and `BrandMark.svelte`.
 
 ## Repo vs product
 

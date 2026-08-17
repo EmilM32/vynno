@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import { m } from '$lib/paraglide/messages.js';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
+	import BrandMark from './BrandMark.svelte';
 	import { APP_VERSION, NAV_ITEMS, isNavActive } from './nav';
 
 	const initials = $derived(
@@ -20,7 +21,7 @@
 	aria-label={m.nav_main_aria()}
 >
 	<div class="mb-8 flex items-center gap-3 px-6">
-		<span class="material-symbols-outlined text-3xl text-primary" aria-hidden="true">timer</span>
+		<BrandMark class="size-8 shrink-0 text-primary" />
 		<div>
 			<p class="text-headline-md leading-tight font-bold text-primary">{m.app_name()}</p>
 			<p class="font-mono text-[10px] text-on-surface-variant uppercase">

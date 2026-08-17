@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import BrandMark from '$lib/components/shell/BrandMark.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
 	import { m } from '$lib/paraglide/messages.js';
 	import { authStore } from '$lib/stores/auth.svelte';
@@ -31,7 +32,7 @@
 		data-testid="login-form"
 	>
 		<div class="mb-6 flex items-center gap-3">
-			<span class="material-symbols-outlined text-3xl text-primary" aria-hidden="true">timer</span>
+			<BrandMark class="size-8 shrink-0 text-primary" />
 			<div>
 				<h1 class="text-headline-md leading-tight font-bold text-primary">{m.app_name()}</h1>
 				<p class="text-body-sm text-on-surface-variant">{m.login_tagline()}</p>

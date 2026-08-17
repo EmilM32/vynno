@@ -2,6 +2,7 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
 	import { sessionStore } from '$lib/stores/session.svelte';
+	import BrandMark from './BrandMark.svelte';
 
 	let { title = '' }: { title?: string } = $props();
 	let searchBtn: HTMLButtonElement | undefined = $state();
@@ -17,7 +18,7 @@
 	class="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-outline-variant bg-surface px-4 md:hidden"
 >
 	<div class="flex items-center gap-2">
-		<span class="material-symbols-outlined text-xl text-primary" aria-hidden="true">terminal</span>
+		<BrandMark class="size-6 shrink-0 text-primary" />
 		<span class="text-headline-md font-bold text-primary">{m.app_name()}</span>
 	</div>
 	<div class="flex items-center gap-3">

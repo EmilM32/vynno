@@ -8,6 +8,7 @@ import type { UserProfile } from '$lib/types/domain';
 class PrefsStore {
 	displayName = $state('');
 	handle = $state('');
+	avatarUrl = $state<string | undefined>(undefined);
 
 	/** Daily hour goal used by Insights “vs target”. */
 	dailyTargetHours = $state(8);
@@ -20,6 +21,7 @@ class PrefsStore {
 	hydrateProfile = (profile: UserProfile): void => {
 		this.displayName = profile.displayName;
 		this.handle = profile.handle;
+		this.avatarUrl = profile.avatarUrl;
 	};
 
 	setDailyTargetHours = (hours: number): void => {

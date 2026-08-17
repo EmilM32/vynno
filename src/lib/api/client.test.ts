@@ -55,6 +55,20 @@ describe('ApiClient', () => {
 		});
 	});
 
+	it('putFile sends FormData without a JSON content-type', async () => {
+		const fetchFn = vi.fn().mockResolvedValue(
+			jsonResponse({ displayName: 'Alex', handle: '@a', avatarUrl: 'http://localhost:8080/v1/avatars/1' })
+		);
+		const client = new ApiClient(fetchFn, 'http://localhost:8080/v1');
+		const file = new Blob([new Uint8Array([0xff, 0xd8, 0xff])], { type: 'image/jpeg' });
+		const profile = await client.putFile('/me/avatar', file, profileDtoSchema);
+		expect(profile.avatarUrl).toBe('http://localhost:8080/v1/avatars/1');
+		const init = fetchFn.mock.calls[0]?.[1] as RequestInit;
+		expect(init.method).toBe('PUT');
+		expect(init.body).toBeInstanceOf(FormData);
+		expect(new Headers(init.headers).get('content-type')).toBeNull();
+	});
+
 	it('delete accepts an empty 204', async () => {
 		const fetchFn = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
 		const client = new ApiClient(fetchFn, 'http://localhost:8080/v1');

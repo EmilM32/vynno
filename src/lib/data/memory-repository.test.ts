@@ -158,6 +158,21 @@ describe('MemoryTimeTrackingRepository', () => {
 			expect((await repo.getProject(PROJECT_IDS.auth))?.name).toBe('Identity');
 			expect((await repo.getProfile()).handle).toBe('@alexdev');
 		});
+
+		it('updates display name and avatar', async () => {
+			const renamed = await repo.updateProfile({ displayName: '  Renamed  ' });
+			expect(renamed.displayName).toBe('Renamed');
+			await expectCode(repo.updateProfile({ displayName: '  ' }), 'invalid_body');
+
+			const jpeg = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0x00])], { type: 'image/jpeg' });
+			const withPhoto = await repo.uploadAvatar(jpeg);
+			expect(withPhoto.avatarUrl).toMatch(/^memory:avatar:/);
+
+			const svg = new Blob([new TextEncoder().encode('<svg></svg>')], { type: 'image/svg+xml' });
+			await expectCode(repo.uploadAvatar(svg), 'invalid_body');
+
+			expect((await repo.deleteAvatar()).avatarUrl).toBeUndefined();
+		});
 	});
 
 	describe('project CRUD', () => {

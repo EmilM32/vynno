@@ -16,6 +16,7 @@ import type {
 	SessionFilters,
 	StartSessionInput,
 	TimeSession,
+	UpdateProfileInput,
 	UpdateProjectInput,
 	UserProfile
 } from '$lib/types/domain';
@@ -83,6 +84,25 @@ export class HttpTimeTrackingRepository implements TimeTrackingRepository {
 
 	async getProfile(): Promise<UserProfile> {
 		const dto = await this.#client.get(apiPaths.me(), profileDtoSchema);
+		return profileFromDto(dto);
+	}
+
+	async updateProfile(input: UpdateProfileInput): Promise<UserProfile> {
+		const dto = await this.#client.patch(
+			apiPaths.me(),
+			{ displayName: input.displayName },
+			profileDtoSchema
+		);
+		return profileFromDto(dto);
+	}
+
+	async uploadAvatar(file: Blob): Promise<UserProfile> {
+		const dto = await this.#client.putFile(apiPaths.meAvatar(), file, profileDtoSchema);
+		return profileFromDto(dto);
+	}
+
+	async deleteAvatar(): Promise<UserProfile> {
+		const dto = await this.#client.deleteJson(apiPaths.meAvatar(), profileDtoSchema);
 		return profileFromDto(dto);
 	}
 

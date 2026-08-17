@@ -31,6 +31,12 @@ export class ApiClient {
 		return this.request(path, { method: 'PATCH', body: JSON.stringify(body) }, schema);
 	}
 
+	putFile<T>(path: string, file: Blob, schema: v.GenericSchema<unknown, T>): Promise<T> {
+		const body = new FormData();
+		body.append('file', file);
+		return this.request(path, { method: 'PUT', body }, schema);
+	}
+
 	async postNoContent(path: string, body?: unknown): Promise<void> {
 		await this.request(
 			path,
@@ -43,13 +49,17 @@ export class ApiClient {
 		await this.request(path, { method: 'DELETE' }, null);
 	}
 
+	deleteJson<T>(path: string, schema: v.GenericSchema<unknown, T>): Promise<T> {
+		return this.request(path, { method: 'DELETE' }, schema);
+	}
+
 	private async request<T>(
 		path: string,
 		init: RequestInit,
 		schema: v.GenericSchema<unknown, T> | null
 	): Promise<T> {
 		const headers = new Headers(init.headers);
-		if (init.body != null && !headers.has('content-type')) {
+		if (init.body != null && !headers.has('content-type') && !(init.body instanceof FormData)) {
 			headers.set('content-type', 'application/json');
 		}
 

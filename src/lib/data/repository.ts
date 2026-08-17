@@ -5,6 +5,7 @@ import type {
 	SessionFilters,
 	StartSessionInput,
 	TimeSession,
+	UpdateProfileInput,
 	UpdateProjectInput,
 	UserProfile
 } from '$lib/types/domain';
@@ -25,6 +26,9 @@ export interface TimeTrackingRepository {
 	countSessionsForProject(projectId: string): Promise<number>;
 
 	getProfile(): Promise<UserProfile>;
+	updateProfile(input: UpdateProfileInput): Promise<UserProfile>;
+	uploadAvatar(file: Blob): Promise<UserProfile>;
+	deleteAvatar(): Promise<UserProfile>;
 
 	/** Sessions newest-first. */
 	listSessions(filters?: SessionFilters): Promise<TimeSession[]>;

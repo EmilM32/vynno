@@ -74,6 +74,10 @@ export interface UserProfile {
 	avatarUrl?: string;
 }
 
+export interface UpdateProfileInput {
+	displayName: string;
+}
+
 export interface StartSessionInput {
 	projectId: string;
 	note: string;

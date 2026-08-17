@@ -98,9 +98,13 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 
 ### Profile
 
-| Method | Path  | Body | Success        | Errors |
-| ------ | ----- | ---- | -------------- | ------ |
-| GET    | `/me` | —    | `ProfileDto`   | `unauthorized` |
+| Method | Path | Auth | Body | Success | Errors |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/me` | yes | — | `ProfileDto` | `unauthorized` |
+| PATCH | `/me` | yes | `UpdateProfileDto` | `ProfileDto` `200` | `unauthorized`, `invalid_json`, `invalid_body` |
+| PUT | `/me/avatar` | yes | `multipart/form-data` field `file` | `ProfileDto` `200` | `unauthorized`, `invalid_body` |
+| DELETE | `/me/avatar` | yes | — | `ProfileDto` `200` | `unauthorized` |
+| GET | `/avatars/:id` | **no** | — | raw image bytes | `not_found` |
 
 ```json
 {
@@ -110,7 +114,22 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 }
 ```
 
-Read-only in this stage. No `PATCH /me`.
+`avatarUrl` is JSON `null` when absent. When set it is an absolute URL `{PUBLIC_API_ORIGIN}/v1/avatars/{uuid}`.
+
+`UpdateProfileDto` — all fields optional:
+
+```json
+{ "displayName": "Alex Dev" }
+```
+
+- `displayName`: trim; 1–80 characters. Omit = leave unchanged. `null` or `""` → `invalid_body`.
+- Do not send `handle` or `avatarUrl`. Handle stays derived from the username. Avatar is only `PUT` / `DELETE /me/avatar`.
+
+`PUT /me/avatar`: field `file`; JPEG / PNG / WebP by magic bytes; max 1 MiB. Replace allocates a new UUID.
+
+`DELETE /me/avatar` when already null is still `200` with `avatarUrl: null`.
+
+`GET /avatars/:id` is public (no cookie).
 
 ### Projects
 

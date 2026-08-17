@@ -4,16 +4,8 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
 	import BrandMark from './BrandMark.svelte';
+	import ProfileAvatar from './ProfileAvatar.svelte';
 	import { APP_VERSION, NAV_ITEMS, isNavActive } from './nav';
-
-	const initials = $derived(
-		prefsStore.displayName
-			.split(/\s+/)
-			.map((w) => w[0])
-			.join('')
-			.slice(0, 2)
-			.toUpperCase()
-	);
 </script>
 
 <nav
@@ -69,12 +61,7 @@
 			href={resolve('/settings')}
 			class="focus-ring flex items-center gap-3 rounded-DEFAULT px-3 py-2 transition-colors hover:bg-surface-variant"
 		>
-			<div
-				class="flex h-9 w-9 shrink-0 items-center justify-center rounded-DEFAULT border border-outline-variant bg-surface-container-high font-mono text-body-sm text-primary"
-				aria-hidden="true"
-			>
-				{initials}
-			</div>
+			<ProfileAvatar name={prefsStore.displayName} src={prefsStore.avatarUrl} size="sm" />
 			<div class="min-w-0">
 				<p class="truncate text-body-sm font-medium text-on-surface">{prefsStore.displayName}</p>
 				<p class="truncate font-mono text-[10px] text-on-surface-variant">{prefsStore.handle}</p>

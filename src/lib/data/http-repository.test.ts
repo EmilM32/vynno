@@ -75,6 +75,31 @@ describe('HttpTimeTrackingRepository', () => {
 		expect(String(fetchFn.mock.calls[1]?.[0])).toBe(`${api}/sessions?status=stopped&limit=2`);
 	});
 
+	it('updates profile and uploads an avatar', async () => {
+		const fetchFn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+			const url = String(input);
+			if (url.endsWith('/me') && init?.method === 'PATCH') {
+				return jsonResponse({ displayName: 'Renamed', handle: '@alexdev', avatarUrl: null });
+			}
+			if (url.endsWith('/me/avatar') && init?.method === 'PUT') {
+				return jsonResponse({
+					displayName: 'Renamed',
+					handle: '@alexdev',
+					avatarUrl: 'http://localhost:8080/v1/avatars/abc'
+				});
+			}
+			if (url.endsWith('/me/avatar') && init?.method === 'DELETE') {
+				return jsonResponse({ displayName: 'Renamed', handle: '@alexdev', avatarUrl: null });
+			}
+			return jsonResponse({ error: { code: 'not_found', message: url } }, 404);
+		});
+		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
+		expect((await repo.updateProfile({ displayName: 'Renamed' })).displayName).toBe('Renamed');
+		const uploaded = await repo.uploadAvatar(new Blob([new Uint8Array([0xff, 0xd8, 0xff])]));
+		expect(uploaded.avatarUrl).toBe('http://localhost:8080/v1/avatars/abc');
+		expect((await repo.deleteAvatar()).avatarUrl).toBeUndefined();
+	});
+
 	it('deletes a project with 204', async () => {
 		const fetchFn = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
 		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);

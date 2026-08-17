@@ -8,8 +8,39 @@
 	import { prefsStore } from '$lib/stores/prefs.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import ProfileAvatar from '$lib/components/shell/ProfileAvatar.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
 	import ThemeSelect from './ThemeSelect.svelte';
+
+	let displayNameDraft = $state(prefsStore.displayName);
+	let fileInput: HTMLInputElement | undefined;
+
+	$effect(() => {
+		displayNameDraft = prefsStore.displayName;
+	});
+
+	const profileBusy = $derived(sessionStore.pendingAction === 'profile');
+	const nameDirty = $derived(displayNameDraft.trim() !== prefsStore.displayName);
+
+	async function onSaveName() {
+		const name = displayNameDraft.trim();
+		if (!name || profileBusy) return;
+		const ok = await sessionStore.updateProfile({ displayName: name });
+		if (ok) displayNameDraft = prefsStore.displayName;
+	}
+
+	async function onPhotoSelected(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		input.value = '';
+		if (!file || profileBusy) return;
+		await sessionStore.uploadAvatar(file);
+	}
+
+	async function onRemovePhoto() {
+		if (profileBusy) return;
+		await sessionStore.deleteAvatar();
+	}
 
 	function onTargetInput(e: Event) {
 		const v = Number((e.currentTarget as HTMLInputElement).value);
@@ -58,23 +89,69 @@
 			{m.settings_profile()}
 		</h2>
 		<div class="flex items-center gap-4">
-			<div
-				class="flex h-14 w-14 shrink-0 items-center justify-center rounded-DEFAULT border border-primary/30 bg-primary/10 font-mono text-lg font-medium text-primary"
-				aria-hidden="true"
-			>
-				{prefsStore.displayName
-					.split(/\s+/)
-					.map((w) => w[0])
-					.join('')
-					.slice(0, 2)
-					.toUpperCase()}
-			</div>
+			<ProfileAvatar name={prefsStore.displayName} src={prefsStore.avatarUrl} size="lg" />
 			<div class="min-w-0">
 				<p class="text-headline-md text-on-surface">{prefsStore.displayName}</p>
 				<p class="font-mono text-code-label text-on-surface-variant">{prefsStore.handle}</p>
+				<p class="mt-1 text-body-sm text-on-surface-variant">{m.settings_handle_readonly()}</p>
 			</div>
 		</div>
-		<p class="mt-3 text-body-sm text-on-surface-variant">{m.settings_profile_mock()}</p>
+
+		<div class="mt-4 flex flex-wrap items-center gap-2">
+			<input
+				bind:this={fileInput}
+				type="file"
+				accept="image/jpeg,image/png,image/webp"
+				class="sr-only"
+				aria-label={m.settings_change_photo()}
+				onchange={onPhotoSelected}
+			/>
+			<button
+				type="button"
+				class="press focus-ring min-h-10 rounded border border-outline-variant px-4 py-2 font-mono text-code-data text-on-surface hover:bg-surface-container-high disabled:opacity-50"
+				disabled={profileBusy}
+				onclick={() => fileInput?.click()}
+			>
+				{m.settings_change_photo()}
+			</button>
+			{#if prefsStore.avatarUrl}
+				<button
+					type="button"
+					class="press focus-ring min-h-10 rounded border border-outline-variant px-4 py-2 font-mono text-code-data text-on-surface hover:bg-surface-container-high disabled:opacity-50"
+					disabled={profileBusy}
+					onclick={onRemovePhoto}
+				>
+					{m.settings_remove_photo()}
+				</button>
+			{/if}
+		</div>
+		<p class="mt-2 text-body-sm text-on-surface-variant">{m.settings_photo_hint()}</p>
+
+		<div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
+			<label class="flex min-w-0 flex-1 flex-col gap-1 text-body-md text-on-surface" for="display-name">
+				{m.settings_display_name()}
+				<input
+					id="display-name"
+					type="text"
+					maxlength="80"
+					bind:value={displayNameDraft}
+					class="rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface"
+				/>
+			</label>
+			<button
+				type="button"
+				class="press focus-ring min-h-10 rounded border border-primary/30 bg-primary/10 px-4 py-2 font-mono text-code-data text-primary hover:bg-primary/20 disabled:opacity-50"
+				disabled={profileBusy || !nameDirty || !displayNameDraft.trim()}
+				onclick={onSaveName}
+			>
+				{m.settings_save_profile()}
+			</button>
+		</div>
+
+		{#if sessionStore.error}
+			<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>
+		{/if}
+
 		<button
 			type="button"
 			class="press focus-ring mt-4 min-h-10 rounded border border-outline-variant px-4 py-2 font-mono text-code-data text-on-surface hover:bg-surface-container-high"

@@ -5,6 +5,7 @@ export const apiPaths = {
 	authRegister: () => '/auth/register',
 	authLogout: () => '/auth/logout',
 	me: () => '/me',
+	meAvatar: () => '/me/avatar',
 
 	projects: (options: ProjectListOptions = {}) => {
 		const params = new URLSearchParams();

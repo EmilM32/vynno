@@ -11,6 +11,7 @@ import type {
 	SessionFilters,
 	StartSessionInput,
 	TimeSession,
+	UpdateProfileInput,
 	UpdateProjectInput,
 	UserProfile
 } from '$lib/types/domain';
@@ -157,7 +158,38 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	}
 
 	async getProfile(): Promise<UserProfile> {
-		return this.#profile;
+		return { ...this.#profile };
+	}
+
+	async updateProfile(input: UpdateProfileInput): Promise<UserProfile> {
+		const name = input.displayName.trim();
+		if (!name || name.length > 80) {
+			throw new DomainError('invalid_body', 'Display name is required.');
+		}
+		this.#profile = { ...this.#profile, displayName: name };
+		return { ...this.#profile };
+	}
+
+	async uploadAvatar(file: Blob): Promise<UserProfile> {
+		if (file.size === 0 || file.size > 1024 * 1024) {
+			throw new DomainError('invalid_body', 'Avatar must be at most 1 MiB.');
+		}
+		const buf = new Uint8Array(await file.arrayBuffer());
+		if (!isAllowedAvatar(buf)) {
+			throw new DomainError('invalid_body', 'Avatar must be a JPEG, PNG, or WebP image.');
+		}
+		this.#profile = {
+			...this.#profile,
+			avatarUrl: `memory:avatar:${crypto.randomUUID()}`
+		};
+		return { ...this.#profile };
+	}
+
+	async deleteAvatar(): Promise<UserProfile> {
+		const next = { ...this.#profile };
+		delete next.avatarUrl;
+		this.#profile = next;
+		return { ...this.#profile };
 	}
 
 	async listSessions(filters: SessionFilters = {}): Promise<TimeSession[]> {
@@ -301,4 +333,35 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			throw new DomainError('code_in_use', `Code "${code}" is already in use.`);
 		}
 	}
+}
+
+function isAllowedAvatar(buf: Uint8Array): boolean {
+	if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return true;
+	if (
+		buf.length >= 8 &&
+		buf[0] === 0x89 &&
+		buf[1] === 0x50 &&
+		buf[2] === 0x4e &&
+		buf[3] === 0x47 &&
+		buf[4] === 0x0d &&
+		buf[5] === 0x0a &&
+		buf[6] === 0x1a &&
+		buf[7] === 0x0a
+	) {
+		return true;
+	}
+	if (
+		buf.length >= 12 &&
+		buf[0] === 0x52 &&
+		buf[1] === 0x49 &&
+		buf[2] === 0x46 &&
+		buf[3] === 0x46 &&
+		buf[8] === 0x57 &&
+		buf[9] === 0x45 &&
+		buf[10] === 0x42 &&
+		buf[11] === 0x50
+	) {
+		return true;
+	}
+	return false;
 }

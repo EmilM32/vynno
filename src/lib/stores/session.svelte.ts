@@ -20,6 +20,7 @@ import type {
 	Project,
 	StartSessionInput,
 	TimeSession,
+	UpdateProfileInput,
 	UpdateProjectInput
 } from '$lib/types/domain';
 
@@ -49,7 +50,9 @@ class SessionStore {
 	error = $state<string | null>(null);
 
 	/** In-flight mutation; blocks double-submit. */
-	pendingAction = $state<'start' | 'pause' | 'resume' | 'stop' | 'project' | null>(null);
+	pendingAction = $state<'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile' | null>(
+		null
+	);
 
 	busy = $derived(this.pendingAction != null);
 
@@ -318,7 +321,52 @@ class SessionStore {
 		this.error = null;
 	};
 
-	#begin = (action: 'start' | 'pause' | 'resume' | 'stop' | 'project'): boolean => {
+	updateProfile = async (input: UpdateProfileInput): Promise<boolean> => {
+		if (!this.#begin('profile')) return false;
+		this.error = null;
+		try {
+			const profile = await this.#requireRepo().updateProfile(input);
+			prefsStore.hydrateProfile(profile);
+			return true;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_failed_update_profile);
+			return false;
+		} finally {
+			this.#end();
+		}
+	};
+
+	uploadAvatar = async (file: Blob): Promise<boolean> => {
+		if (!this.#begin('profile')) return false;
+		this.error = null;
+		try {
+			const profile = await this.#requireRepo().uploadAvatar(file);
+			prefsStore.hydrateProfile(profile);
+			return true;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_failed_avatar);
+			return false;
+		} finally {
+			this.#end();
+		}
+	};
+
+	deleteAvatar = async (): Promise<boolean> => {
+		if (!this.#begin('profile')) return false;
+		this.error = null;
+		try {
+			const profile = await this.#requireRepo().deleteAvatar();
+			prefsStore.hydrateProfile(profile);
+			return true;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_failed_avatar);
+			return false;
+		} finally {
+			this.#end();
+		}
+	};
+
+	#begin = (action: 'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile'): boolean => {
 		if (this.pendingAction) return false;
 		this.pendingAction = action;
 		return true;

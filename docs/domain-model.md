@@ -194,8 +194,8 @@ interface TimeSession {
 
 interface UserProfile {
 	displayName: string;
-	handle: string;
-	avatarUrl?: string;
+	handle: string; // derived from username; not editable
+	avatarUrl?: string; // absolute URL from GET /me when a photo is set
 }
 ```
 

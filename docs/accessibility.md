@@ -19,6 +19,7 @@ Axe runs every route under `dark`, `light`, and `deep-dark` against `wcag2a`, `w
 
 | Widget             | Implementation                                                                                                                                                                 |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Document title     | Static `<title>Vynno</title>` in `app.html` (SPA first paint). Each route upgrades via `<svelte:head>` to `{page} · Vynno`.                                                   |
 | Skip link          | `AppShell` → `#main-content`                                                                                                                                                   |
 | Live status        | `announce()` in `src/lib/a11y/announce.ts` — session start/pause/resume/stop only. **Never** put `aria-live` on the ticking clock.                                             |
 | Dialogs            | `trapFocus()` + `inert` on background; Escape; restore focus. Destructive confirm focuses **Cancel**.                                                                          |

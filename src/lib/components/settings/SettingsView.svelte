@@ -103,7 +103,8 @@
 				type="file"
 				accept="image/jpeg,image/png,image/webp"
 				class="sr-only"
-				aria-label={m.settings_change_photo()}
+				tabindex="-1"
+				aria-hidden="true"
 				onchange={onPhotoSelected}
 			/>
 			<button

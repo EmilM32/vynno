@@ -24,6 +24,8 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 					await login(page);
 					await page.goto(route);
 					await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+					await expect(page.getByTestId('page-view')).toBeVisible();
+					await expect(page).toHaveTitle(/· Vynno$/);
 					await expectNoViolations(page);
 				});
 			}

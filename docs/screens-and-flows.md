@@ -144,12 +144,17 @@ No Stitch mock. Dev-Density card using the same input/button language as Project
 **Layout**
 
 - Full-viewport `surface` background, no sidebar / top bar / bottom nav
-- Centered `max-w-sm` card: brand + tagline, username, password, **Log in**
-- No registration or forgot-password link (registration is a later screen)
+- Centered `max-w-sm` card: brand + tagline, **Log in | Create account** tabs, then the active form
+- Log in: username, password (with show/hide), remember-me, **Log in**
+- Create account: username, password, confirm password (both with show/hide), optional display name, remember-me, **Create account**
+- No forgot-password link
 
 **Behavior**
 
-- Fields required. Login is `POST /v1/auth/login`. Remember-me is checked by default (30-day cookie).
+- Default tab is Log in. Login is `POST /v1/auth/login`. Register is `POST /v1/auth/register`. Both set the session cookie and land on `/dashboard`.
+- Remember-me is checked by default (30-day cookie).
+- Register submit stays disabled until password and confirm are non-empty and identical. Only the password field is sent to the API.
+- Optional display name: omitted → API uses the username.
 - `/` redirects to `/login` when signed out, `/dashboard` after a session.
 - Feature routes require a signed-in flag; the session secret is the HttpOnly cookie.
 

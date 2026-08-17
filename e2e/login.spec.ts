@@ -51,6 +51,73 @@ test.describe('login', () => {
 	});
 });
 
+test.describe('register', () => {
+	test('create-account tab shows a disabled submit until passwords match', async ({ page }) => {
+		await page.goto('/login');
+		await page.getByRole('tab', { name: 'Create account' }).click();
+		const submit = page.getByRole('button', { name: 'Create account' });
+		await expect(submit).toBeDisabled();
+
+		await page.getByLabel('Username').fill('new_user');
+		await page.getByLabel('Password', { exact: true }).fill('long-enough');
+		await expect(submit).toBeDisabled();
+		await expect(page.getByText('Passwords do not match.')).toHaveCount(0);
+
+		await page.getByRole('textbox', { name: 'Confirm password' }).fill('different1');
+		await expect(page.getByText('Passwords do not match.')).toBeVisible();
+		await expect(submit).toBeDisabled();
+
+		await page.getByRole('textbox', { name: 'Confirm password' }).fill('long-enough');
+		await expect(page.getByText('Passwords do not match.')).toHaveCount(0);
+		await expect(submit).toBeEnabled();
+	});
+
+	test('empty username with matching passwords stays and shows a field error', async ({ page }) => {
+		await page.goto('/login');
+		await page.getByRole('tab', { name: 'Create account' }).click();
+		await page.getByLabel('Password', { exact: true }).fill('long-enough');
+		await page.getByRole('textbox', { name: 'Confirm password' }).fill('long-enough');
+		await page.getByRole('button', { name: 'Create account' }).click();
+		await expect(page).toHaveURL(/\/login$/);
+		await expect(page.getByText('Username is required.')).toBeVisible();
+	});
+
+	test('create account proceeds to the dashboard', async ({ page }) => {
+		const username = `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+		await page.goto('/login');
+		await page.getByRole('tab', { name: 'Create account' }).click();
+		await page.getByLabel('Username').fill(username);
+		await page.getByLabel('Password', { exact: true }).fill('e2epassword');
+		await page.getByRole('textbox', { name: 'Confirm password' }).fill('e2epassword');
+		await page.getByLabel('Display name').fill(`E2E ${username}`);
+		await page.getByRole('button', { name: 'Create account' }).click();
+		await expect(page).toHaveURL(/\/dashboard$/);
+		await expect(page.getByTestId('page-view')).toBeVisible();
+	});
+
+	test('taken username shows an error', async ({ page }) => {
+		const account = await registerAccount(page.request);
+		await page.goto('/login');
+		await page.getByRole('tab', { name: 'Create account' }).click();
+		await page.getByLabel('Username').fill(account.username);
+		await page.getByLabel('Password', { exact: true }).fill('e2epassword');
+		await page.getByRole('textbox', { name: 'Confirm password' }).fill('e2epassword');
+		await page.getByRole('button', { name: 'Create account' }).click();
+		await expect(page).toHaveURL(/\/login$/);
+		await expect(page.getByText('That username is already taken.')).toBeVisible();
+	});
+
+	test('password visibility toggle reveals the typed value', async ({ page }) => {
+		await page.goto('/login');
+		const password = page.getByLabel('Password', { exact: true });
+		await password.fill('secret-value');
+		await expect(password).toHaveAttribute('type', 'password');
+		await page.getByRole('button', { name: 'Show password' }).click();
+		await expect(password).toHaveAttribute('type', 'text');
+		await expect(password).toHaveValue('secret-value');
+	});
+});
+
 test.describe('login a11y', () => {
 	for (const theme of themes) {
 		test(`axe ${theme}`, async ({ page }) => {
@@ -62,4 +129,11 @@ test.describe('login a11y', () => {
 			await expectNoViolations(page);
 		});
 	}
+
+	test('axe register tab', async ({ page }) => {
+		await page.goto('/login');
+		await page.getByRole('tab', { name: 'Create account' }).click();
+		await expect(page.getByTestId('register-form')).toBeVisible();
+		await expectNoViolations(page);
+	});
 });

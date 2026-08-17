@@ -1,6 +1,5 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
-
 	"app_name": "Vynno",
 	"title_app": "{page} · Vynno",
 	"title_timer": "Timer",
@@ -10,7 +9,6 @@
 	"title_projects": "Projects",
 	"title_settings": "Settings",
 	"title_login": "Log in",
-
 	"nav_timer": "Timer",
 	"nav_dashboard": "Dashboard",
 	"nav_logs": "Logs",
@@ -24,12 +22,10 @@
 	"announce_session_paused": "Session paused",
 	"announce_session_resumed": "Session resumed",
 	"announce_session_stopped": "Session stopped",
-
 	"shell_open_command_palette": "Open command palette",
 	"shell_session_recording": "Session recording",
 	"shell_session_paused": "Session paused",
 	"shell_no_active_session": "No active session",
-
 	"command_palette_aria": "Command palette",
 	"command_palette_close": "Close command palette",
 	"command_palette_placeholder": "Type a command…",
@@ -38,7 +34,6 @@
 	"command_palette_hints": "↑↓ navigate · enter select · esc close",
 	"command_go_to": "Go to {page}",
 	"command_start_session": "Start new session",
-
 	"common_dismiss": "dismiss",
 	"common_dismiss_capital": "Dismiss",
 	"common_cancel": "Cancel",
@@ -46,7 +41,6 @@
 	"common_unknown": "Unknown",
 	"common_today": "Today",
 	"common_project": "Project",
-
 	"timer_title": "Timer",
 	"timer_subtitle": "Start, pause, and stop the current focus session.",
 	"timer_session_aria": "Session timer",
@@ -70,7 +64,6 @@
 	"timer_today_aria": "Today's summary",
 	"timer_today_target": "Daily target",
 	"timer_today_of_target": "{logged} of {target}",
-
 	"dashboard_title": "Dashboard",
 	"dashboard_subtitle": "Today’s total, current focus, and this week.",
 	"dashboard_today_total": "Today's Total",
@@ -91,14 +84,12 @@
 	"dashboard_no_completed": "No completed sessions yet.",
 	"dashboard_restart_task": "Restart this task",
 	"dashboard_restart_aria": "Restart {note}",
-
 	"logs_title": "System Logs",
 	"logs_subtitle": "Detailed chronological execution records.",
 	"logs_search_placeholder": "grep 'project' or 'note'...",
 	"logs_search_aria": "Search logs",
 	"logs_no_match": "No logs match that filter.",
 	"logs_no_completed": "No completed sessions yet.",
-
 	"insights_title": "Insights",
 	"insights_subtitle": "Where your time went — by project and activity.",
 	"insights_period_aria": "Period",
@@ -125,7 +116,6 @@
 	"insights_col_activity": "Activity",
 	"insights_col_duration": "Duration",
 	"insights_no_rows": "No rows for this period.",
-
 	"projects_title": "Projects",
 	"projects_subtitle": "Manage work containers.",
 	"projects_new": "New project",
@@ -170,7 +160,6 @@
 	"projects_cannot_archive_last": "Cannot archive the last active project",
 	"projects_cannot_delete_has_sessions": "Projects with sessions cannot be deleted — archive instead",
 	"projects_cannot_delete_last": "Cannot delete the last active project",
-
 	"settings_title": "Settings",
 	"settings_subtitle": "Theme and daily target stay on this device.",
 	"settings_profile": "Profile",
@@ -198,8 +187,6 @@
 	"settings_about_oneliner": "{name} is a focus timer — projects, sessions, and a clear week.",
 	"settings_about_coined": "Coined name — the double n is the spelling.",
 	"settings_about_version": "Version",
-
-	"login_tagline": "Where the hours went.",
 	"login_username": "Username",
 	"login_password": "Password",
 	"login_submit": "Log in",
@@ -207,17 +194,30 @@
 	"login_password_required": "Password is required.",
 	"login_remember": "Remember me",
 	"login_pending": "Signing in…",
-
+	"login_tab_login": "Log in",
+	"login_tab_register": "Create account",
+	"login_tabs_aria": "Sign in or create an account",
+	"login_show_password": "Show password",
+	"login_hide_password": "Hide password",
+	"register_show_confirm": "Show confirm password",
+	"register_hide_confirm": "Hide confirm password",
+	"register_display_name": "Display name",
+	"register_display_name_hint": "Optional. Shown in the sidebar. Defaults to your username.",
+	"register_confirm_password": "Confirm password",
+	"register_confirm_required": "Confirm your password.",
+	"register_submit": "Create account",
+	"register_pending": "Creating account…",
+	"register_username_format": "Username must be 3–32 characters: lowercase letters, digits, or underscore.",
+	"register_password_length": "Password must be 8–128 characters.",
+	"register_password_mismatch": "Passwords do not match.",
+	"register_display_name_max": "Display name can be at most {max} characters.",
 	"settings_coming_later": "Coming later",
 	"settings_later_notifications": "Notifications & calendar integrations",
 	"settings_later_account": "Account / auth (separate backend)",
 	"settings_later_persisted": "Persisted preferences across devices",
-
 	"locale_en": "English",
 	"locale_pl": "Polish",
-
 	"dialog_dismiss_aria": "Dismiss dialog",
-
 	"activity_deep_work": "Deep Work",
 	"activity_meeting": "Meeting",
 	"activity_maintenance": "Maintenance",
@@ -226,13 +226,11 @@
 	"activity_docs": "Docs",
 	"activity_research": "Research",
 	"activity_other": "Other",
-
 	"validation_name_required": "Name is required.",
 	"validation_name_max": "Name must be at most {max} characters.",
 	"validation_color_palette": "Choose a color from the palette.",
 	"validation_code_max": "Code must be at most {max} characters.",
 	"validation_code_chars": "Code may only contain A–Z, 0–9, and hyphens.",
-
 	"error_failed_create_project": "Failed to create project",
 	"error_failed_update_project": "Failed to update project",
 	"error_failed_archive_project": "Failed to archive project",
@@ -251,10 +249,11 @@
 	"error_invalid_response": "The server returned an unexpected response.",
 	"error_unauthorized": "Please sign in again.",
 	"error_invalid_credentials": "Username or password is incorrect.",
+	"error_username_in_use": "That username is already taken.",
+	"error_failed_register": "Could not create the account.",
 	"error_load_title": "Couldn't load workspace",
 	"error_load_body": "Check your connection and try again.",
 	"error_load_retry": "Retry",
-
 	"placeholder_scaffold": "// scaffold placeholder",
 	"placeholder_phase_note": "Feature UI arrives in a later phase.",
 	"placeholder_design_ref": "Design reference: originally Google Stitch · docs/screens-and-flows.md"

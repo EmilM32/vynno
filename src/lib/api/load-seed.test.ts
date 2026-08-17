@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { sampleProfileDto, sampleProjectListDto } from '$lib/test/factories';
 import { loadAppSeed } from './load-seed';
 
-const api = 'http://localhost:8080/v1';
+const api = 'https://api.example.test/v1';
 
 function jsonResponse(body: unknown, status = 200): Response {
 	return new Response(JSON.stringify(body), {

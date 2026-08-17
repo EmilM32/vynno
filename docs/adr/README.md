@@ -15,6 +15,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0009](./0009-product-name.md)             | Public product name is Vynno                       | Accepted |
 | [0010](./0010-http-json-contract.md)       | HTTP JSON contract (DTO-first, mock HTTP)          | Accepted |
 | [0011](./0011-ssr-session-state.md)        | SSR + request-scoped session state                 | Accepted |
+| [0012](./0012-env-origins.md)              | Hosts and ports come from the environment          | Accepted |
 
 ## Format
 

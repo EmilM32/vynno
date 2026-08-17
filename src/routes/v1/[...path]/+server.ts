@@ -1,14 +1,8 @@
-import { env } from '$env/dynamic/private';
+import { getApiOrigin } from '$lib/server/env';
 import type { RequestHandler } from './$types';
 
-const DEFAULT_API_ORIGIN = 'http://localhost:8080';
-
-function apiOrigin(): string {
-	return (env.API_ORIGIN ?? DEFAULT_API_ORIGIN).replace(/\/$/, '');
-}
-
 const proxy: RequestHandler = async ({ request, params, url }) => {
-	const target = `${apiOrigin()}/v1/${params.path}${url.search}`;
+	const target = `${getApiOrigin()}/v1/${params.path}${url.search}`;
 	const headers = new Headers(request.headers);
 	headers.delete('host');
 	headers.delete('connection');

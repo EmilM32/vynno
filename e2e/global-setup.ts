@@ -1,11 +1,8 @@
+import { apiOrigin } from './env';
+
 /** Fail fast when vynno-api is not running. Playwright does not start the API. */
 export default async function globalSetup() {
-	const origin = (
-		process.env.E2E_API_BASE ??
-		process.env.API_ORIGIN ??
-		'http://localhost:8080'
-	).replace(/\/v1\/?$/, '');
-	const url = `${origin}/healthz`;
+	const url = `${apiOrigin}/healthz`;
 	try {
 		const res = await fetch(url);
 		if (!res.ok) {
@@ -14,7 +11,8 @@ export default async function globalSetup() {
 	} catch (err) {
 		const detail = err instanceof Error ? err.message : String(err);
 		throw new Error(
-			`vynno-api is not reachable (${detail}). Start it on ${origin}, then run npm run test:e2e.`
+			`vynno-api is not reachable (${detail}). Start it on ${apiOrigin}, then run npm run test:e2e.`,
+			{ cause: err }
 		);
 	}
 }

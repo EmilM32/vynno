@@ -1,8 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
+import { e2eOrigin, e2ePreview } from './e2e/env';
 
 /**
  * E2E against a production preview build (stable, no HMR flakes).
  * Locally: reuse an already-running preview if present.
+ * Origins come from `.env` (`E2E_ORIGIN`, `API_ORIGIN`).
  */
 export default defineConfig({
 	testDir: 'e2e',
@@ -13,7 +15,7 @@ export default defineConfig({
 	workers: process.env.CI ? 1 : undefined,
 	reporter: process.env.CI ? 'github' : 'list',
 	use: {
-		baseURL: 'http://localhost:4173',
+		baseURL: e2eOrigin,
 		locale: 'en-US',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure'
@@ -36,8 +38,8 @@ export default defineConfig({
 		}
 	],
 	webServer: {
-		command: 'npm run build && npm run preview -- --host localhost --port 4173',
-		url: 'http://localhost:4173',
+		command: `npm run build && npm run preview -- --host ${e2ePreview.host} --port ${e2ePreview.port}`,
+		url: e2eOrigin,
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000
 	}

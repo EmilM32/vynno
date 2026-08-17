@@ -41,12 +41,13 @@ The product still has to work. Agent output is reviewed and held to the same sta
 nvm use
 
 npm install
+cp .env.example .env   # hosts and ports — edit if your API is not on the example origin
 npm run dev
 ```
 
-App opens at the Vite URL (usually `http://localhost:5173`). `/` redirects to `/login` when signed out, or `/dashboard` when a session is stored.
+App opens at the Vite URL (printed in the terminal). `/` redirects to `/login` when signed out, or `/dashboard` when a session is stored.
 
-Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) through a same-origin `/v1` proxy (API default `http://localhost:8080`). You do **not** need the API running to commit or push.
+Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) through a same-origin `/v1` proxy. Set `API_ORIGIN` in `.env` (see `.env.example`). You do **not** need the API running to commit or push.
 
 | Script                    | Purpose                                                            |
 | ------------------------- | ------------------------------------------------------------------ |
@@ -75,7 +76,7 @@ go run ./cmd/api
 npm run test:e2e
 ```
 
-`npm run test:e2e` builds the SPA, starts the preview on `:4173`, and registers throwaway users so it does not leave `alexdev` with a live session. It fails fast if `/healthz` is down. A missing Chromium install is the usual browser-side failure — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
+`npm run test:e2e` builds the SPA, starts the preview at `E2E_ORIGIN`, and registers throwaway users so it does not leave `alexdev` with a live session. It fails fast if `/healthz` on `API_ORIGIN` is down. A missing Chromium install is the usual browser-side failure — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
 
 ## Routes
 

@@ -1,9 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import { sessionToDto } from '$lib/api/mappers/session';
-import { FIXED_NOW, PROJECT_IDS, sampleProfileDto, sampleProjectListDto } from '$lib/test/factories';
+import {
+	FIXED_NOW,
+	PROJECT_IDS,
+	sampleProfileDto,
+	sampleProjectListDto
+} from '$lib/test/factories';
 import { HttpTimeTrackingRepository } from './http-repository';
 
-const api = 'http://localhost:8080/v1';
+const api = 'https://api.example.test/v1';
 
 function jsonResponse(body: unknown, status = 200): Response {
 	return new Response(body == null ? null : JSON.stringify(body), {
@@ -85,7 +90,7 @@ describe('HttpTimeTrackingRepository', () => {
 				return jsonResponse({
 					displayName: 'Renamed',
 					handle: '@alexdev',
-					avatarUrl: 'http://localhost:8080/v1/avatars/abc'
+					avatarUrl: 'https://api.example.test/v1/avatars/abc'
 				});
 			}
 			if (url.endsWith('/me/avatar') && init?.method === 'DELETE') {
@@ -96,7 +101,7 @@ describe('HttpTimeTrackingRepository', () => {
 		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
 		expect((await repo.updateProfile({ displayName: 'Renamed' })).displayName).toBe('Renamed');
 		const uploaded = await repo.uploadAvatar(new Blob([new Uint8Array([0xff, 0xd8, 0xff])]));
-		expect(uploaded.avatarUrl).toBe('http://localhost:8080/v1/avatars/abc');
+		expect(uploaded.avatarUrl).toBe('https://api.example.test/v1/avatars/abc');
 		expect((await repo.deleteAvatar()).avatarUrl).toBeUndefined();
 	});
 

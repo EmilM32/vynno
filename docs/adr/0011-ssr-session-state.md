@@ -16,7 +16,7 @@ The app ran as a client-only SPA (`export const ssr = false` in the root layout)
 
 1. **SSR is on** (SvelteKit default). The root layout no longer exports `ssr = false`.
 2. **`+layout.server.ts` is the source of first-paint data.** It loads the workspace seed via `loadAppSeed(fetch)`, records `nowMs` and `timeZone`, and returns `{ seed, loggedIn, loadError, nowMs, timeZone }`. `load` stays pure — it never writes stores.
-3. **Same-origin `/v1` BFF.** The browser calls `/v1`. `hooks.server.ts` proxies to vynno-api (`API_ORIGIN`, default `http://localhost:8080`) and forwards `Set-Cookie`, so `vynno_session` is first-party on the SPA origin. A cross-origin login to `:8080` would store a third-party cookie that Kit never sees. `handleFetch` still copies `Cookie` / `Authorization` if `PUBLIC_API_BASE` is an absolute API origin.
+3. **Same-origin `/v1` BFF.** The browser calls `/v1`. The `src/routes/v1` handler proxies to vynno-api (`API_ORIGIN`, required, no source default) and forwards `Set-Cookie`, so `vynno_session` is first-party on the SPA origin. A cross-origin login to the API origin would store a third-party cookie that Kit never sees. `handleFetch` still copies `Cookie` / `Authorization` if `PUBLIC_API_BASE` is an absolute API origin. See [ADR-0012](./0012-env-origins.md).
 4. **Routing uses `data.loggedIn`**, not `authStore`. `authStore` remains a client chrome/username cache.
 5. **Stores are factories + Svelte context.** `createSessionStore` / `createPrefsStore` produce a fresh instance per server request and cache a **client singleton** after hydrate so the live timer survives in-app navigation (ADR-0004). Components call `useSession()` / `usePrefs()`.
 6. **Time contract.** First-paint day keys and `HH:MM` labels use an explicit IANA `timeZone` from the `vynno_tz` cookie (fallback `UTC`). The live clock starts only in the browser, initialized from seed `nowMs`.
@@ -32,15 +32,15 @@ The app ran as a client-only SPA (`export const ssr = false` in the root layout)
 
 ### Negative / tradeoffs
 
-- Split-host production (`app.` vs `api.`) will not send `vynno_session` to the Kit origin unless the API sets `Domain=.parent` or a same-origin BFF is added (ADR-0002 already allows a BFF). Localhost ports share a host-only cookie (`Path=/`, `SameSite=Lax`).
+- Split-host production (`app.` vs `api.`) will not send `vynno_session` to the Kit origin unless the API sets `Domain=.parent` or a same-origin BFF is added (ADR-0002 already allows a BFF). Same-host ports share a host-only cookie (`Path=/`, `SameSite=Lax`).
 - First visit without `vynno_tz` formats times in UTC until the client writes the cookie.
 
 ## Alternatives considered
 
-| Option | Why not |
-| --- | --- |
-| Flip `ssr = true` only | Hydration mismatch + cross-request store leaks |
-| Keep module singletons | Unsafe on a long-lived Node server |
+| Option                      | Why not                                                                      |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| Flip `ssr = true` only      | Hydration mismatch + cross-request store leaks                               |
+| Keep module singletons      | Unsafe on a long-lived Node server                                           |
 | Same-origin `/v1` BFF first | Correct for split hosts; more moving parts than cookie-forward for local/dev |
 
 ## Related
@@ -48,4 +48,5 @@ The app ran as a client-only SPA (`export const ssr = false` in the root layout)
 - [0004-state-and-data-strategy.md](./0004-state-and-data-strategy.md)
 - [0007-i18n-paraglide.md](./0007-i18n-paraglide.md)
 - [0010-http-json-contract.md](./0010-http-json-contract.md)
+- [0012-env-origins.md](./0012-env-origins.md)
 - [../ssr-enablement.md](../ssr-enablement.md)

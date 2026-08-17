@@ -1,13 +1,13 @@
 import { expect, type APIRequestContext, type Locator, type Page } from '@playwright/test';
+import { apiBase, apiOrigin, e2eOrigin } from './env';
 
 /** Bootstrap account — only for optional overrides. Default e2e login registers a throwaway user. */
 export const E2E_USERNAME = process.env.E2E_USERNAME ?? 'alexdev';
 export const E2E_PASSWORD = process.env.E2E_PASSWORD ?? 'local-dev-password';
 
-/** Direct vynno-api origin for e2e setup (not the SPA `/v1` proxy). */
-export const API_BASE = (process.env.E2E_API_BASE ?? 'http://localhost:8080/v1').replace(/\/$/, '');
-const API_ORIGIN = new URL(API_BASE).origin;
-const SPA_ORIGIN = 'http://localhost:4173';
+/** Direct vynno-api `/v1` for e2e setup (not the SPA `/v1` proxy). */
+export const API_BASE = apiBase;
+const SPA_ORIGIN = e2eOrigin;
 
 export type E2EAccount = {
 	username: string;
@@ -33,7 +33,7 @@ export async function registerAccount(_request?: APIRequestContext): Promise<E2E
 		const body = await res.text();
 		throw new Error(
 			`Could not register e2e user (${res.status} ${body}). ` +
-				`Start vynno-api on ${API_ORIGIN}, then re-run npm run test:e2e.`
+				`Start vynno-api on ${apiOrigin}, then re-run npm run test:e2e.`
 		);
 	}
 	return { username, password, displayName };

@@ -22,6 +22,10 @@ export function userMessageForError(e: unknown, fallback: () => string): string 
 		case 'invalid_response':
 		case 'invalid_json':
 			return m.error_invalid_response();
+		case 'unauthorized':
+			return m.error_unauthorized();
+		case 'invalid_credentials':
+			return m.error_invalid_credentials();
 		default:
 			return fallback();
 	}

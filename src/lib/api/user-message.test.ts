@@ -14,6 +14,12 @@ describe('userMessageForError', () => {
 		expect(userMessageForError(new ApiError(409, 'last_active_project', 'x'), () => 'fb')).toBe(
 			'Cannot archive or delete the last remaining active project.'
 		);
+		expect(userMessageForError(new ApiError(401, 'unauthorized', 'x'), () => 'fb')).toBe(
+			'Please sign in again.'
+		);
+		expect(userMessageForError(new ApiError(401, 'invalid_credentials', 'x'), () => 'fb')).toBe(
+			'Username or password is incorrect.'
+		);
 	});
 
 	it('falls back for unknown errors', () => {

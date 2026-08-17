@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { uniqueNote } from './helpers';
+import { login, uniqueNote } from './helpers';
 
 test.describe('timer lifecycle', () => {
 	test.beforeEach(async ({ page }) => {
+		await login(page);
 		await page.goto('/timer');
 	});
 
@@ -14,12 +15,12 @@ test.describe('timer lifecycle', () => {
 		await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
 	});
 
-	test('start posts to mock sessions', async ({ page }) => {
+	test('start posts to sessions', async ({ page }) => {
 		const note = uniqueNote('http-start');
 		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
 		const [request] = await Promise.all([
 			page.waitForRequest(
-				(r) => r.method() === 'POST' && /\/mock\/v1\/sessions$/.test(new URL(r.url()).pathname)
+				(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
 			),
 			page.getByRole('button', { name: 'Start' }).click()
 		]);

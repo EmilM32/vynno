@@ -7,7 +7,7 @@ Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwi
 | In this repo                              | Companion repo                    |
 | ----------------------------------------- | --------------------------------- |
 | SvelteKit UI, routing, design system      | API, database, auth               |
-| HTTP-fetched mock JSON + in-memory writes | Persistence and multi-device sync |
+| SvelteKit UI, HTTP client, auth attach | Persistence, `/v1`, session cookie |
 
 ### Stack conventions
 
@@ -17,14 +17,14 @@ Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwi
 - **TypeScript** for new modules
 - **Tailwind CSS v4** with Dev-Density Dark tokens (see `docs/design-system.md`)
 - Prefer small presentational components; shared shell lives in `src/lib/components/shell/`
-- Do not introduce a backend or real API client unless explicitly asked
+- Live API is `PUBLIC_API_BASE` (default `http://localhost:8080/v1`). Auth is the HttpOnly cookie.
 
 ### Useful commands
 
 - `npm run dev` — Vite dev server
 - `npm run check` — `svelte-kit sync` + `svelte-check`
 - `npm run lint` / `npm run format` — Prettier + ESLint
-- `npm test` / `npm run test:watch` — Vitest unit tests (pure domain + mock repo)
+- `npm test` / `npm run test:watch` — Vitest unit tests (domain + HTTP repo with mocked fetch)
 - `npm run test:e2e` — Playwright e2e (builds + previews app; see `e2e/`)
 - `npm run test:all` — unit tests then e2e (same as the Husky pre-push hook)
 

@@ -20,7 +20,7 @@ Brand: say **VIN-oh**. See [brand.md](./brand.md).
 | [p2-backlog.md](./p2-backlog.md)                  | Deferred P2 items (incl. **SSR-1**)                            |
 | [ssr-enablement.md](./ssr-enablement.md)          | Why SSR is off, risks, hydration rules, future enablement plan |
 | [api-contract.md](./api-contract.md)              | Proposed REST + JSON DTO contract (backend starting point)     |
-| [api-next.md](./api-next.md)                      | Phase 5b status: HTTP writes shipped; 5c is live API + auth    |
+| [api-next.md](./api-next.md)                      | Phase 5c: live API + cookie auth                               |
 | [adr/](./adr/)                                    | Architecture Decision Records                                  |
 | [vynno-api](https://github.com/EmilM32/vynno-api) | Companion backend (API, database, auth)                        |
 
@@ -33,12 +33,12 @@ Tokens and UI rules now live in [design-system.md](./design-system.md) and `src/
 ## Stack (decided)
 
 - **SvelteKit** + **TypeScript** + **Tailwind CSS**
-- Frontend-only; HTTP-fetched mock JSON until the live API is wired (Phase 5c)
+- Frontend-only; talks to vynno-api over `/v1` with an HttpOnly session cookie
 
 See [ADR-0001](./adr/0001-frontend-stack.md) and [ADR-0002](./adr/0002-frontend-only-separation.md).
 
 ## Status
 
-Frontend through Phase 5b: UI, mock HTTP reads **and** writes, contract ready for the companion backend. Next is Phase 5c (live origin + auth). See [roadmap.md](./roadmap.md).
+Frontend through Phase 5c: UI talks to vynno-api at `PUBLIC_API_BASE` with cookie auth. Mock `/mock/v1` is gone. See [roadmap.md](./roadmap.md).
 
 The API is not in this repository. It lives in [vynno-api](https://github.com/EmilM32/vynno-api). The contract this frontend implements is [api-contract.md](./api-contract.md).

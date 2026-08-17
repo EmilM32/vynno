@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { login } from './helpers';
 
 const routes = ['/timer', '/dashboard', '/logs', '/insights', '/projects', '/settings'] as const;
 
@@ -15,20 +16,12 @@ async function expectNoViolations(page: Page) {
 test.describe('WCAG 2.2 AA (axe)', () => {
 	for (const theme of themes) {
 		test.describe(`theme ${theme}`, () => {
-			test.use({
-				storageState: {
-					cookies: [],
-					origins: [
-						{
-							origin: 'http://127.0.0.1:4173',
-							localStorage: [{ name: 'vynno-theme', value: theme }]
-						}
-					]
-				}
-			});
-
 			for (const route of routes) {
 				test(route, async ({ page }) => {
+					await page.addInitScript((id) => {
+						localStorage.setItem('vynno-theme', id);
+					}, theme);
+					await login(page);
 					await page.goto(route);
 					await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
 					await expectNoViolations(page);
@@ -39,6 +32,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 
 	test('command palette open', async ({ page }) => {
 		await page.setViewportSize({ width: 390, height: 844 });
+		await login(page);
 		await page.goto('/dashboard');
 		await page.getByRole('button', { name: 'Open command palette' }).click();
 		await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible();
@@ -46,6 +40,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 	});
 
 	test('projects form open', async ({ page }) => {
+		await login(page);
 		await page.goto('/projects');
 		await page.getByTestId('new-project').click();
 		await expect(page.getByRole('heading', { name: 'New project' })).toBeVisible();
@@ -53,6 +48,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 	});
 
 	test('insights month period', async ({ page }) => {
+		await login(page);
 		await page.goto('/insights');
 		await page.getByRole('button', { name: 'Month' }).click();
 		await expectNoViolations(page);
@@ -61,6 +57,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 
 test.describe('keyboard', () => {
 	test('skip link moves focus to main', async ({ page }) => {
+		await login(page);
 		await page.goto('/dashboard');
 		const skip = page.getByRole('link', { name: 'Skip to content' });
 		await skip.focus();
@@ -71,6 +68,7 @@ test.describe('keyboard', () => {
 
 	test('palette traps focus and restores on Escape', async ({ page }) => {
 		await page.setViewportSize({ width: 390, height: 844 });
+		await login(page);
 		await page.goto('/dashboard');
 		const opener = page.getByRole('button', { name: 'Open command palette' });
 		await opener.click();

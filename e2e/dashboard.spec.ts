@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { spaGo, startSession, uniqueNote } from './helpers';
+import { login, spaGo, startSession, uniqueNote } from './helpers';
 
 test.describe('dashboard', () => {
 	test('renders core regions', async ({ page }) => {
+		await login(page);
 		await page.goto('/dashboard');
 
 		await expect(page.getByText("Today's Total")).toBeVisible();

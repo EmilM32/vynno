@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { login } from './helpers';
 
 async function contentBox(page: Page) {
 	return page.locator('#main-content').evaluate((main) => {
@@ -29,6 +30,7 @@ test.describe('desktop layout', () => {
 
 	for (const route of ['/settings', '/projects', '/timer'] as const) {
 		test(`${route} fills the main column`, async ({ page }) => {
+			await login(page);
 			await page.goto(route);
 			const { mainInner, viewWidth } = await contentBox(page);
 			expect(mainInner).toBeGreaterThan(800);
@@ -38,6 +40,7 @@ test.describe('desktop layout', () => {
 	}
 
 	test('header stays pinned and hides the description when scrolled', async ({ page }) => {
+		await login(page);
 		await page.goto('/logs');
 		const header = page.getByTestId('page-header');
 		const title = page.getByRole('heading', { name: 'System Logs', level: 1 });
@@ -62,6 +65,7 @@ test.describe('desktop layout', () => {
 	});
 
 	test('timer session is a full-width instrument with a today rail', async ({ page }) => {
+		await login(page);
 		await page.goto('/timer');
 		const header = page.getByTestId('page-header');
 		const session = page.getByTestId('timer-session');

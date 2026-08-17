@@ -1,4 +1,28 @@
-import type { Project, TimeSession } from '$lib/types/domain';
+import type { AppSeed } from '$lib/api/types';
+import type { Project, TimeSession, UserProfile } from '$lib/types/domain';
+
+export const PROJECT_IDS = {
+	auth: 'proj-auth'
+} as const;
+
+export function sampleProfileDto() {
+	return { displayName: 'Alex Dev', handle: '@alexdev', avatarUrl: null };
+}
+
+export function sampleProjectListDto() {
+	return {
+		items: [
+			{
+				id: PROJECT_IDS.auth,
+				name: 'Identity',
+				color: '#3b82f6',
+				code: 'AUTH',
+				progressPercent: null,
+				archived: false
+			}
+		]
+	};
+}
 
 /** Fixed local "now" for deterministic date-relative tests (Wed Mar 11 2026 15:30). */
 export const FIXED_NOW = new Date(2026, 2, 11, 15, 30, 0);
@@ -36,6 +60,34 @@ export function localIso(
 	second = 0
 ): string {
 	return new Date(year, monthIndex, day, hour, minute, second).toISOString();
+}
+
+export function sampleAppSeed(now = FIXED_NOW): AppSeed {
+	const profile: UserProfile = { displayName: 'Alex Dev', handle: '@alexdev' };
+	const projects: Project[] = [
+		{ id: PROJECT_IDS.auth, name: 'Identity', color: '#3b82f6', code: 'AUTH' }
+	];
+	const sessions: TimeSession[] = [
+		makeSession({
+			id: 'sess-today-1',
+			note: 'Today work',
+			startedAt: new Date(now.getTime() - ms.hours(2)).toISOString(),
+			endedAt: new Date(now.getTime() - ms.hours(1)).toISOString()
+		}),
+		makeSession({
+			id: 'sess-yest-1',
+			note: 'Yesterday work',
+			startedAt: new Date(now.getTime() - ms.hours(26)).toISOString(),
+			endedAt: new Date(now.getTime() - ms.hours(25)).toISOString()
+		}),
+		makeSession({
+			id: 'sess-older-1',
+			note: 'Older work',
+			startedAt: new Date(now.getTime() - ms.hours(50)).toISOString(),
+			endedAt: new Date(now.getTime() - ms.hours(49)).toISOString()
+		})
+	];
+	return { profile, projects, sessions };
 }
 
 /** Duration helpers for readable fixtures. */

@@ -19,7 +19,7 @@
 | **4c** | WCAG 2.2 AA        | Live regions, contrast, widgets, axe e2e — [accessibility.md](./accessibility.md) | Done      |
 | **5a** | API contract       | HTTP-fetched JSON, DTOs, mock GET `/mock/v1`, async repository                    | Done      |
 | **5b** | HTTP writes        | Store uses HTTP repo; mock POST/PATCH/DELETE; contract docs                       | Done      |
-| **5c** | Live API           | Point `PUBLIC_API_BASE` at the real backend; auth; delete mock tree               | Yes       |
+| **5c** | Live API           | Point `PUBLIC_API_BASE` at the real backend; auth; delete mock tree               | Done      |
 
 ---
 
@@ -149,9 +149,9 @@
 
 **Goals**
 
-- Set `PUBLIC_API_BASE=https://…/v1`
-- Auth on `ApiClient`
-- Delete `src/routes/mock/v1/`, `$lib/api/fixtures/`, `$lib/api/mock/`
+- [x] Set `PUBLIC_API_BASE=https://…/v1` (local default `http://localhost:8080/v1`)
+- [x] Auth on `ApiClient` (`credentials: 'include'`)
+- [x] Delete `src/routes/mock/v1/`, `$lib/api/fixtures/`, `$lib/api/mock/`
 
 **Depends on:** a backend that implements [api-contract.md](./api-contract.md).
 

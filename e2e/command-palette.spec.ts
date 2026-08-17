@@ -1,16 +1,19 @@
 import { expect, test } from '@playwright/test';
+import { login } from './helpers';
 
 test.describe('command palette', () => {
 	// Top-bar open button is mobile-only (`md:hidden`); keyboard works on all viewports
 	test.use({ viewport: { width: 390, height: 844 } });
 
 	test('opens via top-bar button', async ({ page }) => {
+		await login(page);
 		await page.goto('/dashboard');
 		await page.getByRole('button', { name: 'Open command palette' }).click();
 		await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible();
 	});
 
 	test('closes with Escape', async ({ page }) => {
+		await login(page);
 		await page.goto('/dashboard');
 		await page.getByRole('button', { name: 'Open command palette' }).click();
 		await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible();
@@ -19,6 +22,7 @@ test.describe('command palette', () => {
 	});
 
 	test('opens via keyboard shortcut (meta/ctrl + k)', async ({ page }) => {
+		await login(page);
 		await page.goto('/dashboard');
 		await expect(page.getByTestId('page-view')).toBeVisible();
 		// Headless Chromium often swallows real Meta/Control+K (omnibox / OS).
@@ -32,6 +36,7 @@ test.describe('command palette', () => {
 	});
 
 	test('navigates to Logs via command', async ({ page }) => {
+		await login(page);
 		await page.goto('/dashboard');
 		await page.getByRole('button', { name: 'Open command palette' }).click();
 		const dialog = page.getByRole('dialog', { name: 'Command palette' });

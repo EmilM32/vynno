@@ -1,10 +1,17 @@
 import * as v from 'valibot';
-import { apiUrl, getApiBase, isMockApi } from './config';
+import { apiUrl, getApiBase } from './config';
 import { ApiError } from './errors';
-import { getMockWorkspaceId, MOCK_WORKSPACE_HEADER } from './mock-workspace';
 import { errorEnvelopeSchema } from './schemas/common';
 
 export type FetchFn = typeof globalThis.fetch;
+
+type UnauthorizedHandler = () => void;
+
+let unauthorizedHandler: UnauthorizedHandler | undefined;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | undefined): void {
+	unauthorizedHandler = handler;
+}
 
 export class ApiClient {
 	constructor(
@@ -24,6 +31,14 @@ export class ApiClient {
 		return this.request(path, { method: 'PATCH', body: JSON.stringify(body) }, schema);
 	}
 
+	async postNoContent(path: string, body?: unknown): Promise<void> {
+		await this.request(
+			path,
+			{ method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) },
+			null
+		);
+	}
+
 	async delete(path: string): Promise<void> {
 		await this.request(path, { method: 'DELETE' }, null);
 	}
@@ -37,13 +52,11 @@ export class ApiClient {
 		if (init.body != null && !headers.has('content-type')) {
 			headers.set('content-type', 'application/json');
 		}
-		if (isMockApi(this.baseUrl ?? getApiBase()) && !headers.has(MOCK_WORKSPACE_HEADER)) {
-			headers.set(MOCK_WORKSPACE_HEADER, getMockWorkspaceId());
-		}
 
-		const response = await this.fetchFn(apiUrl(path, this.baseUrl), {
+		const response = await this.fetchFn(apiUrl(path, this.baseUrl ?? getApiBase()), {
 			...init,
-			headers
+			headers,
+			credentials: 'include'
 		});
 
 		const text = await response.text();
@@ -59,6 +72,9 @@ export class ApiClient {
 		if (!response.ok) {
 			const parsed = v.safeParse(errorEnvelopeSchema, data);
 			if (parsed.success) {
+				if (parsed.output.error.code === 'unauthorized') {
+					unauthorizedHandler?.();
+				}
 				throw new ApiError(response.status, parsed.output.error.code, parsed.output.error.message);
 			}
 			throw new ApiError(

@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { desktopNav } from './helpers';
+import { desktopNav, E2E_PASSWORD, E2E_USERNAME } from './helpers';
 
 const themes = ['dark', 'light', 'deep-dark'] as const;
 
@@ -35,20 +35,20 @@ test.describe('login', () => {
 		await expect(page.getByText('Password is required.')).toBeVisible();
 	});
 
-	test('any credentials proceed to the dashboard', async ({ page }) => {
+	test('valid credentials proceed to the dashboard', async ({ page }) => {
 		await page.goto('/login');
-		await page.getByLabel('Username').fill('emil');
-		await page.getByLabel('Password').fill('secret');
+		await page.getByLabel('Username').fill(E2E_USERNAME);
+		await page.getByLabel('Password').fill(E2E_PASSWORD);
 		await page.getByRole('button', { name: 'Log in' }).click();
 		await expect(page).toHaveURL(/\/dashboard$/);
 		await expect(page.getByTestId('page-view')).toBeVisible();
 		await expect(desktopNav(page).getByText('Vynno', { exact: true })).toBeVisible();
 	});
 
-	test('root goes to dashboard after stub login', async ({ page }) => {
+	test('root goes to dashboard after login', async ({ page }) => {
 		await page.goto('/login');
-		await page.getByLabel('Username').fill('emil');
-		await page.getByLabel('Password').fill('secret');
+		await page.getByLabel('Username').fill(E2E_USERNAME);
+		await page.getByLabel('Password').fill(E2E_PASSWORD);
 		await page.getByRole('button', { name: 'Log in' }).click();
 		await expect(page).toHaveURL(/\/dashboard$/);
 

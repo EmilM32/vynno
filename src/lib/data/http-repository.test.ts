@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PROJECT_IDS } from '$lib/api/fixtures/ids';
-import { mockProfileDto, mockProjectListDto, mockSessionDtos } from '$lib/api/fixtures/load';
 import { sessionToDto } from '$lib/api/mappers/session';
-import { FIXED_NOW } from '$lib/test/factories';
+import { FIXED_NOW, PROJECT_IDS, sampleProfileDto, sampleProjectListDto } from '$lib/test/factories';
 import { HttpTimeTrackingRepository } from './http-repository';
+
+const api = 'http://localhost:8080/v1';
 
 function jsonResponse(body: unknown, status = 200): Response {
 	return new Response(body == null ? null : JSON.stringify(body), {
@@ -14,12 +14,12 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 describe('HttpTimeTrackingRepository', () => {
 	it('lists and maps projects', async () => {
-		const fetchFn = vi.fn().mockResolvedValue(jsonResponse(mockProjectListDto()));
-		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, '/mock/v1');
+		const fetchFn = vi.fn().mockResolvedValue(jsonResponse(sampleProjectListDto()));
+		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
 		const projects = await repo.listProjects({ includeArchived: true });
 		expect(projects[0]?.id).toBe(PROJECT_IDS.auth);
 		expect(projects[0]?.isArchived).toBe(false);
-		expect(String(fetchFn.mock.calls[0]?.[0])).toBe('/mock/v1/projects?includeArchived=true');
+		expect(String(fetchFn.mock.calls[0]?.[0])).toBe(`${api}/projects?includeArchived=true`);
 	});
 
 	it('returns null for a missing active session', async () => {
@@ -28,7 +28,7 @@ describe('HttpTimeTrackingRepository', () => {
 			.mockResolvedValue(
 				jsonResponse({ error: { code: 'session_not_active', message: 'No active session' } }, 404)
 			);
-		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, '/mock/v1');
+		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
 		expect(await repo.getActiveSession()).toBeNull();
 	});
 
@@ -36,7 +36,7 @@ describe('HttpTimeTrackingRepository', () => {
 		const fetchFn = vi
 			.fn()
 			.mockResolvedValue(jsonResponse({ error: { code: 'not_found', message: 'gone' } }, 404));
-		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, '/mock/v1');
+		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
 		expect(await repo.getProject('nope')).toBeUndefined();
 	});
 
@@ -52,34 +52,33 @@ describe('HttpTimeTrackingRepository', () => {
 			})
 		};
 		const fetchFn = vi.fn().mockResolvedValue(jsonResponse(created, 201));
-		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, '/mock/v1');
+		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
 		const session = await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'New work' });
 		expect(session.id).toBe('sess-new');
 		expect(session.status).toBe('active');
 		expect(fetchFn).toHaveBeenCalledWith(
-			'/mock/v1/sessions',
-			expect.objectContaining({ method: 'POST' })
+			`${api}/sessions`,
+			expect.objectContaining({ method: 'POST', credentials: 'include' })
 		);
 	});
 
 	it('reads profile and session list', async () => {
 		const fetchFn = vi.fn(async (input: RequestInfo | URL) => {
 			const url = String(input);
-			if (url.endsWith('/me')) return jsonResponse(mockProfileDto());
-			if (url.includes('/sessions')) return jsonResponse({ items: mockSessionDtos(FIXED_NOW) });
+			if (url.endsWith('/me')) return jsonResponse(sampleProfileDto());
+			if (url.includes('/sessions')) return jsonResponse({ items: [] });
 			return jsonResponse({ error: { code: 'not_found', message: url } }, 404);
 		});
-		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, '/mock/v1');
+		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
 		expect((await repo.getProfile()).handle).toBe('@alexdev');
-		const sessions = await repo.listSessions({ status: ['stopped'], limit: 2 });
-		expect(String(fetchFn.mock.calls[1]?.[0])).toBe('/mock/v1/sessions?status=stopped&limit=2');
-		expect(sessions.length).toBeGreaterThan(0);
+		await repo.listSessions({ status: ['stopped'], limit: 2 });
+		expect(String(fetchFn.mock.calls[1]?.[0])).toBe(`${api}/sessions?status=stopped&limit=2`);
 	});
 
 	it('deletes a project with 204', async () => {
 		const fetchFn = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
-		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, '/mock/v1');
+		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
 		await expect(repo.deleteProject('proj-x')).resolves.toBeUndefined();
-		expect(String(fetchFn.mock.calls[0]?.[0])).toBe('/mock/v1/projects/proj-x');
+		expect(String(fetchFn.mock.calls[0]?.[0])).toBe(`${api}/projects/proj-x`);
 	});
 });

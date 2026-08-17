@@ -1,12 +1,12 @@
 # Vynno API contract (frontend-proposed)
 
-**Status:** Implemented on the client (Phase 5b) — backend starting point  
-**Last updated:** 2026-08-14  
+**Status:** Implemented on the client (Phase 5c) — live API + auth  
+**Last updated:** 2026-08-17  
 **Executable schemas:** `src/lib/api/schemas/` (source of truth if this doc and code drift)
 
 This is the wire format the SvelteKit app speaks. The backend should implement these resources. If the live API diverges, change **schemas + mappers only** — not views or the session store.
 
-Until a backend exists, `/mock/v1` implements the same contract (GET + writes). Set `PUBLIC_API_BASE` to the live origin (including `/v1`) to swap.
+Set `PUBLIC_API_BASE` to the live origin (including `/v1`). Default local value is `http://localhost:8080/v1`.
 
 ---
 
@@ -14,7 +14,7 @@ Until a backend exists, `/mock/v1` implements the same contract (GET + writes). 
 
 | Rule             | Value                                                |
 | ---------------- | ---------------------------------------------------- |
-| Prefix           | `/v1` (mock: `/mock/v1`)                             |
+| Prefix           | `/v1`                                                |
 | Format           | JSON, camelCase                                      |
 | Lists            | `{ "items": T[] }`                                   |
 | Errors           | `{ "error": { "code": string, "message": string } }` |
@@ -22,7 +22,7 @@ Until a backend exists, `/mock/v1` implements the same contract (GET + writes). 
 | Absent optionals | JSON `null` (not omitted)                            |
 | IDs              | Opaque strings                                       |
 | Pagination       | Not yet — `limit` query only                         |
-| Auth             | Not specified (see [Out of scope](#out-of-scope))    |
+| Auth             | HttpOnly session cookie (see [Auth](#auth))          |
 
 Creates return **`201`**. Other successful writes return **`200`** with the updated resource. `DELETE` returns **`204`** with an empty body.
 
@@ -33,7 +33,7 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 | Code                     | Status | When                                              | UI string                         |
 | ------------------------ | ------ | ------------------------------------------------- | --------------------------------- |
 | `not_found`              | 404    | Unknown project or session id                     | `error_not_found`                 |
-| `invalid_query`          | 400    | Bad `status` / `limit` / missing mock header      | fallback                          |
+| `invalid_query`          | 400    | Bad `status` / `limit`                            | fallback                          |
 | `invalid_json`           | 400    | Request or response body is not JSON              | `error_invalid_response`          |
 | `invalid_body`           | 400    | Write body failed the request schema / validation | fallback (`error_failed_*`)       |
 | `invalid_response`       | 502    | Client: body did not match the response schema    | `error_invalid_response`          |
@@ -45,6 +45,9 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 | `last_active_project`    | 409    | Archive/delete of the last active project         | `error_last_active_project`       |
 | `project_has_sessions`   | 409    | Hard-delete of a project that has logs            | `projects_cannot_delete_has_sessions` |
 | `invalid_transition`     | 409    | Pause/resume/stop (or archive/restore) in a bad state | fallback                      |
+| `unauthorized`           | 401    | Missing, unknown, or expired session              | `error_unauthorized`              |
+| `invalid_credentials`    | 401    | Login username/password do not match              | `error_invalid_credentials`       |
+| `username_in_use`        | 409    | Register with a taken username                    | fallback                          |
 
 Example envelope:
 
@@ -77,13 +80,27 @@ These are product rules the API must enforce. Details: [domain-model.md](./domai
 
 ---
 
+## Auth
+
+Login and register set an HttpOnly cookie `vynno_session`. The JSON body is `{ "profile": ProfileDto }` only.
+
+Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authorization: Bearer <token>` (curl/tests).
+
+| Method | Path | Auth | Body | Success |
+| --- | --- | --- | --- | --- |
+| POST | `/auth/register` | no | `{ username, password, displayName?, rememberMe? }` | `{ profile }` `201` + cookie |
+| POST | `/auth/login` | no | `{ username, password, rememberMe? }` | `{ profile }` `200` + cookie |
+| POST | `/auth/logout` | yes | — | `204` + clear cookie |
+
+`rememberMe` omitted is `true` (cookie `Max-Age` 30 days). `false` is a session cookie.
+
 ## Resources
 
 ### Profile
 
 | Method | Path  | Body | Success        | Errors |
 | ------ | ----- | ---- | -------------- | ------ |
-| GET    | `/me` | —    | `ProfileDto`   | —      |
+| GET    | `/me` | —    | `ProfileDto`   | `unauthorized` |
 
 ```json
 {
@@ -198,7 +215,6 @@ Not in this contract. Do not invent them to “complete” the API without a con
 
 | Area | Client today |
 | --- | --- |
-| Auth / login / `Authorization` | None |
 | Profile edit | `GET /me` only |
 | Prefs (daily target, default project) | In-memory `prefsStore` |
 | Theme / locale | Device-local |
@@ -214,7 +230,7 @@ Not in this contract. Do not invent them to “complete” the API without a con
 
 1. Implement this contract (schemas in `src/lib/api/schemas/`).
 2. Set `PUBLIC_API_BASE=https://…/v1`.
-3. Add auth on `ApiClient` in one place (`src/lib/api/client.ts`).
-4. Delete `src/routes/mock/v1/`, `$lib/api/fixtures/`, and `$lib/api/mock/`.
+3. `ApiClient` sends `credentials: 'include'`.
+4. Mock `/mock/v1` is deleted.
 
 The SPA already uses `HttpTimeTrackingRepository` for every read and write. No view or store rewrite.

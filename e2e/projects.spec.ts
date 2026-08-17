@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { spaGo } from './helpers';
+import { login, spaGo } from './helpers';
 
 test.describe('projects', () => {
 	test.beforeEach(async ({ page }) => {
+		await login(page);
 		await page.goto('/projects');
 	});
 
@@ -18,7 +19,7 @@ test.describe('projects', () => {
 		await page.getByLabel('Name').fill(name);
 		const [request] = await Promise.all([
 			page.waitForRequest(
-				(r) => r.method() === 'POST' && /\/mock\/v1\/projects$/.test(new URL(r.url()).pathname)
+				(r) => r.method() === 'POST' && /\/v1\/projects$/.test(new URL(r.url()).pathname)
 			),
 			page.getByRole('button', { name: 'Create project' }).click()
 		]);

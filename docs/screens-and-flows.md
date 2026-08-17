@@ -147,11 +147,11 @@ No Stitch mock. Dev-Density card using the same input/button language as Project
 - Centered `max-w-sm` card: brand + tagline, username, password, **Log in**
 - No registration or forgot-password link (registration is a later screen)
 
-**Behavior (stub)**
+**Behavior**
 
-- Fields required (client-side only). Any non-empty pair proceeds to `/dashboard`.
-- `/` redirects to `/login` when signed out, `/dashboard` after the stub session.
-- Feature routes stay reachable without signing in until real auth lands.
+- Fields required. Login is `POST /v1/auth/login`. Remember-me is checked by default (30-day cookie).
+- `/` redirects to `/login` when signed out, `/dashboard` after a session.
+- Feature routes require a signed-in flag; the session secret is the HttpOnly cookie.
 
 ---
 

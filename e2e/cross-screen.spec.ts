@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { spaGo, startSession, stopSession, uniqueNote } from './helpers';
+import { login, spaGo, startSession, stopSession, uniqueNote } from './helpers';
 
 /**
  * Cross-screen flows must use SPA navigation after mutations —
- * full reloads re-seed the mock repository and drop the session.
+ * full reloads re-fetch from the API.
  */
 test.describe('cross-screen data', () => {
 	test.use({ viewport: { width: 1280, height: 720 } });
@@ -28,6 +28,7 @@ test.describe('cross-screen data', () => {
 	});
 
 	test('restart from recent tasks (Flow D)', async ({ page }) => {
+		await login(page);
 		await page.goto('/timer');
 		const firstTask = page.getByTestId('recent-task-restart').first();
 		await expect(firstTask).toBeEnabled();

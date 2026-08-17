@@ -1,5 +1,6 @@
 import { loadAppSeed } from '$lib/api/load-seed';
 import type { AppSeed } from '$lib/api/types';
+import { authStore } from '$lib/stores/auth.svelte';
 import type { LayoutLoad } from './$types';
 
 /**
@@ -13,6 +14,9 @@ import type { LayoutLoad } from './$types';
 export const ssr = false;
 
 export const load: LayoutLoad = async ({ fetch }) => {
+	if (!authStore.loggedIn) {
+		return { seed: null as AppSeed | null, loadError: null as string | null };
+	}
 	try {
 		const seed = await loadAppSeed(fetch);
 		return { seed, loadError: null as string | null };

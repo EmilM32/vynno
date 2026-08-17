@@ -1,7 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fixtureAppSeed } from '$lib/api/fixtures/load';
-import { PROJECT_IDS } from '$lib/api/fixtures/ids';
-import { FIXED_NOW } from '$lib/test/factories';
+import { FIXED_NOW, PROJECT_IDS, sampleAppSeed } from '$lib/test/factories';
 import type { DomainErrorCode } from './errors';
 import { MemoryTimeTrackingRepository } from './memory-repository';
 
@@ -15,7 +13,7 @@ describe('MemoryTimeTrackingRepository', () => {
 	beforeEach(() => {
 		vi.useFakeTimers();
 		vi.setSystemTime(FIXED_NOW);
-		repo = new MemoryTimeTrackingRepository(fixtureAppSeed(FIXED_NOW));
+		repo = new MemoryTimeTrackingRepository(sampleAppSeed(FIXED_NOW));
 	});
 
 	afterEach(() => {

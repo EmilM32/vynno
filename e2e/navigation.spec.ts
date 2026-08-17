@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { desktopNav, mobileNav } from './helpers';
+import { desktopNav, login, mobileNav } from './helpers';
 
 const routes = [
 	{ href: '/timer', label: 'Timer' },
@@ -17,6 +17,7 @@ test.describe('navigation', () => {
 	});
 
 	test('brand Vynno is visible in shell', async ({ page }, testInfo) => {
+		await login(page);
 		await page.goto('/dashboard');
 		// Desktop: sidebar h1; mobile: top bar
 		if (testInfo.project.name === 'mobile') {
@@ -27,6 +28,7 @@ test.describe('navigation', () => {
 	});
 
 	test('primary nav reaches all six routes', async ({ page }, testInfo) => {
+		await login(page);
 		await page.goto('/dashboard');
 		const nav = testInfo.project.name === 'mobile' ? mobileNav(page) : desktopNav(page);
 
@@ -41,6 +43,7 @@ test.describe('navigation', () => {
 	});
 
 	test('active route highlights only current destination', async ({ page }, testInfo) => {
+		await login(page);
 		await page.goto('/logs');
 		const nav = testInfo.project.name === 'mobile' ? mobileNav(page) : desktopNav(page);
 
@@ -56,6 +59,7 @@ test.describe('navigation', () => {
 
 	test('mobile timer stays full-width without today summary', async ({ page }, testInfo) => {
 		test.skip(testInfo.project.name !== 'mobile', 'desktop timer layout is covered in layout.spec');
+		await login(page);
 		await page.goto('/timer');
 		await expect(page.getByTestId('timer-today-summary')).toBeHidden();
 		const timer = page.getByRole('region', { name: 'Session timer' });
@@ -69,6 +73,7 @@ test.describe('navigation', () => {
 			testInfo.project.name !== 'mobile',
 			'desktop header collapse is covered in layout.spec'
 		);
+		await login(page);
 		await page.goto('/logs');
 		const header = page.getByTestId('page-header');
 		const description = page.getByTestId('page-header-description');

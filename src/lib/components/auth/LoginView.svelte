@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { loginRequest } from '$lib/api/auth';
+	import { userMessageForError } from '$lib/api/user-message';
 	import BrandMark from '$lib/components/shell/BrandMark.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
 	import { m } from '$lib/paraglide/messages.js';
@@ -8,17 +10,30 @@
 
 	let username = $state('');
 	let password = $state('');
+	let rememberMe = $state(true);
+	let pending = $state(false);
+	let formError = $state('');
 	let fieldErrors = $state<{ username?: string; password?: string }>({});
 
-	function handleSubmit(e: Event) {
+	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		const errors: { username?: string; password?: string } = {};
 		if (!username.trim()) errors.username = m.login_username_required();
 		if (!password) errors.password = m.login_password_required();
 		fieldErrors = errors;
+		formError = '';
 		if (errors.username || errors.password) return;
-		authStore.login(username);
-		void goto(resolve('/dashboard'));
+
+		pending = true;
+		try {
+			await loginRequest(username.trim(), password, rememberMe);
+			authStore.applySession(username, rememberMe);
+			await goto(resolve('/dashboard'));
+		} catch (err) {
+			formError = userMessageForError(err, () => m.error_invalid_credentials());
+		} finally {
+			pending = false;
+		}
 	}
 </script>
 
@@ -86,11 +101,27 @@
 				{/if}
 			</div>
 
+			<label class="flex items-center gap-2 text-body-sm text-on-surface-variant" for="login-remember">
+				<input
+					id="login-remember"
+					type="checkbox"
+					name="rememberMe"
+					bind:checked={rememberMe}
+					class="size-4 rounded border-outline-variant"
+				/>
+				{m.login_remember()}
+			</label>
+
+			{#if formError}
+				<p class="text-body-sm text-error" role="alert">{formError}</p>
+			{/if}
+
 			<button
 				type="submit"
-				class="press focus-ring mt-1 min-h-10 w-full rounded bg-primary px-4 py-2.5 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container"
+				disabled={pending}
+				class="press focus-ring mt-1 min-h-10 w-full rounded bg-primary px-4 py-2.5 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:opacity-60"
 			>
-				{m.login_submit()}
+				{pending ? m.login_pending() : m.login_submit()}
 			</button>
 		</div>
 	</form>

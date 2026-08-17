@@ -2,8 +2,11 @@
 	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
 	import { getLocale, locales, setLocale, type Locale } from '$lib/paraglide/runtime.js';
+	import { goto } from '$app/navigation';
+	import { logoutRequest } from '$lib/api/auth';
 	import { sessionStore } from '$lib/stores/session.svelte';
 	import { prefsStore } from '$lib/stores/prefs.svelte';
+	import { authStore } from '$lib/stores/auth.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
 	import ThemeSelect from './ThemeSelect.svelte';
@@ -20,6 +23,16 @@
 			case 'pl':
 				return m.locale_pl();
 		}
+	}
+
+	async function onLogout() {
+		try {
+			await logoutRequest();
+		} catch {
+			// Cookie may already be gone.
+		}
+		authStore.clearSession();
+		await goto(resolve('/login'));
 	}
 
 	function onLocaleChange(e: Event) {
@@ -62,6 +75,13 @@
 			</div>
 		</div>
 		<p class="mt-3 text-body-sm text-on-surface-variant">{m.settings_profile_mock()}</p>
+		<button
+			type="button"
+			class="press focus-ring mt-4 min-h-10 rounded border border-outline-variant px-4 py-2 font-mono text-code-data text-on-surface hover:bg-surface-container-high"
+			onclick={onLogout}
+		>
+			{m.settings_logout()}
+		</button>
 	</section>
 
 	<!-- Preferences -->
@@ -184,7 +204,7 @@
 		</h2>
 		<ul class="list-inside list-disc space-y-1 text-body-sm text-on-surface-variant">
 			<li>{m.settings_later_notifications()}</li>
-			<li>{m.settings_later_account()}</li>
+
 			<li>{m.settings_later_persisted()}</li>
 		</ul>
 	</section>

@@ -1,11 +1,13 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import RecentTasks from './RecentTasks.svelte';
 	import TaskInput from './TaskInput.svelte';
 	import TimerCard from './TimerCard.svelte';
 	import TodaySummary from './TodaySummary.svelte';
+
+	const sessionStore = useSession();
 
 	const status = $derived(sessionStore.activeSession?.status);
 	const sessionChrome = $derived(

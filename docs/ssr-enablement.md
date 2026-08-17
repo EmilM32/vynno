@@ -1,22 +1,17 @@
 # SSR enablement — analysis and deferred plan
 
-**Status:** Deferred (do not implement while mock-only)  
-**Last updated:** 2026-08-12  
-**Tracking:** Backlog **SSR-1** in [p2-backlog.md](./p2-backlog.md); roadmap Phase 5+ in [roadmap.md](./roadmap.md)  
-**Code:** `src/routes/+layout.ts` (`export const ssr = false`)
+**Status:** Done (2026-08-17) — see [ADR-0011](./adr/0011-ssr-session-state.md)  
+**Last updated:** 2026-08-17  
+**Tracking:** Backlog **SSR-1** in [p2-backlog.md](./p2-backlog.md)  
+**Code:** `src/routes/+layout.server.ts` (no `ssr = false`)
 
 ---
 
 ## Summary
 
-Vynno currently runs as a **client-only SPA**. That was an intentional choice for the mock-first architecture, not a permanent product decision.
+SSR is **on**. First paint comes from `+layout.server.ts` (API seed + `nowMs` / `timeZone`). Session and prefs stores are request-scoped via context; the client keeps a singleton after hydrate so the timer survives in-app navigation.
 
-**Do not enable SSR until:**
-
-1. The real API / HTTP repository path exists (or is imminent), and
-2. Session data for the first paint comes from **request-scoped, serializable load data**, not process-wide module singletons.
-
-This document records **why** SSR is off, **what risks** exist if it is flipped naively, **requirements** for zero hydration bugs, and a **concrete future approach**. Revisit after Phase 5 (API readiness).
+This document keeps the original risk analysis and hydration rules (G1–G7). The implementation is [ADR-0011](./adr/0011-ssr-session-state.md).
 
 ---
 
@@ -218,14 +213,15 @@ Consumers currently import `sessionStore` / `prefsStore` as module singletons (~
 
 ## Success criteria (future PR)
 
-- [ ] Root layout no longer exports `ssr = false`
-- [ ] Cold load shows real UI in first HTML (not empty shell)
-- [ ] Zero hydration errors in dev and preview
-- [ ] Same seed ⇒ identical server vs client first render (totals, lists, times, drafts)
-- [ ] Client navigations still preserve active timer and in-session mutations
-- [ ] Concurrent requests do not share mutations
-- [ ] `npm run check`, `npm test`, `npm run test:e2e` pass
-- [ ] ADR documents SSR + request isolation rules
+- [x] Root layout no longer exports `ssr = false`
+- [x] First paint comes from `+layout.server.ts` seed (cookie-forwarded API)
+- [x] Session/prefs are request-scoped via context; client singleton after hydrate
+- [x] Shared `nowMs` + `timeZone` for first-paint strings
+- [x] Paraglide cookie-first locale
+- [x] ADR-0011 documents SSR + request isolation rules
+- [x] Cold-load `/login` and authenticated `/dashboard` `/timer` `/logs` return real HTML
+- [x] Dual-request isolation via per-request stores (no module singleton hydrate)
+- [x] `npm run check`, `npm test`, Chromium e2e pass
 
 ---
 

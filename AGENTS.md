@@ -17,7 +17,7 @@ Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwi
 - **TypeScript** for new modules
 - **Tailwind CSS v4** with Dev-Density Dark tokens (see `docs/design-system.md`)
 - Prefer small presentational components; shared shell lives in `src/lib/components/shell/`
-- Live API is `PUBLIC_API_BASE` (default `http://localhost:8080/v1`). Auth is the HttpOnly cookie.
+- Live API is same-origin `/v1` (Kit proxies to vynno-api; override with `PUBLIC_API_BASE` / `API_ORIGIN`). Auth is the HttpOnly cookie.
 
 ### Useful commands
 

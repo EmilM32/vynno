@@ -157,11 +157,10 @@
 
 ### After Phase 5c — SSR enablement (SSR-1)
 
-**Deferred.** The app intentionally uses `export const ssr = false` while mock session state is a process-wide module singleton. Enabling full server rendering without hydration bugs requires request-scoped seed data from `load`, context-based stores, and a shared time/timezone contract.
+**Done.** Root layout no longer disables SSR. First paint comes from `+layout.server.ts` (cookie-forwarded API seed, `nowMs` + `timeZone`). Session/prefs are request-scoped via context; the client keeps a singleton so the timer survives in-app navigation.
 
-- Analysis and plan: [ssr-enablement.md](./ssr-enablement.md)
-- Backlog: **SSR-1** in [p2-backlog.md](./p2-backlog.md)
-- Best window: after HTTP repository + auth so first paint is per-user API data, not a shared mock.
+- Analysis: [ssr-enablement.md](./ssr-enablement.md)
+- Decision: [adr/0011-ssr-session-state.md](./adr/0011-ssr-session-state.md)
 
 ---
 

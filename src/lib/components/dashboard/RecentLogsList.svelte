@@ -2,8 +2,10 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import { formatClock, sessionElapsedMs } from '$lib/time/duration';
+
+	const sessionStore = useSession();
 
 	const logs = $derived(sessionStore.recentLogs);
 	const busy = $derived(!!sessionStore.activeSession || sessionStore.busy);

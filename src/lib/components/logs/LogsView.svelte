@@ -1,17 +1,21 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import { filterSessions, groupSessionsByDate } from '$lib/time/aggregates';
 	import { localDateKeyFromDate } from '$lib/time/duration';
 	import LogRow from './LogRow.svelte';
+
+	const sessionStore = useSession();
 
 	let query = $state('');
 
 	const stopped = $derived(sessionStore.sessions.filter((s) => s.status === 'stopped'));
 	const filtered = $derived(filterSessions(stopped, query, sessionStore.projects));
-	const groups = $derived(groupSessionsByDate(filtered));
-	const todayKey = $derived(localDateKeyFromDate(new Date(sessionStore.nowMs)));
+	const groups = $derived(groupSessionsByDate(filtered, sessionStore.timeZone));
+	const todayKey = $derived(
+		localDateKeyFromDate(new Date(sessionStore.nowMs), sessionStore.timeZone)
+	);
 </script>
 
 <div class="flex w-full flex-col gap-6" data-testid="page-view">

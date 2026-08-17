@@ -15,34 +15,40 @@ import {
 	weekdayLong,
 	weekdayShort
 } from './duration';
+import { addDaysInTimeZone } from './timezone';
 
 /** Total completed (+ optional live) duration for a local calendar day. */
 export function totalForLocalDay(
 	sessions: TimeSession[],
 	dayKey: string,
-	nowMs = Date.now()
+	nowMs = Date.now(),
+	timeZone?: string
 ): number {
 	let total = 0;
 	for (const s of sessions) {
-		const key = localDateKey(s.startedAt);
+		const key = localDateKey(s.startedAt, new Date(nowMs), timeZone);
 		if (key !== dayKey) continue;
 		total += sessionElapsedMs(s, nowMs);
 	}
 	return total;
 }
 
-export function todayTotalMs(sessions: TimeSession[], now = new Date()): number {
-	return totalForLocalDay(sessions, localDateKeyFromDate(now), now.getTime());
+export function todayTotalMs(sessions: TimeSession[], now = new Date(), timeZone?: string): number {
+	return totalForLocalDay(sessions, localDateKeyFromDate(now, timeZone), now.getTime(), timeZone);
 }
 
-export function yesterdayTotalMs(sessions: TimeSession[], now = new Date()): number {
-	const y = new Date(startOfYesterday(now));
-	return totalForLocalDay(sessions, localDateKeyFromDate(y), now.getTime());
+export function yesterdayTotalMs(
+	sessions: TimeSession[],
+	now = new Date(),
+	timeZone?: string
+): number {
+	const y = new Date(startOfYesterday(now, timeZone));
+	return totalForLocalDay(sessions, localDateKeyFromDate(y, timeZone), now.getTime(), timeZone);
 }
 
 /** Delta today − yesterday (can be negative). */
-export function todayDeltaMs(sessions: TimeSession[], now = new Date()): number {
-	return todayTotalMs(sessions, now) - yesterdayTotalMs(sessions, now);
+export function todayDeltaMs(sessions: TimeSession[], now = new Date(), timeZone?: string): number {
+	return todayTotalMs(sessions, now, timeZone) - yesterdayTotalMs(sessions, now, timeZone);
 }
 
 /** Stopped sessions only, newest first, capped. */
@@ -111,8 +117,12 @@ export function isSameLocalDay(iso: string, dayStartMs: number): boolean {
 	return t >= start && t < end;
 }
 
-export function sessionsTouchingToday(sessions: TimeSession[], now = new Date()): TimeSession[] {
-	const start = startOfLocalDay(now);
+export function sessionsTouchingToday(
+	sessions: TimeSession[],
+	now = new Date(),
+	timeZone?: string
+): TimeSession[] {
+	const start = startOfLocalDay(now, timeZone);
 	return sessions.filter((s) => isSameLocalDay(s.startedAt, start));
 }
 
@@ -136,20 +146,25 @@ export type WeekDayTotal = {
 };
 
 /** Mon–Sun totals for the week containing `now`. */
-export function weeklyDayTotals(sessions: TimeSession[], now = new Date()): WeekDayTotal[] {
-	const weekStart = startOfWeekMonday(now);
-	const todayKey = localDateKeyFromDate(now);
+export function weeklyDayTotals(
+	sessions: TimeSession[],
+	now = new Date(),
+	timeZone?: string
+): WeekDayTotal[] {
+	const weekStart = startOfWeekMonday(now, timeZone);
+	const todayKey = localDateKeyFromDate(now, timeZone);
 	const nowMs = now.getTime();
 	const days: Omit<WeekDayTotal, 'ratio'>[] = [];
 
 	for (let i = 0; i < 7; i++) {
-		const d = new Date(weekStart);
-		d.setDate(weekStart.getDate() + i);
-		const key = localDateKeyFromDate(d);
+		const d = timeZone
+			? addDaysInTimeZone(weekStart, i, timeZone)
+			: new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i);
+		const key = localDateKeyFromDate(d, timeZone);
 		days.push({
 			key,
-			label: weekdayShort(d),
-			ms: totalForLocalDay(sessions, key, nowMs),
+			label: weekdayShort(d, undefined, timeZone),
+			ms: totalForLocalDay(sessions, key, nowMs, timeZone),
 			isToday: key === todayKey
 		});
 	}
@@ -171,9 +186,10 @@ export type ProjectWeekSummary = {
 export function projectWeekSummaries(
 	sessions: TimeSession[],
 	projects: Project[],
-	now = new Date()
+	now = new Date(),
+	timeZone?: string
 ): ProjectWeekSummary[] {
-	const { start, end } = periodBounds('week', now);
+	const { start, end } = periodBounds('week', now, timeZone);
 	const inWeek = sessionsInRange(sessions, start, end);
 	const nowMs = now.getTime();
 	const byId = new Map<string, number>();
@@ -198,14 +214,14 @@ export type DateGroup = {
 };
 
 /** Group stopped sessions by local start date, newest day first. */
-export function groupSessionsByDate(sessions: TimeSession[]): DateGroup[] {
+export function groupSessionsByDate(sessions: TimeSession[], timeZone?: string): DateGroup[] {
 	const map = new Map<string, TimeSession[]>();
 	const stopped = sessions
 		.filter((s) => s.status === 'stopped')
 		.sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
 
 	for (const s of stopped) {
-		const key = localDateKey(s.startedAt);
+		const key = localDateKey(s.startedAt, new Date(), timeZone);
 		const list = map.get(key);
 		if (list) list.push(s);
 		else map.set(key, [s]);
@@ -281,9 +297,10 @@ export function periodStats(
 	projects: Project[],
 	period: PeriodKind,
 	now = new Date(),
-	dailyTargetMs = DEFAULT_DAILY_TARGET_MS
+	dailyTargetMs = DEFAULT_DAILY_TARGET_MS,
+	timeZone?: string
 ): PeriodStats {
-	const { start, end } = periodBounds(period, now);
+	const { start, end } = periodBounds(period, now, timeZone);
 	const inRange = sessionsInRange(sessions, start, end);
 	const nowMs = now.getTime();
 	const projectName = new Map(projects.map((p) => [p.id, p]));
@@ -302,7 +319,7 @@ export function periodStats(
 		if (ms <= 0) continue;
 		totalMs += ms;
 
-		const dayKey = localDateKey(s.startedAt);
+		const dayKey = localDateKey(s.startedAt, now, timeZone);
 		dayTotals.set(dayKey, (dayTotals.get(dayKey) ?? 0) + ms);
 		projectTotals.set(s.projectId, (projectTotals.get(s.projectId) ?? 0) + ms);
 
@@ -319,11 +336,11 @@ export function periodStats(
 	for (const [key, ms] of dayTotals) {
 		if (!mostProductiveDay || ms > mostProductiveDay.ms) {
 			const d = new Date(key + 'T12:00:00');
-			mostProductiveDay = { label: weekdayLong(d), ms };
+			mostProductiveDay = { label: weekdayLong(d, undefined, timeZone), ms };
 		}
 	}
 
-	const days = calendarDaysInclusive(start, end);
+	const days = calendarDaysInclusive(start, end, timeZone);
 	const dailyAverageMs = totalMs / days;
 	const vsTargetRatio = dailyTargetMs > 0 ? (dailyAverageMs - dailyTargetMs) / dailyTargetMs : null;
 

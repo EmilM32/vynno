@@ -78,7 +78,7 @@
 		try {
 			await loginRequest(loginUsername.trim(), loginPassword, loginRemember);
 			authStore.applySession(loginUsername, loginRemember);
-			await goto(resolve('/dashboard'));
+			await goto(resolve('/dashboard'), { invalidateAll: true });
 		} catch (err) {
 			formError = userMessageForError(err, () => m.error_invalid_credentials());
 		} finally {
@@ -110,7 +110,7 @@
 				registerDisplayName.trim() || undefined
 			);
 			authStore.applySession(username, registerRemember);
-			await goto(resolve('/dashboard'));
+			await goto(resolve('/dashboard'), { invalidateAll: true });
 		} catch (err) {
 			formError = userMessageForError(err, () => m.error_failed_register());
 		} finally {

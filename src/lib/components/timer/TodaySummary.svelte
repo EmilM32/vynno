@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
-	import { prefsStore } from '$lib/stores/prefs.svelte';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { usePrefs } from '$lib/stores/prefs.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import { formatHoursDecimal, formatHoursMinutes } from '$lib/time/duration';
+
+	const prefsStore = usePrefs();
+	const sessionStore = useSession();
 
 	const totalMs = $derived(sessionStore.todayTotalMs);
 	const totalLabel = $derived(formatHoursMinutes(totalMs));

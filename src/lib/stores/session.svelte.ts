@@ -5,7 +5,7 @@ import { userMessageForError } from '$lib/api/user-message';
 import { createRepository } from '$lib/data/create-repository';
 import type { TimeTrackingRepository } from '$lib/data/repository';
 import { m } from '$lib/paraglide/messages.js';
-import { prefsStore } from '$lib/stores/prefs.svelte';
+import { type PrefsStore } from '$lib/stores/prefs.svelte';
 import {
 	projectWeekSummaries,
 	recentStoppedSessions,
@@ -15,6 +15,7 @@ import {
 	weeklyDayTotals
 } from '$lib/time/aggregates';
 import { formatClock, sessionElapsedMs } from '$lib/time/duration';
+import { DEFAULT_TIME_ZONE } from '$lib/time/timezone';
 import type {
 	CreateProjectInput,
 	Project,
@@ -23,16 +24,29 @@ import type {
 	UpdateProfileInput,
 	UpdateProjectInput
 } from '$lib/types/domain';
+import { createContext } from 'svelte';
+import { SvelteDate, SvelteSet } from 'svelte/reactivity';
+
+export type HydrateOptions = {
+	nowMs?: number;
+	timeZone?: string;
+};
 
 /**
- * Client session lifecycle + projection of repository data for the UI.
- * Uses a class with $state fields so navigation does not reset the timer (ADR-0004).
+ * Session lifecycle + projection of repository data for the UI.
+ * Created per server request; cached as a client singleton after hydrate
+ * so in-app navigation does not reset the timer (ADR-0004 / ADR-0011).
  */
-class SessionStore {
+export class SessionStore {
 	#repo: TimeTrackingRepository | null = null;
+	#hydrated = false;
+	#prefs: PrefsStore;
 
 	/** Wall-clock used for live elapsed (updated on an interval while browser). */
-	nowMs = $state(Date.now());
+	nowMs = $state(0);
+
+	/** IANA zone for first-paint day keys and local times. */
+	timeZone = $state(DEFAULT_TIME_ZONE);
 
 	/** Full session list mirror (newest-first after refresh). */
 	sessions = $state.raw<TimeSession[]>([]);
@@ -44,7 +58,7 @@ class SessionStore {
 	allProjects = $state.raw<Project[]>([]);
 
 	/** Draft fields for the Timer form (idle / pre-start). */
-	draftNote = $state('Refactoring Auth Service');
+	draftNote = $state('');
 	draftProjectId = $state('');
 
 	error = $state<string | null>(null);
@@ -58,18 +72,24 @@ class SessionStore {
 
 	#tickId: ReturnType<typeof setInterval> | null = null;
 
+	constructor(prefs: PrefsStore) {
+		this.#prefs = prefs;
+	}
+
 	/**
 	 * Apply a domain seed once. Subsequent load runs (and retries after success)
 	 * must not rebuild the repo or the live timer resets.
 	 */
-	hydrate = (seed: AppSeed): void => {
-		if (this.#repo) return;
-		this.#repo = createRepository();
+	hydrate = (seed: AppSeed, opts: HydrateOptions = {}): void => {
+		if (this.#hydrated) return;
+		this.#hydrated = true;
+		this.nowMs = opts.nowMs ?? Date.now();
+		this.timeZone = opts.timeZone ?? DEFAULT_TIME_ZONE;
 		this.projects = seed.projects.filter((p) => !p.isArchived);
 		this.allProjects = seed.projects;
 		this.sessions = seed.sessions;
 
-		this.draftProjectId = prefsStore.defaultProjectId || this.projects[0]?.id || '';
+		this.draftProjectId = this.#prefs.defaultProjectId || this.projects[0]?.id || '';
 		const recent = this.sessions.find((s) => s.status === 'stopped');
 		if (recent) {
 			this.draftNote = recent.note;
@@ -77,12 +97,13 @@ class SessionStore {
 		this.#normalizeProjectSelection();
 
 		if (browser) {
+			this.#repo = createRepository();
 			this.#startClock();
 		}
 	};
 
 	get ready(): boolean {
-		return this.#repo != null;
+		return this.#hydrated;
 	}
 
 	activeSession = $derived.by(() => {
@@ -97,18 +118,24 @@ class SessionStore {
 
 	elapsedLabel = $derived(formatClock(this.elapsedMs));
 
-	todayTotalMs = $derived.by(() => todayTotalMs(this.sessions, new Date(this.nowMs)));
+	todayTotalMs = $derived.by(() =>
+		todayTotalMs(this.sessions, new SvelteDate(this.nowMs), this.timeZone)
+	);
 
-	todayDeltaMs = $derived.by(() => todayDeltaMs(this.sessions, new Date(this.nowMs)));
+	todayDeltaMs = $derived.by(() =>
+		todayDeltaMs(this.sessions, new SvelteDate(this.nowMs), this.timeZone)
+	);
 
 	recentLogs = $derived.by(() => recentStoppedSessions(this.sessions, 8));
 
 	recentTaskItems = $derived.by(() => recentTasks(this.sessions, 5));
 
-	weekDayTotals = $derived.by(() => weeklyDayTotals(this.sessions, new Date(this.nowMs)));
+	weekDayTotals = $derived.by(() =>
+		weeklyDayTotals(this.sessions, new SvelteDate(this.nowMs), this.timeZone)
+	);
 
 	projectWeekSummaries = $derived.by(() =>
-		projectWeekSummaries(this.sessions, this.projects, new Date(this.nowMs))
+		projectWeekSummaries(this.sessions, this.projects, new SvelteDate(this.nowMs), this.timeZone)
 	);
 
 	getProject = (id: string): Project | undefined => {
@@ -326,7 +353,7 @@ class SessionStore {
 		this.error = null;
 		try {
 			const profile = await this.#requireRepo().updateProfile(input);
-			prefsStore.hydrateProfile(profile);
+			this.#prefs.hydrateProfile(profile);
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_update_profile);
@@ -341,7 +368,7 @@ class SessionStore {
 		this.error = null;
 		try {
 			const profile = await this.#requireRepo().uploadAvatar(file);
-			prefsStore.hydrateProfile(profile);
+			this.#prefs.hydrateProfile(profile);
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_avatar);
@@ -356,7 +383,7 @@ class SessionStore {
 		this.error = null;
 		try {
 			const profile = await this.#requireRepo().deleteAvatar();
-			prefsStore.hydrateProfile(profile);
+			this.#prefs.hydrateProfile(profile);
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_avatar);
@@ -384,14 +411,14 @@ class SessionStore {
 	};
 
 	#normalizeProjectSelection = (): void => {
-		const activeIds = new Set(this.projects.map((p) => p.id));
+		const activeIds = new SvelteSet(this.projects.map((p) => p.id));
 		const fallback = this.projects[0]?.id ?? '';
 
 		if (!activeIds.has(this.draftProjectId)) {
 			this.draftProjectId = fallback;
 		}
-		if (!activeIds.has(prefsStore.defaultProjectId)) {
-			if (fallback) prefsStore.setDefaultProjectId(fallback);
+		if (!activeIds.has(this.#prefs.defaultProjectId)) {
+			if (fallback) this.#prefs.setDefaultProjectId(fallback);
 		}
 	};
 
@@ -401,7 +428,38 @@ class SessionStore {
 			this.nowMs = Date.now();
 		}, 250);
 	};
+
+	reset = (): void => {
+		if (this.#tickId != null) {
+			clearInterval(this.#tickId);
+			this.#tickId = null;
+		}
+		this.#repo = null;
+		this.#hydrated = false;
+		this.nowMs = 0;
+		this.timeZone = DEFAULT_TIME_ZONE;
+		this.sessions = [];
+		this.projects = [];
+		this.allProjects = [];
+		this.draftNote = '';
+		this.draftProjectId = '';
+		this.error = null;
+		this.pendingAction = null;
+	};
 }
 
-/** App-wide singleton — safe for SPA mock data; reset on full reload. */
-export const sessionStore = new SessionStore();
+let clientSession: SessionStore | undefined;
+
+export function createSessionStore(prefs: PrefsStore): SessionStore {
+	if (browser) {
+		clientSession ??= new SessionStore(prefs);
+		return clientSession;
+	}
+	return new SessionStore(prefs);
+}
+
+export function resetClientSessionStore(): void {
+	clientSession?.reset();
+}
+
+export const [useSession, setSession] = createContext<SessionStore>();

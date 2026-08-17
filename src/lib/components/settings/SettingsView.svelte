@@ -4,20 +4,19 @@
 	import { getLocale, locales, setLocale, type Locale } from '$lib/paraglide/runtime.js';
 	import { goto } from '$app/navigation';
 	import { logoutRequest } from '$lib/api/auth';
-	import { sessionStore } from '$lib/stores/session.svelte';
-	import { prefsStore } from '$lib/stores/prefs.svelte';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { usePrefs } from '$lib/stores/prefs.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ProfileAvatar from '$lib/components/shell/ProfileAvatar.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
 	import ThemeSelect from './ThemeSelect.svelte';
 
-	let displayNameDraft = $state(prefsStore.displayName);
-	let fileInput: HTMLInputElement | undefined;
+	const sessionStore = useSession();
+	const prefsStore = usePrefs();
 
-	$effect(() => {
-		displayNameDraft = prefsStore.displayName;
-	});
+	let displayNameDraft = $derived(prefsStore.displayName);
+	let fileInput: HTMLInputElement | undefined;
 
 	const profileBusy = $derived(sessionStore.pendingAction === 'profile');
 	const nameDirty = $derived(displayNameDraft.trim() !== prefsStore.displayName);
@@ -63,7 +62,7 @@
 			// Cookie may already be gone.
 		}
 		authStore.clearSession();
-		await goto(resolve('/login'));
+		await goto(resolve('/login'), { invalidateAll: true });
 	}
 
 	function onLocaleChange(e: Event) {
@@ -129,7 +128,10 @@
 		<p class="mt-2 text-body-sm text-on-surface-variant">{m.settings_photo_hint()}</p>
 
 		<div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-			<label class="flex min-w-0 flex-1 flex-col gap-1 text-body-md text-on-surface" for="display-name">
+			<label
+				class="flex min-w-0 flex-1 flex-col gap-1 text-body-md text-on-surface"
+				for="display-name"
+			>
 				{m.settings_display_name()}
 				<input
 					id="display-name"

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import { prefsStore } from '$lib/stores/prefs.svelte';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { usePrefs } from '$lib/stores/prefs.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import { periodStats } from '$lib/time/aggregates';
 	import type { PeriodKind } from '$lib/time/duration';
 	import ActivityBars from './ActivityBars.svelte';
@@ -10,6 +10,9 @@
 	import KpiCards from './KpiCards.svelte';
 	import PeriodToggle from './PeriodToggle.svelte';
 	import ProjectDonut from './ProjectDonut.svelte';
+
+	const prefsStore = usePrefs();
+	const sessionStore = useSession();
 
 	let period = $state<PeriodKind>('week');
 
@@ -19,7 +22,8 @@
 			sessionStore.projects,
 			period,
 			new Date(sessionStore.nowMs),
-			prefsStore.dailyTargetMs
+			prefsStore.dailyTargetMs,
+			sessionStore.timeZone
 		)
 	);
 </script>

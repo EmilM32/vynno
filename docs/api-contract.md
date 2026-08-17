@@ -6,7 +6,7 @@
 
 This is the wire format the SvelteKit app speaks. The backend should implement these resources. If the live API diverges, change **schemas + mappers only** — not views or the session store.
 
-Set `PUBLIC_API_BASE` to the live origin (including `/v1`). Default local value is `http://localhost:8080/v1`.
+Set `PUBLIC_API_BASE` to `/v1` (same-origin; Kit proxies to vynno-api) or to a live origin that shares the session cookie. Default is `/v1`.
 
 ---
 

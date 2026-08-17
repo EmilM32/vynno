@@ -2,6 +2,8 @@ import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import { setUnauthorizedHandler } from '$lib/api/client';
+import { resetClientPrefsStore } from '$lib/stores/prefs.svelte';
+import { resetClientSessionStore } from '$lib/stores/session.svelte';
 
 export const AUTH_STORAGE_KEY = 'vynno-auth';
 export const AUTH_REMEMBER_KEY = 'vynno-auth-remember';
@@ -49,7 +51,7 @@ class AuthStore {
 		setUnauthorizedHandler(() => {
 			this.clearSession();
 			if (browser) {
-				void goto(resolve('/login'));
+				void goto(resolve('/login'), { invalidateAll: true });
 			}
 		});
 	}
@@ -64,6 +66,8 @@ class AuthStore {
 		this.username = '';
 		this.loggedIn = false;
 		persistUsername('', true);
+		resetClientSessionStore();
+		resetClientPrefsStore();
 	};
 }
 

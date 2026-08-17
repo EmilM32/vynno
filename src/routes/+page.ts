@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
-import { authStore } from '$lib/stores/auth.svelte';
 import type { PageLoad } from './$types';
 
-export const load: PageLoad = () => {
-	redirect(307, authStore.loggedIn ? '/dashboard' : '/login');
+export const load: PageLoad = async ({ parent }) => {
+	const { loggedIn } = await parent();
+	redirect(307, loggedIn ? '/dashboard' : '/login');
 };

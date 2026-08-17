@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
-	import { sessionStore } from '$lib/stores/session.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import BrandMark from './BrandMark.svelte';
+
+	const sessionStore = useSession();
 
 	let { title = '' }: { title?: string } = $props();
 	let searchBtn: HTMLButtonElement | undefined = $state();

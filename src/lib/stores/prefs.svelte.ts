@@ -1,11 +1,12 @@
+import { browser } from '$app/environment';
+import { createContext } from 'svelte';
 import type { UserProfile } from '$lib/types/domain';
 
 /**
- * Client-only user preferences for the mock SPA.
- * Not persisted (reload resets) — durable prefs land with backend / Phase 5+.
- * Theme is the exception: see `$lib/theme`.
+ * User preferences. Created per server request; cached as a client singleton
+ * after hydrate so in-app navigation keeps Settings drafts.
  */
-class PrefsStore {
+export class PrefsStore {
 	displayName = $state('');
 	handle = $state('');
 	avatarUrl = $state<string | undefined>(undefined);
@@ -32,6 +33,28 @@ class PrefsStore {
 	setDefaultProjectId = (id: string): void => {
 		this.defaultProjectId = id;
 	};
+
+	reset = (): void => {
+		this.displayName = '';
+		this.handle = '';
+		this.avatarUrl = undefined;
+		this.dailyTargetHours = 8;
+		this.defaultProjectId = '';
+	};
 }
 
-export const prefsStore = new PrefsStore();
+let clientPrefs: PrefsStore | undefined;
+
+export function createPrefsStore(): PrefsStore {
+	if (browser) {
+		clientPrefs ??= new PrefsStore();
+		return clientPrefs;
+	}
+	return new PrefsStore();
+}
+
+export function resetClientPrefsStore(): void {
+	clientPrefs?.reset();
+}
+
+export const [usePrefs, setPrefs] = createContext<PrefsStore>();

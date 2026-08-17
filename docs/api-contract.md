@@ -47,7 +47,7 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 | `invalid_transition`     | 409    | Pause/resume/stop (or archive/restore) in a bad state | fallback                      |
 | `unauthorized`           | 401    | Missing, unknown, or expired session              | `error_unauthorized`              |
 | `invalid_credentials`    | 401    | Login username/password do not match              | `error_invalid_credentials`       |
-| `username_in_use`        | 409    | Register with a taken username                    | fallback                          |
+| `username_in_use`        | 409    | Register with a taken username                    | `error_username_in_use`           |
 
 Example envelope:
 

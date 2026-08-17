@@ -20,6 +20,9 @@ describe('userMessageForError', () => {
 		expect(userMessageForError(new ApiError(401, 'invalid_credentials', 'x'), () => 'fb')).toBe(
 			'Username or password is incorrect.'
 		);
+		expect(userMessageForError(new ApiError(409, 'username_in_use', 'x'), () => 'fb')).toBe(
+			'That username is already taken.'
+		);
 	});
 
 	it('falls back for unknown errors', () => {

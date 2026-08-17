@@ -26,6 +26,8 @@ export function userMessageForError(e: unknown, fallback: () => string): string 
 			return m.error_unauthorized();
 		case 'invalid_credentials':
 			return m.error_invalid_credentials();
+		case 'username_in_use':
+			return m.error_username_in_use();
 		default:
 			return fallback();
 	}

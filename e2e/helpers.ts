@@ -42,7 +42,7 @@ export async function registerAccount(request: APIRequestContext): Promise<E2EAc
 export async function loginWith(page: Page, username: string, password: string) {
 	await page.goto('/login');
 	await page.getByLabel('Username').fill(username);
-	await page.getByLabel('Password').fill(password);
+	await page.getByRole('textbox', { name: 'Password', exact: true }).fill(password);
 	await page.getByRole('button', { name: 'Log in' }).click();
 	await expect(page).toHaveURL(/\/dashboard$/);
 }

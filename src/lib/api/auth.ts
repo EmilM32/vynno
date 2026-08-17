@@ -11,9 +11,27 @@ export async function loginRequest(
 	base = getApiBase()
 ): Promise<AuthResponse> {
 	const client = new ApiClient(fetchFn, base);
+	return client.post(apiPaths.authLogin(), { username, password, rememberMe }, authResponseSchema);
+}
+
+export async function registerRequest(
+	username: string,
+	password: string,
+	rememberMe: boolean,
+	displayName?: string,
+	fetchFn: FetchFn = globalThis.fetch,
+	base = getApiBase()
+): Promise<AuthResponse> {
+	const client = new ApiClient(fetchFn, base);
+	const trimmedName = displayName?.trim();
 	return client.post(
-		apiPaths.authLogin(),
-		{ username, password, rememberMe },
+		apiPaths.authRegister(),
+		{
+			username,
+			password,
+			rememberMe,
+			...(trimmedName ? { displayName: trimmedName } : {})
+		},
 		authResponseSchema
 	);
 }

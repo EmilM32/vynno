@@ -5,7 +5,7 @@
 	import { usePrefs } from '$lib/stores/prefs.svelte';
 	import BrandMark from './BrandMark.svelte';
 	import ProfileAvatar from './ProfileAvatar.svelte';
-	import { APP_VERSION, NAV_ITEMS, isNavActive } from './nav';
+	import { NAV_ITEMS, isNavActive } from './nav';
 
 	const prefsStore = usePrefs();
 </script>
@@ -18,9 +18,6 @@
 		<BrandMark class="size-8 shrink-0 text-primary" />
 		<div>
 			<p class="text-headline-md leading-tight font-bold text-primary">{m.app_name()}</p>
-			<p class="font-mono text-[10px] text-on-surface-variant uppercase">
-				{APP_VERSION}
-			</p>
 		</div>
 	</div>
 

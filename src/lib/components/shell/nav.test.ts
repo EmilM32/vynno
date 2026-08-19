@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { isNavActive, NAV_ITEMS } from './nav';
+import { version } from '../../../../package.json';
+import { APP_VERSION, isNavActive, NAV_ITEMS } from './nav';
 
 describe('isNavActive', () => {
 	it('treats / and /dashboard as dashboard', () => {
@@ -23,6 +24,12 @@ describe('isNavActive', () => {
 		expect(isNavActive('/logs', '/insights')).toBe(false);
 		// "/time" must not match "/timer"
 		expect(isNavActive('/time', '/timer')).toBe(false);
+	});
+});
+
+describe('APP_VERSION', () => {
+	it('is the package.json version with a v prefix', () => {
+		expect(APP_VERSION).toBe(`v${version}`);
 	});
 });
 

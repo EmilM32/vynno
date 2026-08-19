@@ -150,6 +150,7 @@ Display labels may differ from enum keys (`Deep Work`, `Debug`).
 | Yesterday total / delta     | Dashboard                         |
 | Week hours per project      | Dashboard project cards, Insights |
 | Daily hours Mon–Sun         | Dashboard weekly chart            |
+| Period hours (day / month)  | Project-view hours chart          |
 | Period totals & averages    | Insights KPIs                     |
 | Hours by project / activity | Insights charts + table           |
 | Most productive day         | Insights                          |

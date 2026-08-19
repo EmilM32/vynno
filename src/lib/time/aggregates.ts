@@ -2,15 +2,21 @@ import { m } from '$lib/paraglide/messages.js';
 import type { ActivityType, Project, TimeSession } from '$lib/types/domain';
 import { activityLabel } from '$lib/types/domain';
 import {
+	addCalendarMonths,
 	calendarDaysInclusive,
 	DEFAULT_DAILY_TARGET_MS,
+	endOfMonth,
 	localDateKey,
 	localDateKeyFromDate,
+	localMonthKeyFromDate,
+	monthShort,
+	monthShortYear,
 	periodBounds,
 	type PeriodKind,
 	type ProjectPeriodKind,
 	sessionElapsedMs,
 	startOfLocalDay,
+	startOfMonth,
 	startOfWeekMonday,
 	startOfYesterday,
 	weekdayLong,
@@ -133,9 +139,40 @@ export type WeekDayTotal = {
 	label: string;
 	ms: number;
 	isToday: boolean;
-	/** 0–1 relative to max day in week (for bar height). */
+	/** 0–1 relative to the max bucket (legacy; chart height uses hoursScale). */
 	ratio: number;
 };
+
+/** Y-axis hours: at least 1, ceiled from the busiest bucket. */
+export function hoursScale(maxMs: number): number {
+	return Math.max(1, Math.ceil(Math.max(0, maxMs) / 3_600_000));
+}
+
+function withRatios(buckets: Omit<WeekDayTotal, 'ratio'>[]): WeekDayTotal[] {
+	const max = Math.max(1, ...buckets.map((d) => d.ms));
+	return buckets.map((d) => ({ ...d, ratio: d.ms / max }));
+}
+
+function addLocalDays(start: Date, days: number, timeZone?: string): Date {
+	return timeZone
+		? addDaysInTimeZone(start, days, timeZone)
+		: new Date(start.getFullYear(), start.getMonth(), start.getDate() + days);
+}
+
+function totalForYearMonth(
+	sessions: TimeSession[],
+	yearMonth: string,
+	nowMs: number,
+	timeZone?: string
+): number {
+	let total = 0;
+	for (const s of sessions) {
+		const key = localDateKey(s.startedAt, new Date(nowMs), timeZone);
+		if (!key.startsWith(yearMonth)) continue;
+		total += sessionElapsedMs(s, nowMs);
+	}
+	return total;
+}
 
 /** Mon–Sun totals for the week containing `now`. */
 export function weeklyDayTotals(
@@ -143,29 +180,77 @@ export function weeklyDayTotals(
 	now = new Date(),
 	timeZone?: string
 ): WeekDayTotal[] {
-	const weekStart = startOfWeekMonday(now, timeZone);
-	const todayKey = localDateKeyFromDate(now, timeZone);
-	const nowMs = now.getTime();
-	const days: Omit<WeekDayTotal, 'ratio'>[] = [];
+	return periodBucketTotals(sessions, 'week', now, timeZone);
+}
 
-	for (let i = 0; i < 7; i++) {
-		const d = timeZone
-			? addDaysInTimeZone(weekStart, i, timeZone)
-			: new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i);
-		const key = localDateKeyFromDate(d, timeZone);
-		days.push({
-			key,
-			label: weekdayShort(d, undefined, timeZone),
-			ms: totalForLocalDay(sessions, key, nowMs, timeZone),
-			isToday: key === todayKey
-		});
+/**
+ * Hours histogram buckets for the project-view period toggle.
+ * Week: 7 local days. Month: every day of the current month. All: months
+ * from the first session through the current month.
+ */
+export function periodBucketTotals(
+	sessions: TimeSession[],
+	period: ProjectPeriodKind,
+	now = new Date(),
+	timeZone?: string
+): WeekDayTotal[] {
+	const nowMs = now.getTime();
+	const todayKey = localDateKeyFromDate(now, timeZone);
+
+	if (period === 'week') {
+		const weekStart = startOfWeekMonday(now, timeZone);
+		const days: Omit<WeekDayTotal, 'ratio'>[] = [];
+		for (let i = 0; i < 7; i++) {
+			const d = addLocalDays(weekStart, i, timeZone);
+			const key = localDateKeyFromDate(d, timeZone);
+			days.push({
+				key,
+				label: weekdayShort(d, undefined, timeZone),
+				ms: totalForLocalDay(sessions, key, nowMs, timeZone),
+				isToday: key === todayKey
+			});
+		}
+		return withRatios(days);
 	}
 
-	const max = Math.max(1, ...days.map((d) => d.ms));
-	return days.map((d) => ({
-		...d,
-		ratio: d.ms / max
-	}));
+	if (period === 'month') {
+		const start = startOfMonth(now, timeZone);
+		const count = calendarDaysInclusive(start, endOfMonth(now, timeZone), timeZone);
+		const days: Omit<WeekDayTotal, 'ratio'>[] = [];
+		for (let i = 0; i < count; i++) {
+			const d = addLocalDays(start, i, timeZone);
+			const key = localDateKeyFromDate(d, timeZone);
+			days.push({
+				key,
+				label: String(Number(key.slice(-2))),
+				ms: totalForLocalDay(sessions, key, nowMs, timeZone),
+				isToday: key === todayKey
+			});
+		}
+		return withRatios(days);
+	}
+
+	const first = startOfMonth(earliestStartedAt(sessions, now), timeZone);
+	const currentMonth = startOfMonth(now, timeZone);
+	const currentKey = localMonthKeyFromDate(now, timeZone);
+	const includeYear = localMonthKeyFromDate(first, timeZone).slice(0, 4) !== currentKey.slice(0, 4);
+	const months: Omit<WeekDayTotal, 'ratio'>[] = [];
+
+	for (let i = 0; i < 240; i++) {
+		const d = addCalendarMonths(first, i, timeZone);
+		const key = localMonthKeyFromDate(d, timeZone);
+		months.push({
+			key,
+			label: includeYear
+				? monthShortYear(d, undefined, timeZone)
+				: monthShort(d, undefined, timeZone),
+			ms: totalForYearMonth(sessions, key, nowMs, timeZone),
+			isToday: key === currentKey
+		});
+		if (d.getTime() >= currentMonth.getTime() || key === currentKey) break;
+	}
+
+	return withRatios(months);
 }
 
 export type ProjectWeekSummary = {

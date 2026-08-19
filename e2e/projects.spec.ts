@@ -39,6 +39,20 @@ test.describe('projects', () => {
 		await expect(page).toHaveURL(/\/timer$/);
 	});
 
+	test('project hours chart follows the period toggle', async ({ page }) => {
+		await page.getByTestId('project-open').first().click();
+		await expect(page.getByRole('region', { name: 'Hours this week' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Weekly Overview' })).toBeVisible();
+
+		await page.getByRole('button', { name: 'Month' }).click();
+		await expect(page.getByRole('region', { name: 'Hours this month' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Monthly Overview' })).toBeVisible();
+
+		await page.getByRole('button', { name: 'All' }).click();
+		await expect(page.getByRole('region', { name: 'Hours all time' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'All time' })).toBeVisible();
+	});
+
 	test('dashboard active project card opens the dossier', async ({ page }) => {
 		await page.goto('/dashboard');
 		const card = page.getByTestId('active-project-card').first();

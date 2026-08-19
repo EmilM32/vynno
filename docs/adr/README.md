@@ -16,6 +16,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0010](./0010-http-json-contract.md)       | HTTP JSON contract (DTO-first, mock HTTP)          | Accepted |
 | [0011](./0011-ssr-session-state.md)        | SSR + request-scoped session state                 | Accepted |
 | [0012](./0012-env-origins.md)              | Hosts and ports come from the environment          | Accepted |
+| [0013](./0013-charts-layerchart.md)        | Charts use LayerChart                              | Accepted |
 
 ## Format
 

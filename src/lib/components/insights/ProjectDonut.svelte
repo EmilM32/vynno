@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { PieChart, Tooltip } from 'layerchart';
 	import { m } from '$lib/paraglide/messages.js';
 	import { formatHoursMinutes } from '$lib/time/duration';
 	import type { NamedTotal } from '$lib/time/aggregates';
@@ -12,46 +13,66 @@
 		totalMs: number;
 	} = $props();
 
-	const gradient = $derived.by(() => {
-		if (items.length === 0 || totalMs <= 0) {
-			return 'conic-gradient(var(--color-surface-variant) 0deg 360deg)';
-		}
-		let acc = 0;
-		const parts: string[] = [];
-		for (const item of items) {
-			const start = (acc / totalMs) * 360;
-			acc += item.ms;
-			const end = (acc / totalMs) * 360;
-			parts.push(`${item.color} ${start}deg ${end}deg`);
-		}
-		return `conic-gradient(${parts.join(', ')})`;
-	});
+	type Slice = NamedTotal;
 </script>
 
 <section
-	class="flex h-96 flex-col rounded-lg border border-outline-variant bg-surface-container p-6"
+	class="vynno-chart flex h-96 flex-col rounded-lg border border-outline-variant bg-surface-container p-6"
 	aria-label={m.insights_time_by_project_aria()}
 >
 	<div class="mb-4 flex items-center justify-between">
 		<h2 class="text-headline-md text-on-surface">{m.insights_time_by_project()}</h2>
 	</div>
 
-	<div class="relative flex w-full flex-1 items-center justify-center pb-4">
-		<div
-			class="relative h-48 w-48 rounded-full"
-			style:background={gradient}
-			role="img"
-			aria-label={m.insights_project_distribution_aria({ total: formatHoursMinutes(totalMs) })}
-		>
-			<div
-				class="absolute inset-[18%] flex flex-col items-center justify-center rounded-full bg-surface-container"
-			>
+	<div
+		class="relative flex min-h-0 w-full flex-1 items-center justify-center"
+		role="img"
+		aria-label={m.insights_project_distribution_aria({ total: formatHoursMinutes(totalMs) })}
+	>
+		{#if items.length === 0 || totalMs <= 0}
+			<div class="h-48 w-48 rounded-full bg-surface-variant" aria-hidden="true"></div>
+			<div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
 				<span class="font-mono text-code-display text-on-surface"
 					>{formatHoursMinutes(totalMs)}</span
 				>
 				<span class="font-mono text-code-label text-on-surface-variant">{m.insights_total()}</span>
 			</div>
-		</div>
+		{:else}
+			<PieChart
+				class="h-full w-full"
+				data={items}
+				key="id"
+				label="label"
+				value="ms"
+				c="color"
+				innerRadius={0.64}
+				padAngle={0.02}
+				motion="none"
+				legend={false}
+				padding={8}
+			>
+				{#snippet tooltip({ context })}
+					<Tooltip.Root {context}>
+						{#snippet children({ data }: { data: Slice })}
+							<Tooltip.Header value={data.label} color={data.color} />
+							<Tooltip.List>
+								<Tooltip.Item
+									label={m.insights_total()}
+									value="{formatHoursMinutes(data.ms)} · {data.percent}%"
+									color={data.color}
+								/>
+							</Tooltip.List>
+						{/snippet}
+					</Tooltip.Root>
+				{/snippet}
+			</PieChart>
+			<div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+				<span class="font-mono text-code-display text-on-surface"
+					>{formatHoursMinutes(totalMs)}</span
+				>
+				<span class="font-mono text-code-label text-on-surface-variant">{m.insights_total()}</span>
+			</div>
+		{/if}
 	</div>
 
 	<div class="mt-4 grid grid-cols-2 gap-2 border-t border-outline-variant pt-4">

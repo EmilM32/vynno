@@ -13,7 +13,7 @@
 		recentTasks,
 		sessionsForProject,
 		latestStoppedStartedAt,
-		weeklyDayTotals
+		periodBucketTotals
 	} from '$lib/time/aggregates';
 	import { formatRelativePast, type ProjectPeriodKind } from '$lib/time/duration';
 	import { SvelteDate } from 'svelte/reactivity';
@@ -41,8 +41,22 @@
 				)
 			: null
 	);
-	const weekDays = $derived(
-		weeklyDayTotals(mine, new SvelteDate(sessionStore.nowMs), sessionStore.timeZone)
+	const chartDays = $derived(
+		periodBucketTotals(mine, period, new SvelteDate(sessionStore.nowMs), sessionStore.timeZone)
+	);
+	const chartHeading = $derived(
+		period === 'week'
+			? m.dashboard_weekly_overview()
+			: period === 'month'
+				? m.project_month_overview()
+				: m.project_all_overview()
+	);
+	const chartAria = $derived(
+		period === 'week'
+			? m.project_week_aria()
+			: period === 'month'
+				? m.project_month_aria()
+				: m.project_all_aria()
 	);
 	const notes = $derived(recentTasks(mine, 5));
 	const lastLogged = $derived(latestStoppedStartedAt(mine));
@@ -246,10 +260,10 @@
 		<div class="grid auto-rows-[300px] grid-cols-1 gap-6 lg:grid-cols-2">
 			<WeeklyOverview
 				class="h-full"
-				days={weekDays}
+				days={chartDays}
 				barColor={project.color}
-				heading={m.dashboard_weekly_overview()}
-				ariaLabel={m.project_week_aria()}
+				heading={chartHeading}
+				ariaLabel={chartAria}
 			/>
 			<ActivityBars class="h-full" items={stats?.byActivity ?? []} />
 		</div>

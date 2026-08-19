@@ -28,7 +28,7 @@ Axe runs every route under `dark`, `light`, and `deep-dark` against `wcag2a`, `w
 | Projects tabs      | APG tabs: roving tabindex, arrows, one `tabpanel`.                                                                                                                             |
 | Color radios       | Roving tabindex, arrow keys, named colors (not hex).                                                                                                                           |
 | Insights breakdown | Semantic `<table>` with column headers.                                                                                                                                        |
-| Weekly bars        | Focusable buttons; tooltip on focus and hover; Escape dismisses.                                                                                                               |
+| Weekly bars        | Named region + visually hidden `label: duration` list. LayerChart tooltip on hover.                                                                                           |
 | Login              | APG tabs (Log in / Create account). Visible labels. Login: `autocomplete="username"` / `current-password`. Register: `username` / `new-password` / `nickname`. Show/hide password toggles (`aria-pressed`). Client-only required errors via `role="alert"`. No paste blocking. |
 
 ## Tokens

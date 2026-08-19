@@ -175,6 +175,32 @@ export function startOfMonth(d = new Date(), timeZone?: string): Date {
 	return x;
 }
 
+/** YYYY-MM for the month containing `d`. */
+export function localMonthKeyFromDate(d: Date, timeZone?: string): string {
+	return localDateKeyFromDate(d, timeZone).slice(0, 7);
+}
+
+/** Short month name (`Mar`) in the active locale. */
+export function monthShort(d: Date, locale = getLocale(), timeZone?: string): string {
+	return new Intl.DateTimeFormat(locale, { month: 'short', timeZone }).format(d);
+}
+
+/** Short month plus 2-digit year (`Mar 26`). */
+export function monthShortYear(d: Date, locale = getLocale(), timeZone?: string): string {
+	const month = monthShort(d, locale, timeZone);
+	const year = new Intl.DateTimeFormat(locale, { year: '2-digit', timeZone }).format(d);
+	return `${month} ${year}`;
+}
+
+/** First of the month `months` after the month containing `d`. */
+export function addCalendarMonths(d: Date, months: number, timeZone?: string): Date {
+	if (timeZone) {
+		const p = partsInTimeZone(d, timeZone);
+		return zonedTimeToUtc({ year: p.year, month: p.month + months, day: 1 }, timeZone);
+	}
+	return new Date(d.getFullYear(), d.getMonth() + months, 1);
+}
+
 /** Last moment of month local or zoned. */
 export function endOfMonth(d = new Date(), timeZone?: string): Date {
 	if (timeZone) {

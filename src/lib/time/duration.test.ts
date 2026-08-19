@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FIXED_NOW, localIso, makeSession, ms } from '$lib/test/factories';
 import {
+	addCalendarMonths,
 	calendarDaysInclusive,
 	endOfMonth,
 	endOfWeekSunday,
@@ -13,6 +14,8 @@ import {
 	formatTimeRange,
 	localDateKey,
 	localDateKeyFromDate,
+	localMonthKeyFromDate,
+	monthShort,
 	periodBounds,
 	sessionElapsedMs,
 	startOfLocalDay,
@@ -181,6 +184,23 @@ describe('month anchors', () => {
 		expect(end.getDate()).toBe(31);
 		expect(end.getMonth()).toBe(2);
 		expect(end.getHours()).toBe(23);
+	});
+
+	it('addCalendarMonths lands on the first of the target month', () => {
+		const apr = addCalendarMonths(FIXED_NOW, 1);
+		expect(apr.getMonth()).toBe(3);
+		expect(apr.getDate()).toBe(1);
+		const jan = addCalendarMonths(FIXED_NOW, -2);
+		expect(jan.getMonth()).toBe(0);
+		expect(jan.getFullYear()).toBe(2026);
+	});
+
+	it('localMonthKeyFromDate is YYYY-MM', () => {
+		expect(localMonthKeyFromDate(FIXED_NOW)).toBe('2026-03');
+	});
+
+	it('monthShort is a short month name', () => {
+		expect(monthShort(FIXED_NOW, 'en')).toMatch(/Mar/i);
 	});
 });
 

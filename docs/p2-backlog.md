@@ -18,7 +18,7 @@ These are intentionally **not** built yet. Prioritize when polishing for power u
 | SET-4+    | Full preferences                   | Theme list is local (`dark`, `light`, `deep-dark`); notifications, default activity type still open                                                                                                                                                                       |
 | DATA      | localStorage hydrate               | Optional convenience before real API                                                                                                                                                                                                                                      |
 | **SSR-1** | **Enable SvelteKit SSR**           | **Done.** Request-scoped seed + context stores + time/locale contract. See [ssr-enablement.md](./ssr-enablement.md) and [ADR-0011](./adr/0011-ssr-session-state.md). |
-| CHART     | Chart.js / library                 | CSS charts sufficient for mock; revisit if product wants interaction                                                                                                                                                                                                      |
+| CHART     | Chart library                      | **Done.** LayerChart for hours histogram + project donut. See [adr/0013-charts-layerchart.md](./adr/0013-charts-layerchart.md).                                                                                                                                             |
 
 ## Done in Phase 4 (light P2)
 

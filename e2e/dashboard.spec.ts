@@ -19,10 +19,9 @@ test.describe('dashboard', () => {
 		await page.goto('/dashboard');
 		const week = page.getByRole('region', { name: 'Weekly overview' });
 		await expect(week.getByText('Weekly Overview')).toBeVisible();
-		// Day labels Mon–Sun (bars are focusable buttons)
+		// Day labels Mon–Sun on the hours axis
 		await expect(week.getByText('Mon', { exact: true })).toBeVisible();
 		await expect(week.getByText('Sun', { exact: true })).toBeVisible();
-		await expect(week.getByRole('button', { name: /Mon:/ })).toBeVisible();
 	});
 
 	test('current focus empty when idle', async ({ page }) => {

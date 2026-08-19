@@ -190,7 +190,7 @@ See [screens-and-flows.md](./screens-and-flows.md) §3.6 and [adr/0006-project-l
 | PV-1  | Route `/projects/[id]` (unknown id → in-page not-found, not a new nav item) |
 | PV-2  | Entry from Dashboard cards, Projects rows, Insights legend, command palette |
 | PV-3  | Period toggle Week / Month / All: total, daily average, share of period     |
-| PV-4  | This-week bars (project color) + activity mix                               |
+| PV-4  | Period hours bars (project color; week / month / all) + activity mix        |
 | PV-5  | Date-grouped entries for this project + search                              |
 | PV-6  | Recent logs restart; Start session sets draft project and opens Timer       |
 
@@ -252,7 +252,7 @@ Core concepts:
 | 3   | Timezone handling                        | Device local time                                                                    |
 | 4   | Offline support                          | Not in frontend MVP; in-memory only                                                  |
 | 5   | Settings content for v1                  | Stub page until designed                                                             |
-| 6   | Chart library                            | Chart.js was used in Stitch; re-evaluate at implementation (ADR if needed)           |
+| 6   | Chart library                            | LayerChart (`BarChart`, `PieChart`). See [adr/0013-charts-layerchart.md](./adr/0013-charts-layerchart.md). |
 
 ## 13. Related documents
 

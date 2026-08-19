@@ -34,7 +34,7 @@ No backend framework is introduced in this repository.
 
 - Team must be comfortable with Svelte (not React).  
 - Tailwind can encourage one-off utility soup; mitigate with design tokens and small presentational components.  
-- Chart library still TBD (Stitch used Chart.js); choose during Phase 3.
+- Chart library chosen later as LayerChart — see [0013-charts-layerchart.md](./0013-charts-layerchart.md).
 
 ## Alternatives considered
 

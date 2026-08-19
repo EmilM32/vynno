@@ -15,6 +15,8 @@ import {
 	todayDeltaMs,
 	todayTotalMs,
 	totalForLocalDay,
+	hoursScale,
+	periodBucketTotals,
 	weeklyDayTotals,
 	yesterdayTotalMs
 } from './aggregates';
@@ -185,6 +187,61 @@ describe('weeklyDayTotals', () => {
 	it('uses ratio baseline of 1 when week is empty', () => {
 		const days = weeklyDayTotals([], FIXED_NOW);
 		expect(days.every((d) => d.ms === 0 && d.ratio === 0)).toBe(true);
+	});
+});
+
+describe('hoursScale', () => {
+	it('ceils max ms to whole hours with a 1h floor', () => {
+		expect(hoursScale(0)).toBe(1);
+		expect(hoursScale(ms.hours(5))).toBe(5);
+		expect(hoursScale(ms.hours(5) + 1)).toBe(6);
+	});
+});
+
+describe('periodBucketTotals', () => {
+	it('week matches weeklyDayTotals', () => {
+		const sessions = daySessions();
+		expect(periodBucketTotals(sessions, 'week', FIXED_NOW)).toEqual(
+			weeklyDayTotals(sessions, FIXED_NOW)
+		);
+	});
+
+	it('month returns every local day including future days at 0', () => {
+		const days = periodBucketTotals(daySessions(), 'month', FIXED_NOW);
+		expect(days).toHaveLength(31);
+		expect(days[0]!.key).toBe('2026-03-01');
+		expect(days[0]!.label).toBe('1');
+		expect(days[10]!.key).toBe('2026-03-11');
+		expect(days[10]!.isToday).toBe(true);
+		expect(days[10]!.ms).toBe(ms.hours(2, 30));
+		expect(days[30]!.key).toBe('2026-03-31');
+		expect(days[30]!.ms).toBe(0);
+		expect(days[30]!.isToday).toBe(false);
+	});
+
+	it('all-time is months from first session through now', () => {
+		const older = makeSession({
+			id: 'jan',
+			projectId: 'proj-a',
+			status: 'stopped',
+			startedAt: localIso(2026, 0, 15, 10, 0),
+			endedAt: localIso(2026, 0, 15, 12, 0),
+			pausedMs: 0
+		});
+		const months = periodBucketTotals([...daySessions(), older], 'all', FIXED_NOW);
+		expect(months.map((d) => d.key)).toEqual(['2026-01', '2026-02', '2026-03']);
+		expect(months[0]!.ms).toBe(ms.hours(2));
+		expect(months[1]!.ms).toBe(0);
+		expect(months[2]!.isToday).toBe(true);
+		expect(months[2]!.ms).toBe(ms.hours(5, 30));
+	});
+
+	it('all-time with no sessions is the current month at zero', () => {
+		const months = periodBucketTotals([], 'all', FIXED_NOW);
+		expect(months).toHaveLength(1);
+		expect(months[0]!.key).toBe('2026-03');
+		expect(months[0]!.ms).toBe(0);
+		expect(months[0]!.isToday).toBe(true);
 	});
 });
 

@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'layerchart/core.css';
 @import '../lib/theme/tokens.css';
 @import '../lib/theme/dark.css';
 @import '../lib/theme/light.css';
@@ -149,10 +150,6 @@
 		box-shadow: 0 0 8px color-mix(in oklab, var(--color-secondary-fixed) 50%, transparent);
 	}
 
-	.bar-today-glow {
-		box-shadow: 0 -2px 10px color-mix(in oklab, var(--color-primary) 20%, transparent);
-	}
-
 	/* Native <select> — hide the OS caret and draw an inset chevron.
 	   Data-URL SVGs cannot use currentColor, so light vs dark stroke is themed. */
 	.native-select {
@@ -167,4 +164,25 @@
 	[data-theme='light'] .native-select {
 		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233f4850' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
 	}
+}
+
+/* Unlayered so these beat LayerChart's @layer components styles. */
+.vynno-chart,
+.lc-root-container,
+.lc-tooltip-root {
+	--color-surface-100: var(--color-surface-container-high);
+	--color-surface-200: var(--color-surface-container-highest);
+	--color-surface-content: var(--color-on-surface);
+}
+
+.vynno-chart .lc-axis-tick-label,
+.vynno-chart .lc-text {
+	fill: var(--color-on-surface-variant);
+}
+
+.vynno-chart .lc-grid-y-line,
+.vynno-chart .lc-grid-x-line,
+.vynno-chart .lc-rule-y-line,
+.vynno-chart .lc-rule-x-line {
+	stroke: var(--color-outline-variant);
 }

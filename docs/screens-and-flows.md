@@ -149,7 +149,7 @@ Time dossier for one project. Not a seventh nav item — Projects stays highligh
 1. Header: back to list, color swatch, name, code chip, archived/live badge, last-logged subtitle
 2. Actions: Week / Month / All period toggle, Start session (or Open timer), Edit, Archive / Restore
 3. KPI cards: period total, daily average, share of period hours
-4. This-week bar chart (project color) + time-by-activity bars
+4. Period hours bar chart (project color; follows Week / Month / All) + time-by-activity bars
 5. Recent logs with restart
 6. Date-grouped entries (project column omitted) + grep-style search
 

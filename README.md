@@ -52,8 +52,9 @@ Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) 
 | Script                    | Purpose                                                            |
 | ------------------------- | ------------------------------------------------------------------ |
 | `npm run dev`             | Dev server                                                         |
-| `npm run build`           | Production build                                                   |
-| `npm run preview`         | Preview production build                                           |
+| `npm run build`           | Production build (`scripts/build` is the same)                     |
+| `npm run preview`         | Preview production build (Playwright; not the daily driver)        |
+| `npm run start`           | Run the adapter-node build (requires a prior build)                |
 | `npm run check`           | `svelte-check` + sync                                              |
 | `npm run lint`            | Prettier + ESLint                                                  |
 | `npm run format`          | Format with Prettier                                               |
@@ -77,6 +78,24 @@ npm run test:e2e
 ```
 
 `npm run test:e2e` builds the SPA, starts the preview at `E2E_ORIGIN`, and registers throwaway users so it does not leave `alexdev` with a live session. It fails fast if `/healthz` on `API_ORIGIN` is down. A missing Chromium install is the usual browser-side failure — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
+
+## Run in production (this machine)
+
+No cloud host. The production UI is a Node process on loopback. Full runbook: **[docs/local-production.md](./docs/local-production.md)**. Decision: [ADR-0014](./docs/adr/0014-local-production-spa.md).
+
+```sh
+# vynno-api — list http://localhost:3000 in SPA_ORIGIN
+./scripts/start
+
+# this repo — rebuild only when the UI source changed
+./scripts/build
+./scripts/start           # foreground; does not rebuild
+# open http://localhost:3000
+```
+
+`./scripts/start --detach` writes `var/spa.pid` and `logs/spa.log`. `./scripts/stop` stops that process only.
+
+The server binds `127.0.0.1`. Bookmark `http://localhost:3000`, not `http://127.0.0.1:3000` — they do not share the session cookie.
 
 ## Routes
 
@@ -112,9 +131,11 @@ Start here: **[docs/README.md](./docs/README.md)**
 | [docs/screens-and-flows.md](./docs/screens-and-flows.md) | Screens & flows               |
 | [docs/design-system.md](./docs/design-system.md)         | Design tokens                 |
 | [docs/roadmap.md](./docs/roadmap.md)                     | Delivery phases               |
+| [docs/local-production.md](./docs/local-production.md)   | Production UI on this machine |
 | [docs/adr/](./docs/adr/)                                 | Architecture decisions        |
 
 ## Status
 
 - **Phase 0:** Planning docs complete
 - **Phase 1:** App scaffold + shell + placeholder routes
+- **Phase 6:** Local production — `adapter-node` on this machine (`scripts/start`)

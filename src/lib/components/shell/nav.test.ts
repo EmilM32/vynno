@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { version } from '../../../../package.json';
+import pkg from '../../../../package.json' with { type: 'json' };
 import { APP_VERSION, isNavActive, NAV_ITEMS } from './nav';
 
 describe('isNavActive', () => {
@@ -29,7 +29,7 @@ describe('isNavActive', () => {
 
 describe('APP_VERSION', () => {
 	it('is the package.json version with a v prefix', () => {
-		expect(APP_VERSION).toBe(`v${version}`);
+		expect(APP_VERSION).toBe(`v${pkg.version}`);
 	});
 });
 

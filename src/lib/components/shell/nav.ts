@@ -1,4 +1,4 @@
-import { version } from '../../../../package.json';
+import pkg from '../../../../package.json' with { type: 'json' };
 import { m } from '$lib/paraglide/messages.js';
 
 export type AppRoute = '/timer' | '/dashboard' | '/logs' | '/insights' | '/projects' | '/settings';
@@ -19,7 +19,7 @@ export const NAV_ITEMS: NavItem[] = [
 	{ href: '/settings', label: () => m.nav_settings(), icon: 'settings' }
 ];
 
-export const APP_VERSION = `v${version}`;
+export const APP_VERSION = `v${pkg.version}`;
 
 export function isNavActive(pathname: string, href: string): boolean {
 	if (href === '/dashboard') {

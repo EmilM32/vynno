@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { version } from '../package.json';
+import pkg from '../package.json' with { type: 'json' };
 import { login, type E2EAccount } from './helpers';
 
 test.describe('settings', () => {
@@ -69,7 +69,7 @@ test.describe('settings', () => {
 		await expect(about.getByText('VIN-oh')).toBeVisible();
 		await expect(about.getByText('/ˈvɪn.oʊ/')).toBeVisible();
 		await expect(about.getByText(/double n/i)).toBeVisible();
-		await expect(about.getByText(`v${version}`)).toBeVisible();
+		await expect(about.getByText(`v${pkg.version}`)).toBeVisible();
 	});
 
 	test('default project select is populated', async ({ page }) => {

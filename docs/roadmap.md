@@ -1,7 +1,7 @@
 # Roadmap — Vynno Frontend
 
 **Status:** Draft  
-**Last updated:** 2026-08-12  
+**Last updated:** 2026-08-19  
 **Scope:** This repository only (UI). Backend is a separate project.
 
 ---
@@ -20,6 +20,7 @@
 | **5a** | API contract       | HTTP-fetched JSON, DTOs, mock GET `/mock/v1`, async repository                    | Done      |
 | **5b** | HTTP writes        | Store uses HTTP repo; mock POST/PATCH/DELETE; contract docs                       | Done      |
 | **5c** | Live API           | Point `PUBLIC_API_BASE` at the real backend; auth; delete mock tree               | Done      |
+| **6**  | Local production   | adapter-node + start/stop scripts; run on this machine                            | Done      |
 
 ---
 
@@ -162,6 +163,20 @@
 - Analysis: [ssr-enablement.md](./ssr-enablement.md)
 - Decision: [adr/0011-ssr-session-state.md](./adr/0011-ssr-session-state.md)
 
+## Phase 6 — Local production
+
+**Done when:**
+
+- [x] `@sveltejs/adapter-node` replaces `adapter-auto`
+- [x] `scripts/build` / `scripts/start` / `scripts/stop` (start does not rebuild)
+- [x] Loopback bind + `ORIGIN=http://localhost:3000` + `BODY_SIZE_LIMIT=2M`
+- [x] Runbook and [ADR-0014](./adr/0014-local-production-spa.md)
+- [x] vynno-api `SPA_ORIGIN` example includes `:3000`
+
+**Non-goals:** Cloud host, TLS, nginx, SPA Dockerfile, launchd.
+
+**Exit criteria:** `scripts/build` then `scripts/start` serves the app at `http://localhost:3000` against a running vynno-api. See [local-production.md](./local-production.md).
+
 ---
 
 ## Suggested implementation order (components)
@@ -190,3 +205,5 @@ Use this roadmap as the checklist. Optionally split Phase 1+ into GitHub issues 
 - [ssr-enablement.md](./ssr-enablement.md)
 - [adr/0001-frontend-stack.md](./adr/0001-frontend-stack.md)
 - [adr/0002-frontend-only-separation.md](./adr/0002-frontend-only-separation.md)
+- [adr/0014-local-production-spa.md](./adr/0014-local-production-spa.md)
+- [local-production.md](./local-production.md)

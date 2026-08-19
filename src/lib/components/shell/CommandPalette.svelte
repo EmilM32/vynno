@@ -4,7 +4,10 @@
 	import { trapFocus } from '$lib/a11y/focus-trap';
 	import { m } from '$lib/paraglide/messages.js';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
+	import { useSession } from '$lib/stores/session.svelte';
 	import { NAV_ITEMS, type AppRoute } from './nav';
+
+	const sessionStore = useSession();
 
 	type Command = {
 		id: string;
@@ -32,6 +35,16 @@
 			}
 		}));
 
+		const projectCmds: Command[] = sessionStore.projects.map((p) => ({
+			id: `project-${p.id}`,
+			label: m.command_open_project({ name: p.name }),
+			hint: p.code ?? `/projects/${p.id}`,
+			icon: 'folder_open',
+			run: () => {
+				void goto(resolve(`/projects/${encodeURIComponent(p.id)}`));
+			}
+		}));
+
 		return [
 			{
 				id: 'start',
@@ -42,7 +55,8 @@
 					void goto(resolve('/timer'));
 				}
 			},
-			...navCmds
+			...navCmds,
+			...projectCmds
 		];
 	});
 

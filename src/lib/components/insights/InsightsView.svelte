@@ -16,6 +16,11 @@
 
 	let period = $state<PeriodKind>('week');
 
+	const periodOptions = $derived([
+		{ id: 'week' as const, label: m.insights_period_week() },
+		{ id: 'month' as const, label: m.insights_period_month() }
+	]);
+
 	const stats = $derived(
 		periodStats(
 			sessionStore.sessions,
@@ -31,7 +36,7 @@
 <div class="flex w-full flex-col gap-6" data-testid="page-view">
 	<PageHeader title={m.insights_title()} description={m.insights_subtitle()}>
 		{#snippet actions()}
-			<PeriodToggle bind:value={period} />
+			<PeriodToggle bind:value={period} options={periodOptions} />
 		{/snippet}
 	</PageHeader>
 

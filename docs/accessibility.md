@@ -13,7 +13,7 @@ npm run check            # svelte-check a11y warnings
 npm run test:e2e         # includes e2e/a11y.spec.ts (axe-core)
 ```
 
-Axe runs every route under `dark`, `light`, and `deep-dark` against `wcag2a`, `wcag2aa`, `wcag21aa`, and `wcag22aa`.
+Axe runs every route under `dark`, `light`, and `deep-dark` against `wcag2a`, `wcag2aa`, `wcag21aa`, and `wcag22aa`. The project dossier (`/projects/:id`) is covered by a dedicated case after navigating from the list.
 
 ## Patterns
 

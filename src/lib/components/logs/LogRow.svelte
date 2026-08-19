@@ -7,7 +7,13 @@
 
 	const sessionStore = useSession();
 
-	let { session }: { session: TimeSession } = $props();
+	let {
+		session,
+		hideProject = false
+	}: {
+		session: TimeSession;
+		hideProject?: boolean;
+	} = $props();
 
 	const project = $derived(sessionStore.getProject(session.projectId));
 	const duration = $derived(sessionElapsedMs(session));
@@ -21,16 +27,18 @@
 	data-testid="log-row"
 >
 	<div class="flex min-w-0 flex-1 items-center gap-4 overflow-hidden">
-		<div class="flex min-w-[120px] items-center gap-2">
-			<div
-				class="h-2 w-2 shrink-0 rounded-full"
-				style:background-color={project?.color ?? '#64748b'}
-				aria-hidden="true"
-			></div>
-			<span class="truncate text-body-sm text-on-surface"
-				>{project?.name ?? m.common_unknown()}</span
-			>
-		</div>
+		{#if !hideProject}
+			<div class="flex min-w-[120px] items-center gap-2">
+				<div
+					class="h-2 w-2 shrink-0 rounded-full"
+					style:background-color={project?.color ?? '#64748b'}
+					aria-hidden="true"
+				></div>
+				<span class="truncate text-body-sm text-on-surface"
+					>{project?.name ?? m.common_unknown()}</span
+				>
+			</div>
+		{/if}
 		<div
 			class="min-w-0 flex-1 truncate font-mono text-code-data text-on-surface-variant"
 			title={session.note}

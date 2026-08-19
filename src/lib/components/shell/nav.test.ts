@@ -15,6 +15,7 @@ describe('isNavActive', () => {
 	it('matches nested paths under href', () => {
 		expect(isNavActive('/settings/profile', '/settings')).toBe(true);
 		expect(isNavActive('/insights/week', '/insights')).toBe(true);
+		expect(isNavActive('/projects/proj-auth', '/projects')).toBe(true);
 	});
 
 	it('does not false-positive across sibling routes', () => {

@@ -9,6 +9,7 @@ import {
 	formatHoursDecimal,
 	formatHoursMinutes,
 	formatLocalTime,
+	formatRelativePast,
 	formatTimeRange,
 	localDateKey,
 	localDateKeyFromDate,
@@ -243,5 +244,16 @@ describe('weekday labels', () => {
 	it('formats weekdays in the given locale', () => {
 		expect(weekdayShort(FIXED_NOW, 'pl')).toMatch(/śr/i);
 		expect(weekdayLong(FIXED_NOW, 'pl')).toMatch(/środ/i);
+	});
+});
+
+describe('formatRelativePast', () => {
+	it('uses hour granularity for recent past', () => {
+		const iso = new Date(FIXED_NOW.getTime() - ms.hours(2)).toISOString();
+		expect(formatRelativePast(iso, FIXED_NOW.getTime(), 'en')).toMatch(/2 hours ago/i);
+	});
+
+	it('returns empty for invalid iso', () => {
+		expect(formatRelativePast('nope', FIXED_NOW.getTime())).toBe('');
 	});
 });

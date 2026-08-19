@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
 	import type { Project } from '$lib/types/domain';
 
@@ -48,32 +49,40 @@
 	data-project-id={project.id}
 >
 	<div class="flex min-w-0 items-start gap-3">
-		<div
-			class="mt-0.5 h-3.5 w-3.5 shrink-0 rounded-sm"
-			style:background-color={project.color}
-			aria-hidden="true"
-		></div>
-		<div class="min-w-0">
-			<div class="flex flex-wrap items-center gap-2">
-				<span class="text-body-md font-medium text-on-surface">{project.name}</span>
-				{#if project.code}
-					<span
-						class="rounded bg-surface-container-high px-1.5 py-0.5 font-mono text-code-label text-on-surface-variant"
+		<a
+			href={resolve(`/projects/${encodeURIComponent(project.id)}`)}
+			class="focus-ring flex min-w-0 items-start gap-3 rounded-sm"
+			data-testid="project-open"
+		>
+			<div
+				class="mt-0.5 h-3.5 w-3.5 shrink-0 rounded-sm"
+				style:background-color={project.color}
+				aria-hidden="true"
+			></div>
+			<div class="min-w-0">
+				<div class="flex flex-wrap items-center gap-2">
+					<span class="text-body-md font-medium text-on-surface hover:text-primary"
+						>{project.name}</span
 					>
-						{project.code}
-					</span>
-				{/if}
-				{#if archived}
-					<span class="font-mono text-[10px] tracking-wide text-on-surface-variant uppercase"
-						>{m.projects_archived_badge()}</span
-					>
-				{/if}
+					{#if project.code}
+						<span
+							class="rounded bg-surface-container-high px-1.5 py-0.5 font-mono text-code-label text-on-surface-variant"
+						>
+							{project.code}
+						</span>
+					{/if}
+					{#if archived}
+						<span class="font-mono text-[10px] tracking-wide text-on-surface-variant uppercase"
+							>{m.projects_archived_badge()}</span
+						>
+					{/if}
+				</div>
+				<p class="mt-0.5 font-mono text-code-label text-on-surface-variant">
+					{sessionCount}
+					{sessionWord}
+				</p>
 			</div>
-			<p class="mt-0.5 font-mono text-code-label text-on-surface-variant">
-				{sessionCount}
-				{sessionWord}
-			</p>
-		</div>
+		</a>
 	</div>
 
 	<div class="flex flex-wrap items-center gap-1.5 sm:shrink-0">

@@ -1,11 +1,29 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-
-	const sessionStore = useSession();
+	import type { WeekDayTotal } from '$lib/time/aggregates';
 	import { formatHoursDecimal } from '$lib/time/duration';
 
-	const days = $derived(sessionStore.weekDayTotals);
+	let {
+		days: daysProp,
+		barColor,
+		heading,
+		ariaLabel,
+		class: className
+	}: {
+		days?: WeekDayTotal[];
+		/** Hex fill for bars (project view). Dashboard keeps the primary track. */
+		barColor?: string;
+		heading?: string;
+		ariaLabel?: string;
+		class?: string;
+	} = $props();
+
+	const sessionStore = useSession();
+
+	const days = $derived(daysProp ?? sessionStore.weekDayTotals);
+	const title = $derived(heading ?? m.dashboard_weekly_overview());
+	const regionLabel = $derived(ariaLabel ?? m.dashboard_weekly_overview_aria());
 	const maxMs = $derived(Math.max(1, ...days.map((d) => d.ms)));
 	const scaleHours = $derived(Math.ceil(maxMs / 3_600_000) || 8);
 	const todayKey = $derived(days.find((d) => d.isToday)?.key ?? '');
@@ -29,13 +47,20 @@
 <svelte:window onkeydown={onWindowKey} />
 
 <section
-	class="flex h-[300px] flex-col rounded-lg border border-outline-variant bg-surface-container p-4"
-	aria-label={m.dashboard_weekly_overview_aria()}
+	class={[
+		'flex flex-col rounded-lg border border-outline-variant bg-surface-container p-4',
+		className ?? 'h-[300px]'
+	]}
+	aria-label={regionLabel}
 >
 	<div class="mb-6 flex items-center justify-between">
-		<h2 class="text-headline-md">{m.dashboard_weekly_overview()}</h2>
+		<h2 class="text-headline-md">{title}</h2>
 		<div class="flex items-center gap-2">
-			<span class="h-2 w-2 rounded-sm bg-primary" aria-hidden="true"></span>
+			<span
+				class="h-2 w-2 rounded-sm {barColor ? '' : 'bg-primary'}"
+				style:background-color={barColor}
+				aria-hidden="true"
+			></span>
 			<span class="text-body-sm text-on-surface-variant">{m.dashboard_hours()}</span>
 		</div>
 	</div>
@@ -60,11 +85,20 @@
 					type="button"
 					class="focus-ring relative flex min-h-6 w-full items-end justify-center rounded-t-sm transition-colors
 						{day.ms > 0
-						? day.isToday
-							? 'bar-today-glow border-t border-primary-container bg-primary/80 hover:bg-primary'
-							: 'bg-primary/20 hover:bg-primary/40'
+						? barColor
+							? day.isToday
+								? 'bar-today-glow'
+								: ''
+							: day.isToday
+								? 'bar-today-glow border-t border-primary-container bg-primary/80 hover:bg-primary'
+								: 'bg-primary/20 hover:bg-primary/40'
 						: 'border border-dashed border-outline-variant bg-surface-container'}"
 					style:height="{heightPct}%"
+					style:background-color={day.ms > 0 && barColor
+						? day.isToday
+							? barColor
+							: `${barColor}33`
+						: undefined}
 					aria-label="{day.label}: {formatHoursDecimal(day.ms)}"
 					onfocus={() => (tipDay = day.key)}
 					onblur={() => {

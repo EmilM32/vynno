@@ -4,11 +4,17 @@
 	let {
 		title,
 		description,
-		actions
+		actions,
+		eyebrow,
+		leading,
+		titleExtra
 	}: {
 		title: string;
 		description: string;
 		actions?: Snippet;
+		eyebrow?: Snippet;
+		leading?: Snippet;
+		titleExtra?: Snippet;
 	} = $props();
 
 	let compact = $state(false);
@@ -47,7 +53,18 @@
 		]}
 	>
 		<div class="min-w-0">
-			<h1 class="text-headline-lg text-on-surface">{title}</h1>
+			{#if eyebrow}
+				<div class="mb-2">{@render eyebrow()}</div>
+			{/if}
+			<div class="flex min-w-0 flex-wrap items-center gap-2">
+				{#if leading}
+					<div class="shrink-0">{@render leading()}</div>
+				{/if}
+				<h1 class="min-w-0 truncate text-headline-lg text-on-surface">{title}</h1>
+				{#if titleExtra}
+					<div class="flex min-w-0 flex-wrap items-center gap-2">{@render titleExtra()}</div>
+				{/if}
+			</div>
 			<div class={['desc', compact && 'desc-compact']} aria-hidden={compact}>
 				<p class="mt-1 text-body-sm text-on-surface-variant" data-testid="page-header-description">
 					{description}

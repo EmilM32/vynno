@@ -215,6 +215,9 @@ interface UserProfile {
 | Insights “Time by Project”  | Sum of stopped sessions by `projectId`          |
 | Insights “Time by Activity” | Sum by `activityType`                           |
 | Ticket badge `DEV-842`      | `ticketId`                                      |
+| Project view KPIs / week    | Sessions with this `projectId` in the period    |
+| Project view share          | Project ms ÷ all ms in the same period          |
+| Project view entries        | Stopped sessions with this `projectId`          |
 
 ---
 

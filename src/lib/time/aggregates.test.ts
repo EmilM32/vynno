@@ -3,10 +3,13 @@ import { FIXED_NOW, localIso, makeProject, makeSession, ms } from '$lib/test/fac
 import {
 	filterSessions,
 	groupSessionsByDate,
+	latestStoppedStartedAt,
 	periodStats,
+	projectPeriodStats,
 	projectWeekSummaries,
 	recentStoppedSessions,
 	recentTasks,
+	sessionsForProject,
 	sessionsInRange,
 	sessionsTouchingToday,
 	todayDeltaMs,
@@ -187,10 +190,7 @@ describe('weeklyDayTotals', () => {
 
 describe('projectWeekSummaries', () => {
 	it('excludes archived, sorts by ms desc, includes zero-hour projects', () => {
-		const withZero = [
-			...projects,
-			makeProject({ id: 'proj-c', name: 'Gamma', color: '#444' })
-		];
+		const withZero = [...projects, makeProject({ id: 'proj-c', name: 'Gamma', color: '#444' })];
 		const summaries = projectWeekSummaries(daySessions(), withZero, FIXED_NOW);
 		expect(summaries.every((s) => s.project.id !== 'proj-arch')).toBe(true);
 		expect(summaries.find((s) => s.project.id === 'proj-c')?.ms).toBe(0);
@@ -282,5 +282,49 @@ describe('periodStats', () => {
 		expect(empty.totalMs).toBe(0);
 		expect(empty.mostProductiveDay).toBeNull();
 		expect(empty.byProject).toEqual([]);
+	});
+});
+
+describe('sessionsForProject / latestStoppedStartedAt', () => {
+	it('filters by project id', () => {
+		const mine = sessionsForProject(daySessions(), 'proj-a');
+		expect(mine.every((s) => s.projectId === 'proj-a')).toBe(true);
+		expect(mine.map((s) => s.id).sort()).toEqual(['t1', 'y1']);
+	});
+
+	it('returns the newest stopped start', () => {
+		expect(latestStoppedStartedAt(daySessions())).toBe(localIso(2026, 2, 11, 11, 30));
+		expect(latestStoppedStartedAt([])).toBeUndefined();
+	});
+});
+
+describe('projectPeriodStats', () => {
+	it('scopes week totals and share to one project', () => {
+		const stats = projectPeriodStats(daySessions(), 'proj-a', 'week', FIXED_NOW);
+		expect(stats.period).toBe('week');
+		// Today 2h + yesterday 1h
+		expect(stats.totalMs).toBe(ms.hours(3));
+		expect(stats.allMs).toBe(ms.hours(5, 30));
+		expect(stats.sharePercent).toBe(Math.round((3 / 5.5) * 100));
+		expect(stats.sessionCount).toBe(2);
+		expect(stats.byActivity[0]?.id).toBe('coding');
+		expect(stats.dailyAverageMs).toBeGreaterThan(0);
+	});
+
+	it('uses first project session as all-time start so share is of the overlapping window', () => {
+		const stats = projectPeriodStats(daySessions(), 'proj-a', 'all', FIXED_NOW);
+		expect(stats.totalMs).toBe(ms.hours(3));
+		expect(stats.allMs).toBeGreaterThanOrEqual(stats.totalMs);
+		expect(stats.sharePercent).toBeGreaterThan(0);
+		expect(stats.sharePercent).toBeLessThanOrEqual(100);
+	});
+
+	it('returns zeros when the project has no sessions', () => {
+		const stats = projectPeriodStats(daySessions(), 'missing', 'week', FIXED_NOW);
+		expect(stats.totalMs).toBe(0);
+		expect(stats.sessionCount).toBe(0);
+		expect(stats.byActivity).toEqual([]);
+		expect(stats.mostProductiveDay).toBeNull();
+		expect(stats.sharePercent).toBe(0);
 	});
 });

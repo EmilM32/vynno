@@ -35,11 +35,31 @@ test.describe('login', () => {
 		await expect(page.getByText('Password is required.')).toBeVisible();
 	});
 
+	test('empty Enter submit stays and shows field errors', async ({ page }) => {
+		await page.goto('/login');
+		await page.getByLabel('Username').press('Enter');
+		await expect(page).toHaveURL(/\/login$/);
+		await expect(page.getByRole('alert')).toHaveCount(2);
+		await expect(page.getByText('Username is required.')).toBeVisible();
+		await expect(page.getByText('Password is required.')).toBeVisible();
+	});
+
 	test('valid credentials proceed to the dashboard', async ({ page }) => {
 		const account = await registerAccount(page.request);
 		await loginWith(page, account.username, account.password);
 		await expect(page.getByTestId('page-view')).toBeVisible();
 		await expect(desktopNav(page).getByText('Vynno', { exact: true })).toBeVisible();
+	});
+
+	test('Enter in the password field signs in', async ({ page }) => {
+		const account = await registerAccount(page.request);
+		await page.goto('/login');
+		await page.getByLabel('Username').fill(account.username);
+		const password = page.getByRole('textbox', { name: 'Password', exact: true });
+		await password.fill(account.password);
+		await password.press('Enter');
+		await expect(page).toHaveURL(/\/dashboard$/);
+		await expect(page.getByTestId('page-view')).toBeVisible();
 	});
 
 	test('root goes to dashboard after login', async ({ page }) => {
@@ -91,6 +111,20 @@ test.describe('register', () => {
 		await page.getByRole('textbox', { name: 'Confirm password' }).fill('e2epassword');
 		await page.getByLabel('Display name').fill(`E2E ${username}`);
 		await page.getByRole('button', { name: 'Create account' }).click();
+		await expect(page).toHaveURL(/\/dashboard$/);
+		await expect(page.getByTestId('page-view')).toBeVisible();
+	});
+
+	test('Enter in the confirm field creates an account', async ({ page }) => {
+		const username = `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+		await page.goto('/login');
+		await page.getByRole('tab', { name: 'Create account' }).click();
+		await page.getByLabel('Username').fill(username);
+		await page.getByLabel('Password', { exact: true }).fill('e2epassword');
+		const confirm = page.getByRole('textbox', { name: 'Confirm password' });
+		await confirm.fill('e2epassword');
+		await expect(page.getByRole('button', { name: 'Create account' })).toBeEnabled();
+		await confirm.press('Enter');
 		await expect(page).toHaveURL(/\/dashboard$/);
 		await expect(page.getByTestId('page-view')).toBeVisible();
 	});

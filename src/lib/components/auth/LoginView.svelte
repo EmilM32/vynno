@@ -47,6 +47,19 @@
 		pending = false;
 	}
 
+	function onFieldKeydown(e: KeyboardEvent) {
+		if (e.key !== 'Enter' || e.isComposing || e.repeat) return;
+		const target = e.currentTarget;
+		if (!(target instanceof HTMLInputElement)) return;
+		if (target.type !== 'text' && target.type !== 'password') return;
+		const form = target.form;
+		if (!form) return;
+		const submitter = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+		if (!submitter || submitter.disabled) return;
+		e.preventDefault();
+		form.requestSubmit(submitter);
+	}
+
 	function onTabListKey(e: KeyboardEvent) {
 		if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
 			e.preventDefault();
@@ -177,6 +190,7 @@
 			{#if tab === 'login'}
 				<form
 					class="flex flex-col gap-4"
+					method="post"
 					onsubmit={handleLogin}
 					novalidate
 					data-testid="login-form"
@@ -194,6 +208,7 @@
 							autocomplete="username"
 							spellcheck="false"
 							bind:value={loginUsername}
+							onkeydown={onFieldKeydown}
 							aria-invalid={loginFieldErrors.username ? 'true' : undefined}
 							aria-describedby={loginFieldErrors.username ? 'login-username-error' : undefined}
 							class="min-h-10 w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2.5 text-body-md text-on-surface"
@@ -211,6 +226,7 @@
 						autocomplete="current-password"
 						bind:value={loginPassword}
 						error={loginFieldErrors.password ?? ''}
+						onkeydown={onFieldKeydown}
 					/>
 
 					<label
@@ -242,6 +258,7 @@
 			{:else}
 				<form
 					class="flex flex-col gap-4"
+					method="post"
 					onsubmit={handleRegister}
 					novalidate
 					data-testid="register-form"
@@ -259,6 +276,7 @@
 							autocomplete="username"
 							spellcheck="false"
 							bind:value={registerUsername}
+							onkeydown={onFieldKeydown}
 							aria-invalid={registerFieldErrors.username ? 'true' : undefined}
 							aria-describedby={registerFieldErrors.username
 								? 'register-username-error'
@@ -278,6 +296,7 @@
 						autocomplete="new-password"
 						bind:value={registerPassword}
 						error={registerFieldErrors.password ?? ''}
+						onkeydown={onFieldKeydown}
 					/>
 
 					<PasswordField
@@ -289,6 +308,7 @@
 						error={registerConfirmError ?? ''}
 						showLabel={m.register_show_confirm()}
 						hideLabel={m.register_hide_confirm()}
+						onkeydown={onFieldKeydown}
 					/>
 
 					<div class="flex flex-col gap-1.5">
@@ -302,6 +322,7 @@
 							autocomplete="nickname"
 							maxlength="80"
 							bind:value={registerDisplayName}
+							onkeydown={onFieldKeydown}
 							aria-describedby="register-display-name-hint"
 							aria-invalid={registerFieldErrors.displayName ? 'true' : undefined}
 							class="min-h-10 w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2.5 text-body-md text-on-surface"

@@ -268,7 +268,6 @@
 					<dd class="font-mono text-code-label text-on-surface">{APP_VERSION}</dd>
 				</div>
 			</dl>
-			<p class="text-body-md text-on-surface">{m.settings_about_tagline()}</p>
 			<p class="text-on-surface-variant">{m.settings_about_oneliner({ name: m.app_name() })}</p>
 			<p class="text-on-surface-variant">{m.settings_about_coined()}</p>
 		</div>

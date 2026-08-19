@@ -4,10 +4,7 @@
 	import { trapFocus } from '$lib/a11y/focus-trap';
 	import { m } from '$lib/paraglide/messages.js';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
-	import { useSession } from '$lib/stores/session.svelte';
 	import { NAV_ITEMS, type AppRoute } from './nav';
-
-	const sessionStore = useSession();
 
 	type Command = {
 		id: string;
@@ -20,7 +17,7 @@
 	let query = $state('');
 	let selected = $state(0);
 	let inputEl: HTMLInputElement | undefined = $state();
-	let overlayEl: HTMLElement | undefined = $state();
+	let listEl: HTMLUListElement | undefined = $state();
 
 	const open = $derived(commandPalette.open);
 
@@ -35,16 +32,6 @@
 			}
 		}));
 
-		const projectCmds: Command[] = sessionStore.projects.map((p) => ({
-			id: `project-${p.id}`,
-			label: m.command_open_project({ name: p.name }),
-			hint: p.code ?? `/projects/${p.id}`,
-			icon: 'folder_open',
-			run: () => {
-				void goto(resolve(`/projects/${encodeURIComponent(p.id)}`));
-			}
-		}));
-
 		return [
 			{
 				id: 'start',
@@ -56,7 +43,6 @@
 				}
 			},
 			...navCmds,
-			...projectCmds
 		];
 	});
 
@@ -107,6 +93,20 @@
 		}
 	}
 
+	function scrollOptionIntoView(index: number) {
+		const list = listEl;
+		if (!list) return;
+		const option = list.querySelectorAll<HTMLElement>('[role="option"]')[index];
+		if (!option) return;
+		const listRect = list.getBoundingClientRect();
+		const optionRect = option.getBoundingClientRect();
+		if (optionRect.bottom > listRect.bottom) {
+			list.scrollTop += optionRect.bottom - listRect.bottom;
+		} else if (optionRect.top < listRect.top) {
+			list.scrollTop -= listRect.top - optionRect.top;
+		}
+	}
+
 	function onInputKey(e: KeyboardEvent) {
 		if (e.key === 'Tab') {
 			e.preventDefault();
@@ -115,11 +115,15 @@
 		if (e.key === 'ArrowDown') {
 			e.preventDefault();
 			if (!filtered.length) return;
-			selected = (activeIndex + 1) % filtered.length;
+			const next = (activeIndex + 1) % filtered.length;
+			selected = next;
+			scrollOptionIntoView(next);
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
 			if (!filtered.length) return;
-			selected = (activeIndex - 1 + filtered.length) % filtered.length;
+			const next = (activeIndex - 1 + filtered.length) % filtered.length;
+			selected = next;
+			scrollOptionIntoView(next);
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
 			runSelected();
@@ -128,26 +132,26 @@
 
 	function onQueryInput() {
 		selected = 0;
+		if (listEl) listEl.scrollTop = 0;
 	}
 
-	$effect(() => {
-		if (!open || !overlayEl) return;
-		const release = trapFocus(overlayEl, { restore: false });
+	function trapOverlay(node: HTMLElement) {
+		const release = trapFocus(node, { restore: false });
 		const id = requestAnimationFrame(() => inputEl?.focus());
 		return () => {
 			cancelAnimationFrame(id);
 			release();
 			commandPalette.restoreFocus();
 		};
-	});
+	}
 </script>
 
 <svelte:window onkeydown={onGlobalKey} />
 
 {#if open}
 	<div
-		bind:this={overlayEl}
-		class="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[15vh]"
+		{@attach trapOverlay}
+		class="fixed inset-0 z-100 flex items-start justify-center px-4 pt-[15vh]"
 	>
 		<button
 			type="button"
@@ -189,7 +193,12 @@
 					>esc</kbd
 				>
 			</div>
-			<ul class="max-h-72 overflow-y-auto py-1" role="listbox" id="command-listbox">
+			<ul
+				bind:this={listEl}
+				class="max-h-72 overflow-y-auto py-1"
+				role="listbox"
+				id="command-listbox"
+			>
 				{#if filtered.length === 0}
 					<li class="px-4 py-6 text-center text-body-sm text-on-surface-variant">
 						{m.command_palette_no_matches()}

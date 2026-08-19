@@ -16,19 +16,25 @@ export function getFocusable(container: HTMLElement): HTMLElement[] {
 	});
 }
 
-/** Set `inert` on every sibling of `node` and its ancestors up to `document.body`. */
-export function setInertOutside(node: HTMLElement, inert: boolean): void {
+/**
+ * Set `inert` on siblings of `node` (and ancestor siblings) that are not already inert.
+ * Returns those elements so cleanup can run after `node` is detached from the document.
+ */
+export function setInertOutside(node: HTMLElement): HTMLElement[] {
+	const added: HTMLElement[] = [];
 	let current: HTMLElement | null = node;
 	while (current && current !== document.body) {
 		const parent: HTMLElement | null = current.parentElement;
 		if (!parent) break;
 		for (const sibling of parent.children) {
 			if (sibling === current || !(sibling instanceof HTMLElement)) continue;
-			if (inert) sibling.setAttribute('inert', '');
-			else sibling.removeAttribute('inert');
+			if (sibling.hasAttribute('inert')) continue;
+			sibling.setAttribute('inert', '');
+			added.push(sibling);
 		}
 		current = parent;
 	}
+	return added;
 }
 
 /**
@@ -40,7 +46,7 @@ export function trapFocus(container: HTMLElement, options: { restore?: boolean }
 	const previouslyFocused =
 		document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
-	setInertOutside(container, true);
+	const inerted = setInertOutside(container);
 
 	function onKeydown(e: KeyboardEvent) {
 		if (e.key !== 'Tab') return;
@@ -66,7 +72,7 @@ export function trapFocus(container: HTMLElement, options: { restore?: boolean }
 
 	return () => {
 		document.removeEventListener('keydown', onKeydown, true);
-		setInertOutside(container, false);
+		for (const el of inerted) el.removeAttribute('inert');
 		if (restore) previouslyFocused?.focus();
 	};
 }

@@ -20,9 +20,8 @@
 </script>
 
 <div class="flex flex-col">
-	<div class="mb-1 flex items-baseline justify-between border-b border-outline-variant pb-2">
+	<div class="mb-1 border-b border-outline-variant pb-2">
 		<h2 class="text-headline-md text-on-surface">{m.timer_recent_tasks()}</h2>
-		<span class="text-body-sm text-on-surface-variant">{m.timer_recent_search_hint()}</span>
 	</div>
 
 	{#if items.length === 0}

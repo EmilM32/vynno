@@ -2,12 +2,14 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { m } from '$lib/paraglide/messages.js';
+	import { commandPalette } from '$lib/stores/command-palette.svelte';
 	import { usePrefs } from '$lib/stores/prefs.svelte';
 	import BrandMark from './BrandMark.svelte';
 	import ProfileAvatar from './ProfileAvatar.svelte';
 	import { NAV_ITEMS, isNavActive } from './nav';
 
 	const prefsStore = usePrefs();
+	let searchBtn: HTMLButtonElement | undefined = $state();
 </script>
 
 <nav
@@ -55,16 +57,35 @@
 		{/each}
 	</ul>
 
-	<div class="mt-auto border-t border-outline-variant px-3 pt-3">
-		<a
-			href={resolve('/settings')}
-			class="focus-ring flex items-center gap-3 rounded-DEFAULT px-3 py-2 transition-colors hover:bg-surface-variant"
-		>
-			<ProfileAvatar name={prefsStore.displayName} src={prefsStore.avatarUrl} size="sm" />
-			<div class="min-w-0">
-				<p class="truncate text-body-sm font-medium text-on-surface">{prefsStore.displayName}</p>
-				<p class="truncate font-mono text-[10px] text-on-surface-variant">{prefsStore.handle}</p>
-			</div>
-		</a>
+	<div class="mt-auto">
+		<div class="px-3 pb-2">
+			<button
+				bind:this={searchBtn}
+				type="button"
+				class="focus-ring flex w-full items-center gap-3 rounded-DEFAULT px-3 py-2 text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-primary"
+				aria-label={m.shell_open_command_palette()}
+				title="⌘K"
+				onclick={() => commandPalette.show(searchBtn)}
+			>
+				<span class="material-symbols-outlined text-[20px]" aria-hidden="true">search</span>
+				<span class="flex-1 text-left text-body-md font-medium">{m.shell_search()}</span>
+				<kbd
+					class="rounded border border-outline-variant px-1.5 py-0.5 font-mono text-[10px]"
+					aria-hidden="true">⌘K</kbd
+				>
+			</button>
+		</div>
+		<div class="border-t border-outline-variant px-3 pt-3">
+			<a
+				href={resolve('/settings')}
+				class="focus-ring flex items-center gap-3 rounded-DEFAULT px-3 py-2 transition-colors hover:bg-surface-variant"
+			>
+				<ProfileAvatar name={prefsStore.displayName} src={prefsStore.avatarUrl} size="sm" />
+				<div class="min-w-0">
+					<p class="truncate text-body-sm font-medium text-on-surface">{prefsStore.displayName}</p>
+					<p class="truncate font-mono text-[10px] text-on-surface-variant">{prefsStore.handle}</p>
+				</div>
+			</a>
+		</div>
 	</div>
 </nav>

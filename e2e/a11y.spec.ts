@@ -90,5 +90,6 @@ test.describe('keyboard', () => {
 		await expect(filter).toBeFocused();
 		await page.keyboard.press('Escape');
 		await expect(page.getByRole('dialog', { name: 'Command palette' })).toHaveCount(0);
+		await expect.poll(() => page.locator('[inert]').count()).toBe(0);
 	});
 });

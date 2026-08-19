@@ -23,7 +23,7 @@
 	"announce_session_resumed": "Sesja wznowiona",
 	"announce_session_stopped": "Sesja zatrzymana",
 	"shell_open_command_palette": "Otwórz paletę poleceń",
-	"shell_search": "Szukaj",
+	"shell_commands": "Polecenia",
 	"shell_session_recording": "Sesja w toku",
 	"shell_session_paused": "Sesja wstrzymana",
 	"shell_no_active_session": "Brak aktywnej sesji",

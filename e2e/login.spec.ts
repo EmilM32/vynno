@@ -24,6 +24,7 @@ test.describe('login', () => {
 		await expect(desktopNav(page)).toHaveCount(0);
 		await expect(page.getByRole('link', { name: 'Skip to content' })).toHaveCount(0);
 		await expect(page.getByRole('button', { name: 'Open command palette' })).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Commands' })).toHaveCount(0);
 	});
 
 	test('empty submit stays and shows field errors', async ({ page }) => {

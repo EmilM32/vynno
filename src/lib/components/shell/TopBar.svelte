@@ -7,7 +7,7 @@
 	const sessionStore = useSession();
 
 	let { title = '' }: { title?: string } = $props();
-	let searchBtn: HTMLButtonElement | undefined = $state();
+	let commandsBtn: HTMLButtonElement | undefined = $state();
 
 	const live = $derived(
 		sessionStore.activeSession?.status === 'active' ||
@@ -28,14 +28,14 @@
 			<span class="text-body-sm text-on-surface-variant">{title}</span>
 		{/if}
 		<button
-			bind:this={searchBtn}
+			bind:this={commandsBtn}
 			type="button"
 			class="focus-ring flex min-h-10 min-w-10 items-center justify-center rounded p-2 text-on-surface-variant hover:bg-surface-container hover:text-primary"
 			aria-label={m.shell_open_command_palette()}
 			title="⌘K"
-			onclick={() => commandPalette.show(searchBtn)}
+			onclick={() => commandPalette.show(commandsBtn)}
 		>
-			<span class="material-symbols-outlined text-[22px]" aria-hidden="true">search</span>
+			<span class="material-symbols-outlined text-[22px]" aria-hidden="true">terminal</span>
 		</button>
 		<span
 			class="material-symbols-outlined text-[18px] {live

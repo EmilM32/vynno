@@ -198,7 +198,7 @@ Personality, the frequency gate, tokens, and do/don’t: **[motion.md](./motion.
 
 - **SideNav** (desktop): brand + version, nav links with left border active state, CTA, profile
 - **BottomNav** (mobile): 5 tabs, active filled/tinted
-- **TopAppBar**: brand, search, notifications, live indicator
+- **TopAppBar**: brand, command-palette trigger, live indicator
 
 ### Core
 

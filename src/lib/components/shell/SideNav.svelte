@@ -9,7 +9,7 @@
 	import { NAV_ITEMS, isNavActive } from './nav';
 
 	const prefsStore = usePrefs();
-	let searchBtn: HTMLButtonElement | undefined = $state();
+	let commandsBtn: HTMLButtonElement | undefined = $state();
 </script>
 
 <nav
@@ -60,19 +60,17 @@
 	<div class="mt-auto">
 		<div class="px-3 pb-2">
 			<button
-				bind:this={searchBtn}
+				bind:this={commandsBtn}
 				type="button"
-				class="focus-ring flex w-full items-center gap-3 rounded-DEFAULT px-3 py-2 text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-primary"
-				aria-label={m.shell_open_command_palette()}
+				class="press focus-ring flex w-full items-center gap-2 rounded-DEFAULT px-3 py-2 text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-primary"
 				title="⌘K"
-				onclick={() => commandPalette.show(searchBtn)}
+				onclick={() => commandPalette.show(commandsBtn)}
 			>
-				<span class="material-symbols-outlined text-[20px]" aria-hidden="true">search</span>
-				<span class="flex-1 text-left text-body-md font-medium">{m.shell_search()}</span>
 				<kbd
 					class="rounded border border-outline-variant px-1.5 py-0.5 font-mono text-[10px]"
 					aria-hidden="true">⌘K</kbd
 				>
+				<span class="font-mono text-code-label">{m.shell_commands()}</span>
 			</button>
 		</div>
 		<div class="border-t border-outline-variant px-3 pt-3">

@@ -73,14 +73,14 @@ test.describe('command palette', () => {
 	test('opens via sidebar button', async ({ page }) => {
 		await login(page);
 		await page.goto('/dashboard');
-		await desktopNav(page).getByRole('button', { name: 'Open command palette' }).click();
+		await desktopNav(page).getByRole('button', { name: 'Commands' }).click();
 		await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible();
 	});
 
 	test('closing restores pointer events', async ({ page }) => {
 		await login(page);
 		await page.goto('/dashboard');
-		await desktopNav(page).getByRole('button', { name: 'Open command palette' }).click();
+		await desktopNav(page).getByRole('button', { name: 'Commands' }).click();
 		await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible();
 		await page.keyboard.press('Escape');
 		await expect(page.getByRole('dialog', { name: 'Command palette' })).toHaveCount(0);

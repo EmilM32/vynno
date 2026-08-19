@@ -19,6 +19,7 @@ Each primary route is one responsive page (mobile + desktop). Settings, Projects
 | `/insights` | Analytics overview | Same with sidebar shell | Analytics |
 | `/settings` | Preferences | Same with sidebar shell | No original Stitch screen |
 | `/projects` | Project management | Same with sidebar shell | No original Stitch screen |
+| `/projects/[id]` | Per-project time dossier | Same with sidebar shell | No original Stitch screen |
 | `/login` | Auth stub | Auth stub | No original Stitch screen |
 
 ---
@@ -137,6 +138,33 @@ No Stitch design. Dev-Density Dark product screen for **PRJ-5**.
 
 **Rules:** see [domain-model.md](./domain-model.md) §4.1 and [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md).
 
+Row name/code is a link to `/projects/[id]`. Dashboard Active Projects cards use the same destination.
+
+### 3.6b Project view (`/projects/[id]`)
+
+Time dossier for one project. Not a seventh nav item — Projects stays highlighted (`/projects/*`).
+
+**Regions**
+
+1. Header: back to list, color swatch, name, code chip, archived/live badge, last-logged subtitle
+2. Actions: Week / Month / All period toggle, Start session (or Open timer), Edit, Archive / Restore
+3. KPI cards: period total, daily average, share of period hours
+4. This-week bar chart (project color) + time-by-activity bars
+5. Recent logs with restart
+6. Date-grouped entries (project column omitted) + grep-style search
+
+**States**
+
+| State | UI |
+|-------|-----|
+| Unknown id | Not-found copy + link back to `/projects` |
+| Archived | History stays; Start session hidden; Restore available |
+| Live session on this project | ACTIVE / PAUSED chip → `/timer`; primary CTA is Open timer |
+| Live session on another project | Start disabled (`error_stop_before_start`) |
+| No sessions | Empty notes + entries; KPIs at zero |
+
+Start session sets `draftProjectId` and navigates to `/timer` (does not auto-start).
+
 ### 3.7 Login (`/login`)
 
 No Stitch mock. Dev-Density card using the same input/button language as Projects and Settings, plus the sidebar brand (timer icon + Vynno wordmark).
@@ -229,6 +257,16 @@ No Stitch mock. Dev-Density card using the same input/button language as Project
 [Projects] → Delete (only if no sessions) → confirm → removed permanently
 ```
 
+### Flow I — Open a project dossier
+
+```
+[Dashboard Active Projects | Projects row | Insights legend | ⌘K]
+  → /projects/{id}
+  → scan week hours + activity mix + entries
+  → Start session → Timer with this project selected
+  → or play a recent log → new session, Timer
+```
+
 ---
 
 ## 5. Cross-screen data dependencies
@@ -240,6 +278,7 @@ No Stitch mock. Dev-Density card using the same input/button language as Project
 | Logs | Stopped sessions, projects (incl. archived for labels) | Search filter (local); edit later |
 | Insights | Aggregates for period | Period toggle only |
 | Projects | All projects + session counts | Create/update/archive/restore/delete |
+| Project view | One project + its sessions + period aggregates | Edit / archive / restore; start or restart session |
 | Settings | Profile / prefs, active projects | Daily target, default project |
 
 ---

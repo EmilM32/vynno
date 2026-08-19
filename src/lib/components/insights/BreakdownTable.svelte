@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
 	import { formatCompact } from '$lib/time/duration';
 	import type { BreakdownRow } from '$lib/time/aggregates';
@@ -44,14 +45,18 @@
 								: ''}"
 						>
 							<td class="px-4 py-3">
-								<div class="flex items-center gap-2 font-mono text-code-data text-on-surface">
+								<a
+									href={resolve(`/projects/${encodeURIComponent(row.projectId)}`)}
+									class="focus-ring flex items-center gap-2 rounded-sm font-mono text-code-data text-on-surface hover:text-primary"
+									aria-label={m.insights_open_project({ name: row.projectName })}
+								>
 									<div
 										class="h-2 w-2 shrink-0 rounded-full"
 										style:background-color={row.projectColor}
 										aria-hidden="true"
 									></div>
 									<span class="truncate">{row.projectName}</span>
-								</div>
+								</a>
 							</td>
 							<td
 								class="hidden px-4 py-3 font-mono text-code-label text-on-surface-variant md:table-cell"

@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
+	import { formatCompact } from '$lib/time/duration';
 
 	const sessionStore = useSession();
-	import { formatCompact } from '$lib/time/duration';
 
 	const items = $derived(sessionStore.projectWeekSummaries);
 </script>
@@ -25,8 +26,10 @@
 	>
 		{#each items as item (item.project.id)}
 			{const pct = $derived(item.progressPercent ?? 0)}
-			<div
-				class="flex min-w-[280px] shrink-0 cursor-default flex-col gap-3 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline"
+			<a
+				href={resolve(`/projects/${encodeURIComponent(item.project.id)}`)}
+				class="focus-ring flex min-w-[280px] shrink-0 flex-col gap-3 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline"
+				data-testid="active-project-card"
 			>
 				<div class="flex items-start justify-between">
 					<div class="flex items-center gap-2">
@@ -59,7 +62,7 @@
 						aria-hidden="true">arrow_forward</span
 					>
 				</div>
-			</div>
+			</a>
 		{/each}
 	</div>
 </section>

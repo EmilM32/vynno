@@ -161,6 +161,7 @@ Priorities: **P0** = MVP UI with mock data, **P1** = full mockup coverage, **P2*
 | PRJ-4 | Tags / priority labels on focus cards              | P1       |
 | PRJ-5 | Full project CRUD UI on dedicated `/projects` page | P1       |
 | PRJ-6 | Full task list management UI                       | P2       |
+| PRJ-7 | Per-project view: hours, activity mix, entries     | P1       |
 
 **PRJ-5 acceptance (project management):**
 
@@ -181,6 +182,17 @@ Priorities: **P0** = MVP UI with mock data, **P1** = full mockup coverage, **P2*
 | PM-14 | Cannot archive or delete the last remaining active project                     |
 
 See [screens-and-flows.md](./screens-and-flows.md) §3.6 and [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md).
+
+**PRJ-7 acceptance (project view):**
+
+| ID    | Requirement                                                                 |
+| ----- | --------------------------------------------------------------------------- |
+| PV-1  | Route `/projects/[id]` (unknown id → in-page not-found, not a new nav item) |
+| PV-2  | Entry from Dashboard cards, Projects rows, Insights legend, command palette |
+| PV-3  | Period toggle Week / Month / All: total, daily average, share of period     |
+| PV-4  | This-week bars (project color) + activity mix                               |
+| PV-5  | Date-grouped entries for this project + search                              |
+| PV-6  | Recent logs restart; Start session sets draft project and opens Timer       |
 
 ### 8.7 Settings
 

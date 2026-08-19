@@ -8,6 +8,7 @@ import {
 	localDateKeyFromDate,
 	periodBounds,
 	type PeriodKind,
+	type ProjectPeriodKind,
 	sessionElapsedMs,
 	startOfLocalDay,
 	startOfWeekMonday,
@@ -63,10 +64,7 @@ export function recentStoppedSessions(sessions: TimeSession[], limit = 8): TimeS
  * Distinct recent "tasks" for the Timer list: unique by projectId + note,
  * keeping the most recent occurrence.
  */
-export function recentTasks(
-	sessions: TimeSession[],
-	limit = 5
-): {
+export type RecentTask = {
 	projectId: string;
 	note: string;
 	durationMs: number;
@@ -74,17 +72,11 @@ export function recentTasks(
 	ticketId?: string;
 	tags?: string[];
 	activityType?: ActivityType;
-}[] {
+};
+
+export function recentTasks(sessions: TimeSession[], limit = 5): RecentTask[] {
 	const seen = new Set<string>();
-	const out: {
-		projectId: string;
-		note: string;
-		durationMs: number;
-		sessionId: string;
-		ticketId?: string;
-		tags?: string[];
-		activityType?: ActivityType;
-	}[] = [];
+	const out: RecentTask[] = [];
 
 	const sorted = [...sessions]
 		.filter((s) => s.status === 'stopped')
@@ -393,5 +385,119 @@ export function periodStats(
 		byProject,
 		byActivity,
 		breakdown
+	};
+}
+
+export function sessionsForProject(sessions: TimeSession[], projectId: string): TimeSession[] {
+	return sessions.filter((s) => s.projectId === projectId);
+}
+
+/** Newest stopped session start, if any. */
+export function latestStoppedStartedAt(sessions: TimeSession[]): string | undefined {
+	let best: string | undefined;
+	let bestMs = -Infinity;
+	for (const s of sessions) {
+		if (s.status !== 'stopped') continue;
+		const t = Date.parse(s.startedAt);
+		if (!Number.isNaN(t) && t > bestMs) {
+			bestMs = t;
+			best = s.startedAt;
+		}
+	}
+	return best;
+}
+
+function earliestStartedAt(sessions: TimeSession[], fallback: Date): Date {
+	let min = Infinity;
+	for (const s of sessions) {
+		const t = Date.parse(s.startedAt);
+		if (!Number.isNaN(t) && t < min) min = t;
+	}
+	return Number.isFinite(min) ? new Date(min) : fallback;
+}
+
+export type ProjectPeriodStats = {
+	period: ProjectPeriodKind;
+	totalMs: number;
+	allMs: number;
+	sharePercent: number;
+	dailyAverageMs: number;
+	mostProductiveDay: { label: string; ms: number } | null;
+	byActivity: NamedTotal[];
+	sessionCount: number;
+};
+
+/**
+ * Period stats scoped to one project. Week/month use the same bounds as Insights.
+ * All-time starts at this project's first session so daily average is not diluted
+ * by years of empty calendar before the project existed.
+ */
+export function projectPeriodStats(
+	sessions: TimeSession[],
+	projectId: string,
+	period: ProjectPeriodKind,
+	now = new Date(),
+	timeZone?: string
+): ProjectPeriodStats {
+	const mineAll = sessionsForProject(sessions, projectId);
+	const { start, end } =
+		period === 'all'
+			? { start: earliestStartedAt(mineAll, now), end: now }
+			: periodBounds(period, now, timeZone);
+
+	const nowMs = now.getTime();
+	const inRange = sessionsInRange(sessions, start, end);
+
+	let totalMs = 0;
+	let allMs = 0;
+	let sessionCount = 0;
+	const dayTotals = new Map<string, number>();
+	const activityTotals = new Map<ActivityType, number>();
+
+	for (const s of inRange) {
+		const ms = sessionElapsedMs(s, nowMs);
+		if (ms <= 0) continue;
+		allMs += ms;
+		if (s.projectId !== projectId) continue;
+		totalMs += ms;
+		sessionCount += 1;
+		const dayKey = localDateKey(s.startedAt, now, timeZone);
+		dayTotals.set(dayKey, (dayTotals.get(dayKey) ?? 0) + ms);
+		const act: ActivityType = s.activityType ?? 'other';
+		activityTotals.set(act, (activityTotals.get(act) ?? 0) + ms);
+	}
+
+	let mostProductiveDay: ProjectPeriodStats['mostProductiveDay'] = null;
+	for (const [key, ms] of dayTotals) {
+		if (!mostProductiveDay || ms > mostProductiveDay.ms) {
+			const d = new Date(key + 'T12:00:00');
+			mostProductiveDay = { label: weekdayLong(d, undefined, timeZone), ms };
+		}
+	}
+
+	const days = calendarDaysInclusive(start, end, timeZone);
+	const dailyAverageMs = totalMs / days;
+	const sharePercent = allMs > 0 ? Math.round((totalMs / allMs) * 100) : 0;
+	const pct = (ms: number) => (totalMs > 0 ? Math.round((ms / totalMs) * 100) : 0);
+
+	const byActivity: NamedTotal[] = [...activityTotals.entries()]
+		.map(([id, ms]) => ({
+			id,
+			label: activityLabel(id),
+			color: ACTIVITY_COLORS[id],
+			ms,
+			percent: pct(ms)
+		}))
+		.sort((a, b) => b.ms - a.ms);
+
+	return {
+		period,
+		totalMs,
+		allMs,
+		sharePercent,
+		dailyAverageMs,
+		mostProductiveDay,
+		byActivity,
+		sessionCount
 	};
 }

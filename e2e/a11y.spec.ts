@@ -49,6 +49,16 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await expectNoViolations(page);
 	});
 
+	test('project dossier', async ({ page }) => {
+		await login(page);
+		await page.goto('/projects');
+		await page.getByTestId('project-open').first().click();
+		await expect(page).toHaveURL(/\/projects\/[^/]+$/);
+		await expect(page.getByTestId('page-view')).toBeVisible();
+		await expect(page).toHaveTitle(/· Vynno$/);
+		await expectNoViolations(page);
+	});
+
 	test('insights month period', async ({ page }) => {
 		await login(page);
 		await page.goto('/insights');

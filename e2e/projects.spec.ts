@@ -30,6 +30,31 @@ test.describe('projects', () => {
 		await expect(page.getByRole('alert')).toHaveCount(0); // no validation / store errors
 	});
 
+	test('opens the project dossier from the list', async ({ page }) => {
+		await page.getByTestId('project-open').first().click();
+		await expect(page).toHaveURL(/\/projects\/[^/]+$/);
+		await expect(page.getByRole('heading', { level: 1 })).not.toHaveText('Projects');
+		await expect(page.getByTestId('project-kpi-total')).toBeVisible();
+		await page.getByTestId('project-start').click();
+		await expect(page).toHaveURL(/\/timer$/);
+	});
+
+	test('dashboard active project card opens the dossier', async ({ page }) => {
+		await page.goto('/dashboard');
+		const card = page.getByTestId('active-project-card').first();
+		await expect(card).toBeVisible();
+		await card.click();
+		await expect(page).toHaveURL(/\/projects\/[^/]+$/);
+		await expect(page.getByTestId('project-kpi-total')).toBeVisible();
+		await expect(page.getByRole('button', { name: 'All' })).toBeVisible();
+	});
+
+	test('unknown project id shows not-found copy', async ({ page }) => {
+		await page.goto('/projects/does-not-exist');
+		await expect(page.getByText('That project could not be found.')).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Projects' }).first()).toBeVisible();
+	});
+
 	test('new project appears in Timer picker', async ({ page }) => {
 		const name = `Timer Pick ${Date.now()}`;
 		await page.getByTestId('new-project').click();

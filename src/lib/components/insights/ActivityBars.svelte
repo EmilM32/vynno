@@ -3,13 +3,22 @@
 	import { formatCompact } from '$lib/time/duration';
 	import type { NamedTotal } from '$lib/time/aggregates';
 
-	let { items }: { items: NamedTotal[] } = $props();
+	let {
+		items,
+		class: className
+	}: {
+		items: NamedTotal[];
+		class?: string;
+	} = $props();
 
 	const maxMs = $derived(Math.max(1, ...items.map((i) => i.ms)));
 </script>
 
 <section
-	class="flex h-96 flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container p-6"
+	class={[
+		'flex flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container p-6',
+		className ?? 'h-96'
+	]}
 	aria-label={m.insights_time_by_activity_aria()}
 >
 	<div class="mb-4 flex shrink-0 items-center justify-between">

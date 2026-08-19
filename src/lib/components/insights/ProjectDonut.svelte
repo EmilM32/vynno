@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
 	import { formatHoursMinutes } from '$lib/time/duration';
 	import type { NamedTotal } from '$lib/time/aggregates';
@@ -55,13 +56,17 @@
 
 	<div class="mt-4 grid grid-cols-2 gap-2 border-t border-outline-variant pt-4">
 		{#each items as item (item.id)}
-			<div class="flex items-center gap-2">
+			<a
+				href={resolve(`/projects/${encodeURIComponent(item.id)}`)}
+				class="focus-ring flex items-center gap-2 rounded-sm"
+				aria-label={m.insights_open_project({ name: item.label })}
+			>
 				<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
 				<span class="truncate font-mono text-code-label text-on-surface-variant">
 					{item.label}
 					<span class="text-on-surface-variant">· {item.percent}%</span>
 				</span>
-			</div>
+			</a>
 		{/each}
 		{#if items.length === 0}
 			<span class="col-span-2 text-body-sm text-on-surface-variant">{m.insights_no_data()}</span>

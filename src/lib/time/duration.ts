@@ -189,6 +189,9 @@ export function endOfMonth(d = new Date(), timeZone?: string): Date {
 
 export type PeriodKind = 'week' | 'month';
 
+/** Insights periods plus an unbounded all-time range for the project view. */
+export type ProjectPeriodKind = PeriodKind | 'all';
+
 export function periodBounds(
 	period: PeriodKind,
 	now = new Date(),
@@ -211,4 +214,24 @@ export function calendarDaysInclusive(start: Date, end: Date, timeZone?: string)
 	const a = startOfLocalDay(start, timeZone);
 	const b = startOfLocalDay(end, timeZone);
 	return Math.max(1, Math.round((b - a) / 86_400_000) + 1);
+}
+
+/**
+ * Relative past label (`2 hours ago`, `yesterday`) via `Intl.RelativeTimeFormat`.
+ * Future timestamps format as a future relative as well.
+ */
+export function formatRelativePast(iso: string, nowMs = Date.now(), locale = getLocale()): string {
+	const then = Date.parse(iso);
+	if (Number.isNaN(then)) return '';
+
+	const diffSec = Math.round((then - nowMs) / 1000);
+	const abs = Math.abs(diffSec);
+	const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
+	if (abs < 60) return rtf.format(diffSec, 'second');
+	if (abs < 3_600) return rtf.format(Math.trunc(diffSec / 60), 'minute');
+	if (abs < 86_400) return rtf.format(Math.trunc(diffSec / 3_600), 'hour');
+	if (abs < 86_400 * 30) return rtf.format(Math.trunc(diffSec / 86_400), 'day');
+	if (abs < 86_400 * 365) return rtf.format(Math.trunc(diffSec / (86_400 * 30)), 'month');
+	return rtf.format(Math.trunc(diffSec / (86_400 * 365)), 'year');
 }

@@ -1,23 +1,23 @@
-<script lang="ts">
+<script lang="ts" generics="T extends string">
 	import { m } from '$lib/paraglide/messages.js';
-	import type { PeriodKind } from '$lib/time/duration';
 
 	let {
-		value = $bindable('week' as PeriodKind)
+		value = $bindable(),
+		options,
+		ariaLabel
 	}: {
-		value?: PeriodKind;
+		value: T;
+		options: { id: T; label: string }[];
+		ariaLabel?: string;
 	} = $props();
 
-	const options = $derived([
-		{ id: 'week' as const, label: m.insights_period_week() },
-		{ id: 'month' as const, label: m.insights_period_month() }
-	]);
+	const groupLabel = $derived(ariaLabel ?? m.insights_period_aria());
 </script>
 
 <div
 	class="inline-flex rounded-DEFAULT border border-outline-variant bg-surface-container-low p-0.5"
 	role="group"
-	aria-label={m.insights_period_aria()}
+	aria-label={groupLabel}
 >
 	{#each options as opt (opt.id)}
 		<button

@@ -1,5 +1,16 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { spaGo, startSession, stopSession, uniqueNote } from './helpers';
+
+async function selectedProjectLabel(page: Page): Promise<string> {
+	return page.locator('#project-select').evaluate((el: HTMLSelectElement) => {
+		return el.selectedOptions[0]?.textContent?.trim() ?? '';
+	});
+}
+
+async function otherProjectLabel(page: Page, current: string): Promise<string | undefined> {
+	const labels = await page.locator('#project-select option').allTextContents();
+	return labels.map((t) => t.trim()).find((t) => t && t !== current);
+}
 
 /**
  * Cross-screen flows must use SPA navigation after mutations —
@@ -28,13 +39,24 @@ test.describe('cross-screen data', () => {
 	});
 
 	test('restart from recent tasks (Flow D)', async ({ page }) => {
-		await startSession(page, uniqueNote('recent'));
-		await stopSession(page);
-		const firstTask = page.getByTestId('recent-task-restart').first();
-		await expect(firstTask).toBeEnabled();
+		const noteA = uniqueNote('recent-a');
+		const noteB = uniqueNote('recent-b');
 
-		await firstTask.click();
+		await startSession(page, noteA);
+		const projectA = await selectedProjectLabel(page);
+		await stopSession(page);
+
+		const otherProject = await otherProjectLabel(page, projectA);
+		await startSession(page, noteB, otherProject);
+		await stopSession(page);
+
+		const older = page.getByTestId('recent-task-restart').filter({ hasText: noteA });
+		await expect(older).toBeEnabled();
+		await older.click();
+
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(noteA);
+		await expect(page.locator('#project-select option:checked')).toHaveText(projectA);
 		await expect(page.getByTestId('recent-task-restart').first()).toBeDisabled();
 	});
 

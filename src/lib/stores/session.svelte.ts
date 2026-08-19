@@ -89,10 +89,16 @@ export class SessionStore {
 		this.allProjects = seed.projects;
 		this.sessions = seed.sessions;
 
-		this.draftProjectId = this.#prefs.defaultProjectId || this.projects[0]?.id || '';
-		const recent = this.sessions.find((s) => s.status === 'stopped');
-		if (recent) {
-			this.draftNote = recent.note;
+		const live = this.sessions.find((s) => s.status === 'active' || s.status === 'paused');
+		if (live) {
+			this.draftNote = live.note;
+			this.draftProjectId = live.projectId;
+		} else {
+			this.draftProjectId = this.#prefs.defaultProjectId || this.projects[0]?.id || '';
+			const recent = this.sessions.find((s) => s.status === 'stopped');
+			if (recent) {
+				this.draftNote = recent.note;
+			}
 		}
 		this.#normalizeProjectSelection();
 
@@ -248,6 +254,8 @@ export class SessionStore {
 		try {
 			const projectId = input?.projectId ?? this.draftProjectId;
 			const note = input?.note ?? this.draftNote;
+			this.draftProjectId = projectId;
+			this.draftNote = note;
 			await this.#requireRepo().startSession({
 				projectId,
 				note,

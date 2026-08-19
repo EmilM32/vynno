@@ -185,14 +185,14 @@ See [screens-and-flows.md](./screens-and-flows.md) §3.6 and [adr/0006-project-l
 
 **PRJ-7 acceptance (project view):**
 
-| ID    | Requirement                                                                 |
-| ----- | --------------------------------------------------------------------------- |
-| PV-1  | Route `/projects/[id]` (unknown id → in-page not-found, not a new nav item) |
-| PV-2  | Entry from Dashboard cards, Projects rows, Insights legend, command palette |
-| PV-3  | Period toggle Week / Month / All: total, daily average, share of period     |
-| PV-4  | Period hours bars (project color; week / month / all) + activity mix        |
-| PV-5  | Date-grouped entries for this project + search                              |
-| PV-6  | Recent logs restart; Start session sets draft project and opens Timer       |
+| ID   | Requirement                                                                 |
+| ---- | --------------------------------------------------------------------------- |
+| PV-1 | Route `/projects/[id]` (unknown id → in-page not-found, not a new nav item) |
+| PV-2 | Entry from Dashboard cards, Projects rows, Insights legend, command palette |
+| PV-3 | Period toggle Week / Month / All: total, daily average, share of period     |
+| PV-4 | Period hours bars (project color; week / month / all) + activity mix        |
+| PV-5 | Date-grouped entries for this project + search                              |
+| PV-6 | Recent logs restart; Start session sets draft project and opens Timer       |
 
 ### 8.7 Settings
 
@@ -245,13 +245,13 @@ Core concepts:
 
 ## 12. Open questions
 
-| #   | Question                                 | Default for now                                                                      |
-| --- | ---------------------------------------- | ------------------------------------------------------------------------------------ |
-| 1   | User-defined activity types?             | Fixed enum from mockups                                                              |
-| 2   | Are projects required for every session? | Yes for clean analytics; allow “Internal” / unassigned as a system project if needed |
-| 3   | Timezone handling                        | Device local time                                                                    |
-| 4   | Offline support                          | Not in frontend MVP; in-memory only                                                  |
-| 5   | Settings content for v1                  | Stub page until designed                                                             |
+| #   | Question                                 | Default for now                                                                                            |
+| --- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 1   | User-defined activity types?             | Fixed enum from mockups                                                                                    |
+| 2   | Are projects required for every session? | Yes for clean analytics; allow “Internal” / unassigned as a system project if needed                       |
+| 3   | Timezone handling                        | Device local time                                                                                          |
+| 4   | Offline support                          | Not in frontend MVP; in-memory only                                                                        |
+| 5   | Settings content for v1                  | Stub page until designed                                                                                   |
 | 6   | Chart library                            | LayerChart (`BarChart`, `PieChart`). See [adr/0013-charts-layerchart.md](./adr/0013-charts-layerchart.md). |
 
 ## 13. Related documents

@@ -16,7 +16,9 @@ test.describe('insights', () => {
 
 		await expect(page.getByRole('region', { name: 'Time by project', exact: true })).toBeVisible();
 		await expect(page.getByRole('region', { name: 'Time by activity', exact: true })).toBeVisible();
-		await expect(page.getByRole('region', { name: 'Activity breakdown', exact: true })).toBeVisible();
+		await expect(
+			page.getByRole('region', { name: 'Activity breakdown', exact: true })
+		).toBeVisible();
 	});
 
 	test('week / month period toggle', async ({ page }) => {

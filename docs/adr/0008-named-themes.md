@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-08-13  
-**Deciders:** Project owner  
+**Deciders:** Project owner
 
 ## Context
 
@@ -12,36 +12,36 @@ A sun/moon toggle or Tailwind `dark:` variants would have to be rewritten when t
 
 ## Decision
 
-1. Themes are a **named list** (`THEMES` in `src/lib/theme/themes.ts`), not `isDark: boolean`.  
-2. Each theme has `id`, `colorScheme` (`light` | `dark` for native controls), `themeColor`, and a Paraglide `labelKey`.  
-3. `<html data-theme="<id>">` selects CSS. Palette files set `--dt-*`; `@theme inline` maps those to `--color-*` utilities.  
-4. The Settings switcher **iterates `THEMES`**. Adding a theme is a registry row + CSS file.  
-5. Persist `themeId` to `localStorage` (`vynno-theme`) and apply it in `app.html` before paint to avoid FOUC. Other prefs stay in-memory.  
-6. Do not follow `prefers-color-scheme` in v1 (that would look like a third list item).  
+1. Themes are a **named list** (`THEMES` in `src/lib/theme/themes.ts`), not `isDark: boolean`.
+2. Each theme has `id`, `colorScheme` (`light` | `dark` for native controls), `themeColor`, and a Paraglide `labelKey`.
+3. `<html data-theme="<id>">` selects CSS. Palette files set `--dt-*`; `@theme inline` maps those to `--color-*` utilities.
+4. The Settings switcher **iterates `THEMES`**. Adding a theme is a registry row + CSS file.
+5. Persist `themeId` to `localStorage` (`vynno-theme`) and apply it in `app.html` before paint to avoid FOUC. Other prefs stay in-memory.
+6. Do not follow `prefers-color-scheme` in v1 (that would look like a third list item).
 7. Do not use `dark:` / `light:` as the theming mechanism.
 
 ## Consequences
 
 ### Positive
 
-- Third (and later) palettes do not touch the switcher.  
-- Existing `bg-surface` / `text-primary` classes follow the active theme.  
+- Third (and later) palettes do not touch the switcher.
+- Existing `bg-surface` / `text-primary` classes follow the active theme.
 - Default first paint remains dark.
 
 ### Negative / tradeoffs
 
-- Theme is the only locally persisted preference (inconsistent with other mock prefs, by design).  
+- Theme is the only locally persisted preference (inconsistent with other mock prefs, by design).
 - Inline `app.html` script is a small string-match of the storage key, not the TypeScript registry.
 
 ## Alternatives considered
 
-| Option | Why not |
-|--------|---------|
-| `class="dark"` + `dark:` utilities | Binary; breaks when a third theme is added. |
-| `prefers-color-scheme` only | No explicit user choice; no room for a third palette. |
-| Runtime JS that sets every CSS variable | Duplicates the design tokens outside CSS. |
+| Option                                  | Why not                                               |
+| --------------------------------------- | ----------------------------------------------------- |
+| `class="dark"` + `dark:` utilities      | Binary; breaks when a third theme is added.           |
+| `prefers-color-scheme` only             | No explicit user choice; no room for a third palette. |
+| Runtime JS that sets every CSS variable | Duplicates the design tokens outside CSS.             |
 
 ## Related
 
-- [../design-system.md](../design-system.md)  
-- [0003-design-system-source.md](./0003-design-system-source.md)  
+- [../design-system.md](../design-system.md)
+- [0003-design-system-source.md](./0003-design-system-source.md)

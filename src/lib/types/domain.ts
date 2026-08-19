@@ -5,14 +5,7 @@ import { m } from '$lib/paraglide/messages.js';
 export type SessionStatus = 'active' | 'paused' | 'stopped';
 
 export type ActivityType =
-	| 'deep_work'
-	| 'meeting'
-	| 'maintenance'
-	| 'coding'
-	| 'debugging'
-	| 'docs'
-	| 'research'
-	| 'other';
+	'deep_work' | 'meeting' | 'maintenance' | 'coding' | 'debugging' | 'docs' | 'research' | 'other';
 
 /** Localized display label for an activity type (UI only). */
 export function activityLabel(type: ActivityType): string {
@@ -35,8 +28,6 @@ export function activityLabel(type: ActivityType): string {
 			return m.activity_other();
 	}
 }
-
-
 
 export interface Project {
 	id: string;

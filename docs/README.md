@@ -6,23 +6,23 @@ Brand: say **VIN-oh**. See [brand.md](./brand.md).
 
 ## Contents
 
-| Document                                          | Purpose                                                        |
-| ------------------------------------------------- | -------------------------------------------------------------- |
-| [brand.md](./brand.md)                            | Product name, pronunciation, meaning, voice                    |
-| [rename-process.md](./rename-process.md)          | How to change the public name (vs plumbing)                    |
-| [prd.md](./prd.md)                                | Product requirements, goals, priorities, out of scope          |
-| [domain-model.md](./domain-model.md)              | Entities, relationships, glossary, session rules               |
-| [screens-and-flows.md](./screens-and-flows.md)    | Screen inventory and user flows                                |
-| [design-system.md](./design-system.md)            | Design tokens and UI rules (originally from Google Stitch)     |
-| [motion.md](./motion.md)                          | Animation personality, gate, tokens, do/don’t                  |
-| [accessibility.md](./accessibility.md)            | WCAG 2.2 AA target, patterns, how to run axe                   |
-| [roadmap.md](./roadmap.md)                        | Phased frontend delivery plan                                  |
-| [p2-backlog.md](./p2-backlog.md)                  | Deferred P2 items                                              |
-| [ssr-enablement.md](./ssr-enablement.md)          | SSR risks, hydration rules; implemented in ADR-0011            |
-| [api-contract.md](./api-contract.md)              | Proposed REST + JSON DTO contract (backend starting point)     |
-| [api-next.md](./api-next.md)                      | Phase 5c: live API + cookie auth                               |
-| [adr/](./adr/)                                    | Architecture Decision Records                                  |
-| [vynno-api](https://github.com/EmilM32/vynno-api) | Companion backend (API, database, auth)                        |
+| Document                                          | Purpose                                                    |
+| ------------------------------------------------- | ---------------------------------------------------------- |
+| [brand.md](./brand.md)                            | Product name, pronunciation, meaning, voice                |
+| [rename-process.md](./rename-process.md)          | How to change the public name (vs plumbing)                |
+| [prd.md](./prd.md)                                | Product requirements, goals, priorities, out of scope      |
+| [domain-model.md](./domain-model.md)              | Entities, relationships, glossary, session rules           |
+| [screens-and-flows.md](./screens-and-flows.md)    | Screen inventory and user flows                            |
+| [design-system.md](./design-system.md)            | Design tokens and UI rules (originally from Google Stitch) |
+| [motion.md](./motion.md)                          | Animation personality, gate, tokens, do/don’t              |
+| [accessibility.md](./accessibility.md)            | WCAG 2.2 AA target, patterns, how to run axe               |
+| [roadmap.md](./roadmap.md)                        | Phased frontend delivery plan                              |
+| [p2-backlog.md](./p2-backlog.md)                  | Deferred P2 items                                          |
+| [ssr-enablement.md](./ssr-enablement.md)          | SSR risks, hydration rules; implemented in ADR-0011        |
+| [api-contract.md](./api-contract.md)              | Proposed REST + JSON DTO contract (backend starting point) |
+| [api-next.md](./api-next.md)                      | Phase 5c: live API + cookie auth                           |
+| [adr/](./adr/)                                    | Architecture Decision Records                              |
+| [vynno-api](https://github.com/EmilM32/vynno-api) | Companion backend (API, database, auth)                    |
 
 ## Design source material
 

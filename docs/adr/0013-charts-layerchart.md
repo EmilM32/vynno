@@ -16,11 +16,11 @@ Stitch used Chart.js. [prd.md](../prd.md) left the library open (Q6). [p2-backlo
 
 Use **LayerChart** (`BarChart`, `PieChart`) directly, styled with Vynno `--dt-*` tokens. Do not init shadcn-svelte.
 
-| Chart | Library |
-| --- | --- |
-| Dashboard + project hours histogram | LayerChart `BarChart` |
-| Insights time-by-project donut | LayerChart `PieChart` |
-| Time-by-activity meters | CSS tracks (ranked list, not a plot) |
+| Chart                               | Library                              |
+| ----------------------------------- | ------------------------------------ |
+| Dashboard + project hours histogram | LayerChart `BarChart`                |
+| Insights time-by-project donut      | LayerChart `PieChart`                |
+| Time-by-activity meters             | CSS tracks (ranked list, not a plot) |
 
 Motion is off (`motion="none"`) per [motion.md](../motion.md). Axis / tooltip / grid colors map to `on-surface-variant` and `outline-variant`.
 
@@ -39,8 +39,8 @@ Motion is off (`motion="none"`) per [motion.md](../motion.md). Axis / tooltip / 
 
 ## Alternatives considered
 
-| Option | Why not |
-| --- | --- |
-| Fix CSS `%` height only | Still homemade axes for 31-day / multi-month views. |
-| Chart.js | Canvas; Stitch leftover; poorer Svelte 5 fit. |
-| Full shadcn-svelte kit | Would fight the existing token system for one feature. |
+| Option                  | Why not                                                |
+| ----------------------- | ------------------------------------------------------ |
+| Fix CSS `%` height only | Still homemade axes for 31-day / multi-month views.    |
+| Chart.js                | Canvas; Stitch leftover; poorer Svelte 5 fit.          |
+| Full shadcn-svelte kit  | Would fight the existing token system for one feature. |

@@ -56,15 +56,13 @@ describe('ApiClient', () => {
 	});
 
 	it('putFile sends FormData without a JSON content-type', async () => {
-		const fetchFn = vi
-			.fn()
-			.mockResolvedValue(
-				jsonResponse({
-					displayName: 'Alex',
-					handle: '@a',
-					avatarUrl: 'https://api.example.test/v1/avatars/1'
-				})
-			);
+		const fetchFn = vi.fn().mockResolvedValue(
+			jsonResponse({
+				displayName: 'Alex',
+				handle: '@a',
+				avatarUrl: 'https://api.example.test/v1/avatars/1'
+			})
+		);
 		const client = new ApiClient(fetchFn, 'https://api.example.test/v1');
 		const file = new Blob([new Uint8Array([0xff, 0xd8, 0xff])], { type: 'image/jpeg' });
 		const profile = await client.putFile('/me/avatar', file, profileDtoSchema);

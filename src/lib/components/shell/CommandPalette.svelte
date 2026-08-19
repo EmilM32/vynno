@@ -42,7 +42,7 @@
 					void goto(resolve('/timer'));
 				}
 			},
-			...navCmds,
+			...navCmds
 		];
 	});
 

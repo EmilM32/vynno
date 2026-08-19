@@ -30,24 +30,24 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 
 ## Error codes
 
-| Code                     | Status | When                                              | UI string                         |
-| ------------------------ | ------ | ------------------------------------------------- | --------------------------------- |
-| `not_found`              | 404    | Unknown project or session id                     | `error_not_found`                 |
-| `invalid_query`          | 400    | Bad `status` / `limit`                            | fallback                          |
-| `invalid_json`           | 400    | Request or response body is not JSON              | `error_invalid_response`          |
-| `invalid_body`           | 400    | Write body failed the request schema / validation | fallback (`error_failed_*`)       |
-| `invalid_response`       | 502    | Client: body did not match the response schema    | `error_invalid_response`          |
-| `http_error`             | 4xx/5xx| Non-OK without an envelope                        | fallback                          |
-| `session_not_active`     | 404    | `GET /sessions/active` when idle                  | `error_not_found`                 |
-| `session_already_active` | 409    | `POST /sessions` while one is active/paused       | `error_stop_before_start`         |
-| `project_archived`       | 409    | Start against an archived project                 | `error_project_archived`          |
-| `code_in_use`            | 409    | Project `code` not unique                         | `error_code_in_use`               |
-| `last_active_project`    | 409    | Archive/delete of the last active project         | `error_last_active_project`       |
-| `project_has_sessions`   | 409    | Hard-delete of a project that has logs            | `projects_cannot_delete_has_sessions` |
-| `invalid_transition`     | 409    | Pause/resume/stop (or archive/restore) in a bad state | fallback                      |
-| `unauthorized`           | 401    | Missing, unknown, or expired session              | `error_unauthorized`              |
-| `invalid_credentials`    | 401    | Login username/password do not match              | `error_invalid_credentials`       |
-| `username_in_use`        | 409    | Register with a taken username                    | `error_username_in_use`           |
+| Code                     | Status  | When                                                  | UI string                             |
+| ------------------------ | ------- | ----------------------------------------------------- | ------------------------------------- |
+| `not_found`              | 404     | Unknown project or session id                         | `error_not_found`                     |
+| `invalid_query`          | 400     | Bad `status` / `limit`                                | fallback                              |
+| `invalid_json`           | 400     | Request or response body is not JSON                  | `error_invalid_response`              |
+| `invalid_body`           | 400     | Write body failed the request schema / validation     | fallback (`error_failed_*`)           |
+| `invalid_response`       | 502     | Client: body did not match the response schema        | `error_invalid_response`              |
+| `http_error`             | 4xx/5xx | Non-OK without an envelope                            | fallback                              |
+| `session_not_active`     | 404     | `GET /sessions/active` when idle                      | `error_not_found`                     |
+| `session_already_active` | 409     | `POST /sessions` while one is active/paused           | `error_stop_before_start`             |
+| `project_archived`       | 409     | Start against an archived project                     | `error_project_archived`              |
+| `code_in_use`            | 409     | Project `code` not unique                             | `error_code_in_use`                   |
+| `last_active_project`    | 409     | Archive/delete of the last active project             | `error_last_active_project`           |
+| `project_has_sessions`   | 409     | Hard-delete of a project that has logs                | `projects_cannot_delete_has_sessions` |
+| `invalid_transition`     | 409     | Pause/resume/stop (or archive/restore) in a bad state | fallback                              |
+| `unauthorized`           | 401     | Missing, unknown, or expired session                  | `error_unauthorized`                  |
+| `invalid_credentials`    | 401     | Login username/password do not match                  | `error_invalid_credentials`           |
+| `username_in_use`        | 409     | Register with a taken username                        | `error_username_in_use`               |
 
 Example envelope:
 
@@ -86,11 +86,11 @@ Login and register set an HttpOnly cookie `vynno_session`. The JSON body is `{ "
 
 Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authorization: Bearer <token>` (curl/tests).
 
-| Method | Path | Auth | Body | Success |
-| --- | --- | --- | --- | --- |
-| POST | `/auth/register` | no | `{ username, password, displayName?, rememberMe? }` | `{ profile }` `201` + cookie |
-| POST | `/auth/login` | no | `{ username, password, rememberMe? }` | `{ profile }` `200` + cookie |
-| POST | `/auth/logout` | yes | — | `204` + clear cookie |
+| Method | Path             | Auth | Body                                                | Success                      |
+| ------ | ---------------- | ---- | --------------------------------------------------- | ---------------------------- |
+| POST   | `/auth/register` | no   | `{ username, password, displayName?, rememberMe? }` | `{ profile }` `201` + cookie |
+| POST   | `/auth/login`    | no   | `{ username, password, rememberMe? }`               | `{ profile }` `200` + cookie |
+| POST   | `/auth/logout`   | yes  | —                                                   | `204` + clear cookie         |
 
 `rememberMe` omitted is `true` (cookie `Max-Age` 30 days). `false` is a session cookie.
 
@@ -98,13 +98,13 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 
 ### Profile
 
-| Method | Path | Auth | Body | Success | Errors |
-| --- | --- | --- | --- | --- | --- |
-| GET | `/me` | yes | — | `ProfileDto` | `unauthorized` |
-| PATCH | `/me` | yes | `UpdateProfileDto` | `ProfileDto` `200` | `unauthorized`, `invalid_json`, `invalid_body` |
-| PUT | `/me/avatar` | yes | `multipart/form-data` field `file` | `ProfileDto` `200` | `unauthorized`, `invalid_body` |
-| DELETE | `/me/avatar` | yes | — | `ProfileDto` `200` | `unauthorized` |
-| GET | `/avatars/:id` | **no** | — | raw image bytes | `not_found` |
+| Method | Path           | Auth   | Body                               | Success            | Errors                                         |
+| ------ | -------------- | ------ | ---------------------------------- | ------------------ | ---------------------------------------------- |
+| GET    | `/me`          | yes    | —                                  | `ProfileDto`       | `unauthorized`                                 |
+| PATCH  | `/me`          | yes    | `UpdateProfileDto`                 | `ProfileDto` `200` | `unauthorized`, `invalid_json`, `invalid_body` |
+| PUT    | `/me/avatar`   | yes    | `multipart/form-data` field `file` | `ProfileDto` `200` | `unauthorized`, `invalid_body`                 |
+| DELETE | `/me/avatar`   | yes    | —                                  | `ProfileDto` `200` | `unauthorized`                                 |
+| GET    | `/avatars/:id` | **no** | —                                  | raw image bytes    | `not_found`                                    |
 
 ```json
 {
@@ -133,16 +133,16 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 
 ### Projects
 
-| Method | Path                                | Body               | Success                   | Typical errors |
-| ------ | ----------------------------------- | ------------------ | ------------------------- | -------------- |
-| GET    | `/projects?includeArchived=boolean` | —                  | `{ items: ProjectDto[] }` | —              |
-| GET    | `/projects/:id`                     | —                  | `ProjectDto`              | `not_found`    |
-| POST   | `/projects`                         | `CreateProjectDto` | `ProjectDto` `201`        | `invalid_body`, `code_in_use` |
-| PATCH  | `/projects/:id`                     | `UpdateProjectDto` | `ProjectDto`              | `not_found`, `invalid_body`, `code_in_use` |
-| POST   | `/projects/:id/archive`             | —                  | `ProjectDto`              | `not_found`, `last_active_project`, `invalid_transition` |
-| POST   | `/projects/:id/restore`             | —                  | `ProjectDto`              | `not_found`, `invalid_transition` |
+| Method | Path                                | Body               | Success                   | Typical errors                                             |
+| ------ | ----------------------------------- | ------------------ | ------------------------- | ---------------------------------------------------------- |
+| GET    | `/projects?includeArchived=boolean` | —                  | `{ items: ProjectDto[] }` | —                                                          |
+| GET    | `/projects/:id`                     | —                  | `ProjectDto`              | `not_found`                                                |
+| POST   | `/projects`                         | `CreateProjectDto` | `ProjectDto` `201`        | `invalid_body`, `code_in_use`                              |
+| PATCH  | `/projects/:id`                     | `UpdateProjectDto` | `ProjectDto`              | `not_found`, `invalid_body`, `code_in_use`                 |
+| POST   | `/projects/:id/archive`             | —                  | `ProjectDto`              | `not_found`, `last_active_project`, `invalid_transition`   |
+| POST   | `/projects/:id/restore`             | —                  | `ProjectDto`              | `not_found`, `invalid_transition`                          |
 | DELETE | `/projects/:id`                     | —                  | `204`                     | `not_found`, `last_active_project`, `project_has_sessions` |
-| GET    | `/projects/:id/session-count`       | —                  | `{ "count": number }`     | —              |
+| GET    | `/projects/:id/session-count`       | —                  | `{ "count": number }`     | —                                                          |
 
 `ProjectDto`:
 
@@ -173,15 +173,15 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 
 ### Sessions
 
-| Method | Path                                     | Body              | Success                                | Typical errors |
-| ------ | ---------------------------------------- | ----------------- | -------------------------------------- | -------------- |
-| GET    | `/sessions?status=active,paused&limit=n` | —                 | `{ items: SessionDto[] }` newest-first | `invalid_query` |
-| GET    | `/sessions/active`                       | —                 | `SessionDto`                           | `session_not_active` |
-| GET    | `/sessions/:id`                          | —                 | `SessionDto`                           | `not_found`    |
+| Method | Path                                     | Body              | Success                                | Typical errors                                                            |
+| ------ | ---------------------------------------- | ----------------- | -------------------------------------- | ------------------------------------------------------------------------- |
+| GET    | `/sessions?status=active,paused&limit=n` | —                 | `{ items: SessionDto[] }` newest-first | `invalid_query`                                                           |
+| GET    | `/sessions/active`                       | —                 | `SessionDto`                           | `session_not_active`                                                      |
+| GET    | `/sessions/:id`                          | —                 | `SessionDto`                           | `not_found`                                                               |
 | POST   | `/sessions`                              | `StartSessionDto` | `SessionDto` `201`                     | `session_already_active`, `not_found`, `project_archived`, `invalid_body` |
-| POST   | `/sessions/:id/pause`                    | —                 | `SessionDto`                           | `not_found`, `invalid_transition` |
-| POST   | `/sessions/:id/resume`                   | —                 | `SessionDto`                           | `not_found`, `invalid_transition` |
-| POST   | `/sessions/:id/stop`                     | —                 | `SessionDto`                           | `not_found`, `invalid_transition` |
+| POST   | `/sessions/:id/pause`                    | —                 | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
+| POST   | `/sessions/:id/resume`                   | —                 | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
+| POST   | `/sessions/:id/stop`                     | —                 | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
 
 `SessionDto`:
 
@@ -232,16 +232,16 @@ UI code uses `$lib/types/domain` (`isArchived`, omitted optionals). DTOs use `ar
 
 Not in this contract. Do not invent them to “complete” the API without a contract amendment.
 
-| Area | Client today |
-| --- | --- |
-| Profile edit | `GET /me` only |
-| Prefs (daily target, default project) | In-memory `prefsStore` |
-| Theme / locale | Device-local |
-| Insights / dashboard totals | Computed on the client from the session list |
-| Pagination / cursors | Full session list on boot (`limit` only) |
-| Edit or delete a stopped log | P2 (LOG-6) |
-| Manual time entry | P2 (LOG-7) |
-| Session target duration UI | Field exists on `StartSessionDto`; UI is P2 |
+| Area                                  | Client today                                 |
+| ------------------------------------- | -------------------------------------------- |
+| Profile edit                          | `GET /me` only                               |
+| Prefs (daily target, default project) | In-memory `prefsStore`                       |
+| Theme / locale                        | Device-local                                 |
+| Insights / dashboard totals           | Computed on the client from the session list |
+| Pagination / cursors                  | Full session list on boot (`limit` only)     |
+| Edit or delete a stopped log          | P2 (LOG-6)                                   |
+| Manual time entry                     | P2 (LOG-7)                                   |
+| Session target duration UI            | Field exists on `StartSessionDto`; UI is P2  |
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-08-12  
-**Deciders:** Project owner  
+**Deciders:** Project owner
 
 ## Context
 
@@ -22,26 +22,26 @@ Sessions always reference a `projectId`. The UI needs create/edit/remove flows (
 
 ### Positive
 
-- Historical sessions keep resolvable project identity after archive.  
-- Timer/Settings pickers stay clean.  
-- Repository contract maps cleanly to a future soft-delete API.  
+- Historical sessions keep resolvable project identity after archive.
+- Timer/Settings pickers stay clean.
+- Repository contract maps cleanly to a future soft-delete API.
 
 ### Negative / tradeoffs
 
-- Insights that join only on active `listProjects()` may under-show archived project series until a later “include archived” option.  
-- Hard-delete of unused projects is permanent in-session (no trash beyond archive).  
+- Insights that join only on active `listProjects()` may under-show archived project series until a later “include archived” option.
+- Hard-delete of unused projects is permanent in-session (no trash beyond archive).
 
 ## Alternatives considered
 
-| Option | Why not |
-|--------|---------|
-| Hard delete only | Breaks or orphans historical logs unless cascade/reassign UI is built. |
-| Archive only | Simpler, but unused mock projects cannot be purged during demos. |
-| Reassign sessions on delete | Higher scope; defer until API. |
+| Option                      | Why not                                                                |
+| --------------------------- | ---------------------------------------------------------------------- |
+| Hard delete only            | Breaks or orphans historical logs unless cascade/reassign UI is built. |
+| Archive only                | Simpler, but unused mock projects cannot be purged during demos.       |
+| Reassign sessions on delete | Higher scope; defer until API.                                         |
 
 ## Related
 
-- [../domain-model.md](../domain-model.md)  
-- [../prd.md](../prd.md) §8.6 PRJ-5  
-- [0004-state-and-data-strategy.md](./0004-state-and-data-strategy.md)  
-- [0005-routing-and-app-shell.md](./0005-routing-and-app-shell.md)  
+- [../domain-model.md](../domain-model.md)
+- [../prd.md](../prd.md) §8.6 PRJ-5
+- [0004-state-and-data-strategy.md](./0004-state-and-data-strategy.md)
+- [0005-routing-and-app-shell.md](./0005-routing-and-app-shell.md)

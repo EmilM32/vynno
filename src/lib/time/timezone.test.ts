@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { localDateKey, formatLocalTime, startOfWeekMonday } from './duration';
-import {
-	dateKeyInTimeZone,
-	isValidTimeZone,
-	resolveTimeZone,
-	DEFAULT_TIME_ZONE
-} from './timezone';
+import { dateKeyInTimeZone, isValidTimeZone, resolveTimeZone, DEFAULT_TIME_ZONE } from './timezone';
 
 describe('resolveTimeZone', () => {
 	it('accepts valid IANA zones and falls back to UTC', () => {

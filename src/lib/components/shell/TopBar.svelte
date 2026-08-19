@@ -40,7 +40,7 @@
 		<span
 			class="material-symbols-outlined text-[18px] {live
 				? isActive
-					? 'blink text-secondary'
+					? 'text-secondary'
 					: 'text-tertiary'
 				: 'text-on-surface-variant'}"
 			style={live ? "font-variation-settings: 'FILL' 1" : undefined}

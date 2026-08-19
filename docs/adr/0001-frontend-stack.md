@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-08-12  
-**Deciders:** Project owner  
+**Deciders:** Project owner
 
 ## Context
 
@@ -12,11 +12,11 @@ Vynno’s UI is specified via Google Stitch mockups that already use Tailwind ut
 
 Use:
 
-| Layer | Choice |
-|-------|--------|
-| Framework | **SvelteKit** |
-| Language | **TypeScript** (strict where practical) |
-| Styling | **Tailwind CSS** |
+| Layer      | Choice                                                                         |
+| ---------- | ------------------------------------------------------------------------------ |
+| Framework  | **SvelteKit**                                                                  |
+| Language   | **TypeScript** (strict where practical)                                        |
+| Styling    | **Tailwind CSS**                                                               |
 | Components | Svelte 5 idioms as supported by the chosen SvelteKit template at scaffold time |
 
 No backend framework is introduced in this repository.
@@ -32,20 +32,20 @@ No backend framework is introduced in this repository.
 
 ### Negative / tradeoffs
 
-- Team must be comfortable with Svelte (not React).  
-- Tailwind can encourage one-off utility soup; mitigate with design tokens and small presentational components.  
+- Team must be comfortable with Svelte (not React).
+- Tailwind can encourage one-off utility soup; mitigate with design tokens and small presentational components.
 - Chart library chosen later as LayerChart — see [0013-charts-layerchart.md](./0013-charts-layerchart.md).
 
 ## Alternatives considered
 
-| Option | Why not |
-|--------|---------|
-| React + Next/Vite | Valid, but SvelteKit was an explicit product preference. |
-| Vue / Nuxt | Same — not selected. |
-| Plain Svelte (no Kit) | Loses routing, layouts, and future SSR/adapter options. |
-| CSS Modules only | Slower to match Stitch Tailwind mockups. |
+| Option                | Why not                                                  |
+| --------------------- | -------------------------------------------------------- |
+| React + Next/Vite     | Valid, but SvelteKit was an explicit product preference. |
+| Vue / Nuxt            | Same — not selected.                                     |
+| Plain Svelte (no Kit) | Loses routing, layouts, and future SSR/adapter options.  |
+| CSS Modules only      | Slower to match Stitch Tailwind mockups.                 |
 
 ## Related
 
-- [0002-frontend-only-separation.md](./0002-frontend-only-separation.md)  
-- [../prd.md](../prd.md)  
+- [0002-frontend-only-separation.md](./0002-frontend-only-separation.md)
+- [../prd.md](../prd.md)

@@ -36,13 +36,13 @@ The backend does not exist yet ([ADR-0002](./0002-frontend-only-separation.md)).
 
 ## Alternatives considered
 
-| Option                               | Why not                                                             |
-| ------------------------------------ | ------------------------------------------------------------------- |
-| SvelteKit remote functions           | Experimental; not a portable backend contract.                      |
-| Static `static/*.json` only          | Frozen ISO dates rot; query filters would be fake.                  |
+| Option                                   | Why not                                                                            |
+| ---------------------------------------- | ---------------------------------------------------------------------------------- |
+| SvelteKit remote functions               | Experimental; not a portable backend contract.                                     |
+| Static `static/*.json` only              | Frozen ISO dates rot; query filters would be fake.                                 |
 | Process-wide POST memory on `+server.ts` | Breaks e2e “reload = reset”; fights ADR-0002. Header-scoped workspaces avoid this. |
-| Cookie-scoped mock store | Reload would persist mutations and force an e2e reset helper. |
-| Keep TS fixture imports              | Does not exercise fetch, DTOs, or the swap path.                    |
+| Cookie-scoped mock store                 | Reload would persist mutations and force an e2e reset helper.                      |
+| Keep TS fixture imports                  | Does not exercise fetch, DTOs, or the swap path.                                   |
 
 ## Related
 

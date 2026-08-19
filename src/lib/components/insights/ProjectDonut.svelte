@@ -16,6 +16,19 @@
 	type Slice = NamedTotal;
 </script>
 
+{#snippet centerTotal()}
+	<div class="pointer-events-none absolute inset-0 grid place-items-center">
+		<div
+			class="flex aspect-square h-[58%] max-h-full flex-col items-center justify-center text-center"
+		>
+			<span class="font-mono text-xl font-medium whitespace-nowrap text-on-surface tabular-nums"
+				>{formatHoursMinutes(totalMs)}</span
+			>
+			<span class="font-mono text-code-label text-on-surface-variant">{m.insights_total()}</span>
+		</div>
+	</div>
+{/snippet}
+
 <section
 	class="vynno-chart flex h-96 flex-col rounded-lg border border-outline-variant bg-surface-container p-6"
 	aria-label={m.insights_time_by_project_aria()}
@@ -31,12 +44,6 @@
 	>
 		{#if items.length === 0 || totalMs <= 0}
 			<div class="h-48 w-48 rounded-full bg-surface-variant" aria-hidden="true"></div>
-			<div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-				<span class="font-mono text-code-display text-on-surface"
-					>{formatHoursMinutes(totalMs)}</span
-				>
-				<span class="font-mono text-code-label text-on-surface-variant">{m.insights_total()}</span>
-			</div>
 		{:else}
 			<PieChart
 				class="h-full w-full"
@@ -45,7 +52,7 @@
 				label="label"
 				value="ms"
 				c="color"
-				innerRadius={0.64}
+				innerRadius={0.68}
 				padAngle={0.02}
 				motion="none"
 				legend={false}
@@ -66,13 +73,8 @@
 					</Tooltip.Root>
 				{/snippet}
 			</PieChart>
-			<div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-				<span class="font-mono text-code-display text-on-surface"
-					>{formatHoursMinutes(totalMs)}</span
-				>
-				<span class="font-mono text-code-label text-on-surface-variant">{m.insights_total()}</span>
-			</div>
 		{/if}
+		{@render centerTotal()}
 	</div>
 
 	<div class="mt-4 grid grid-cols-2 gap-2 border-t border-outline-variant pt-4">

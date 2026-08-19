@@ -66,7 +66,7 @@ test.describe('settings', () => {
 		const about = page.getByRole('region', { name: 'About Vynno' });
 		await expect(about).toBeVisible();
 		await expect(about.getByText('VIN-oh')).toBeVisible();
-		await expect(about.getByText('Where the hours went.')).toBeVisible();
+		await expect(about.getByText('/ˈvɪn.oʊ/')).toBeVisible();
 		await expect(about.getByText(/double n/i)).toBeVisible();
 		await expect(about.getByText('v0.1.0-alpha')).toBeVisible();
 	});

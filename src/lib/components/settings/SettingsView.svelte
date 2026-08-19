@@ -259,8 +259,9 @@
 			<dl class="flex flex-col gap-3">
 				<div>
 					<dt class="text-on-surface-variant">{m.settings_about_pronounced()}</dt>
-					<dd class="font-mono text-code-label text-on-surface">
-						{m.settings_about_pronunciation()}
+					<dd class="flex flex-wrap items-baseline gap-x-2 font-mono text-code-label">
+						<span class="text-on-surface">{m.settings_about_pronunciation()}</span>
+						<span class="text-on-surface-variant" lang="en-fonipa">/ˈvɪn.oʊ/</span>
 					</dd>
 				</div>
 				<div>
@@ -271,20 +272,5 @@
 			<p class="text-on-surface-variant">{m.settings_about_oneliner({ name: m.app_name() })}</p>
 			<p class="text-on-surface-variant">{m.settings_about_coined()}</p>
 		</div>
-	</section>
-
-	<!-- Coming later -->
-	<section
-		class="rounded-lg border border-dashed border-outline-variant bg-surface-container/40 p-4"
-		aria-labelledby="settings-later"
-	>
-		<h2 id="settings-later" class="mb-2 text-headline-md text-on-surface-variant">
-			{m.settings_coming_later()}
-		</h2>
-		<ul class="list-inside list-disc space-y-1 text-body-sm text-on-surface-variant">
-			<li>{m.settings_later_notifications()}</li>
-
-			<li>{m.settings_later_persisted()}</li>
-		</ul>
 	</section>
 </div>

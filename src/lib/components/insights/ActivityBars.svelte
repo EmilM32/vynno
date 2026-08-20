@@ -17,7 +17,7 @@
 <section
 	class={[
 		'flex flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container p-6',
-		className ?? 'h-96'
+		className ?? 'h-64 lg:h-96'
 	]}
 	aria-label={m.insights_time_by_activity_aria()}
 >

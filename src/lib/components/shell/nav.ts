@@ -19,6 +19,9 @@ export const NAV_ITEMS: NavItem[] = [
 	{ href: '/settings', label: () => m.nav_settings(), icon: 'settings' }
 ];
 
+/** Phone tab bar — Settings lives in the top bar so five tabs stay tappable. */
+export const MOBILE_TAB_ITEMS: NavItem[] = NAV_ITEMS.filter((item) => item.href !== '/settings');
+
 export const APP_VERSION = `v${pkg.version}`;
 
 export function isNavActive(pathname: string, href: string): boolean {

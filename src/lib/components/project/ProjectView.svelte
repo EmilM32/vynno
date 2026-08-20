@@ -10,7 +10,6 @@
 	import { useSession } from '$lib/stores/session.svelte';
 	import {
 		projectPeriodStats,
-		recentTasks,
 		sessionsForProject,
 		latestStoppedStartedAt,
 		periodBucketTotals
@@ -19,7 +18,6 @@
 	import { SvelteDate } from 'svelte/reactivity';
 	import ProjectEntries from './ProjectEntries.svelte';
 	import ProjectKpis from './ProjectKpis.svelte';
-	import ProjectRecentLogs from './ProjectRecentLogs.svelte';
 
 	let { projectId }: { projectId: string } = $props();
 
@@ -27,6 +25,7 @@
 
 	let period = $state<ProjectPeriodKind>('week');
 	let editing = $state(false);
+	let moreOpen = $state(false);
 
 	const project = $derived(sessionStore.getProject(projectId));
 	const mine = $derived(project ? sessionsForProject(sessionStore.sessions, project.id) : []);
@@ -58,7 +57,6 @@
 				? m.project_month_aria()
 				: m.project_all_aria()
 	);
-	const notes = $derived(recentTasks(mine, 5));
 	const lastLogged = $derived(latestStoppedStartedAt(mine));
 	const lastLoggedLabel = $derived(
 		lastLogged
@@ -169,54 +167,104 @@
 				{/if}
 			{/snippet}
 			{#snippet actions()}
-				<div class="flex flex-wrap items-center gap-2">
-					{#if !archived}
+				<div class="flex w-full flex-col gap-2 sm:w-auto">
+					<div class="flex flex-wrap items-center gap-2">
+						{#if !archived}
+							<button
+								type="button"
+								class="press focus-ring min-h-10 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-40"
+								onclick={openTimer}
+								disabled={startDisabled}
+								title={otherLive ? m.error_stop_before_start() : undefined}
+								data-testid="project-start"
+							>
+								{liveHere ? m.project_open_timer() : m.project_start_session()}
+							</button>
+						{/if}
 						<button
 							type="button"
-							class="press focus-ring min-h-10 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-40"
-							onclick={openTimer}
-							disabled={startDisabled}
-							title={otherLive ? m.error_stop_before_start() : undefined}
-							data-testid="project-start"
-						>
-							{liveHere ? m.project_open_timer() : m.project_start_session()}
-						</button>
-					{/if}
-					<button
-						type="button"
-						class="focus-ring min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
-						onclick={() => {
-							sessionStore.clearError();
-							editing = !editing;
-						}}
-						disabled={sessionStore.pendingAction === 'project'}
-					>
-						{m.projects_edit()}
-					</button>
-					{#if archived}
-						<button
-							type="button"
-							class="focus-ring min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
-							onclick={() => void sessionStore.restoreProject(project.id)}
+							class="focus-ring hidden min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
+							onclick={() => {
+								sessionStore.clearError();
+								editing = !editing;
+							}}
 							disabled={sessionStore.pendingAction === 'project'}
 						>
-							{m.projects_restore()}
+							{m.projects_edit()}
 						</button>
-					{:else}
+						{#if archived}
+							<button
+								type="button"
+								class="focus-ring hidden min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
+								onclick={() => void sessionStore.restoreProject(project.id)}
+								disabled={sessionStore.pendingAction === 'project'}
+							>
+								{m.projects_restore()}
+							</button>
+						{:else}
+							<button
+								type="button"
+								class="focus-ring hidden min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
+								onclick={() => void sessionStore.archiveProject(project.id)}
+								disabled={!canArchive || sessionStore.pendingAction === 'project'}
+								aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
+							>
+								{m.projects_archive()}
+							</button>
+						{/if}
 						<button
 							type="button"
-							class="focus-ring min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
-							onclick={() => void sessionStore.archiveProject(project.id)}
-							disabled={!canArchive || sessionStore.pendingAction === 'project'}
-							aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
+							class="focus-ring inline-flex min-h-10 min-w-10 items-center justify-center rounded border border-outline-variant px-2 text-on-surface hover:border-outline hover:bg-surface-variant md:hidden"
+							aria-expanded={moreOpen}
+							aria-controls={moreOpen ? 'project-more-actions' : undefined}
+							onclick={() => (moreOpen = !moreOpen)}
 						>
-							{m.projects_archive()}
-						</button>
-						{#if !canArchive}
-							<span id={`${project.id}-archive-reason`} class="sr-only"
-								>{m.projects_cannot_archive_last()}</span
+							<span class="sr-only">{m.project_more_actions()}</span>
+							<span class="material-symbols-outlined text-[20px]" aria-hidden="true"
+								>more_horiz</span
 							>
-						{/if}
+						</button>
+					</div>
+					{#if moreOpen}
+						<div id="project-more-actions" class="flex flex-wrap gap-2 md:hidden">
+							<button
+								type="button"
+								class="focus-ring min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
+								onclick={() => {
+									sessionStore.clearError();
+									editing = !editing;
+									moreOpen = false;
+								}}
+								disabled={sessionStore.pendingAction === 'project'}
+							>
+								{m.projects_edit()}
+							</button>
+							{#if archived}
+								<button
+									type="button"
+									class="focus-ring min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
+									onclick={() => void sessionStore.restoreProject(project.id)}
+									disabled={sessionStore.pendingAction === 'project'}
+								>
+									{m.projects_restore()}
+								</button>
+							{:else}
+								<button
+									type="button"
+									class="focus-ring min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
+									onclick={() => void sessionStore.archiveProject(project.id)}
+									disabled={!canArchive || sessionStore.pendingAction === 'project'}
+									aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
+								>
+									{m.projects_archive()}
+								</button>
+							{/if}
+						</div>
+					{/if}
+					{#if !archived && !canArchive}
+						<span id={`${project.id}-archive-reason`} class="sr-only"
+							>{m.projects_cannot_archive_last()}</span
+						>
 					{/if}
 				</div>
 			{/snippet}
@@ -257,7 +305,7 @@
 			</div>
 		{/if}
 
-		<div class="grid auto-rows-[300px] grid-cols-1 gap-6 lg:grid-cols-2">
+		<div class="grid auto-rows-[16rem] grid-cols-1 gap-6 lg:auto-rows-[300px] lg:grid-cols-2">
 			<WeeklyOverview
 				class="h-full"
 				days={chartDays}
@@ -268,7 +316,6 @@
 			<ActivityBars class="h-full" items={stats?.byActivity ?? []} />
 		</div>
 
-		<ProjectRecentLogs items={notes} />
 		<ProjectEntries sessions={mine} />
 	</div>
 {/if}

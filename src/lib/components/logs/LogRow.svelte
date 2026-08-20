@@ -56,7 +56,7 @@
 			{range}
 		</div>
 		<div
-			class="min-w-[80px] text-right font-mono text-code-display whitespace-nowrap text-on-surface"
+			class="min-w-[80px] text-right font-mono text-code-data whitespace-nowrap text-on-surface md:text-code-display"
 		>
 			{formatCompact(duration)}
 		</div>

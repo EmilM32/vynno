@@ -137,7 +137,12 @@
 
 	function trapOverlay(node: HTMLElement) {
 		const release = trapFocus(node, { restore: false });
-		const id = requestAnimationFrame(() => inputEl?.focus());
+		const coarse = window.matchMedia('(pointer: coarse)').matches;
+		const panel = node.querySelector('[role="dialog"]');
+		const id = requestAnimationFrame(() => {
+			if (coarse && panel instanceof HTMLElement) panel.focus();
+			else inputEl?.focus();
+		});
 		return () => {
 			cancelAnimationFrame(id);
 			release();
@@ -151,7 +156,7 @@
 {#if open}
 	<div
 		{@attach trapOverlay}
-		class="fixed inset-0 z-100 flex items-start justify-center px-4 pt-[15vh]"
+		class="fixed inset-0 z-100 flex items-start justify-center overscroll-contain px-4 pt-[15vh]"
 	>
 		<button
 			type="button"
@@ -165,6 +170,7 @@
 			role="dialog"
 			aria-modal="true"
 			aria-label={m.command_palette_aria()}
+			tabindex="-1"
 		>
 			<div
 				class="group flex items-center gap-2 border-b border-outline-variant px-3 transition-colors focus-within:border-primary focus-within:shadow-[inset_0_-1px_0_var(--color-primary)]"

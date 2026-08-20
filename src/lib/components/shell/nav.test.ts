@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import pkg from '../../../../package.json' with { type: 'json' };
-import { APP_VERSION, isNavActive, NAV_ITEMS } from './nav';
+import { APP_VERSION, isNavActive, MOBILE_TAB_ITEMS, NAV_ITEMS } from './nav';
 
 describe('isNavActive', () => {
 	it('treats / and /dashboard as dashboard', () => {
@@ -42,6 +42,18 @@ describe('NAV_ITEMS', () => {
 			'/insights',
 			'/projects',
 			'/settings'
+		]);
+	});
+});
+
+describe('MOBILE_TAB_ITEMS', () => {
+	it('omits Settings so the phone bar stays at five tabs', () => {
+		expect(MOBILE_TAB_ITEMS.map((n) => n.href)).toEqual([
+			'/timer',
+			'/dashboard',
+			'/logs',
+			'/insights',
+			'/projects'
 		]);
 	});
 });

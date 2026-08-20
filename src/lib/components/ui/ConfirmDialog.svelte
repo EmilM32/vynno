@@ -87,7 +87,10 @@
 <svelte:window onkeydown={onKey} />
 
 {#if open}
-	<div {@attach trapOverlay} class="fixed inset-0 z-[100] flex items-center justify-center px-4">
+	<div
+		{@attach trapOverlay}
+		class="fixed inset-0 z-[100] flex items-center justify-center overscroll-contain px-4"
+	>
 		<button
 			type="button"
 			tabindex="-1"
@@ -112,7 +115,7 @@
 				<button
 					{@attach bindCancel}
 					type="button"
-					class="press focus-ring rounded border border-outline-variant bg-surface-container-low px-3 py-2 text-body-md text-on-surface hover:border-outline"
+					class="press focus-ring min-h-10 rounded border border-outline-variant bg-surface-container-low px-3 py-2 text-body-md text-on-surface hover:border-outline"
 					onclick={() => beginClose(oncancel)}
 				>
 					{cancelText}
@@ -120,7 +123,7 @@
 				<button
 					{@attach bindConfirm}
 					type="button"
-					class="press focus-ring rounded px-3 py-2 text-body-md font-medium {destructive
+					class="press focus-ring min-h-10 rounded px-3 py-2 text-body-md font-medium {destructive
 						? 'bg-error-container text-on-error-container hover:opacity-90'
 						: 'bg-primary text-on-primary hover:bg-primary-container'}"
 					onclick={() => beginClose(onconfirm)}

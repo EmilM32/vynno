@@ -1,13 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { desktopNav, login, mobileNav } from './helpers';
 
-const routes = [
+const tabRoutes = [
 	{ href: '/timer', label: 'Timer' },
 	{ href: '/dashboard', label: 'Dashboard' },
 	{ href: '/logs', label: 'Logs' },
 	{ href: '/insights', label: 'Insights' },
-	{ href: '/projects', label: 'Projects' },
-	{ href: '/settings', label: 'Settings' }
+	{ href: '/projects', label: 'Projects' }
 ] as const;
 
 test.describe('navigation', () => {
@@ -30,12 +29,27 @@ test.describe('navigation', () => {
 	test('primary nav reaches all six routes', async ({ page }, testInfo) => {
 		await login(page);
 		await page.goto('/dashboard');
-		const nav = testInfo.project.name === 'mobile' ? mobileNav(page) : desktopNav(page);
+		const mobile = testInfo.project.name === 'mobile';
+		const nav = mobile ? mobileNav(page) : desktopNav(page);
 
-		for (const route of routes) {
+		for (const route of tabRoutes) {
 			await nav.getByRole('link', { name: route.label, exact: true }).click();
 			await expect(page).toHaveURL(new RegExp(`${route.href}$`));
 			await expect(nav.getByRole('link', { name: route.label, exact: true })).toHaveAttribute(
+				'aria-current',
+				'page'
+			);
+		}
+
+		if (mobile) {
+			await expect(nav.getByRole('link', { name: 'Settings', exact: true })).toHaveCount(0);
+			await page.getByTestId('shell-settings').click();
+			await expect(page).toHaveURL(/\/settings$/);
+			await expect(page.getByTestId('shell-settings')).toHaveAttribute('aria-current', 'page');
+		} else {
+			await nav.getByRole('link', { name: 'Settings', exact: true }).click();
+			await expect(page).toHaveURL(/\/settings$/);
+			await expect(nav.getByRole('link', { name: 'Settings', exact: true })).toHaveAttribute(
 				'aria-current',
 				'page'
 			);
@@ -78,13 +92,13 @@ test.describe('navigation', () => {
 		const header = page.getByTestId('page-header');
 		const description = page.getByTestId('page-header-description');
 		await expect(header).toHaveAttribute('data-compact', 'false');
-		await expect(description).toBeVisible();
+		await expect(description).toBeHidden();
 
 		await page.locator('#main-content').evaluate((el) => {
 			el.scrollTop = 400;
 		});
 
 		await expect(header).toHaveAttribute('data-compact', 'false');
-		await expect(description).toBeVisible();
+		await expect(description).toBeHidden();
 	});
 });

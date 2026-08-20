@@ -18,15 +18,14 @@
 	}
 </script>
 
-<div class="flex h-[300px] flex-col rounded-lg border border-outline-variant bg-surface-container">
+<div
+	class="flex flex-col rounded-lg border border-outline-variant bg-surface-container md:h-[300px]"
+>
 	<div class="flex items-center justify-between border-b border-outline-variant p-4">
 		<h2 class="text-headline-md">{m.dashboard_recent_logs()}</h2>
-		<span class="text-on-surface-variant" aria-hidden="true">
-			<span class="material-symbols-outlined text-[20px]">filter_list</span>
-		</span>
 	</div>
 
-	<div class="no-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto p-2">
+	<div class="md:no-scrollbar flex flex-1 flex-col gap-1 p-2 md:overflow-y-auto">
 		{#if logs.length === 0}
 			<p class="p-4 text-center text-body-sm text-on-surface-variant">
 				{m.dashboard_no_completed()}

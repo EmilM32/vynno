@@ -66,7 +66,10 @@
 				{/if}
 			</div>
 			<div class={['desc', compact && 'desc-compact']} aria-hidden={compact}>
-				<p class="mt-1 text-body-sm text-on-surface-variant" data-testid="page-header-description">
+				<p
+					class="mt-1 hidden text-body-sm text-on-surface-variant md:block"
+					data-testid="page-header-description"
+				>
 					{description}
 				</p>
 			</div>

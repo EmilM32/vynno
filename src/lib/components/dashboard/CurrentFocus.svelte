@@ -56,7 +56,7 @@
 			<div class="flex items-center gap-2">
 				<button
 					type="button"
-					class="press focus-ring inline-flex min-h-8 items-center gap-2 rounded px-1.5 py-1 font-mono text-code-data tabular-nums transition-colors hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-60 {isActive
+					class="press focus-ring inline-flex min-h-10 items-center gap-2 rounded px-2 py-1.5 font-mono text-code-data tabular-nums transition-colors hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-60 {isActive
 						? 'text-primary'
 						: 'text-tertiary'}"
 					aria-label={toggleLabel}
@@ -65,13 +65,13 @@
 					disabled={pending}
 				>
 					<span class="material-symbols-outlined text-[18px]" aria-hidden="true">
-						{isActive ? 'play_circle' : 'pause_circle'}
+						{isActive ? 'pause_circle' : 'play_circle'}
 					</span>
 					{sessionStore.elapsedLabel}
 				</button>
 				<button
 					type="button"
-					class="press focus-ring inline-flex min-h-8 items-center gap-1.5 rounded border border-primary/20 bg-primary px-3 py-1.5 font-mono text-code-data text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
+					class="press focus-ring inline-flex min-h-10 items-center gap-1.5 rounded border border-primary/20 bg-primary px-3 py-1.5 font-mono text-code-data text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
 					onclick={() => sessionStore.stop()}
 					disabled={pending}
 				>

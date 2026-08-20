@@ -16,7 +16,7 @@
 	</div>
 
 	<div class="overflow-x-auto">
-		<table class="w-full min-w-[28rem] border-collapse text-left">
+		<table class="w-full min-w-0 border-collapse text-left md:min-w-[28rem]">
 			<caption class="sr-only">{m.insights_breakdown()}</caption>
 			<thead>
 				<tr

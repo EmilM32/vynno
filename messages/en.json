@@ -185,6 +185,7 @@
 	"project_entries_empty": "No completed sessions on this project yet.",
 	"project_entries_no_match": "No entries match that filter.",
 	"project_start_session": "Start session",
+	"project_more_actions": "More actions",
 	"project_open_timer": "Open timer",
 	"project_live_active": "Active now",
 	"project_live_paused": "Paused",

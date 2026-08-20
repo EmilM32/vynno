@@ -12,19 +12,20 @@
 </script>
 
 <div
-	class="relative flex flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container p-4 md:col-span-4"
+	class="relative flex flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container px-4 py-3 md:col-span-4 md:p-4"
 >
-	<div class="mb-2 flex items-start justify-between">
+	<div class="mb-1 flex items-start justify-between md:mb-2">
 		<h2 class="text-body-sm tracking-wider text-on-surface-variant uppercase">
 			{m.dashboard_today_total()}
 		</h2>
-		<span class="today-glow h-2 w-2 rounded-full bg-secondary" aria-hidden="true"></span>
+		<span class="today-glow hidden h-2 w-2 rounded-full bg-secondary md:block" aria-hidden="true"
+		></span>
 	</div>
-	<div class="mt-auto">
+	<div class="mt-auto flex items-end justify-between gap-3 md:block">
 		<div class="font-mono text-code-display tracking-tight text-primary" data-testid="today-total">
 			{totalLabel}
 		</div>
-		<div class="mt-1 flex items-center gap-1 text-body-sm text-on-surface-variant">
+		<div class="flex items-center gap-1 text-body-sm text-on-surface-variant md:mt-1">
 			<span
 				class="material-symbols-outlined text-[14px] {deltaPositive
 					? 'text-secondary'
@@ -39,7 +40,10 @@
 			<span>{m.dashboard_vs_yesterday()}</span>
 		</div>
 	</div>
-	<div class="pointer-events-none absolute right-0 bottom-0 opacity-10" aria-hidden="true">
+	<div
+		class="pointer-events-none absolute right-0 bottom-0 hidden opacity-10 md:block"
+		aria-hidden="true"
+	>
 		<svg
 			fill="none"
 			height="80"

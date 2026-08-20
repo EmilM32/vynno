@@ -1,16 +1,7 @@
 import * as v from 'valibot';
-import type { ActivityType, SessionStatus } from '$lib/types/domain';
+import { ACTIVITY_TYPES, type SessionStatus } from '$lib/types/domain';
 
-export const ACTIVITY_TYPES = [
-	'deep_work',
-	'meeting',
-	'maintenance',
-	'coding',
-	'debugging',
-	'docs',
-	'research',
-	'other'
-] as const satisfies readonly ActivityType[];
+export { ACTIVITY_TYPES };
 
 export const SESSION_STATUSES = [
 	'active',

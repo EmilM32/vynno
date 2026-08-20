@@ -128,7 +128,12 @@ export async function spaGo(page: Page, label: string, href: string) {
 	await expect(page).toHaveURL(new RegExp(`${href}$`));
 }
 
-export async function startSession(page: Page, note: string, projectLabel?: string) {
+export async function startSession(
+	page: Page,
+	note: string,
+	projectLabel?: string,
+	activityType?: string
+) {
 	if (!page.url().includes('/timer') && !page.url().includes('/dashboard')) {
 		await login(page);
 	}
@@ -138,6 +143,9 @@ export async function startSession(page: Page, note: string, projectLabel?: stri
 	await task.fill(note);
 	if (projectLabel) {
 		await page.locator('#project-select').selectOption({ label: projectLabel });
+	}
+	if (activityType) {
+		await page.locator('#activity-select').selectOption(activityType);
 	}
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
 	await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');

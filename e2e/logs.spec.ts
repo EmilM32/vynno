@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, startSession, stopSession, uniqueNote } from './helpers';
+import { login, spaGo, startSession, stopSession, uniqueNote } from './helpers';
 
 test.describe('logs', () => {
 	test.beforeEach(async ({ page }) => {
@@ -48,5 +48,22 @@ test.describe('logs', () => {
 		await expect(row.getByText(/>/)).toBeVisible();
 		// duration compact like 1h 20m or 45m / 1:23:00 style
 		await expect(row).toContainText(/\d/);
+	});
+});
+
+test.describe('logs activity chip', () => {
+	test('shows a chip when the session was started with an activity type', async ({ page }) => {
+		await login(page);
+		const note = uniqueNote('coding-chip');
+		await startSession(page, note, undefined, 'coding');
+		await stopSession(page);
+		await page.goto('/logs');
+		const row = page.getByTestId('log-row').filter({ hasText: note });
+		await expect(row.getByTestId('activity-chip')).toHaveText('Coding');
+
+		await spaGo(page, 'Insights', '/insights');
+		await expect(page.getByRole('region', { name: 'Time by activity', exact: true })).toContainText(
+			'Coding'
+		);
 	});
 });

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
+	import { ACTIVITY_TYPES, activityLabel } from '$lib/types/domain';
 
 	const sessionStore = useSession();
 
@@ -48,6 +49,22 @@
 		>
 			{#each sessionStore.projects as project (project.id)}
 				<option value={project.id}>{project.name}</option>
+			{/each}
+		</select>
+		<label
+			class="font-mono text-code-label text-on-surface-variant lg:sr-only"
+			for="activity-select">{m.timer_activity_label()}</label
+		>
+		<select
+			id="activity-select"
+			class="native-select min-w-[8.5rem] flex-1 rounded border border-outline-variant bg-surface-container-low py-1.5 pl-3 font-mono text-code-label text-on-surface disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none lg:w-40"
+			bind:value={sessionStore.draftActivityType}
+			disabled={locked}
+			data-testid="activity-select"
+		>
+			<option value="">{m.timer_activity_none()}</option>
+			{#each ACTIVITY_TYPES as type (type)}
+				<option value={type}>{activityLabel(type)}</option>
 			{/each}
 		</select>
 	</div>

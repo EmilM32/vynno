@@ -57,6 +57,8 @@
 	"timer_task_placeholder": "Nad czym pracujesz? (np. „Naprawa błędu #402”)",
 	"timer_task_aria": "Opis zadania",
 	"timer_project_label": "Projekt",
+	"timer_activity_label": "Aktywność",
+	"timer_activity_none": "Brak",
 	"timer_recent_tasks": "Ostatnie zadania",
 	"timer_recent_empty": "Brak zakończonych sesji. Uruchom timer, aby zalogować pracę.",
 	"timer_stop_first": "Najpierw zatrzymaj bieżącą sesję",

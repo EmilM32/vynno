@@ -17,6 +17,7 @@ import {
 import { formatClock, sessionElapsedMs } from '$lib/time/duration';
 import { DEFAULT_TIME_ZONE } from '$lib/time/timezone';
 import type {
+	ActivityType,
 	CreateProjectInput,
 	Project,
 	StartSessionInput,
@@ -60,6 +61,8 @@ export class SessionStore {
 	/** Draft fields for the Timer form (idle / pre-start). */
 	draftNote = $state('');
 	draftProjectId = $state('');
+	/** Empty string = unset; posted as null. */
+	draftActivityType = $state<ActivityType | ''>('');
 
 	error = $state<string | null>(null);
 
@@ -91,13 +94,13 @@ export class SessionStore {
 
 		const live = this.sessions.find((s) => s.status === 'active' || s.status === 'paused');
 		if (live) {
-			this.draftNote = live.note;
-			this.draftProjectId = live.projectId;
+			this.#applyDraftFromSession(live);
 		} else {
 			this.draftProjectId = this.#prefs.defaultProjectId || this.projects[0]?.id || '';
 			const recent = this.sessions.find((s) => s.status === 'stopped');
 			if (recent) {
 				this.draftNote = recent.note;
+				this.draftActivityType = recent.activityType ?? '';
 			}
 		}
 		this.#normalizeProjectSelection();
@@ -254,13 +257,16 @@ export class SessionStore {
 		try {
 			const projectId = input?.projectId ?? this.draftProjectId;
 			const note = input?.note ?? this.draftNote;
+			const activityType =
+				input && 'activityType' in input ? input.activityType : this.draftActivityType || undefined;
 			this.draftProjectId = projectId;
 			this.draftNote = note;
+			this.draftActivityType = activityType ?? '';
 			await this.#requireRepo().startSession({
 				projectId,
 				note,
 				ticketId: input?.ticketId,
-				activityType: input?.activityType,
+				activityType,
 				tags: input?.tags
 			});
 			await this.refresh();
@@ -341,8 +347,7 @@ export class SessionStore {
 		this.error = null;
 		try {
 			const stopped = await this.#requireRepo().stopSession(s.id);
-			this.draftNote = stopped.note;
-			this.draftProjectId = stopped.projectId;
+			this.#applyDraftFromSession(stopped);
 			await this.refresh();
 			announce(m.announce_session_stopped());
 		} catch (e) {
@@ -418,6 +423,12 @@ export class SessionStore {
 		return this.#repo;
 	};
 
+	#applyDraftFromSession = (session: TimeSession): void => {
+		this.draftNote = session.note;
+		this.draftProjectId = session.projectId;
+		this.draftActivityType = session.activityType ?? '';
+	};
+
 	#normalizeProjectSelection = (): void => {
 		const activeIds = new SvelteSet(this.projects.map((p) => p.id));
 		const fallback = this.projects[0]?.id ?? '';
@@ -451,6 +462,7 @@ export class SessionStore {
 		this.allProjects = [];
 		this.draftNote = '';
 		this.draftProjectId = '';
+		this.draftActivityType = '';
 		this.error = null;
 		this.pendingAction = null;
 	};

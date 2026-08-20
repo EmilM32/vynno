@@ -70,6 +70,7 @@ describe('MemoryTimeTrackingRepository', () => {
 			expect(s.note).toBe('New work');
 			expect(s.pausedMs).toBe(0);
 			expect(s.ticketId).toBe('DEV-1');
+			expect(s.activityType).toBe('coding');
 			expect((await repo.getActiveSession())?.id).toBe(s.id);
 		});
 

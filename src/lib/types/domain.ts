@@ -4,8 +4,18 @@ import { m } from '$lib/paraglide/messages.js';
 
 export type SessionStatus = 'active' | 'paused' | 'stopped';
 
-export type ActivityType =
-	'deep_work' | 'meeting' | 'maintenance' | 'coding' | 'debugging' | 'docs' | 'research' | 'other';
+export const ACTIVITY_TYPES = [
+	'deep_work',
+	'meeting',
+	'maintenance',
+	'coding',
+	'debugging',
+	'docs',
+	'research',
+	'other'
+] as const;
+
+export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 
 /** Localized display label for an activity type (UI only). */
 export function activityLabel(type: ActivityType): string {

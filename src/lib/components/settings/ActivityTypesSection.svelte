@@ -74,10 +74,14 @@
 	{#if sessionStore.activityTypes.length === 0}
 		<p class="mb-4 text-body-sm text-on-surface-variant">{m.activity_types_empty()}</p>
 	{:else}
-		<ul class="mb-4 flex flex-col gap-2">
+		<ul class="mb-4 flex flex-col gap-2" data-testid="activity-type-list">
 			{#each sessionStore.activityTypes as type (type.id)}
+				{const inUse = $derived(sessionStore.countSessionsForActivityType(type.id) > 0)}
+				{const deleteReasonId = $derived(`${type.id}-delete-reason`)}
 				<li
 					class="flex flex-wrap items-center gap-2 rounded border border-outline-variant bg-surface-container-low px-3 py-2"
+					data-testid="activity-type-row"
+					data-activity-type-id={type.id}
 				>
 					<ActivityChip {type} />
 					<span class="text-body-sm text-on-surface">{type.name}</span>
@@ -91,16 +95,23 @@
 						</button>
 						<button
 							type="button"
-							class="press focus-ring rounded border border-outline-variant px-2 py-1 font-mono text-code-label text-on-surface hover:bg-surface-container-high"
+							class="press focus-ring rounded border border-outline-variant px-2 py-1 font-mono text-code-label text-on-surface hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-40"
 							onclick={() => {
 								sessionStore.clearError();
 								deleteTarget = type;
 							}}
-							disabled={sessionStore.countSessionsForActivityType(type.id) > 0}
+							disabled={inUse}
+							title={inUse ? m.activity_types_cannot_delete_has_sessions() : undefined}
+							aria-describedby={inUse ? deleteReasonId : undefined}
 						>
 							{m.activity_types_delete()}
 						</button>
 					</div>
+					{#if inUse}
+						<span id={deleteReasonId} class="sr-only"
+							>{m.activity_types_cannot_delete_has_sessions()}</span
+						>
+					{/if}
 				</li>
 			{/each}
 		</ul>

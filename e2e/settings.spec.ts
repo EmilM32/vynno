@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import pkg from '../package.json' with { type: 'json' };
-import { login, type E2EAccount } from './helpers';
+import { login, uniqueNote, type E2EAccount } from './helpers';
 
 test.describe('settings', () => {
 	let account: E2EAccount;
@@ -78,5 +78,88 @@ test.describe('settings', () => {
 		await expect(select.locator('option').first()).not.toHaveCount(0);
 		const value = await select.inputValue();
 		expect(value.length).toBeGreaterThan(0);
+	});
+
+	test('deletes an unused activity type after confirm', async ({ page }) => {
+		const name = `unused_${Date.now().toString(36)}`;
+		const section = page.getByRole('region', { name: 'Activity types' });
+		await section.locator('#activity-type-name').fill(name);
+		await Promise.all([
+			page.waitForRequest(
+				(r) => r.method() === 'POST' && /\/v1\/activity-types$/.test(new URL(r.url()).pathname)
+			),
+			section.getByRole('button', { name: 'Add' }).click()
+		]);
+
+		const row = page.getByTestId('activity-type-row').filter({ hasText: name });
+		await expect(row).toBeVisible();
+		const deleteBtn = row.getByRole('button', { name: 'Delete' });
+		await expect(deleteBtn).toBeEnabled();
+
+		await deleteBtn.click();
+		const dialog = page.getByRole('dialog', { name: 'Delete activity type?' });
+		await expect(dialog).toBeVisible();
+
+		const [request] = await Promise.all([
+			page.waitForRequest(
+				(r) =>
+					r.method() === 'DELETE' && /\/v1\/activity-types\/[^/]+$/.test(new URL(r.url()).pathname)
+			),
+			dialog.getByRole('button', { name: 'Confirm' }).click()
+		]);
+		expect(request.method()).toBe('DELETE');
+		await expect(row).toHaveCount(0);
+		await expect(page.getByRole('alert')).toHaveCount(0);
+	});
+
+	test('cannot delete an activity type that has sessions', async ({ page }) => {
+		const name = `used_${Date.now().toString(36)}`;
+		const created = await page.request.post('/v1/activity-types', {
+			data: { name, color: 'secondary' }
+		});
+		if (!created.ok()) {
+			throw new Error(`POST /activity-types failed (${created.status()} ${await created.text()})`);
+		}
+		const { id } = (await created.json()) as { id: string };
+
+		const projects = await page.request.get('/v1/projects');
+		if (!projects.ok()) {
+			throw new Error(`GET /projects failed (${projects.status()} ${await projects.text()})`);
+		}
+		const projectId = ((await projects.json()) as { items: { id: string }[] }).items[0]?.id;
+		expect(projectId).toBeTruthy();
+
+		const started = await page.request.post('/v1/sessions', {
+			data: { projectId, note: uniqueNote('used-type'), activityTypeId: id }
+		});
+		if (!started.ok()) {
+			throw new Error(`POST /sessions failed (${started.status()} ${await started.text()})`);
+		}
+		const session = (await started.json()) as { id: string };
+		const stopped = await page.request.post(`/v1/sessions/${session.id}/stop`);
+		if (!stopped.ok()) {
+			throw new Error(`POST /stop failed (${stopped.status()} ${await stopped.text()})`);
+		}
+
+		await page.reload();
+
+		const row = page.getByTestId('activity-type-row').filter({ hasText: name });
+		await expect(row).toBeVisible();
+		const deleteBtn = row.getByRole('button', { name: 'Delete' });
+		await expect(deleteBtn).toBeDisabled();
+		await expect(deleteBtn).toHaveAttribute(
+			'title',
+			'Cannot delete an activity type that has sessions.'
+		);
+
+		const deletes: string[] = [];
+		page.on('request', (r) => {
+			if (r.method() === 'DELETE' && r.url().includes('/activity-types/')) {
+				deletes.push(r.url());
+			}
+		});
+		await deleteBtn.click({ force: true });
+		await expect(page.getByRole('dialog')).toHaveCount(0);
+		expect(deletes).toEqual([]);
 	});
 });

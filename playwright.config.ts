@@ -34,7 +34,7 @@ export default defineConfig({
 				isMobile: true,
 				hasTouch: true
 			},
-			testMatch: /navigation\.spec\.ts/
+			testMatch: /(?:navigation|projects)\.spec\.ts/
 		}
 	],
 	webServer: {

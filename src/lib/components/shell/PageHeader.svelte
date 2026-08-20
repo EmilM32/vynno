@@ -7,7 +7,8 @@
 		actions,
 		eyebrow,
 		leading,
-		titleExtra
+		titleExtra,
+		showDescriptionOnMobile = false
 	}: {
 		title: string;
 		description: string;
@@ -15,6 +16,8 @@
 		eyebrow?: Snippet;
 		leading?: Snippet;
 		titleExtra?: Snippet;
+		/** Keep the subtitle on small screens when it is the actual message, not chrome. */
+		showDescriptionOnMobile?: boolean;
 	} = $props();
 
 	let compact = $state(false);
@@ -67,7 +70,10 @@
 			</div>
 			<div class={['desc', compact && 'desc-compact']} aria-hidden={compact}>
 				<p
-					class="mt-1 hidden text-body-sm text-on-surface-variant md:block"
+					class={[
+						'mt-1 text-body-sm text-on-surface-variant',
+						!showDescriptionOnMobile && 'hidden md:block'
+					]}
 					data-testid="page-header-description"
 				>
 					{description}

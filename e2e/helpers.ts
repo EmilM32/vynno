@@ -122,7 +122,9 @@ export function mobileNav(page: Page): Locator {
  * Prefer this after mutations so the same browser session (and cookie) is kept.
  */
 export async function spaGo(page: Page, label: string, href: string) {
-	await desktopNav(page).getByRole('link', { name: label, exact: true }).click();
+	const desktop = desktopNav(page);
+	const nav = (await desktop.isVisible()) ? desktop : mobileNav(page);
+	await nav.getByRole('link', { name: label, exact: true }).click();
 	await expect(page).toHaveURL(new RegExp(`${href}$`));
 }
 

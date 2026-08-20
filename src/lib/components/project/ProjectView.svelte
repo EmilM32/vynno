@@ -100,7 +100,11 @@
 
 {#if !project}
 	<div class="flex w-full flex-col gap-6" data-testid="page-view">
-		<PageHeader title={m.error_not_found()} description={m.project_not_found()}>
+		<PageHeader
+			title={m.error_not_found()}
+			description={m.project_not_found()}
+			showDescriptionOnMobile
+		>
 			{#snippet eyebrow()}
 				<a
 					href={resolve('/projects')}

@@ -65,7 +65,10 @@ test.describe('projects', () => {
 
 	test('unknown project id shows not-found copy', async ({ page }) => {
 		await page.goto('/projects/does-not-exist');
-		await expect(page.getByText('That project could not be found.')).toBeVisible();
+		await expect(page.getByTestId('page-header-description')).toHaveText(
+			'That project could not be found.'
+		);
+		await expect(page.getByTestId('page-header-description')).toBeVisible();
 		await expect(page.getByRole('link', { name: 'Projects' }).first()).toBeVisible();
 	});
 

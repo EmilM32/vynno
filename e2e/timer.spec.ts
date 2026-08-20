@@ -32,14 +32,16 @@ test.describe('timer lifecycle', () => {
 
 	test('start posts selected activity type', async ({ page }) => {
 		const created = await page.request.post('/v1/activity-types', {
-			data: { name: 'Coding', color: 'secondary' }
+			data: { name: 'coding', color: 'secondary' }
 		});
-		expect(created.ok()).toBeTruthy();
+		if (!created.ok()) {
+			throw new Error(`POST /activity-types failed (${created.status()} ${await created.text()})`);
+		}
 		const body = (await created.json()) as { id: string };
 		await page.reload();
 		const note = uniqueNote('activity');
 		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
-		await page.locator('#activity-select').selectOption({ label: 'Coding' });
+		await page.locator('#activity-select').selectOption({ label: 'coding' });
 		const [request] = await Promise.all([
 			page.waitForRequest(
 				(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)

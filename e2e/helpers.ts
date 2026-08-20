@@ -148,9 +148,9 @@ export async function startSession(
 		const existing = await page
 			.locator('#activity-select option')
 			.evaluateAll((opts) => opts.map((o) => (o as HTMLOptionElement).textContent?.trim() ?? ''));
-		if (!existing.includes('Coding') && activityType === 'coding') {
+		if (!existing.includes(activityType)) {
 			const res = await page.request.post('/v1/activity-types', {
-				data: { name: 'Coding', color: 'secondary' }
+				data: { name: activityType, color: 'secondary' }
 			});
 			if (!res.ok()) {
 				throw new Error(`Could not create activity type (${res.status()} ${await res.text()})`);
@@ -161,7 +161,7 @@ export async function startSession(
 				await page.locator('#project-select').selectOption({ label: projectLabel });
 			}
 		}
-		await page.locator('#activity-select').selectOption({ label: 'Coding' });
+		await page.locator('#activity-select').selectOption({ label: activityType });
 	}
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
 	await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');

@@ -59,11 +59,11 @@ test.describe('logs activity chip', () => {
 		await stopSession(page);
 		await page.goto('/logs');
 		const row = page.getByTestId('log-row').filter({ hasText: note });
-		await expect(row.getByTestId('activity-chip')).toHaveText('CODING');
+		await expect(row.getByTestId('activity-chip')).toHaveText(/coding/i);
 
 		await spaGo(page, 'Insights', '/insights');
 		await expect(page.getByRole('region', { name: 'Time by activity', exact: true })).toContainText(
-			'Coding'
+			/coding/i
 		);
 	});
 });

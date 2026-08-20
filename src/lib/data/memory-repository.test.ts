@@ -60,17 +60,18 @@ describe('MemoryTimeTrackingRepository', () => {
 
 	describe('startSession', () => {
 		it('creates an active session', async () => {
+			const type = await repo.createActivityType({ name: 'coding', color: 'secondary' });
 			const s = await repo.startSession({
 				projectId: PROJECT_IDS.auth,
 				note: '  New work  ',
 				ticketId: 'DEV-1',
-				activityType: 'coding'
+				activityTypeId: type.id
 			});
 			expect(s.status).toBe('active');
 			expect(s.note).toBe('New work');
 			expect(s.pausedMs).toBe(0);
 			expect(s.ticketId).toBe('DEV-1');
-			expect(s.activityType).toBe('coding');
+			expect(s.activityTypeId).toBe(type.id);
 			expect((await repo.getActiveSession())?.id).toBe(s.id);
 		});
 

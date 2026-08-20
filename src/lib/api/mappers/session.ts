@@ -11,7 +11,7 @@ export function sessionFromDto(dto: SessionDto): TimeSession {
 		pausedMs: dto.pausedMs
 	};
 	if (dto.ticketId) session.ticketId = dto.ticketId;
-	if (dto.activityType) session.activityType = dto.activityType;
+	if (dto.activityTypeId) session.activityTypeId = dto.activityTypeId;
 	if (dto.tags.length) session.tags = [...dto.tags];
 	if (dto.endedAt) session.endedAt = dto.endedAt;
 	if (dto.pausedAt) session.pausedAt = dto.pausedAt;
@@ -25,7 +25,7 @@ export function sessionToDto(session: TimeSession): SessionDto {
 		projectId: session.projectId,
 		note: session.note,
 		ticketId: session.ticketId ?? null,
-		activityType: session.activityType ?? null,
+		activityTypeId: session.activityTypeId ?? null,
 		tags: session.tags ? [...session.tags] : [],
 		status: session.status,
 		startedAt: session.startedAt,
@@ -41,7 +41,7 @@ export function startSessionToDto(input: StartSessionInput): StartSessionDto {
 		projectId: input.projectId,
 		note: input.note,
 		ticketId: input.ticketId ?? null,
-		activityType: input.activityType ?? null,
+		activityTypeId: input.activityTypeId ?? null,
 		tags: input.tags ?? [],
 		targetDurationMs: input.targetDurationMs ?? null
 	};
@@ -52,7 +52,7 @@ export function startSessionFromDto(dto: StartSessionDto): StartSessionInput {
 		projectId: dto.projectId,
 		note: dto.note,
 		...(dto.ticketId ? { ticketId: dto.ticketId } : {}),
-		...(dto.activityType ? { activityType: dto.activityType } : {}),
+		...(dto.activityTypeId ? { activityTypeId: dto.activityTypeId } : {}),
 		...(dto.tags?.length ? { tags: dto.tags } : {}),
 		...(dto.targetDurationMs != null ? { targetDurationMs: dto.targetDurationMs } : {})
 	};

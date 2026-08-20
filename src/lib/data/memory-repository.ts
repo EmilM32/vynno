@@ -4,13 +4,17 @@ import {
 	normalizeProjectFields,
 	validateProjectFields
 } from '$lib/projects/validate';
+import { isActivityColorToken, type ActivityColorToken } from '$lib/time/activity-styles';
 import type {
+	ActivityType,
+	CreateActivityTypeInput,
 	CreateProjectInput,
 	Project,
 	ProjectListOptions,
 	SessionFilters,
 	StartSessionInput,
 	TimeSession,
+	UpdateActivityTypeInput,
 	UpdateProfileInput,
 	UpdateProjectInput,
 	UserProfile
@@ -33,17 +37,27 @@ function cloneSession(s: TimeSession): TimeSession {
 	};
 }
 
+function cloneActivityType(a: ActivityType): ActivityType {
+	return { ...a };
+}
+
+function normalizeActivityTypeName(name: string): string {
+	return name.trim();
+}
+
 /**
  * In-memory repository seeded from an {@link AppSeed}.
  * Mutations are session-scoped (lost on full page reload).
  */
 export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	#projects: Project[];
+	#activityTypes: ActivityType[];
 	#sessions: TimeSession[];
 	#profile: UserProfile;
 
 	constructor(seed: AppSeed) {
 		this.#projects = structuredClone(seed.projects);
+		this.#activityTypes = (seed.activityTypes ?? []).map(cloneActivityType);
 		this.#sessions = seed.sessions.map(cloneSession);
 		this.#profile = { ...seed.profile };
 	}
@@ -157,6 +171,81 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 		return this.#sessions.filter((s) => s.projectId === projectId).length;
 	}
 
+	async listActivityTypes(): Promise<ActivityType[]> {
+		return [...this.#activityTypes]
+			.sort((a, b) => a.name.localeCompare(b.name))
+			.map(cloneActivityType);
+	}
+
+	async getActivityType(id: string): Promise<ActivityType | undefined> {
+		const a = this.#activityTypes.find((x) => x.id === id);
+		return a ? cloneActivityType(a) : undefined;
+	}
+
+	async createActivityType(input: CreateActivityTypeInput): Promise<ActivityType> {
+		const name = this.#requireActivityName(input.name);
+		const color = this.#requireActivityColor(input.color);
+		this.#assertActivityNameUnique(name);
+		const created: ActivityType = { id: newId('act'), name, color };
+		this.#activityTypes.push(created);
+		return cloneActivityType(created);
+	}
+
+	async updateActivityType(id: string, input: UpdateActivityTypeInput): Promise<ActivityType> {
+		const current = this.#activityTypes.find((x) => x.id === id);
+		if (!current) throw new DomainError('not_found', `Activity type not found: ${id}`);
+		if (input.name !== undefined) {
+			current.name = this.#requireActivityName(input.name);
+			this.#assertActivityNameUnique(current.name, id);
+		}
+		if (input.color !== undefined) {
+			current.color = this.#requireActivityColor(input.color);
+		}
+		return cloneActivityType(current);
+	}
+
+	async deleteActivityType(id: string): Promise<void> {
+		const idx = this.#activityTypes.findIndex((x) => x.id === id);
+		if (idx < 0) throw new DomainError('not_found', `Activity type not found: ${id}`);
+		if (this.#sessions.some((s) => s.activityTypeId === id)) {
+			throw new DomainError(
+				'activity_type_has_sessions',
+				'Cannot delete an activity type that has sessions.'
+			);
+		}
+		this.#activityTypes.splice(idx, 1);
+	}
+
+	async countSessionsForActivityType(activityTypeId: string): Promise<number> {
+		return this.#sessions.filter((s) => s.activityTypeId === activityTypeId).length;
+	}
+
+	#requireActivityName(name: string): string {
+		const n = normalizeActivityTypeName(name);
+		if (!n || n.length > 80) {
+			throw new DomainError('invalid_body', 'Name must be 1–80 characters after trim.');
+		}
+		return n;
+	}
+
+	#requireActivityColor(color: string): ActivityColorToken {
+		const c = color.trim().toLowerCase();
+		if (!isActivityColorToken(c)) {
+			throw new DomainError('invalid_body', 'Color must be a known token.');
+		}
+		return c;
+	}
+
+	#assertActivityNameUnique(name: string, excludeId?: string): void {
+		if (
+			this.#activityTypes.some(
+				(a) => a.name.toLowerCase() === name.toLowerCase() && a.id !== excludeId
+			)
+		) {
+			throw new DomainError('name_in_use', 'That name is already in use.');
+		}
+	}
+
 	async getProfile(): Promise<UserProfile> {
 		return { ...this.#profile };
 	}
@@ -235,12 +324,19 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			throw new DomainError('project_archived', `Project is archived: ${input.projectId}`);
 		}
 
+		if (input.activityTypeId) {
+			const type = this.#activityTypes.find((x) => x.id === input.activityTypeId);
+			if (!type) {
+				throw new DomainError('not_found', `Activity type not found: ${input.activityTypeId}`);
+			}
+		}
+
 		const session: TimeSession = {
 			id: newId('sess'),
 			projectId: input.projectId,
 			note: input.note.trim() || 'Untitled session',
 			ticketId: input.ticketId,
-			activityType: input.activityType,
+			activityTypeId: input.activityTypeId,
 			tags: input.tags,
 			status: 'active',
 			startedAt: new Date().toISOString(),

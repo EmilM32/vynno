@@ -18,13 +18,13 @@ describe('SessionStore draft activity', () => {
 				makeSession({
 					status: 'active',
 					endedAt: undefined,
-					activityType: 'coding',
+					activityTypeId: 'act-coding',
 					note: 'Live work'
 				})
 			]
 		});
 		expect(store.draftNote).toBe('Live work');
-		expect(store.draftActivityType).toBe('coding');
+		expect(store.draftActivityType).toBe('act-coding');
 	});
 
 	it('hydrates draft activity from the most recent stopped session when idle', () => {
@@ -35,7 +35,7 @@ describe('SessionStore draft activity', () => {
 				makeSession({
 					id: 'newer',
 					status: 'stopped',
-					activityType: 'research',
+					activityTypeId: 'act-research',
 					note: 'Latest',
 					startedAt: '2026-03-11T12:00:00.000Z',
 					endedAt: '2026-03-11T13:00:00.000Z'
@@ -43,7 +43,7 @@ describe('SessionStore draft activity', () => {
 				makeSession({
 					id: 'older',
 					status: 'stopped',
-					activityType: 'meeting',
+					activityTypeId: 'act-meeting',
 					note: 'Older',
 					startedAt: '2026-03-10T12:00:00.000Z',
 					endedAt: '2026-03-10T13:00:00.000Z'
@@ -51,7 +51,7 @@ describe('SessionStore draft activity', () => {
 			]
 		});
 		expect(store.draftNote).toBe('Latest');
-		expect(store.draftActivityType).toBe('research');
+		expect(store.draftActivityType).toBe('act-research');
 	});
 
 	it('leaves draft activity empty when the recent session has none', () => {
@@ -64,9 +64,9 @@ describe('SessionStore draft activity', () => {
 		store = new SessionStore(new PrefsStore());
 		store.hydrate({
 			...sampleAppSeed(),
-			sessions: [makeSession({ status: 'paused', endedAt: undefined, activityType: 'docs' })]
+			sessions: [makeSession({ status: 'paused', endedAt: undefined, activityTypeId: 'act-docs' })]
 		});
-		expect(store.draftActivityType).toBe('docs');
+		expect(store.draftActivityType).toBe('act-docs');
 		store.reset();
 		expect(store.draftActivityType).toBe('');
 	});

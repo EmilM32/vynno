@@ -18,10 +18,12 @@ import { formatClock, sessionElapsedMs } from '$lib/time/duration';
 import { DEFAULT_TIME_ZONE } from '$lib/time/timezone';
 import type {
 	ActivityType,
+	CreateActivityTypeInput,
 	CreateProjectInput,
 	Project,
 	StartSessionInput,
 	TimeSession,
+	UpdateActivityTypeInput,
 	UpdateProfileInput,
 	UpdateProjectInput
 } from '$lib/types/domain';
@@ -58,18 +60,21 @@ export class SessionStore {
 	/** All projects including archived (management UI). */
 	allProjects = $state.raw<Project[]>([]);
 
+	/** User-owned activity type dictionary. */
+	activityTypes = $state.raw<ActivityType[]>([]);
+
 	/** Draft fields for the Timer form (idle / pre-start). */
 	draftNote = $state('');
 	draftProjectId = $state('');
 	/** Empty string = unset; posted as null. */
-	draftActivityType = $state<ActivityType | ''>('');
+	draftActivityType = $state('');
 
 	error = $state<string | null>(null);
 
 	/** In-flight mutation; blocks double-submit. */
-	pendingAction = $state<'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile' | null>(
-		null
-	);
+	pendingAction = $state<
+		'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile' | 'activity' | null
+	>(null);
 
 	busy = $derived(this.pendingAction != null);
 
@@ -90,6 +95,7 @@ export class SessionStore {
 		this.timeZone = opts.timeZone ?? DEFAULT_TIME_ZONE;
 		this.projects = seed.projects.filter((p) => !p.isArchived);
 		this.allProjects = seed.projects;
+		this.activityTypes = seed.activityTypes ?? [];
 		this.sessions = seed.sessions;
 
 		const live = this.sessions.find((s) => s.status === 'active' || s.status === 'paused');
@@ -100,7 +106,7 @@ export class SessionStore {
 			const recent = this.sessions.find((s) => s.status === 'stopped');
 			if (recent) {
 				this.draftNote = recent.note;
-				this.draftActivityType = recent.activityType ?? '';
+				this.draftActivityType = recent.activityTypeId ?? '';
 			}
 		}
 		this.#normalizeProjectSelection();
@@ -151,6 +157,14 @@ export class SessionStore {
 		return this.allProjects.find((p) => p.id === id) ?? this.projects.find((p) => p.id === id);
 	};
 
+	getActivityType = (id: string): ActivityType | undefined => {
+		return this.activityTypes.find((a) => a.id === id);
+	};
+
+	countSessionsForActivityType = (activityTypeId: string): number => {
+		return this.sessions.filter((s) => s.activityTypeId === activityTypeId).length;
+	};
+
 	activeProject = $derived.by(() => {
 		const s = this.activeSession;
 		if (!s) return undefined;
@@ -173,7 +187,9 @@ export class SessionStore {
 		this.sessions = await repo.listSessions();
 		this.projects = await repo.listProjects();
 		this.allProjects = await repo.listProjects({ includeArchived: true });
+		this.activityTypes = await repo.listActivityTypes();
 		this.#normalizeProjectSelection();
+		this.#normalizeActivitySelection();
 	};
 
 	createProject = async (input: CreateProjectInput): Promise<Project | null> => {
@@ -251,22 +267,72 @@ export class SessionStore {
 		}
 	};
 
+	createActivityType = async (input: CreateActivityTypeInput): Promise<ActivityType | null> => {
+		if (!this.#begin('activity')) return null;
+		this.error = null;
+		try {
+			const created = await this.#requireRepo().createActivityType(input);
+			await this.refresh();
+			return created;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_failed_create_activity_type);
+			return null;
+		} finally {
+			this.#end();
+		}
+	};
+
+	updateActivityType = async (
+		id: string,
+		input: UpdateActivityTypeInput
+	): Promise<ActivityType | null> => {
+		if (!this.#begin('activity')) return null;
+		this.error = null;
+		try {
+			const updated = await this.#requireRepo().updateActivityType(id, input);
+			await this.refresh();
+			return updated;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_failed_update_activity_type);
+			return null;
+		} finally {
+			this.#end();
+		}
+	};
+
+	deleteActivityType = async (id: string): Promise<boolean> => {
+		if (!this.#begin('activity')) return false;
+		this.error = null;
+		try {
+			await this.#requireRepo().deleteActivityType(id);
+			await this.refresh();
+			return true;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_failed_delete_activity_type);
+			return false;
+		} finally {
+			this.#end();
+		}
+	};
+
 	start = async (input?: Partial<StartSessionInput>): Promise<void> => {
 		if (!this.#begin('start')) return;
 		this.error = null;
 		try {
 			const projectId = input?.projectId ?? this.draftProjectId;
 			const note = input?.note ?? this.draftNote;
-			const activityType =
-				input && 'activityType' in input ? input.activityType : this.draftActivityType || undefined;
+			const activityTypeId =
+				input && 'activityTypeId' in input
+					? input.activityTypeId
+					: this.draftActivityType || undefined;
 			this.draftProjectId = projectId;
 			this.draftNote = note;
-			this.draftActivityType = activityType ?? '';
+			this.draftActivityType = activityTypeId ?? '';
 			await this.#requireRepo().startSession({
 				projectId,
 				note,
 				ticketId: input?.ticketId,
-				activityType,
+				activityTypeId,
 				tags: input?.tags
 			});
 			await this.refresh();
@@ -303,7 +369,7 @@ export class SessionStore {
 			projectId: s.projectId,
 			note: s.note,
 			ticketId: s.ticketId,
-			activityType: s.activityType,
+			activityTypeId: s.activityTypeId,
 			tags: s.tags
 		});
 	};
@@ -406,7 +472,9 @@ export class SessionStore {
 		}
 	};
 
-	#begin = (action: 'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile'): boolean => {
+	#begin = (
+		action: 'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile' | 'activity'
+	): boolean => {
 		if (this.pendingAction) return false;
 		this.pendingAction = action;
 		return true;
@@ -426,7 +494,7 @@ export class SessionStore {
 	#applyDraftFromSession = (session: TimeSession): void => {
 		this.draftNote = session.note;
 		this.draftProjectId = session.projectId;
-		this.draftActivityType = session.activityType ?? '';
+		this.draftActivityType = session.activityTypeId ?? '';
 	};
 
 	#normalizeProjectSelection = (): void => {
@@ -438,6 +506,13 @@ export class SessionStore {
 		}
 		if (!activeIds.has(this.#prefs.defaultProjectId)) {
 			if (fallback) this.#prefs.setDefaultProjectId(fallback);
+		}
+	};
+
+	#normalizeActivitySelection = (): void => {
+		if (!this.draftActivityType) return;
+		if (!this.activityTypes.some((a) => a.id === this.draftActivityType)) {
+			this.draftActivityType = '';
 		}
 	};
 
@@ -460,6 +535,7 @@ export class SessionStore {
 		this.sessions = [];
 		this.projects = [];
 		this.allProjects = [];
+		this.activityTypes = [];
 		this.draftNote = '';
 		this.draftProjectId = '';
 		this.draftActivityType = '';

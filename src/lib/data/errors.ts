@@ -5,8 +5,10 @@ export type DomainErrorCode =
 	| 'session_not_active'
 	| 'project_archived'
 	| 'code_in_use'
+	| 'name_in_use'
 	| 'last_active_project'
 	| 'project_has_sessions'
+	| 'activity_type_has_sessions'
 	| 'invalid_transition'
 	| 'invalid_body';
 
@@ -28,8 +30,10 @@ export function statusForCode(code: string): number {
 		case 'session_already_active':
 		case 'project_archived':
 		case 'code_in_use':
+		case 'name_in_use':
 		case 'last_active_project':
 		case 'project_has_sessions':
+		case 'activity_type_has_sessions':
 		case 'invalid_transition':
 			return 409;
 		case 'invalid_body':

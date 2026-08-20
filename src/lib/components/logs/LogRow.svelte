@@ -16,6 +16,9 @@
 	} = $props();
 
 	const project = $derived(sessionStore.getProject(session.projectId));
+	const activity = $derived(
+		session.activityTypeId ? sessionStore.getActivityType(session.activityTypeId) : undefined
+	);
 	const duration = $derived(sessionElapsedMs(session));
 	const range = $derived(
 		formatTimeRange(session.startedAt, session.endedAt, sessionStore.timeZone)
@@ -47,9 +50,9 @@
 		</div>
 	</div>
 	<div class="flex items-center gap-4 md:justify-end">
-		{#if session.activityType}
+		{#if activity}
 			<div class="hidden gap-2 md:flex">
-				<ActivityChip type={session.activityType} />
+				<ActivityChip type={activity} />
 			</div>
 		{/if}
 		<div class="font-mono text-code-data whitespace-nowrap text-on-surface-variant">

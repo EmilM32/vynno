@@ -1,18 +1,12 @@
 import * as v from 'valibot';
-import {
-	activityTypeSchema,
-	idSchema,
-	isoDateTimeSchema,
-	listSchema,
-	sessionStatusSchema
-} from './common';
+import { idSchema, isoDateTimeSchema, listSchema, sessionStatusSchema } from './common';
 
 export const sessionDtoSchema = v.object({
 	id: idSchema,
 	projectId: idSchema,
 	note: v.string(),
 	ticketId: v.nullable(v.string()),
-	activityType: v.nullable(activityTypeSchema),
+	activityTypeId: v.nullable(idSchema),
 	tags: v.array(v.string()),
 	status: sessionStatusSchema,
 	startedAt: isoDateTimeSchema,
@@ -28,7 +22,7 @@ export const startSessionDtoSchema = v.object({
 	projectId: idSchema,
 	note: v.string(),
 	ticketId: v.optional(v.nullable(v.string())),
-	activityType: v.optional(v.nullable(activityTypeSchema)),
+	activityTypeId: v.optional(v.nullable(idSchema)),
 	tags: v.optional(v.array(v.string())),
 	targetDurationMs: v.optional(v.nullable(v.pipe(v.number(), v.minValue(0))))
 });
@@ -44,7 +38,7 @@ export const sessionSeedItemSchema = v.object({
 	projectId: idSchema,
 	note: v.string(),
 	ticketId: v.nullable(v.string()),
-	activityType: v.nullable(activityTypeSchema),
+	activityTypeId: v.nullable(idSchema),
 	tags: v.array(v.string()),
 	status: sessionStatusSchema,
 	started: sessionSeedStartedSchema,

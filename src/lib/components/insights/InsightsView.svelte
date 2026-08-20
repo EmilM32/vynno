@@ -25,6 +25,7 @@
 		periodStats(
 			sessionStore.sessions,
 			sessionStore.projects,
+			sessionStore.activityTypes,
 			period,
 			new Date(sessionStore.nowMs),
 			prefsStore.dailyTargetMs,

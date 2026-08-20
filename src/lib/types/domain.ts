@@ -1,42 +1,27 @@
 /** Domain types for Vynno frontend — see docs/domain-model.md */
 
-import { m } from '$lib/paraglide/messages.js';
+import { ACTIVITY_COLOR_TOKENS, type ActivityColorToken } from '$lib/time/activity-styles';
 
 export type SessionStatus = 'active' | 'paused' | 'stopped';
 
-export const ACTIVITY_TYPES = [
-	'deep_work',
-	'meeting',
-	'maintenance',
-	'coding',
-	'debugging',
-	'docs',
-	'research',
-	'other'
-] as const;
+export { ACTIVITY_COLOR_TOKENS, type ActivityColorToken };
 
-export type ActivityType = (typeof ACTIVITY_TYPES)[number];
+export interface ActivityType {
+	id: string;
+	/** Display label, stored as typed. */
+	name: string;
+	/** Theme token (primary, secondary, …). */
+	color: string;
+}
 
-/** Localized display label for an activity type (UI only). */
-export function activityLabel(type: ActivityType): string {
-	switch (type) {
-		case 'deep_work':
-			return m.activity_deep_work();
-		case 'meeting':
-			return m.activity_meeting();
-		case 'maintenance':
-			return m.activity_maintenance();
-		case 'coding':
-			return m.activity_coding();
-		case 'debugging':
-			return m.activity_debugging();
-		case 'docs':
-			return m.activity_docs();
-		case 'research':
-			return m.activity_research();
-		case 'other':
-			return m.activity_other();
-	}
+export interface CreateActivityTypeInput {
+	name: string;
+	color: ActivityColorToken;
+}
+
+export interface UpdateActivityTypeInput {
+	name?: string;
+	color?: ActivityColorToken;
 }
 
 export interface Project {
@@ -55,7 +40,7 @@ export interface TimeSession {
 	projectId: string;
 	note: string;
 	ticketId?: string;
-	activityType?: ActivityType;
+	activityTypeId?: string;
 	tags?: string[];
 	status: SessionStatus;
 	/** ISO datetime */
@@ -83,7 +68,7 @@ export interface StartSessionInput {
 	projectId: string;
 	note: string;
 	ticketId?: string;
-	activityType?: ActivityType;
+	activityTypeId?: string;
 	tags?: string[];
 	targetDurationMs?: number;
 }

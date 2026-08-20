@@ -17,6 +17,10 @@ export const apiPaths = {
 	projectRestore: (id: string) => `/projects/${id}/restore`,
 	projectSessionCount: (id: string) => `/projects/${id}/session-count`,
 
+	activityTypes: () => '/activity-types',
+	activityType: (id: string) => `/activity-types/${id}`,
+	activityTypeSessionCount: (id: string) => `/activity-types/${id}/session-count`,
+
 	sessions: (filters: SessionFilters = {}) => {
 		const params = new URLSearchParams();
 		if (filters.status?.length) params.set('status', filters.status.join(','));

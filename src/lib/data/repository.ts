@@ -1,10 +1,13 @@
 import type {
+	ActivityType,
+	CreateActivityTypeInput,
 	CreateProjectInput,
 	Project,
 	ProjectListOptions,
 	SessionFilters,
 	StartSessionInput,
 	TimeSession,
+	UpdateActivityTypeInput,
 	UpdateProfileInput,
 	UpdateProjectInput,
 	UserProfile
@@ -24,6 +27,13 @@ export interface TimeTrackingRepository {
 	/** Permanent remove. Throws if sessions reference id or last active. */
 	deleteProject(id: string): Promise<void>;
 	countSessionsForProject(projectId: string): Promise<number>;
+
+	listActivityTypes(): Promise<ActivityType[]>;
+	getActivityType(id: string): Promise<ActivityType | undefined>;
+	createActivityType(input: CreateActivityTypeInput): Promise<ActivityType>;
+	updateActivityType(id: string, input: UpdateActivityTypeInput): Promise<ActivityType>;
+	deleteActivityType(id: string): Promise<void>;
+	countSessionsForActivityType(activityTypeId: string): Promise<number>;
 
 	getProfile(): Promise<UserProfile>;
 	updateProfile(input: UpdateProfileInput): Promise<UserProfile>;

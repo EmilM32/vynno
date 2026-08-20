@@ -38,7 +38,7 @@
 						>
 					</tr>
 				{:else}
-					{#each rows as row, i (row.projectId + row.activityType)}
+					{#each rows as row, i (row.projectId + row.activityTypeId)}
 						<tr
 							class="transition-colors hover:bg-surface-container-high {i < rows.length - 1
 								? 'border-b border-outline-variant'

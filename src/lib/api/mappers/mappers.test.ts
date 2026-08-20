@@ -64,7 +64,7 @@ describe('session mappers', () => {
 			projectId: 'proj-auth',
 			note: 'Work',
 			ticketId: null,
-			activityType: 'coding',
+			activityTypeId: 'act-coding',
 			tags: [],
 			status: 'stopped',
 			startedAt: '2026-03-10T08:00:00.000Z',
@@ -77,13 +77,13 @@ describe('session mappers', () => {
 		expect(session.ticketId).toBeUndefined();
 		expect(session.pausedAt).toBeUndefined();
 		expect(session.targetDurationMs).toBeUndefined();
-		expect(session.activityType).toBe('coding');
+		expect(session.activityTypeId).toBe('act-coding');
 	});
 
 	it('round-trips tags and ticket', () => {
 		const original = makeSession({
 			ticketId: 'DEV-1',
-			activityType: 'debugging',
+			activityTypeId: 'act-debugging',
 			tags: ['Backend'],
 			endedAt: '2026-03-10T10:00:00.000Z'
 		});
@@ -101,7 +101,7 @@ describe('session mappers', () => {
 			projectId: 'proj-auth',
 			note: 'Work',
 			ticketId: null,
-			activityType: null,
+			activityTypeId: null,
 			tags: [],
 			targetDurationMs: null
 		});
@@ -110,7 +110,7 @@ describe('session mappers', () => {
 				projectId: 'proj-auth',
 				note: 'Work',
 				ticketId: null,
-				activityType: null,
+				activityTypeId: null,
 				tags: [],
 				targetDurationMs: null
 			})

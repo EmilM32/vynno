@@ -28,6 +28,12 @@ const projects = [
 	makeProject({ id: 'proj-arch', name: 'Old', color: '#333', isArchived: true })
 ];
 
+const activityTypes = [
+	{ id: 'act-coding', name: 'coding', color: 'secondary' },
+	{ id: 'act-meeting', name: 'meeting', color: 'tertiary' },
+	{ id: 'act-research', name: 'research', color: 'primary' }
+];
+
 function daySessions() {
 	// Today (Mar 11): two stopped + one active
 	const todayA = makeSession({
@@ -35,7 +41,7 @@ function daySessions() {
 		projectId: 'proj-a',
 		note: 'Feature work',
 		ticketId: 'A-1',
-		activityType: 'coding',
+		activityTypeId: 'act-coding',
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 11, 9, 0),
 		endedAt: localIso(2026, 2, 11, 11, 0),
@@ -45,7 +51,7 @@ function daySessions() {
 		id: 't2',
 		projectId: 'proj-b',
 		note: 'Standup',
-		activityType: 'meeting',
+		activityTypeId: 'act-meeting',
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 11, 11, 30),
 		endedAt: localIso(2026, 2, 11, 12, 0),
@@ -56,7 +62,7 @@ function daySessions() {
 		id: 'y1',
 		projectId: 'proj-a',
 		note: 'Feature work',
-		activityType: 'coding',
+		activityTypeId: 'act-coding',
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 10, 10, 0),
 		endedAt: localIso(2026, 2, 10, 11, 0),
@@ -67,7 +73,7 @@ function daySessions() {
 		id: 'm1',
 		projectId: 'proj-b',
 		note: 'Research spike',
-		activityType: 'research',
+		activityTypeId: 'act-research',
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 9, 14, 0),
 		endedAt: localIso(2026, 2, 9, 16, 0),
@@ -306,7 +312,7 @@ describe('filterSessions', () => {
 
 describe('periodStats', () => {
 	it('aggregates totals, rankings, and target ratio for the week', () => {
-		const stats = periodStats(daySessions(), projects, 'week', FIXED_NOW, ms.hours(8));
+		const stats = periodStats(daySessions(), projects, activityTypes, 'week', FIXED_NOW, ms.hours(8));
 		expect(stats.period).toBe('week');
 		// Week sessions: Mon 2h + Tue 1h + Wed 2.5h = 5.5h
 		expect(stats.totalMs).toBe(ms.hours(5, 30));
@@ -331,11 +337,11 @@ describe('periodStats', () => {
 			startedAt: localIso(2026, 2, 11, 9, 0),
 			endedAt: localIso(2026, 2, 11, 10, 0)
 		});
-		const stats = periodStats([orphan], projects, 'week', FIXED_NOW);
+		const stats = periodStats([orphan], projects, activityTypes, 'week', FIXED_NOW);
 		expect(stats.byProject[0]!.label).toBe('Unknown');
 		expect(stats.byProject[0]!.color).toBe('#64748b');
 
-		const empty = periodStats([], projects, 'week', FIXED_NOW);
+		const empty = periodStats([], projects, activityTypes, 'week', FIXED_NOW);
 		expect(empty.totalMs).toBe(0);
 		expect(empty.mostProductiveDay).toBeNull();
 		expect(empty.byProject).toEqual([]);
@@ -357,19 +363,19 @@ describe('sessionsForProject / latestStoppedStartedAt', () => {
 
 describe('projectPeriodStats', () => {
 	it('scopes week totals and share to one project', () => {
-		const stats = projectPeriodStats(daySessions(), 'proj-a', 'week', FIXED_NOW);
+		const stats = projectPeriodStats(daySessions(), 'proj-a', activityTypes, 'week', FIXED_NOW);
 		expect(stats.period).toBe('week');
 		// Today 2h + yesterday 1h
 		expect(stats.totalMs).toBe(ms.hours(3));
 		expect(stats.allMs).toBe(ms.hours(5, 30));
 		expect(stats.sharePercent).toBe(Math.round((3 / 5.5) * 100));
 		expect(stats.sessionCount).toBe(2);
-		expect(stats.byActivity[0]?.id).toBe('coding');
+		expect(stats.byActivity[0]?.id).toBe('act-coding');
 		expect(stats.dailyAverageMs).toBeGreaterThan(0);
 	});
 
 	it('uses first project session as all-time start so share is of the overlapping window', () => {
-		const stats = projectPeriodStats(daySessions(), 'proj-a', 'all', FIXED_NOW);
+		const stats = projectPeriodStats(daySessions(), 'proj-a', activityTypes, 'all', FIXED_NOW);
 		expect(stats.totalMs).toBe(ms.hours(3));
 		expect(stats.allMs).toBeGreaterThanOrEqual(stats.totalMs);
 		expect(stats.sharePercent).toBeGreaterThan(0);
@@ -377,7 +383,7 @@ describe('projectPeriodStats', () => {
 	});
 
 	it('returns zeros when the project has no sessions', () => {
-		const stats = projectPeriodStats(daySessions(), 'missing', 'week', FIXED_NOW);
+		const stats = projectPeriodStats(daySessions(), 'missing', activityTypes, 'week', FIXED_NOW);
 		expect(stats.totalMs).toBe(0);
 		expect(stats.sessionCount).toBe(0);
 		expect(stats.byActivity).toEqual([]);

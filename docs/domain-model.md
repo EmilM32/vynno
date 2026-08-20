@@ -132,15 +132,9 @@ User (future / display only for now)
 - `timeRangeLabel` — e.g. `09:30 - 11:45`
 - `durationLabel` — e.g. `2h 15m`, `01:42:15`
 
-### 4.3 ActivityType (MVP enum)
+### 4.3 ActivityType
 
-Derived from mockups (union of Logs chips + Insights bars):
-
-```
-DeepWork | Meeting | Maintenance | Coding | Debugging | Docs | Research | Other
-```
-
-Display labels may differ from enum keys (`Deep Work`, `Debug`).
+User-owned dictionary row. `name` is a display label stored as typed; `color` is a theme token. Optional on a session as `activityTypeId`. Empty until the user creates rows. Chips render the name uppercase.
 
 ### 4.4 Aggregates (computed, not stored in mock layer necessarily)
 

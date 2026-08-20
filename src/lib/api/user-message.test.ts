@@ -23,6 +23,9 @@ describe('userMessageForError', () => {
 		expect(userMessageForError(new ApiError(409, 'username_in_use', 'x'), () => 'fb')).toBe(
 			'That username is already taken.'
 		);
+		expect(userMessageForError(new ApiError(409, 'name_in_use', 'x'), () => 'fb')).toBe(
+			'That name is already in use.'
+		);
 	});
 
 	it('falls back for unknown errors', () => {

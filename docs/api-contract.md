@@ -1,7 +1,7 @@
 # Vynno API contract (frontend-proposed)
 
 **Status:** Implemented on the client (Phase 5c) — live API + auth  
-**Last updated:** 2026-08-17  
+**Last updated:** 2026-08-20  
 **Executable schemas:** `src/lib/api/schemas/` (source of truth if this doc and code drift)
 
 This is the wire format the SvelteKit app speaks. The backend should implement these resources. If the live API diverges, change **schemas + mappers only** — not views or the session store.
@@ -32,7 +32,7 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 
 | Code                     | Status  | When                                                  | UI string                             |
 | ------------------------ | ------- | ----------------------------------------------------- | ------------------------------------- |
-| `not_found`              | 404     | Unknown project or session id                         | `error_not_found`                     |
+| `not_found`              | 404     | Unknown project, session, or activity type id         | `error_not_found`                     |
 | `invalid_query`          | 400     | Bad `status` / `limit`                                | fallback                              |
 | `invalid_json`           | 400     | Request or response body is not JSON                  | `error_invalid_response`              |
 | `invalid_body`           | 400     | Write body failed the request schema / validation     | fallback (`error_failed_*`)           |
@@ -42,8 +42,10 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 | `session_already_active` | 409     | `POST /sessions` while one is active/paused           | `error_stop_before_start`             |
 | `project_archived`       | 409     | Start against an archived project                     | `error_project_archived`              |
 | `code_in_use`            | 409     | Project `code` not unique                             | `error_code_in_use`                   |
+| `name_in_use`            | 409     | Activity type `name` not unique for this user         | `activity_types_name_in_use`          |
 | `last_active_project`    | 409     | Archive/delete of the last active project             | `error_last_active_project`           |
 | `project_has_sessions`   | 409     | Hard-delete of a project that has logs                | `projects_cannot_delete_has_sessions` |
+| `activity_type_has_sessions` | 409 | Hard-delete of an activity type that has sessions     | `activity_types_cannot_delete_has_sessions` |
 | `invalid_transition`     | 409     | Pause/resume/stop (or archive/restore) in a bad state | fallback                              |
 | `unauthorized`           | 401     | Missing, unknown, or expired session                  | `error_unauthorized`                  |
 | `invalid_credentials`    | 401     | Login username/password do not match                  | `error_invalid_credentials`           |
@@ -171,6 +173,23 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 { "name": "Renamed", "code": null }
 ```
 
+### Activity types
+
+Per-user dictionary. Empty until the user creates rows.
+
+| Method | Path | Body | Success | Typical errors |
+| --- | --- | --- | --- | --- |
+| GET | `/activity-types` | — | `{ items: ActivityTypeDto[] }` name-sorted | — |
+| GET | `/activity-types/:id` | — | `ActivityTypeDto` | `not_found` |
+| POST | `/activity-types` | `{ name, color }` | `ActivityTypeDto` `201` | `invalid_body`, `name_in_use` |
+| PATCH | `/activity-types/:id` | `{ name?, color? }` | `ActivityTypeDto` | `not_found`, `invalid_body`, `name_in_use` |
+| DELETE | `/activity-types/:id` | — | `204` | `not_found`, `activity_type_has_sessions` |
+| GET | `/activity-types/:id/session-count` | — | `{ "count": number }` | `not_found` |
+
+`name` is a display label (trim, 1–80 characters, stored as typed), unique per user case-insensitively. The SPA shows this string; chips render it uppercase.
+
+`color` is a theme token: `primary` \| `secondary` \| `tertiary` \| `error` \| `on-surface-variant` \| `outline` \| `primary-container` \| `secondary-container`.
+
 ### Sessions
 
 | Method | Path                                     | Body              | Success                                | Typical errors                                                            |
@@ -191,7 +210,7 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 	"projectId": "proj-alpha",
 	"note": "Database schema migration script",
 	"ticketId": null,
-	"activityType": "coding",
+	"activityTypeId": "8f3e0c1a-2b4d-4e6f-8a90-b1c2d3e4f567",
 	"tags": [],
 	"status": "stopped",
 	"startedAt": "2026-03-11T08:00:00.000Z",
@@ -209,13 +228,13 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 	"projectId": "proj-auth",
 	"note": "Refactoring Auth Service",
 	"ticketId": null,
-	"activityType": null,
+	"activityTypeId": null,
 	"tags": [],
 	"targetDurationMs": null
 }
 ```
 
-`activityType`: `deep_work` \| `meeting` \| `maintenance` \| `coding` \| `debugging` \| `docs` \| `research` \| `other`  
+`activityTypeId`: UUID of an activity type this user owns, or JSON `null`.  
 `status`: `active` \| `paused` \| `stopped`
 
 `GET /sessions/active` returns the active **or paused** session. Idle → `404` `{ "error": { "code": "session_not_active", "message": "…" } }`.

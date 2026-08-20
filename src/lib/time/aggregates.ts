@@ -1,6 +1,7 @@
 import { m } from '$lib/paraglide/messages.js';
+import { activityChartColor } from '$lib/time/activity-styles';
 import type { ActivityType, Project, TimeSession } from '$lib/types/domain';
-import { activityLabel } from '$lib/types/domain';
+
 import {
 	addCalendarMonths,
 	calendarDaysInclusive,
@@ -77,7 +78,7 @@ export type RecentTask = {
 	sessionId: string;
 	ticketId?: string;
 	tags?: string[];
-	activityType?: ActivityType;
+	activityTypeId?: string;
 };
 
 export function recentTasks(sessions: TimeSession[], limit = 5): RecentTask[] {
@@ -99,7 +100,7 @@ export function recentTasks(sessions: TimeSession[], limit = 5): RecentTask[] {
 			sessionId: s.id,
 			ticketId: s.ticketId,
 			tags: s.tags,
-			activityType: s.activityType
+			activityTypeId: s.activityTypeId
 		});
 		if (out.length >= limit) break;
 	}
@@ -340,7 +341,7 @@ export type BreakdownRow = {
 	projectId: string;
 	projectName: string;
 	projectColor: string;
-	activityType: ActivityType;
+	activityTypeId: string;
 	activityLabel: string;
 	ms: number;
 	percent: number;
@@ -358,20 +359,10 @@ export type PeriodStats = {
 	breakdown: BreakdownRow[];
 };
 
-const ACTIVITY_COLORS: Record<ActivityType, string> = {
-	deep_work: 'var(--color-primary)',
-	meeting: 'var(--color-tertiary)',
-	maintenance: 'var(--color-primary-container)',
-	coding: 'var(--color-secondary)',
-	debugging: 'var(--color-error)',
-	docs: 'var(--color-on-surface-variant)',
-	research: 'var(--color-primary-fixed-dim)',
-	other: 'var(--color-outline)'
-};
-
 export function periodStats(
 	sessions: TimeSession[],
 	projects: Project[],
+	activityTypes: ActivityType[],
 	period: PeriodKind,
 	now = new Date(),
 	dailyTargetMs = DEFAULT_DAILY_TARGET_MS,
@@ -381,15 +372,13 @@ export function periodStats(
 	const inRange = sessionsInRange(sessions, start, end);
 	const nowMs = now.getTime();
 	const projectName = new Map(projects.map((p) => [p.id, p]));
+	const activityById = new Map(activityTypes.map((a) => [a.id, a]));
 
 	let totalMs = 0;
 	const dayTotals = new Map<string, number>();
 	const projectTotals = new Map<string, number>();
-	const activityTotals = new Map<ActivityType, number>();
-	const pairTotals = new Map<
-		string,
-		{ projectId: string; activityType: ActivityType; ms: number }
-	>();
+	const activityTotals = new Map<string, number>();
+	const pairTotals = new Map<string, { projectId: string; activityTypeId: string; ms: number }>();
 
 	for (const s of inRange) {
 		const ms = sessionElapsedMs(s, nowMs);
@@ -400,13 +389,14 @@ export function periodStats(
 		dayTotals.set(dayKey, (dayTotals.get(dayKey) ?? 0) + ms);
 		projectTotals.set(s.projectId, (projectTotals.get(s.projectId) ?? 0) + ms);
 
-		const act: ActivityType = s.activityType ?? 'other';
-		activityTotals.set(act, (activityTotals.get(act) ?? 0) + ms);
+		const actId = s.activityTypeId;
+		if (!actId) continue;
+		activityTotals.set(actId, (activityTotals.get(actId) ?? 0) + ms);
 
-		const pairKey = `${s.projectId}::${act}`;
+		const pairKey = `${s.projectId}::${actId}`;
 		const existing = pairTotals.get(pairKey);
 		if (existing) existing.ms += ms;
-		else pairTotals.set(pairKey, { projectId: s.projectId, activityType: act, ms });
+		else pairTotals.set(pairKey, { projectId: s.projectId, activityTypeId: actId, ms });
 	}
 
 	let mostProductiveDay: PeriodStats['mostProductiveDay'] = null;
@@ -437,24 +427,28 @@ export function periodStats(
 		.sort((a, b) => b.ms - a.ms);
 
 	const byActivity: NamedTotal[] = [...activityTotals.entries()]
-		.map(([id, ms]) => ({
-			id,
-			label: activityLabel(id),
-			color: ACTIVITY_COLORS[id],
-			ms,
-			percent: pct(ms)
-		}))
+		.map(([id, ms]) => {
+			const a = activityById.get(id);
+			return {
+				id,
+				label: a ? a.name : m.common_unknown(),
+				color: a ? activityChartColor(a.color) : activityChartColor('outline'),
+				ms,
+				percent: pct(ms)
+			};
+		})
 		.sort((a, b) => b.ms - a.ms);
 
 	const breakdown: BreakdownRow[] = [...pairTotals.values()]
 		.map((row) => {
 			const p = projectName.get(row.projectId);
+			const a = activityById.get(row.activityTypeId);
 			return {
 				projectId: row.projectId,
 				projectName: p?.name ?? m.common_unknown(),
 				projectColor: p?.color ?? '#64748b',
-				activityType: row.activityType,
-				activityLabel: activityLabel(row.activityType),
+				activityTypeId: row.activityTypeId,
+				activityLabel: a ? a.name : m.common_unknown(),
 				ms: row.ms,
 				percent: pct(row.ms)
 			};
@@ -520,6 +514,7 @@ export type ProjectPeriodStats = {
 export function projectPeriodStats(
 	sessions: TimeSession[],
 	projectId: string,
+	activityTypes: ActivityType[],
 	period: ProjectPeriodKind,
 	now = new Date(),
 	timeZone?: string
@@ -537,7 +532,8 @@ export function projectPeriodStats(
 	let allMs = 0;
 	let sessionCount = 0;
 	const dayTotals = new Map<string, number>();
-	const activityTotals = new Map<ActivityType, number>();
+	const activityTotals = new Map<string, number>();
+	const activityById = new Map(activityTypes.map((a) => [a.id, a]));
 
 	for (const s of inRange) {
 		const ms = sessionElapsedMs(s, nowMs);
@@ -548,8 +544,8 @@ export function projectPeriodStats(
 		sessionCount += 1;
 		const dayKey = localDateKey(s.startedAt, now, timeZone);
 		dayTotals.set(dayKey, (dayTotals.get(dayKey) ?? 0) + ms);
-		const act: ActivityType = s.activityType ?? 'other';
-		activityTotals.set(act, (activityTotals.get(act) ?? 0) + ms);
+		if (!s.activityTypeId) continue;
+		activityTotals.set(s.activityTypeId, (activityTotals.get(s.activityTypeId) ?? 0) + ms);
 	}
 
 	let mostProductiveDay: ProjectPeriodStats['mostProductiveDay'] = null;
@@ -566,13 +562,16 @@ export function projectPeriodStats(
 	const pct = (ms: number) => (totalMs > 0 ? Math.round((ms / totalMs) * 100) : 0);
 
 	const byActivity: NamedTotal[] = [...activityTotals.entries()]
-		.map(([id, ms]) => ({
-			id,
-			label: activityLabel(id),
-			color: ACTIVITY_COLORS[id],
-			ms,
-			percent: pct(ms)
-		}))
+		.map(([id, ms]) => {
+			const a = activityById.get(id);
+			return {
+				id,
+				label: a ? a.name : m.common_unknown(),
+				color: a ? activityChartColor(a.color) : activityChartColor('outline'),
+				ms,
+				percent: pct(ms)
+			};
+		})
 		.sort((a, b) => b.ms - a.ms);
 
 	return {

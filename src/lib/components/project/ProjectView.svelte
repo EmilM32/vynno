@@ -34,6 +34,7 @@
 			? projectPeriodStats(
 					sessionStore.sessions,
 					project.id,
+					sessionStore.activityTypes,
 					period,
 					new SvelteDate(sessionStore.nowMs),
 					sessionStore.timeZone

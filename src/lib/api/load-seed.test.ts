@@ -17,12 +17,13 @@ describe('loadAppSeed', () => {
 			const url = String(input);
 			if (url.endsWith('/me')) return jsonResponse(sampleProfileDto());
 			if (url.includes('/projects')) return jsonResponse(sampleProjectListDto());
+			if (url.includes('/activity-types')) return jsonResponse({ items: [] });
 			if (url.includes('/sessions')) return jsonResponse({ items: [] });
 			return jsonResponse({ error: { code: 'not_found', message: url } }, 404);
 		});
 
 		const loaded = await loadAppSeed(fetchFn, api);
-		expect(fetchFn).toHaveBeenCalledTimes(3);
+		expect(fetchFn).toHaveBeenCalledTimes(4);
 		expect(loaded.profile.handle).toBe('@alexdev');
 		expect(loaded.projects.map((p) => p.id)).toEqual(['proj-auth']);
 		expect(loaded.sessions).toEqual([]);

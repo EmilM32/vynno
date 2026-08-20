@@ -2,20 +2,29 @@ import { ApiClient, type FetchFn } from '$lib/api/client';
 import { getApiBase } from '$lib/api/config';
 import { ApiError } from '$lib/api/errors';
 import { profileFromDto } from '$lib/api/mappers/profile';
+import {
+	activityTypeFromDto,
+	createActivityTypeToDto,
+	updateActivityTypeToDto
+} from '$lib/api/mappers/activity-type';
 import { createProjectToDto, projectFromDto, updateProjectToDto } from '$lib/api/mappers/project';
 import { sessionFromDto, startSessionToDto } from '$lib/api/mappers/session';
 import { apiPaths } from '$lib/api/paths';
+import { activityTypeDtoSchema, activityTypeListDtoSchema } from '$lib/api/schemas/activity-type';
 import { sessionCountSchema } from '$lib/api/schemas/common';
 import { profileDtoSchema } from '$lib/api/schemas/profile';
 import { projectDtoSchema, projectListDtoSchema } from '$lib/api/schemas/project';
 import { sessionDtoSchema, sessionListDtoSchema } from '$lib/api/schemas/session';
 import type {
+	ActivityType,
+	CreateActivityTypeInput,
 	CreateProjectInput,
 	Project,
 	ProjectListOptions,
 	SessionFilters,
 	StartSessionInput,
 	TimeSession,
+	UpdateActivityTypeInput,
 	UpdateProfileInput,
 	UpdateProjectInput,
 	UserProfile
@@ -79,6 +88,48 @@ export class HttpTimeTrackingRepository implements TimeTrackingRepository {
 
 	async countSessionsForProject(projectId: string): Promise<number> {
 		const dto = await this.#client.get(apiPaths.projectSessionCount(projectId), sessionCountSchema);
+		return dto.count;
+	}
+
+	async listActivityTypes(): Promise<ActivityType[]> {
+		const dto = await this.#client.get(apiPaths.activityTypes(), activityTypeListDtoSchema);
+		return dto.items.map(activityTypeFromDto);
+	}
+
+	async getActivityType(id: string): Promise<ActivityType | undefined> {
+		return this.#optional(
+			() => this.#client.get(apiPaths.activityType(id), activityTypeDtoSchema),
+			activityTypeFromDto
+		);
+	}
+
+	async createActivityType(input: CreateActivityTypeInput): Promise<ActivityType> {
+		const dto = await this.#client.post(
+			apiPaths.activityTypes(),
+			createActivityTypeToDto(input),
+			activityTypeDtoSchema
+		);
+		return activityTypeFromDto(dto);
+	}
+
+	async updateActivityType(id: string, input: UpdateActivityTypeInput): Promise<ActivityType> {
+		const dto = await this.#client.patch(
+			apiPaths.activityType(id),
+			updateActivityTypeToDto(input),
+			activityTypeDtoSchema
+		);
+		return activityTypeFromDto(dto);
+	}
+
+	async deleteActivityType(id: string): Promise<void> {
+		await this.#client.delete(apiPaths.activityType(id));
+	}
+
+	async countSessionsForActivityType(activityTypeId: string): Promise<number> {
+		const dto = await this.#client.get(
+			apiPaths.activityTypeSessionCount(activityTypeId),
+			sessionCountSchema
+		);
 		return dto.count;
 	}
 

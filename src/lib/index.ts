@@ -1,14 +1,16 @@
 export type {
 	ActivityType,
+	CreateActivityTypeInput,
 	CreateProjectInput,
 	Project,
 	SessionStatus,
 	StartSessionInput,
 	TimeSession,
+	UpdateActivityTypeInput,
 	UpdateProjectInput,
 	UserProfile
 } from './types/domain';
-export { ACTIVITY_TYPES, activityLabel } from './types/domain';
+
 export type { TimeTrackingRepository } from './data/repository';
 export { MemoryTimeTrackingRepository } from './data/memory-repository';
 export { HttpTimeTrackingRepository } from './data/http-repository';

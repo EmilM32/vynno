@@ -26,21 +26,27 @@ test.describe('timer lifecycle', () => {
 			),
 			page.getByRole('button', { name: 'Start', exact: true }).click()
 		]);
-		expect(request.postDataJSON()).toMatchObject({ note, activityType: null });
+		expect(request.postDataJSON()).toMatchObject({ note, activityTypeId: null });
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	});
 
 	test('start posts selected activity type', async ({ page }) => {
+		const created = await page.request.post('/v1/activity-types', {
+			data: { name: 'Coding', color: 'secondary' }
+		});
+		expect(created.ok()).toBeTruthy();
+		const body = (await created.json()) as { id: string };
+		await page.reload();
 		const note = uniqueNote('activity');
 		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
-		await page.locator('#activity-select').selectOption('coding');
+		await page.locator('#activity-select').selectOption({ label: 'Coding' });
 		const [request] = await Promise.all([
 			page.waitForRequest(
 				(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
 			),
 			page.getByRole('button', { name: 'Start', exact: true }).click()
 		]);
-		expect(request.postDataJSON()).toMatchObject({ note, activityType: 'coding' });
+		expect(request.postDataJSON()).toMatchObject({ note, activityTypeId: body.id });
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	});
 

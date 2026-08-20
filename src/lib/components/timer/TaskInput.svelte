@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { ACTIVITY_TYPES, activityLabel } from '$lib/types/domain';
 
 	const sessionStore = useSession();
 
@@ -63,8 +62,8 @@
 			data-testid="activity-select"
 		>
 			<option value="">{m.timer_activity_none()}</option>
-			{#each ACTIVITY_TYPES as type (type)}
-				<option value={type}>{activityLabel(type)}</option>
+			{#each sessionStore.activityTypes as type (type.id)}
+				<option value={type.id}>{type.name}</option>
 			{/each}
 		</select>
 	</div>

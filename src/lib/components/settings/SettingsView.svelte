@@ -10,6 +10,7 @@
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ProfileAvatar from '$lib/components/shell/ProfileAvatar.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
+	import ActivityTypesSection from './ActivityTypesSection.svelte';
 	import ThemeSelect from './ThemeSelect.svelte';
 
 	const sessionStore = useSession();
@@ -163,6 +164,8 @@
 			{m.settings_logout()}
 		</button>
 	</section>
+
+	<ActivityTypesSection />
 
 	<!-- Preferences -->
 	<section

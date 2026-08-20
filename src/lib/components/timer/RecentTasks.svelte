@@ -13,7 +13,7 @@
 			projectId: item.projectId,
 			note: item.note,
 			ticketId: item.ticketId,
-			activityType: item.activityType,
+			activityTypeId: item.activityTypeId,
 			tags: item.tags
 		});
 	}

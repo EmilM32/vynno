@@ -177,7 +177,7 @@
 						{#if !archived}
 							<button
 								type="button"
-								class="press focus-ring min-h-10 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-40"
+								class="press focus-ring min-h-10 items-center rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-40"
 								onclick={openTimer}
 								disabled={startDisabled}
 								title={otherLive ? m.error_stop_before_start() : undefined}
@@ -188,7 +188,7 @@
 						{/if}
 						<button
 							type="button"
-							class="focus-ring hidden min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
+							class="focus-ring hidden min-h-10 items-center rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
 							onclick={() => {
 								sessionStore.clearError();
 								editing = !editing;
@@ -200,7 +200,7 @@
 						{#if archived}
 							<button
 								type="button"
-								class="focus-ring hidden min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
+								class="focus-ring hidden min-h-10 items-center rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
 								onclick={() => void sessionStore.restoreProject(project.id)}
 								disabled={sessionStore.pendingAction === 'project'}
 							>
@@ -209,7 +209,7 @@
 						{:else}
 							<button
 								type="button"
-								class="focus-ring hidden min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
+								class="focus-ring hidden min-h-10 items-center rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
 								onclick={() => void sessionStore.archiveProject(project.id)}
 								disabled={!canArchive || sessionStore.pendingAction === 'project'}
 								aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}

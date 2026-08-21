@@ -1,3 +1,4 @@
+import { SESSION_LIST_DEFAULT_LIMIT } from '$lib/api/pagination';
 import type { AppSeed } from '$lib/api/types';
 import {
 	normalizeCode,
@@ -13,6 +14,7 @@ import type {
 	Project,
 	ProjectListOptions,
 	SessionFilters,
+	SessionPage,
 	StartSessionInput,
 	TimeSession,
 	UpdateActivityTypeInput,
@@ -41,6 +43,31 @@ function cloneSession(s: TimeSession): TimeSession {
 
 function cloneActivityType(a: ActivityType): ActivityType {
 	return { ...a };
+}
+
+function encodeMemoryCursor(startedAt: string, id: string): string {
+	const raw = `${startedAt}|${id}`;
+	return btoa(raw).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+}
+
+function decodeMemoryCursor(raw: string): { startedAt: string; id: string } | null {
+	try {
+		const pad = raw.length % 4 === 0 ? '' : '='.repeat(4 - (raw.length % 4));
+		const s = atob(raw.replaceAll('-', '+').replaceAll('_', '/') + pad);
+		const i = s.lastIndexOf('|');
+		if (i <= 0 || i === s.length - 1) return null;
+		return { startedAt: s.slice(0, i), id: s.slice(i + 1) };
+	} catch {
+		return null;
+	}
+}
+
+function sessionAfterCursor(s: TimeSession, startedAt: string, id: string): boolean {
+	const a = Date.parse(s.startedAt);
+	const b = Date.parse(startedAt);
+	if (a < b) return true;
+	if (a > b) return false;
+	return s.id < id;
 }
 
 function normalizeActivityTypeName(name: string): string {
@@ -283,7 +310,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 		return { ...this.#profile };
 	}
 
-	async listSessions(filters: SessionFilters = {}): Promise<TimeSession[]> {
+	async listSessions(filters: SessionFilters = {}): Promise<SessionPage> {
 		let list = [...this.#sessions];
 
 		if (filters.status?.length) {
@@ -291,13 +318,30 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			list = list.filter((s) => set.has(s.status));
 		}
 
-		list.sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
+		list.sort((a, b) => {
+			const dt = Date.parse(b.startedAt) - Date.parse(a.startedAt);
+			if (dt !== 0) return dt;
+			return a.id < b.id ? 1 : a.id > b.id ? -1 : 0;
+		});
 
-		if (filters.limit != null) {
-			list = list.slice(0, filters.limit);
+		if (filters.cursor) {
+			const cur = decodeMemoryCursor(filters.cursor);
+			if (!cur) {
+				throw new DomainError('invalid_query', 'cursor is not valid.');
+			}
+			const start = list.findIndex((s) => sessionAfterCursor(s, cur.startedAt, cur.id));
+			list = start < 0 ? [] : list.slice(start);
 		}
 
-		return list.map(cloneSession);
+		const limit = filters.limit ?? SESSION_LIST_DEFAULT_LIMIT;
+		let nextCursor: string | null = null;
+		if (limit > 0 && list.length > limit) {
+			const last = list[limit - 1]!;
+			nextCursor = encodeMemoryCursor(last.startedAt, last.id);
+			list = list.slice(0, limit);
+		}
+
+		return { items: list.map(cloneSession), nextCursor };
 	}
 
 	async getSession(id: string): Promise<TimeSession | undefined> {

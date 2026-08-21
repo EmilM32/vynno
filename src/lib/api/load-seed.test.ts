@@ -18,15 +18,19 @@ describe('loadAppSeed', () => {
 			if (url.endsWith('/me')) return jsonResponse(sampleProfileDto());
 			if (url.includes('/projects')) return jsonResponse(sampleProjectListDto());
 			if (url.includes('/activity-types')) return jsonResponse({ items: [] });
-			if (url.includes('/sessions')) return jsonResponse({ items: [] });
+			if (url.includes('/sessions')) return jsonResponse({ items: [], nextCursor: null });
 			return jsonResponse({ error: { code: 'not_found', message: url } }, 404);
 		});
 
 		const loaded = await loadAppSeed(fetchFn, api);
 		expect(fetchFn).toHaveBeenCalledTimes(4);
+		expect(String(fetchFn.mock.calls.find((c) => String(c[0]).includes('/sessions'))?.[0])).toBe(
+			`${api}/sessions?limit=15`
+		);
 		expect(loaded.profile.handle).toBe('@alexdev');
 		expect(loaded.projects.map((p) => p.id)).toEqual(['proj-auth']);
 		expect(loaded.sessions).toEqual([]);
+		expect(loaded.nextCursor).toBeNull();
 	});
 
 	it('fails the whole seed when one request errors', async () => {
@@ -36,6 +40,7 @@ describe('loadAppSeed', () => {
 				return jsonResponse({ error: { code: 'http_error', message: 'down' } }, 500);
 			}
 			if (url.includes('/projects')) return jsonResponse(sampleProjectListDto());
+			if (url.includes('/sessions')) return jsonResponse({ items: [], nextCursor: null });
 			return jsonResponse({ items: [] });
 		});
 		await expect(loadAppSeed(fetchFn, api)).rejects.toMatchObject({

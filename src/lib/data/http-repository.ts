@@ -28,6 +28,7 @@ import type {
 	Project,
 	ProjectListOptions,
 	SessionFilters,
+	SessionPage,
 	StartSessionInput,
 	TimeSession,
 	UpdateActivityTypeInput,
@@ -164,9 +165,12 @@ export class HttpTimeTrackingRepository implements TimeTrackingRepository {
 		return profileFromDto(dto);
 	}
 
-	async listSessions(filters: SessionFilters = {}): Promise<TimeSession[]> {
+	async listSessions(filters: SessionFilters = {}): Promise<SessionPage> {
 		const dto = await this.#client.get(apiPaths.sessions(filters), sessionListDtoSchema);
-		return dto.items.map(sessionFromDto);
+		return {
+			items: dto.items.map(sessionFromDto),
+			nextCursor: dto.nextCursor
+		};
 	}
 
 	async getSession(id: string): Promise<TimeSession | undefined> {

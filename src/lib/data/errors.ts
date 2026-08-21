@@ -10,7 +10,8 @@ export type DomainErrorCode =
 	| 'project_has_sessions'
 	| 'activity_type_has_sessions'
 	| 'invalid_transition'
-	| 'invalid_body';
+	| 'invalid_body'
+	| 'invalid_query';
 
 export class DomainError extends Error {
 	readonly code: DomainErrorCode;

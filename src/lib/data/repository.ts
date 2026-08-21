@@ -6,6 +6,7 @@ import type {
 	Project,
 	ProjectListOptions,
 	SessionFilters,
+	SessionPage,
 	StartSessionInput,
 	TimeSession,
 	UpdateActivityTypeInput,
@@ -42,8 +43,8 @@ export interface TimeTrackingRepository {
 	uploadAvatar(file: Blob): Promise<UserProfile>;
 	deleteAvatar(): Promise<UserProfile>;
 
-	/** Sessions newest-first. */
-	listSessions(filters?: SessionFilters): Promise<TimeSession[]>;
+	/** Sessions newest-first. One page; follow nextCursor for more. */
+	listSessions(filters?: SessionFilters): Promise<SessionPage>;
 	getSession(id: string): Promise<TimeSession | undefined>;
 	/** Active or paused session, if any. */
 	getActiveSession(): Promise<TimeSession | null>;

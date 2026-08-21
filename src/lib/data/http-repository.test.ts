@@ -108,13 +108,15 @@ describe('HttpTimeTrackingRepository', () => {
 		const fetchFn = vi.fn(async (input: RequestInfo | URL) => {
 			const url = String(input);
 			if (url.endsWith('/me')) return jsonResponse(sampleProfileDto());
-			if (url.includes('/sessions')) return jsonResponse({ items: [] });
+			if (url.includes('/sessions')) return jsonResponse({ items: [], nextCursor: null });
 			return jsonResponse({ error: { code: 'not_found', message: url } }, 404);
 		});
 		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
 		expect((await repo.getProfile()).handle).toBe('@alexdev');
-		await repo.listSessions({ status: ['stopped'], limit: 2 });
-		expect(String(fetchFn.mock.calls[1]?.[0])).toBe(`${api}/sessions?status=stopped&limit=2`);
+		await repo.listSessions({ status: ['stopped'], limit: 2, cursor: 'abc' });
+		expect(String(fetchFn.mock.calls[1]?.[0])).toBe(
+			`${api}/sessions?status=stopped&limit=2&cursor=abc`
+		);
 	});
 
 	it('updates profile and uploads an avatar', async () => {

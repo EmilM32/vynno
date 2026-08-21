@@ -28,14 +28,14 @@ describe('MemoryTimeTrackingRepository', () => {
 		});
 
 		it('listSessions returns newest-first clones', async () => {
-			const list = await repo.listSessions();
-			expect(list.length).toBeGreaterThan(0);
-			for (let i = 1; i < list.length; i++) {
-				expect(Date.parse(list[i - 1]!.startedAt)).toBeGreaterThanOrEqual(
-					Date.parse(list[i]!.startedAt)
+			const { items } = await repo.listSessions();
+			expect(items.length).toBeGreaterThan(0);
+			for (let i = 1; i < items.length; i++) {
+				expect(Date.parse(items[i - 1]!.startedAt)).toBeGreaterThanOrEqual(
+					Date.parse(items[i]!.startedAt)
 				);
 			}
-			const first = list[0]!;
+			const first = items[0]!;
 			const originalNote = first.note;
 			first.note = 'MUTATED';
 			expect((await repo.getSession(first.id))?.note).toBe(originalNote);
@@ -43,8 +43,18 @@ describe('MemoryTimeTrackingRepository', () => {
 
 		it('filters by status and limit', async () => {
 			const stopped = await repo.listSessions({ status: ['stopped'], limit: 3 });
-			expect(stopped).toHaveLength(3);
-			expect(stopped.every((s) => s.status === 'stopped')).toBe(true);
+			expect(stopped.items).toHaveLength(3);
+			expect(stopped.items.every((s) => s.status === 'stopped')).toBe(true);
+			expect(stopped.nextCursor).toBeNull();
+		});
+
+		it('pages with an opaque cursor', async () => {
+			const first = await repo.listSessions({ limit: 1 });
+			expect(first.items).toHaveLength(1);
+			expect(first.nextCursor).toBeTruthy();
+			const second = await repo.listSessions({ limit: 1, cursor: first.nextCursor! });
+			expect(second.items).toHaveLength(1);
+			expect(second.items[0]!.id).not.toBe(first.items[0]!.id);
 		});
 
 		it('getActiveSession is null when idle', async () => {
@@ -52,9 +62,9 @@ describe('MemoryTimeTrackingRepository', () => {
 		});
 
 		it('seeds deterministic historical data from fixed now', async () => {
-			const sessions = await repo.listSessions();
-			expect(sessions.some((s) => s.id === 'sess-today-1')).toBe(true);
-			expect(sessions.some((s) => s.id === 'sess-yest-1')).toBe(true);
+			const { items } = await repo.listSessions();
+			expect(items.some((s) => s.id === 'sess-today-1')).toBe(true);
+			expect(items.some((s) => s.id === 'sess-yest-1')).toBe(true);
 		});
 	});
 
@@ -104,7 +114,7 @@ describe('MemoryTimeTrackingRepository', () => {
 		});
 
 		it('cannot pause non-active session', async () => {
-			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 }))[0]!;
+			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 })).items[0]!;
 			await expectCode(repo.pauseSession(stopped.id), 'invalid_transition');
 		});
 
@@ -146,7 +156,7 @@ describe('MemoryTimeTrackingRepository', () => {
 		});
 
 		it('cannot stop an already stopped session', async () => {
-			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 }))[0]!;
+			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 })).items[0]!;
 			await expectCode(repo.stopSession(stopped.id), 'invalid_transition');
 		});
 
@@ -155,7 +165,7 @@ describe('MemoryTimeTrackingRepository', () => {
 		});
 
 		it('updates a stopped session note and times', async () => {
-			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 }))[0]!;
+			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 })).items[0]!;
 			const startedAt = new Date(FIXED_NOW.getTime() - 2 * 60 * 60_000).toISOString();
 			const endedAt = new Date(FIXED_NOW.getTime() - 60 * 60_000).toISOString();
 			const updated = await repo.updateSession(stopped.id, {
@@ -195,7 +205,7 @@ describe('MemoryTimeTrackingRepository', () => {
 			const started = await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'Live' });
 			await repo.deleteSession(started.id);
 			expect(await repo.getActiveSession()).toBeNull();
-			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 }))[0]!;
+			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 })).items[0]!;
 			await repo.deleteSession(stopped.id);
 			expect(await repo.getSession(stopped.id)).toBeUndefined();
 		});

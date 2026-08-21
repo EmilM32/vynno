@@ -8,6 +8,7 @@ import { apiPaths } from './paths';
 import { activityTypeListDtoSchema } from './schemas/activity-type';
 import { profileDtoSchema } from './schemas/profile';
 import { projectListDtoSchema } from './schemas/project';
+import { SESSION_PAGE_SIZE } from './pagination';
 import { sessionListDtoSchema } from './schemas/session';
 import type { AppSeed } from './types';
 
@@ -17,13 +18,14 @@ export async function loadAppSeed(fetchFn: FetchFn, base = getApiBase()): Promis
 		client.get(apiPaths.me(), profileDtoSchema),
 		client.get(apiPaths.projects({ includeArchived: true }), projectListDtoSchema),
 		client.get(apiPaths.activityTypes(), activityTypeListDtoSchema),
-		client.get(apiPaths.sessions(), sessionListDtoSchema)
+		client.get(apiPaths.sessions({ limit: SESSION_PAGE_SIZE }), sessionListDtoSchema)
 	]);
 
 	return {
 		profile: profileFromDto(profile),
 		projects: projectList.items.map(projectFromDto),
 		activityTypes: activityList.items.map(activityTypeFromDto),
-		sessions: sessionList.items.map(sessionFromDto)
+		sessions: sessionList.items.map(sessionFromDto),
+		nextCursor: sessionList.nextCursor
 	};
 }

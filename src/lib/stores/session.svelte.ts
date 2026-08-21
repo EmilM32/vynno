@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { announce } from '$lib/a11y/announce';
+import { SESSION_PAGE_SIZE } from '$lib/api/pagination';
 import type { AppSeed } from '$lib/api/types';
 import { userMessageForError } from '$lib/api/user-message';
 import { createRepository } from '$lib/data/create-repository';
@@ -35,6 +36,7 @@ import { SvelteDate, SvelteSet } from 'svelte/reactivity';
 export type HydrateOptions = {
 	nowMs?: number;
 	timeZone?: string;
+	repo?: TimeTrackingRepository;
 };
 
 /**
@@ -53,8 +55,12 @@ export class SessionStore {
 	/** IANA zone for first-paint day keys and local times. */
 	timeZone = $state(DEFAULT_TIME_ZONE);
 
-	/** Full session list mirror (newest-first after refresh). */
+	/** Loaded session window (newest-first). Not necessarily the full history. */
 	sessions = $state.raw<TimeSession[]>([]);
+	nextCursor = $state<string | null>(null);
+	loadingMore = $state(false);
+	projectSessionCounts = $state.raw<Record<string, number>>({});
+	activityTypeSessionCounts = $state.raw<Record<string, number>>({});
 
 	/** Active (non-archived) projects for pickers. */
 	projects = $state.raw<Project[]>([]);
@@ -99,6 +105,7 @@ export class SessionStore {
 		this.allProjects = seed.projects;
 		this.activityTypes = seed.activityTypes ?? [];
 		this.sessions = seed.sessions;
+		this.nextCursor = seed.nextCursor ?? null;
 
 		const live = this.sessions.find((s) => s.status === 'active' || s.status === 'paused');
 		if (live) {
@@ -113,8 +120,11 @@ export class SessionStore {
 		}
 		this.#normalizeProjectSelection();
 
+		if (opts.repo) {
+			this.#repo = opts.repo;
+		}
 		if (browser) {
-			this.#repo = createRepository();
+			this.#repo ??= createRepository();
 			this.#startClock();
 		}
 	};
@@ -163,8 +173,8 @@ export class SessionStore {
 		return this.activityTypes.find((a) => a.id === id);
 	};
 
-	countSessionsForActivityType = (activityTypeId: string): number => {
-		return this.sessions.filter((s) => s.activityTypeId === activityTypeId).length;
+	countSessionsForActivityType = (activityTypeId: string): number | undefined => {
+		return this.activityTypeSessionCounts[activityTypeId];
 	};
 
 	activeProject = $derived.by(() => {
@@ -173,8 +183,8 @@ export class SessionStore {
 		return this.getProject(s.projectId);
 	});
 
-	countSessionsForProject = (projectId: string): number => {
-		return this.sessions.filter((s) => s.projectId === projectId).length;
+	countSessionsForProject = (projectId: string): number | undefined => {
+		return this.projectSessionCounts[projectId];
 	};
 
 	/** Active projects remaining after a hypothetical archive of `id`. */
@@ -186,12 +196,66 @@ export class SessionStore {
 
 	refresh = async (): Promise<void> => {
 		const repo = this.#requireRepo();
-		this.sessions = await repo.listSessions();
+		const page = await repo.listSessions({ limit: SESSION_PAGE_SIZE });
+		this.sessions = page.items;
+		this.nextCursor = page.nextCursor;
 		this.projects = await repo.listProjects();
 		this.allProjects = await repo.listProjects({ includeArchived: true });
 		this.activityTypes = await repo.listActivityTypes();
 		this.#normalizeProjectSelection();
 		this.#normalizeActivitySelection();
+	};
+
+	loadMore = async (): Promise<boolean> => {
+		if (!this.nextCursor || this.loadingMore) return false;
+		const repo = this.#requireRepo();
+		this.loadingMore = true;
+		try {
+			const page = await repo.listSessions({
+				limit: SESSION_PAGE_SIZE,
+				cursor: this.nextCursor
+			});
+			const have = new SvelteSet(this.sessions.map((s) => s.id));
+			const extra = page.items.filter((s) => !have.has(s.id));
+			this.sessions = [...this.sessions, ...extra];
+			this.nextCursor = page.nextCursor;
+			return extra.length > 0;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_invalid_response);
+			return false;
+		} finally {
+			this.loadingMore = false;
+		}
+	};
+
+	/** Fetch further pages until the oldest loaded session is at or before `startedAtMs`, or the list ends. `null` drains all remaining pages. */
+	ensureThrough = async (startedAtMs: number | null): Promise<void> => {
+		while (this.nextCursor) {
+			const oldest = this.sessions.at(-1);
+			if (
+				startedAtMs != null &&
+				oldest != null &&
+				Date.parse(oldest.startedAt) <= startedAtMs
+			) {
+				return;
+			}
+			const more = await this.loadMore();
+			if (!more) return;
+		}
+	};
+
+	loadSessionCounts = async (): Promise<void> => {
+		const repo = this.#requireRepo();
+		const projectEntries = await Promise.all(
+			this.allProjects.map(async (p) => [p.id, await repo.countSessionsForProject(p.id)] as const)
+		);
+		const activityEntries = await Promise.all(
+			this.activityTypes.map(
+				async (a) => [a.id, await repo.countSessionsForActivityType(a.id)] as const
+			)
+		);
+		this.projectSessionCounts = Object.fromEntries(projectEntries);
+		this.activityTypeSessionCounts = Object.fromEntries(activityEntries);
 	};
 
 	createProject = async (input: CreateProjectInput): Promise<Project | null> => {
@@ -586,6 +650,10 @@ export class SessionStore {
 		this.nowMs = 0;
 		this.timeZone = DEFAULT_TIME_ZONE;
 		this.sessions = [];
+		this.nextCursor = null;
+		this.loadingMore = false;
+		this.projectSessionCounts = {};
+		this.activityTypeSessionCounts = {};
 		this.projects = [];
 		this.allProjects = [];
 		this.activityTypes = [];

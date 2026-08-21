@@ -87,7 +87,7 @@ export function sampleAppSeed(now = FIXED_NOW): AppSeed {
 			endedAt: new Date(now.getTime() - ms.hours(49)).toISOString()
 		})
 	];
-	return { profile, projects, activityTypes: [], sessions };
+	return { profile, projects, activityTypes: [], sessions, nextCursor: null };
 }
 
 /** Duration helpers for readable fixtures. */

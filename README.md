@@ -49,6 +49,8 @@ App opens at the Vite URL (printed in the terminal). `/` redirects to `/login` w
 
 Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) through a same-origin `/v1` proxy. Set `API_ORIGIN` in `.env` (see `.env.example`). You do **not** need the API running to commit or push.
 
+Daily production UI on this machine is the Node server at `http://localhost:3000` ([docs/local-production.md](./docs/local-production.md)). A native macOS app (Tauri 2) is a **second target**, not the daily driver yet — [docs/tauri.md](./docs/tauri.md), [ADR-0015](./docs/adr/0015-native-desktop-tauri.md).
+
 | Script                    | Purpose                                                            |
 | ------------------------- | ------------------------------------------------------------------ |
 | `npm run dev`             | Dev server                                                         |

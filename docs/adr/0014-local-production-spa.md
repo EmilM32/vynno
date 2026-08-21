@@ -52,3 +52,4 @@ The owner is the only user. Nothing is published to a public host.
 - [0012-env-origins.md](./0012-env-origins.md)
 - [../local-production.md](../local-production.md)
 - [../roadmap.md](../roadmap.md) Phase 6
+- [0015-native-desktop-tauri.md](./0015-native-desktop-tauri.md) — native `.app` is a second target; this ADR stays the browser daily driver

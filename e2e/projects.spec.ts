@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, spaGo } from './helpers';
+import { login, spaGo, startSession, stopSession, uniqueNote } from './helpers';
 
 test.describe('projects', () => {
 	test.beforeEach(async ({ page }) => {
@@ -71,6 +71,46 @@ test.describe('projects', () => {
 		);
 		await expect(page.getByTestId('page-header-description')).toBeVisible();
 		await expect(page.getByRole('link', { name: 'Projects' }).first()).toBeVisible();
+	});
+
+	test('can edit and delete a project entry', async ({ page }) => {
+		const note = uniqueNote('proj-entry');
+		await page.goto('/timer');
+		await startSession(page, note);
+		const projectName = await page.locator('#project-select').evaluate((el: HTMLSelectElement) => {
+			return el.selectedOptions[0]?.textContent?.trim() ?? '';
+		});
+		await stopSession(page);
+
+		await page.goto('/projects');
+		await page.getByTestId('project-open').filter({ hasText: projectName }).click();
+		await expect(page).toHaveURL(/\/projects\/[^/]+$/);
+
+		const row = page.getByTestId('log-row').filter({ hasText: note });
+		await expect(row).toBeVisible();
+		await expect(row.getByRole('button', { name: 'Edit' })).toBeVisible();
+		await expect(row.getByRole('button', { name: 'Delete' })).toBeVisible();
+
+		await row.getByRole('button', { name: 'Edit' }).click();
+		const edited = `${note}-renamed`;
+		const editDialog = page.getByRole('dialog', { name: 'Edit session' });
+		await editDialog.getByLabel('Task').fill(edited);
+		const startVal = await editDialog.getByLabel('Start').inputValue();
+		const [datePart, timePart] = startVal.split('T');
+		const [hh, mm] = timePart.split(':').map(Number);
+		const laterMin = mm + 5;
+		const endTime = `${String(hh + Math.floor(laterMin / 60)).padStart(2, '0')}:${String(laterMin % 60).padStart(2, '0')}`;
+		await editDialog.getByLabel('End').fill(`${datePart}T${endTime}`);
+		await editDialog.getByRole('button', { name: 'Save' }).click();
+		await expect(page.getByTestId('log-row').filter({ hasText: edited })).toBeVisible();
+
+		await page
+			.getByTestId('log-row')
+			.filter({ hasText: edited })
+			.getByRole('button', { name: 'Delete' })
+			.click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+		await expect(page.getByTestId('log-row').filter({ hasText: edited })).toHaveCount(0);
 	});
 
 	test('new project appears in Timer picker', async ({ page }) => {

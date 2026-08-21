@@ -67,7 +67,7 @@ Already usable from a static SPA:
 
 Must change before a `.app` can log in:
 
-- Dual adapter in `vite.config.ts` (this repo has no `svelte.config.js`).
+- Dual adapter in `svelte.config.js` (Storybook needs this file — ADR-0016). `vite.config.ts` still hosts target-specific Vite plugins.
 - Desktop `ssr = false` and a client `load` that matches `+layout.server.ts` (`seed`, `loggedIn`, `loadError`, `nowMs`, `timeZone`).
 - Fetch injection module (web = `globalThis.fetch`, desktop = plugin-http). Views stay target-agnostic.
 - Confirm `$lib/server/env` / `/v1` are not in the static module graph.

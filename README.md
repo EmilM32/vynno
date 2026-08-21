@@ -66,6 +66,8 @@ Daily production UI on this machine is the Node server at `http://localhost:3000
 | `npm run test:e2e:ui`     | Playwright UI mode                                                 |
 | `npm run test:e2e:headed` | Playwright headed browser                                          |
 | `npm run test:all`        | Unit tests, then Playwright e2e (run on purpose, not on git hooks) |
+| `npm run storybook`       | Component workshop (reusable UI, all named themes)                 |
+| `npm run build-storybook` | Static Storybook build → `storybook-static/` (gitignored)          |
 
 Git hooks (Husky) run `npm test` on commit **and** on push. Playwright is not part of the hook — a font-size change should not require the API.
 
@@ -120,21 +122,26 @@ UI copy lives in `messages/en.json` and `messages/pl.json` and is compiled by Pa
 
 See [ADR-0007](./docs/adr/0007-i18n-paraglide.md).
 
+## Storybook
+
+Reusable components (primitives, shell chrome, prop-driven widgets) have colocated `*.stories.svelte` files. Run `npm run storybook` and switch Dark / Light / Deep Dark from the toolbar. Page assemblies (`*View.svelte`) are out of scope — Playwright covers those. Decision: [ADR-0016](./docs/adr/0016-storybook-workshop.md).
+
 ## Documentation
 
 Start here: **[docs/README.md](./docs/README.md)**
 
-| Doc                                                      | Description                   |
-| -------------------------------------------------------- | ----------------------------- |
-| [docs/brand.md](./docs/brand.md)                         | Name, pronunciation, meaning  |
-| [docs/rename-process.md](./docs/rename-process.md)       | How to change the public name |
-| [docs/prd.md](./docs/prd.md)                             | Product requirements          |
-| [docs/domain-model.md](./docs/domain-model.md)           | Domain model                  |
-| [docs/screens-and-flows.md](./docs/screens-and-flows.md) | Screens & flows               |
-| [docs/design-system.md](./docs/design-system.md)         | Design tokens                 |
-| [docs/roadmap.md](./docs/roadmap.md)                     | Delivery phases               |
-| [docs/local-production.md](./docs/local-production.md)   | Production UI on this machine |
-| [docs/adr/](./docs/adr/)                                 | Architecture decisions        |
+| Doc                                                                          | Description                   |
+| ---------------------------------------------------------------------------- | ----------------------------- |
+| [docs/brand.md](./docs/brand.md)                                             | Name, pronunciation, meaning  |
+| [docs/rename-process.md](./docs/rename-process.md)                           | How to change the public name |
+| [docs/prd.md](./docs/prd.md)                                                 | Product requirements          |
+| [docs/domain-model.md](./docs/domain-model.md)                               | Domain model                  |
+| [docs/screens-and-flows.md](./docs/screens-and-flows.md)                     | Screens & flows               |
+| [docs/design-system.md](./docs/design-system.md)                             | Design tokens                 |
+| [docs/roadmap.md](./docs/roadmap.md)                                         | Delivery phases               |
+| [docs/local-production.md](./docs/local-production.md)                       | Production UI on this machine |
+| [docs/adr/](./docs/adr/)                                                     | Architecture decisions        |
+| [docs/adr/0016-storybook-workshop.md](./docs/adr/0016-storybook-workshop.md) | Storybook workshop            |
 
 ## Status
 

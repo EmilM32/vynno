@@ -18,13 +18,19 @@
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "playwright test --ui",
 		"test:e2e:headed": "playwright test --headed",
-		"test:all": "npm test && npm run test:e2e"
+		"test:all": "npm test && npm run test:e2e",
+		"storybook": "storybook dev -p 6006",
+		"build-storybook": "storybook build"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.13.0",
 		"@eslint/js": "^10.0.1",
 		"@inlang/paraglide-js": "^2.18.2",
 		"@playwright/test": "^1.62.1",
+		"@storybook/addon-docs": "^10.5.10",
+		"@storybook/addon-svelte-csf": "^5.1.2",
+		"@storybook/addon-themes": "^10.5.10",
+		"@storybook/sveltekit": "^10.5.10",
 		"@sveltejs/adapter-node": "^5.5.7",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
@@ -38,6 +44,7 @@
 		"prettier": "^3.8.3",
 		"prettier-plugin-svelte": "^4.1.0",
 		"prettier-plugin-tailwindcss": "^0.8.0",
+		"storybook": "^10.5.10",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"tailwindcss": "^4.3.0",

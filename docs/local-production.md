@@ -57,3 +57,5 @@ Open [http://localhost:3000](http://localhost:3000).
 - Playwright (`npm run test:e2e`) still uses `vite preview` at `E2E_ORIGIN` (`:4173`), not this server.
 
 Start-on-login (launchd) is a later optional step, not part of this cut.
+
+A native macOS `.app` is a **second target** ([tauri.md](./tauri.md), [ADR-0015](./adr/0015-native-desktop-tauri.md)). It does not replace this runbook.

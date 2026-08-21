@@ -22,6 +22,7 @@ Brand: say **VIN-oh**. See [brand.md](./brand.md).
 | [api-contract.md](./api-contract.md)              | Proposed REST + JSON DTO contract (backend starting point) |
 | [api-next.md](./api-next.md)                      | Phase 5c: live API + cookie auth                           |
 | [local-production.md](./local-production.md)      | Run the production UI on this machine                      |
+| [tauri.md](./tauri.md)                            | Native desktop (Tauri 2) — second target, macOS first      |
 | [adr/](./adr/)                                    | Architecture Decision Records                              |
 | [vynno-api](https://github.com/EmilM32/vynno-api) | Companion backend (API, database, auth)                    |
 
@@ -40,6 +41,6 @@ See [ADR-0001](./adr/0001-frontend-stack.md) and [ADR-0002](./adr/0002-frontend-
 
 ## Status
 
-Frontend through Phase 6: UI talks to vynno-api at `PUBLIC_API_BASE` with cookie auth. Local production is `adapter-node` on this machine ([local-production.md](./local-production.md), [ADR-0014](./adr/0014-local-production-spa.md)). See [roadmap.md](./roadmap.md).
+Frontend through Phase 6: UI talks to vynno-api at `PUBLIC_API_BASE` with cookie auth. Local production is `adapter-node` on this machine ([local-production.md](./local-production.md), [ADR-0014](./adr/0014-local-production-spa.md)). Native desktop is Phase 7 (docs: [tauri.md](./tauri.md), [ADR-0015](./adr/0015-native-desktop-tauri.md)) — a second target, not a replacement. See [roadmap.md](./roadmap.md).
 
 The API is not in this repository. It lives in [vynno-api](https://github.com/EmilM32/vynno-api). The contract this frontend implements is [api-contract.md](./api-contract.md).

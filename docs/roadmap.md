@@ -1,7 +1,7 @@
 # Roadmap — Vynno Frontend
 
 **Status:** Draft  
-**Last updated:** 2026-08-19  
+**Last updated:** 2026-08-21  
 **Scope:** This repository only (UI). Backend is a separate project.
 
 ---
@@ -21,6 +21,7 @@
 | **5b** | HTTP writes        | Store uses HTTP repo; mock POST/PATCH/DELETE; contract docs                       | Done      |
 | **5c** | Live API           | Point `PUBLIC_API_BASE` at the real backend; auth; delete mock tree               | Done      |
 | **6**  | Local production   | adapter-node + start/stop scripts; run on this machine                            | Done      |
+| **7**  | Native desktop     | Tauri 2 macOS `.app` as a second target; vynno-api unchanged                      | Docs      |
 
 ---
 
@@ -177,6 +178,58 @@
 
 **Exit criteria:** `scripts/build` then `scripts/start` serves the app at `http://localhost:3000` against a running vynno-api. See [local-production.md](./local-production.md).
 
+## Phase 7 — Native desktop (Tauri 2)
+
+**In progress (7a).** Desktop is a **second target**. Browser local production stays ([ADR-0014](./adr/0014-local-production-spa.md)). Decision: [ADR-0015](./adr/0015-native-desktop-tauri.md). Runbook: [tauri.md](./tauri.md).
+
+### 7a — Foundation (docs)
+
+- [x] ADR-0015: Tauri 2, dual target, plugin-http cookies, macOS first, `build-desktop/`
+- [x] [tauri.md](./tauri.md) architecture + `tauri dev` trap + verification
+- [x] This phase on the roadmap
+
+**Exit criteria:** An engineer can implement 7b without re-litigating Electron vs Tauri, SSR in the `.app`, or cookie vs token.
+
+### 7b — Dual-target web (no `src-tauri/` yet)
+
+- [ ] `@sveltejs/adapter-static` behind `VYNNO_TARGET=desktop` → `build-desktop/`
+- [ ] Desktop `ssr = false` + client seed load (same shape as `+layout.server.ts`)
+- [ ] Injectable `FetchFn` seam (still `globalThis.fetch` until 7d)
+- [ ] Self-host Inter / JetBrains Mono / Material Symbols (or a preceding PR)
+- [ ] Default `npm run build` / `scripts/start` unchanged
+- [ ] Unit tests for client 401 → logged out
+
+**Exit criteria:** Desktop Vite build emits `build-desktop/index.html`. Node `build/index.js` still produced by the default build. Chrome preview of the static output is **not** expected to log in.
+
+### 7c — Tauri scaffold (macOS)
+
+- [ ] Rust stable + Xcode CLT documented
+- [ ] `src-tauri/` in this repo; `frontendDist` = `../build-desktop`
+- [ ] `beforeDevCommand` / `beforeBuildCommand` set `VYNNO_TARGET=desktop`
+- [ ] Window + icons; capabilities deny-by-default (no FS/shell)
+- [ ] Packaged unsigned `.app` shows `/login` without vynno-api
+
+**Exit criteria:** Definition of done is the `.app`, not only `tauri dev`.
+
+### 7d — plugin-http cookie session
+
+- [ ] `@tauri-apps/plugin-http` with cookies; allowlist = vynno-api origin only
+- [ ] Desktop `FetchFn` is plugin-http; `PUBLIC_API_BASE` absolute `/v1` from `.env`
+- [ ] Packaged login, timer start/stop, Logs; restart keeps remember-me cookie
+- [ ] vynno-api Origin/CSRF spike if login is rejected (companion, not a new auth scheme)
+
+**Non-goals:** Playwright on the webview; Husky running Tauri.
+
+**Exit criteria:** A packaged `.app` against a running vynno-api is usable for daily tracking.
+
+### 7e — Native UX (after the window is boring)
+
+- [ ] Window size/position
+- [ ] Menu-bar extra (elapsed + start/stop) — first real native feature
+- [ ] Global shortcut, notifications, dock/title elapsed — one capability at a time
+
+**Non-goals for Phase 7:** Windows/Linux installers, App Store, notarization, auto-update, offline SQLite, vynno-api sidecar, replacing `:3000`.
+
 ---
 
 ## Suggested implementation order (components)
@@ -206,4 +259,6 @@ Use this roadmap as the checklist. Optionally split Phase 1+ into GitHub issues 
 - [adr/0001-frontend-stack.md](./adr/0001-frontend-stack.md)
 - [adr/0002-frontend-only-separation.md](./adr/0002-frontend-only-separation.md)
 - [adr/0014-local-production-spa.md](./adr/0014-local-production-spa.md)
+- [adr/0015-native-desktop-tauri.md](./adr/0015-native-desktop-tauri.md)
 - [local-production.md](./local-production.md)
+- [tauri.md](./tauri.md)

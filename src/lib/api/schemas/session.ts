@@ -27,6 +27,30 @@ export const startSessionDtoSchema = v.object({
 	targetDurationMs: v.optional(v.nullable(v.pipe(v.number(), v.minValue(0))))
 });
 
+export const updateSessionDtoSchema = v.object({
+	projectId: v.optional(idSchema),
+	note: v.optional(v.string()),
+	ticketId: v.optional(v.nullable(v.string())),
+	activityTypeId: v.optional(v.nullable(idSchema)),
+	tags: v.optional(v.nullable(v.array(v.string()))),
+	startedAt: v.optional(isoDateTimeSchema),
+	endedAt: v.optional(v.nullable(isoDateTimeSchema)),
+	pausedMs: v.optional(v.pipe(v.number(), v.minValue(0))),
+	targetDurationMs: v.optional(v.nullable(v.pipe(v.number(), v.minValue(0))))
+});
+
+export const createManualSessionDtoSchema = v.object({
+	projectId: idSchema,
+	note: v.string(),
+	ticketId: v.optional(v.nullable(v.string())),
+	activityTypeId: v.optional(v.nullable(idSchema)),
+	tags: v.optional(v.array(v.string())),
+	targetDurationMs: v.optional(v.nullable(v.pipe(v.number(), v.minValue(0)))),
+	startedAt: isoDateTimeSchema,
+	endedAt: isoDateTimeSchema,
+	pausedMs: v.optional(v.pipe(v.number(), v.minValue(0)))
+});
+
 export const sessionSeedStartedSchema = v.object({
 	offsetDays: v.number(),
 	hour: v.pipe(v.number(), v.minValue(0), v.maxValue(23)),
@@ -53,5 +77,7 @@ export const sessionSeedFileSchema = listSchema(sessionSeedItemSchema);
 export type SessionDto = v.InferOutput<typeof sessionDtoSchema>;
 export type SessionListDto = v.InferOutput<typeof sessionListDtoSchema>;
 export type StartSessionDto = v.InferOutput<typeof startSessionDtoSchema>;
+export type UpdateSessionDto = v.InferOutput<typeof updateSessionDtoSchema>;
+export type CreateManualSessionDto = v.InferOutput<typeof createManualSessionDtoSchema>;
 export type SessionSeedItem = v.InferOutput<typeof sessionSeedItemSchema>;
 export type SessionSeedFile = v.InferOutput<typeof sessionSeedFileSchema>;

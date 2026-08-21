@@ -153,6 +153,52 @@ describe('MemoryTimeTrackingRepository', () => {
 		it('throws when session id is missing', async () => {
 			await expectCode(repo.pauseSession('missing-id'), 'not_found');
 		});
+
+		it('updates a stopped session note and times', async () => {
+			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 }))[0]!;
+			const startedAt = new Date(FIXED_NOW.getTime() - 2 * 60 * 60_000).toISOString();
+			const endedAt = new Date(FIXED_NOW.getTime() - 60 * 60_000).toISOString();
+			const updated = await repo.updateSession(stopped.id, {
+				note: '  Edited  ',
+				startedAt,
+				endedAt
+			});
+			expect(updated.note).toBe('Edited');
+			expect(updated.startedAt).toBe(startedAt);
+			expect(updated.endedAt).toBe(endedAt);
+		});
+
+		it('rejects endedAt on a live session', async () => {
+			const started = await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'Work' });
+			await expectCode(
+				repo.updateSession(started.id, { endedAt: new Date().toISOString() }),
+				'invalid_body'
+			);
+		});
+
+		it('creates a manual stopped session while live exists', async () => {
+			await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'Live' });
+			const startedAt = new Date(FIXED_NOW.getTime() - 2 * 60 * 60_000).toISOString();
+			const endedAt = new Date(FIXED_NOW.getTime() - 60 * 60_000).toISOString();
+			const created = await repo.createManualSession({
+				projectId: PROJECT_IDS.auth,
+				note: 'Forgot',
+				startedAt,
+				endedAt
+			});
+			expect(created.status).toBe('stopped');
+			expect(created.note).toBe('Forgot');
+			expect(await repo.getActiveSession()).not.toBeNull();
+		});
+
+		it('deletes live and stopped sessions', async () => {
+			const started = await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'Live' });
+			await repo.deleteSession(started.id);
+			expect(await repo.getActiveSession()).toBeNull();
+			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 }))[0]!;
+			await repo.deleteSession(stopped.id);
+			expect(await repo.getSession(stopped.id)).toBeUndefined();
+		});
 	});
 
 	describe('getProject / getProfile', () => {

@@ -14,4 +14,4 @@ Local `npm run dev` needs vynno-api at `API_ORIGIN` (set in `.env`; see `.env.ex
 
 `npm test` (Husky commit + push) does not start or require the API. `npm run test:e2e` is the manual full-stack check: vynno-api must be up; the suite registers throwaway users and does not share the bootstrap `alexdev` account.
 
-Not in this stage: prefs persistence, insights endpoints, log edit/delete. SSR is [ADR-0011](./adr/0011-ssr-session-state.md).
+Not in this stage: prefs persistence, insights endpoints. Log edit/delete and manual entry are in the contract (LOG-6 / LOG-7). SSR is [ADR-0011](./adr/0011-ssr-session-state.md).

@@ -1,7 +1,7 @@
 # Vynno API contract (frontend-proposed)
 
 **Status:** Implemented on the client (Phase 5c) — live API + auth  
-**Last updated:** 2026-08-20  
+**Last updated:** 2026-08-21  
 **Executable schemas:** `src/lib/api/schemas/` (source of truth if this doc and code drift)
 
 This is the wire format the SvelteKit app speaks. The backend should implement these resources. If the live API diverges, change **schemas + mappers only** — not views or the session store.
@@ -194,13 +194,16 @@ Per-user dictionary. Empty until the user creates rows.
 
 | Method | Path                                     | Body              | Success                                | Typical errors                                                            |
 | ------ | ---------------------------------------- | ----------------- | -------------------------------------- | ------------------------------------------------------------------------- |
-| GET    | `/sessions?status=active,paused&limit=n` | —                 | `{ items: SessionDto[] }` newest-first | `invalid_query`                                                           |
-| GET    | `/sessions/active`                       | —                 | `SessionDto`                           | `session_not_active`                                                      |
-| GET    | `/sessions/:id`                          | —                 | `SessionDto`                           | `not_found`                                                               |
-| POST   | `/sessions`                              | `StartSessionDto` | `SessionDto` `201`                     | `session_already_active`, `not_found`, `project_archived`, `invalid_body` |
-| POST   | `/sessions/:id/pause`                    | —                 | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
-| POST   | `/sessions/:id/resume`                   | —                 | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
-| POST   | `/sessions/:id/stop`                     | —                 | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
+| GET    | `/sessions?status=active,paused&limit=n` | —                         | `{ items: SessionDto[] }` newest-first | `invalid_query`                                                           |
+| GET    | `/sessions/active`                       | —                         | `SessionDto`                           | `session_not_active`                                                      |
+| GET    | `/sessions/:id`                          | —                         | `SessionDto`                           | `not_found`                                                               |
+| POST   | `/sessions`                              | `StartSessionDto`          | `SessionDto` `201`                     | `session_already_active`, `not_found`, `project_archived`, `invalid_body` |
+| POST   | `/sessions/manual`                       | `CreateManualSessionDto`   | `SessionDto` `201`                     | `not_found`, `invalid_body`                                               |
+| PATCH  | `/sessions/:id`                          | `UpdateSessionDto`         | `SessionDto`                           | `not_found`, `invalid_body`                                               |
+| DELETE | `/sessions/:id`                          | —                         | `204`                                  | `not_found`                                                               |
+| POST   | `/sessions/:id/pause`                    | —                         | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
+| POST   | `/sessions/:id/resume`                   | —                         | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
+| POST   | `/sessions/:id/stop`                     | —                         | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
 
 `SessionDto`:
 
@@ -239,6 +242,10 @@ Per-user dictionary. Empty until the user creates rows.
 
 `GET /sessions/active` returns the active **or paused** session. Idle → `404` `{ "error": { "code": "session_not_active", "message": "…" } }`.
 
+`UpdateSessionDto` — all fields optional. Omit = leave unchanged; JSON `null` clears nullable fields. Do not send `status`, `pausedAt`, or `id`.
+
+`CreateManualSessionDto` — `projectId`, `startedAt`, and `endedAt` required. Always inserts `status=stopped`. Allowed while a live session exists. Archived projects are allowed.
+
 ---
 
 ## Domain vs DTO
@@ -258,8 +265,6 @@ Not in this contract. Do not invent them to “complete” the API without a con
 | Theme / locale                        | Device-local                                 |
 | Insights / dashboard totals           | Computed on the client from the session list |
 | Pagination / cursors                  | Full session list on boot (`limit` only)     |
-| Edit or delete a stopped log          | P2 (LOG-6)                                   |
-| Manual time entry                     | P2 (LOG-7)                                   |
 | Session target duration UI            | Field exists on `StartSessionDto`; UI is P2  |
 
 ---

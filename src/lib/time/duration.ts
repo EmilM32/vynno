@@ -67,6 +67,21 @@ export function formatHoursDecimal(ms: number, digits = 1): string {
 	return `${hours.toFixed(digits)}h`;
 }
 
+/** `datetime-local` value from an ISO timestamp (host-local). */
+export function isoToDatetimeLocal(iso: string): string {
+	const d = new Date(iso);
+	if (Number.isNaN(d.getTime())) return '';
+	const pad = (n: number) => String(n).padStart(2, '0');
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** ISO timestamp from a `datetime-local` value (host-local). */
+export function datetimeLocalToIso(local: string): string {
+	const d = new Date(local);
+	if (Number.isNaN(d.getTime())) return '';
+	return d.toISOString();
+}
+
 /** Calendar day key YYYY-MM-DD (host-local, or `timeZone` when given). */
 export function localDateKey(iso: string, now = new Date(), timeZone?: string): string {
 	const d = new Date(iso);

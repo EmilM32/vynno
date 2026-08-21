@@ -4,13 +4,36 @@
 
 	const sessionStore = useSession();
 
-	const locked = $derived(!!sessionStore.activeSession || sessionStore.busy);
+	const live = $derived(sessionStore.activeSession);
+	const locked = $derived(sessionStore.busy);
 
 	function onKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter' && !locked) {
-			e.preventDefault();
+		if (e.key !== 'Enter' || locked) return;
+		e.preventDefault();
+		if (live) {
+			void sessionStore.updateSession(live.id, { note: sessionStore.draftNote });
+		} else {
 			sessionStore.start();
 		}
+	}
+
+	function onNoteBlur() {
+		if (!live || locked) return;
+		if (sessionStore.draftNote === live.note) return;
+		void sessionStore.updateSession(live.id, { note: sessionStore.draftNote });
+	}
+
+	function onProjectChange() {
+		if (!live || locked) return;
+		if (sessionStore.draftProjectId === live.projectId) return;
+		void sessionStore.updateSession(live.id, { projectId: sessionStore.draftProjectId });
+	}
+
+	function onActivityChange() {
+		if (!live || locked) return;
+		const next = sessionStore.draftActivityType || null;
+		if ((live.activityTypeId ?? null) === next) return;
+		void sessionStore.updateSession(live.id, { activityTypeId: next });
 	}
 </script>
 
@@ -32,6 +55,7 @@
 				bind:value={sessionStore.draftNote}
 				disabled={locked}
 				onkeydown={onKeydown}
+				onblur={onNoteBlur}
 			/>
 		</div>
 	</div>
@@ -45,6 +69,7 @@
 			class="native-select min-w-[10rem] flex-1 rounded border border-outline-variant bg-surface-container-low py-1.5 pl-3 font-mono text-code-label text-on-surface disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none lg:w-48"
 			bind:value={sessionStore.draftProjectId}
 			disabled={locked}
+			onchange={onProjectChange}
 		>
 			{#each sessionStore.projects as project (project.id)}
 				<option value={project.id}>{project.name}</option>
@@ -60,6 +85,7 @@
 			bind:value={sessionStore.draftActivityType}
 			disabled={locked}
 			data-testid="activity-select"
+			onchange={onActivityChange}
 		>
 			<option value="">{m.timer_activity_none()}</option>
 			{#each sessionStore.activityTypes as type (type.id)}

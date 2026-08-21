@@ -73,6 +73,30 @@ export interface StartSessionInput {
 	targetDurationMs?: number;
 }
 
+export interface UpdateSessionInput {
+	projectId?: string;
+	note?: string;
+	ticketId?: string | null;
+	activityTypeId?: string | null;
+	tags?: string[];
+	startedAt?: string;
+	endedAt?: string | null;
+	pausedMs?: number;
+	targetDurationMs?: number | null;
+}
+
+export interface CreateManualSessionInput {
+	projectId: string;
+	note: string;
+	ticketId?: string;
+	activityTypeId?: string;
+	tags?: string[];
+	targetDurationMs?: number;
+	startedAt: string;
+	endedAt: string;
+	pausedMs?: number;
+}
+
 export interface SessionFilters {
 	/** Include only these statuses (default: all) */
 	status?: SessionStatus[];

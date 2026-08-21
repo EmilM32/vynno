@@ -1,5 +1,15 @@
-import type { SessionDto, StartSessionDto } from '$lib/api/schemas/session';
-import type { StartSessionInput, TimeSession } from '$lib/types/domain';
+import type {
+	CreateManualSessionDto,
+	SessionDto,
+	StartSessionDto,
+	UpdateSessionDto
+} from '$lib/api/schemas/session';
+import type {
+	CreateManualSessionInput,
+	StartSessionInput,
+	TimeSession,
+	UpdateSessionInput
+} from '$lib/types/domain';
 
 export function sessionFromDto(dto: SessionDto): TimeSession {
 	const session: TimeSession = {
@@ -55,5 +65,33 @@ export function startSessionFromDto(dto: StartSessionDto): StartSessionInput {
 		...(dto.activityTypeId ? { activityTypeId: dto.activityTypeId } : {}),
 		...(dto.tags?.length ? { tags: dto.tags } : {}),
 		...(dto.targetDurationMs != null ? { targetDurationMs: dto.targetDurationMs } : {})
+	};
+}
+
+export function updateSessionToDto(input: UpdateSessionInput): UpdateSessionDto {
+	const dto: UpdateSessionDto = {};
+	if (input.projectId !== undefined) dto.projectId = input.projectId;
+	if (input.note !== undefined) dto.note = input.note;
+	if ('ticketId' in input) dto.ticketId = input.ticketId ?? null;
+	if ('activityTypeId' in input) dto.activityTypeId = input.activityTypeId ?? null;
+	if (input.tags !== undefined) dto.tags = input.tags;
+	if (input.startedAt !== undefined) dto.startedAt = input.startedAt;
+	if ('endedAt' in input) dto.endedAt = input.endedAt ?? null;
+	if (input.pausedMs !== undefined) dto.pausedMs = input.pausedMs;
+	if ('targetDurationMs' in input) dto.targetDurationMs = input.targetDurationMs ?? null;
+	return dto;
+}
+
+export function createManualSessionToDto(input: CreateManualSessionInput): CreateManualSessionDto {
+	return {
+		projectId: input.projectId,
+		note: input.note,
+		ticketId: input.ticketId ?? null,
+		activityTypeId: input.activityTypeId ?? null,
+		tags: input.tags ?? [],
+		targetDurationMs: input.targetDurationMs ?? null,
+		startedAt: input.startedAt,
+		endedAt: input.endedAt,
+		pausedMs: input.pausedMs ?? 0
 	};
 }

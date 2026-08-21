@@ -49,6 +49,31 @@ test.describe('logs', () => {
 		// duration compact like 1h 20m or 45m / 1:23:00 style
 		await expect(row).toContainText(/\d/);
 	});
+
+	test('can add, edit, and delete a log entry', async ({ page }) => {
+		const note = uniqueNote('manual');
+		await page.getByRole('button', { name: 'Add entry' }).click();
+		const form = page.getByTestId('session-form');
+		await expect(form).toBeVisible();
+		await form.getByLabel('Task').fill(note);
+		await form.getByRole('button', { name: 'Add', exact: true }).click();
+		const row = page.getByTestId('log-row').filter({ hasText: note });
+		await expect(row).toBeVisible();
+
+		await row.getByRole('button', { name: 'Edit' }).click();
+		const edited = `${note}-renamed`;
+		await page.getByTestId('session-form').getByLabel('Task').fill(edited);
+		await page.getByTestId('session-form').getByRole('button', { name: 'Save' }).click();
+		await expect(page.getByTestId('log-row').filter({ hasText: edited })).toBeVisible();
+
+		await page
+			.getByTestId('log-row')
+			.filter({ hasText: edited })
+			.getByRole('button', { name: 'Delete' })
+			.click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+		await expect(page.getByTestId('log-row').filter({ hasText: edited })).toHaveCount(0);
+	});
 });
 
 test.describe('logs activity chip', () => {

@@ -45,6 +45,43 @@ describe('HttpTimeTrackingRepository', () => {
 		expect(await repo.getProject('nope')).toBeUndefined();
 	});
 
+	it('patches, deletes, and creates a manual session', async () => {
+		const stopped = sessionToDto({
+			id: 'sess-edit',
+			projectId: PROJECT_IDS.auth,
+			note: 'Edited',
+			status: 'stopped',
+			startedAt: FIXED_NOW.toISOString(),
+			endedAt: new Date(FIXED_NOW.getTime() + 60_000).toISOString(),
+			pausedMs: 0
+		});
+		const fetchFn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+			const url = String(input);
+			const method = init?.method ?? 'GET';
+			if (method === 'PATCH' && url.endsWith('/sessions/sess-edit')) {
+				return jsonResponse(stopped);
+			}
+			if (method === 'DELETE' && url.endsWith('/sessions/sess-edit')) {
+				return jsonResponse(null, 204);
+			}
+			if (method === 'POST' && url.endsWith('/sessions/manual')) {
+				return jsonResponse(stopped, 201);
+			}
+			return jsonResponse({ error: { code: 'not_found', message: url } }, 404);
+		});
+		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
+		expect((await repo.updateSession('sess-edit', { note: 'Edited' })).note).toBe('Edited');
+		await repo.deleteSession('sess-edit');
+		const created = await repo.createManualSession({
+			projectId: PROJECT_IDS.auth,
+			note: 'Forgot',
+			startedAt: FIXED_NOW.toISOString(),
+			endedAt: new Date(FIXED_NOW.getTime() + 60_000).toISOString()
+		});
+		expect(created.id).toBe('sess-edit');
+		expect(String(fetchFn.mock.calls[2]?.[0])).toBe(`${api}/sessions/manual`);
+	});
+
 	it('starts a session via POST', async () => {
 		const created = {
 			...sessionToDto({

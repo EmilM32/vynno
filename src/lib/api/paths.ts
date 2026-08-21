@@ -28,6 +28,7 @@ export const apiPaths = {
 		return withQuery('/sessions', params);
 	},
 	sessionsActive: () => '/sessions/active',
+	sessionsManual: () => '/sessions/manual',
 	session: (id: string) => `/sessions/${id}`,
 	sessionPause: (id: string) => `/sessions/${id}/pause`,
 	sessionResume: (id: string) => `/sessions/${id}/resume`,

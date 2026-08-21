@@ -119,12 +119,13 @@ test.describe('timer lifecycle', () => {
 		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(note);
 	});
 
-	test('inputs locked while active', async ({ page }) => {
-		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('lock'));
+	test('inputs stay editable while active', async ({ page }) => {
+		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('live-edit'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
-		await expect(page.getByRole('textbox', { name: 'Task description' })).toBeDisabled();
-		await expect(page.locator('#project-select')).toBeDisabled();
-		await expect(page.locator('#activity-select')).toBeDisabled();
+		await expect(page.getByRole('textbox', { name: 'Task description' })).toBeEnabled();
+		await expect(page.locator('#project-select')).toBeEnabled();
+		await expect(page.locator('#activity-select')).toBeEnabled();
+		await expect(page.getByTestId('timer-started-at')).toBeVisible();
 	});
 
 	test('restart from recent task blocked while busy', async ({ page }) => {

@@ -219,7 +219,7 @@ interface UserProfile {
 ## 7. Consistency decisions
 
 1. **One active session** — enforced in the frontend store for MVP.
-2. **Stopped sessions are immutable** by default (edit is P2).
+2. **Sessions are mutable.** PATCH and DELETE apply to any row. Status still changes only via pause/resume/stop.
 3. **Duration precision** — track milliseconds; display as `HH:MM:SS` on Timer and compact `Xh Ym` on lists.
 4. **No multi-user ownership fields** until backend auth exists.
 5. **System project “Internal”** may represent meetings/admin without a real client project (seen in Dashboard recent logs).

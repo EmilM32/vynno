@@ -275,7 +275,7 @@ No Stitch mock. Dev-Density card using the same input/button language as Project
 | ------------ | ------------------------------------------------------ | -------------------------------------------------- |
 | Timer        | Active session, recent sessions, **active** projects   | Start/pause/resume/stop                            |
 | Dashboard    | Aggregates + active session + recent                   | Restart (creates session)                          |
-| Logs         | Stopped sessions, projects (incl. archived for labels) | Search filter (local); edit later                  |
+| Logs         | Stopped sessions, projects (incl. archived for labels) | Search; edit/delete; manual entry                  |
 | Insights     | Aggregates for period                                  | Period toggle only                                 |
 | Projects     | All projects + session counts                          | Create/update/archive/restore/delete               |
 | Project view | One project + its sessions + period aggregates         | Edit / archive / restore; start or restart session |

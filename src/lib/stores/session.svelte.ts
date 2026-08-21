@@ -19,13 +19,15 @@ import { DEFAULT_TIME_ZONE } from '$lib/time/timezone';
 import type {
 	ActivityType,
 	CreateActivityTypeInput,
+	CreateManualSessionInput,
 	CreateProjectInput,
 	Project,
 	StartSessionInput,
 	TimeSession,
 	UpdateActivityTypeInput,
 	UpdateProfileInput,
-	UpdateProjectInput
+	UpdateProjectInput,
+	UpdateSessionInput
 } from '$lib/types/domain';
 import { createContext } from 'svelte';
 import { SvelteDate, SvelteSet } from 'svelte/reactivity';
@@ -73,7 +75,7 @@ export class SessionStore {
 
 	/** In-flight mutation; blocks double-submit. */
 	pendingAction = $state<
-		'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile' | 'activity' | null
+		'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile' | 'activity' | 'session' | null
 	>(null);
 
 	busy = $derived(this.pendingAction != null);
@@ -374,6 +376,57 @@ export class SessionStore {
 		});
 	};
 
+	updateSession = async (id: string, input: UpdateSessionInput): Promise<TimeSession | null> => {
+		if (!this.#begin('session')) return null;
+		this.error = null;
+		try {
+			const updated = await this.#requireRepo().updateSession(id, input);
+			await this.refresh();
+			if (updated.status === 'active' || updated.status === 'paused') {
+				this.#applyDraftFromSession(updated);
+			}
+			announce(m.announce_session_updated());
+			return updated;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_failed_update_session);
+			return null;
+		} finally {
+			this.#end();
+		}
+	};
+
+	deleteSession = async (id: string): Promise<boolean> => {
+		if (!this.#begin('session')) return false;
+		this.error = null;
+		try {
+			await this.#requireRepo().deleteSession(id);
+			await this.refresh();
+			announce(m.announce_session_deleted());
+			return true;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_failed_delete_session);
+			return false;
+		} finally {
+			this.#end();
+		}
+	};
+
+	createManualSession = async (input: CreateManualSessionInput): Promise<TimeSession | null> => {
+		if (!this.#begin('session')) return null;
+		this.error = null;
+		try {
+			const created = await this.#requireRepo().createManualSession(input);
+			await this.refresh();
+			announce(m.announce_session_created());
+			return created;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_failed_create_session);
+			return null;
+		} finally {
+			this.#end();
+		}
+	};
+
 	pause = async (): Promise<void> => {
 		const s = this.activeSession;
 		if (!s || s.status !== 'active') return;
@@ -473,7 +526,7 @@ export class SessionStore {
 	};
 
 	#begin = (
-		action: 'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile' | 'activity'
+		action: 'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile' | 'activity' | 'session'
 	): boolean => {
 		if (this.pendingAction) return false;
 		this.pendingAction = action;

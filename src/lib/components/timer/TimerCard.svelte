@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
+	import { datetimeLocalToIso, isoToDatetimeLocal } from '$lib/time/duration';
 
 	const sessionStore = useSession();
 
@@ -32,6 +33,13 @@
 	const clockLabel = $derived(isIdle ? '00:00:00' : sessionStore.elapsedLabel);
 	const projectCode = $derived(project?.code ?? project?.name?.slice(0, 4).toUpperCase() ?? '—');
 	const pending = $derived(sessionStore.busy);
+
+	function onStartedChange(e: Event) {
+		if (!session || pending) return;
+		const iso = datetimeLocalToIso((e.currentTarget as HTMLInputElement).value);
+		if (!iso || iso === session.startedAt) return;
+		void sessionStore.updateSession(session.id, { startedAt: iso });
+	}
 </script>
 
 <div
@@ -58,6 +66,19 @@
 			</span>
 		{/if}
 	</div>
+	{#if session}
+		<label class="mt-3 flex items-center gap-2 font-mono text-code-label text-on-surface-variant">
+			<span>{m.timer_started_at()}</span>
+			<input
+				type="datetime-local"
+				class="rounded border border-outline-variant bg-surface-container-low px-2 py-1 text-on-surface disabled:opacity-60"
+				value={isoToDatetimeLocal(session.startedAt)}
+				onchange={onStartedChange}
+				disabled={pending}
+				data-testid="timer-started-at"
+			/>
+		</label>
+	{/if}
 
 	<div class="mt-6 flex w-full max-w-[280px] gap-3">
 		{#if isIdle}

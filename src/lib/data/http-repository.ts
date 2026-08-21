@@ -8,7 +8,12 @@ import {
 	updateActivityTypeToDto
 } from '$lib/api/mappers/activity-type';
 import { createProjectToDto, projectFromDto, updateProjectToDto } from '$lib/api/mappers/project';
-import { sessionFromDto, startSessionToDto } from '$lib/api/mappers/session';
+import {
+	createManualSessionToDto,
+	sessionFromDto,
+	startSessionToDto,
+	updateSessionToDto
+} from '$lib/api/mappers/session';
 import { apiPaths } from '$lib/api/paths';
 import { activityTypeDtoSchema, activityTypeListDtoSchema } from '$lib/api/schemas/activity-type';
 import { sessionCountSchema } from '$lib/api/schemas/common';
@@ -18,6 +23,7 @@ import { sessionDtoSchema, sessionListDtoSchema } from '$lib/api/schemas/session
 import type {
 	ActivityType,
 	CreateActivityTypeInput,
+	CreateManualSessionInput,
 	CreateProjectInput,
 	Project,
 	ProjectListOptions,
@@ -27,6 +33,7 @@ import type {
 	UpdateActivityTypeInput,
 	UpdateProfileInput,
 	UpdateProjectInput,
+	UpdateSessionInput,
 	UserProfile
 } from '$lib/types/domain';
 import type { TimeTrackingRepository } from './repository';
@@ -202,6 +209,28 @@ export class HttpTimeTrackingRepository implements TimeTrackingRepository {
 
 	async stopSession(id: string): Promise<TimeSession> {
 		const dto = await this.#client.post(apiPaths.sessionStop(id), {}, sessionDtoSchema);
+		return sessionFromDto(dto);
+	}
+
+	async updateSession(id: string, input: UpdateSessionInput): Promise<TimeSession> {
+		const dto = await this.#client.patch(
+			apiPaths.session(id),
+			updateSessionToDto(input),
+			sessionDtoSchema
+		);
+		return sessionFromDto(dto);
+	}
+
+	async deleteSession(id: string): Promise<void> {
+		await this.#client.delete(apiPaths.session(id));
+	}
+
+	async createManualSession(input: CreateManualSessionInput): Promise<TimeSession> {
+		const dto = await this.#client.post(
+			apiPaths.sessionsManual(),
+			createManualSessionToDto(input),
+			sessionDtoSchema
+		);
 		return sessionFromDto(dto);
 	}
 

@@ -1,6 +1,7 @@
 import type {
 	ActivityType,
 	CreateActivityTypeInput,
+	CreateManualSessionInput,
 	CreateProjectInput,
 	Project,
 	ProjectListOptions,
@@ -10,6 +11,7 @@ import type {
 	UpdateActivityTypeInput,
 	UpdateProfileInput,
 	UpdateProjectInput,
+	UpdateSessionInput,
 	UserProfile
 } from '$lib/types/domain';
 
@@ -54,4 +56,7 @@ export interface TimeTrackingRepository {
 	pauseSession(id: string): Promise<TimeSession>;
 	resumeSession(id: string): Promise<TimeSession>;
 	stopSession(id: string): Promise<TimeSession>;
+	updateSession(id: string, input: UpdateSessionInput): Promise<TimeSession>;
+	deleteSession(id: string): Promise<void>;
+	createManualSession(input: CreateManualSessionInput): Promise<TimeSession>;
 }

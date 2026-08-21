@@ -8,6 +8,7 @@ import { isActivityColorToken, type ActivityColorToken } from '$lib/time/activit
 import type {
 	ActivityType,
 	CreateActivityTypeInput,
+	CreateManualSessionInput,
 	CreateProjectInput,
 	Project,
 	ProjectListOptions,
@@ -17,6 +18,7 @@ import type {
 	UpdateActivityTypeInput,
 	UpdateProfileInput,
 	UpdateProjectInput,
+	UpdateSessionInput,
 	UserProfile
 } from '$lib/types/domain';
 import { DomainError } from './errors';
@@ -394,6 +396,85 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneSession(session);
 	}
 
+	async updateSession(id: string, input: UpdateSessionInput): Promise<TimeSession> {
+		const current = this.#require(id);
+		const session = cloneSession(current);
+		if (input.projectId !== undefined) {
+			this.#requireProject(input.projectId);
+			session.projectId = input.projectId;
+		}
+		if (input.note !== undefined) {
+			session.note = input.note.trim() || 'Untitled session';
+		}
+		if ('ticketId' in input) {
+			if (input.ticketId) session.ticketId = input.ticketId;
+			else delete session.ticketId;
+		}
+		if ('activityTypeId' in input) {
+			if (input.activityTypeId) {
+				const type = this.#activityTypes.find((x) => x.id === input.activityTypeId);
+				if (!type) {
+					throw new DomainError('not_found', `Activity type not found: ${input.activityTypeId}`);
+				}
+				session.activityTypeId = input.activityTypeId;
+			} else {
+				delete session.activityTypeId;
+			}
+		}
+		if (input.tags !== undefined) session.tags = [...input.tags];
+		if (input.startedAt !== undefined) session.startedAt = input.startedAt;
+		if ('endedAt' in input) {
+			if (input.endedAt) session.endedAt = input.endedAt;
+			else delete session.endedAt;
+		}
+		if (input.pausedMs !== undefined) session.pausedMs = input.pausedMs;
+		if ('targetDurationMs' in input) {
+			if (input.targetDurationMs != null) session.targetDurationMs = input.targetDurationMs;
+			else delete session.targetDurationMs;
+		}
+		assertSessionTimes(session, Date.now());
+		const idx = this.#sessions.findIndex((s) => s.id === id);
+		this.#sessions[idx] = session;
+		this.#sortSessions();
+		return cloneSession(session);
+	}
+
+	async deleteSession(id: string): Promise<void> {
+		this.#require(id);
+		this.#sessions = this.#sessions.filter((s) => s.id !== id);
+	}
+
+	async createManualSession(input: CreateManualSessionInput): Promise<TimeSession> {
+		this.#requireProject(input.projectId);
+		if (input.activityTypeId) {
+			const type = this.#activityTypes.find((x) => x.id === input.activityTypeId);
+			if (!type) {
+				throw new DomainError('not_found', `Activity type not found: ${input.activityTypeId}`);
+			}
+		}
+		const session: TimeSession = {
+			id: newId('sess'),
+			projectId: input.projectId,
+			note: input.note.trim() || 'Untitled session',
+			ticketId: input.ticketId,
+			activityTypeId: input.activityTypeId,
+			tags: input.tags,
+			status: 'stopped',
+			startedAt: input.startedAt,
+			endedAt: input.endedAt,
+			pausedMs: input.pausedMs ?? 0,
+			targetDurationMs: input.targetDurationMs
+		};
+		assertSessionTimes(session, Date.now());
+		this.#sessions.unshift(session);
+		this.#sortSessions();
+		return cloneSession(session);
+	}
+
+	#sortSessions(): void {
+		this.#sessions.sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
+	}
+
 	#require(id: string): TimeSession {
 		const session = this.#sessions.find((s) => s.id === id);
 		if (!session) throw new DomainError('not_found', `Session not found: ${id}`);
@@ -428,6 +509,64 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 		if (clash) {
 			throw new DomainError('code_in_use', `Code "${code}" is already in use.`);
 		}
+	}
+}
+
+function assertSessionTimes(session: TimeSession, nowMs: number): void {
+	if (session.pausedMs < 0) {
+		throw new DomainError(
+			'invalid_body',
+			'pausedMs must be >= 0 and must not exceed the interval.'
+		);
+	}
+	const started = Date.parse(session.startedAt);
+	if (Number.isNaN(started)) {
+		throw new DomainError('invalid_body', 'must be an ISO-8601 timestamp.');
+	}
+	if (session.status === 'stopped') {
+		if (!session.endedAt) {
+			throw new DomainError('invalid_body', 'endedAt is required on a stopped session.');
+		}
+		const ended = Date.parse(session.endedAt);
+		if (Number.isNaN(ended) || ended <= started) {
+			throw new DomainError('invalid_body', 'endedAt must be after startedAt.');
+		}
+		if (session.pausedMs > ended - started) {
+			throw new DomainError(
+				'invalid_body',
+				'pausedMs must be >= 0 and must not exceed the interval.'
+			);
+		}
+		return;
+	}
+	if (session.endedAt) {
+		throw new DomainError(
+			'invalid_body',
+			'endedAt is only set on stopped sessions; use POST .../stop.'
+		);
+	}
+	if (session.status === 'paused') {
+		if (!session.pausedAt) {
+			throw new DomainError('invalid_body', 'pausedAt is required while paused.');
+		}
+		const pausedAt = Date.parse(session.pausedAt);
+		if (pausedAt < started) {
+			throw new DomainError('invalid_body', 'startedAt must be at or before pausedAt.');
+		}
+		if (session.pausedMs > pausedAt - started) {
+			throw new DomainError(
+				'invalid_body',
+				'pausedMs must be >= 0 and must not exceed the interval.'
+			);
+		}
+		return;
+	}
+	const dur = Math.max(0, nowMs - started);
+	if (session.pausedMs > dur) {
+		throw new DomainError(
+			'invalid_body',
+			'pausedMs must be >= 0 and must not exceed the interval.'
+		);
 	}
 }
 

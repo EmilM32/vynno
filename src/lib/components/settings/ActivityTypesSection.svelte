@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import { m } from '$lib/paraglide/messages.js';
@@ -16,6 +17,10 @@
 	let deleteTarget = $state<ActivityType | null>(null);
 
 	const busy = $derived(sessionStore.pendingAction === 'activity');
+
+	onMount(() => {
+		void sessionStore.loadSessionCounts();
+	});
 
 	function openCreate() {
 		sessionStore.clearError();
@@ -84,7 +89,7 @@
 	{:else}
 		<ul class="flex flex-col gap-2" data-testid="activity-type-list">
 			{#each sessionStore.activityTypes as type (type.id)}
-				{const inUse = $derived(sessionStore.countSessionsForActivityType(type.id) > 0)}
+				{const inUse = $derived((sessionStore.countSessionsForActivityType(type.id) ?? 1) > 0)}
 				{const deleteReasonId = $derived(`${type.id}-delete-reason`)}
 				<li
 					class="flex flex-wrap items-center gap-2 rounded border border-outline-variant bg-surface-container-low px-3 py-2"

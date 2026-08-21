@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, spaGo, startSession, stopSession, uniqueNote } from './helpers';
+import { login, seedStoppedSessions, spaGo, startSession, stopSession, uniqueNote } from './helpers';
 
 test.describe('logs', () => {
 	test.beforeEach(async ({ page }) => {
@@ -75,6 +75,25 @@ test.describe('logs', () => {
 			.click();
 		await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
 		await expect(page.getByTestId('log-row').filter({ hasText: edited })).toHaveCount(0);
+	});
+
+	test('loads the next page when the list is scrolled', async ({ page }) => {
+		await seedStoppedSessions(page, 20);
+		const cursorRequests: string[] = [];
+		page.on('request', (req) => {
+			if (req.method() === 'GET' && /\/v1\/sessions\?/.test(req.url()) && req.url().includes('cursor=')) {
+				cursorRequests.push(req.url());
+			}
+		});
+		await page.goto('/logs');
+		const rows = page.getByTestId('log-row');
+		await expect(rows.first()).toBeVisible();
+		const initial = await rows.count();
+		expect(initial).toBeGreaterThan(0);
+		expect(initial).toBeLessThan(21);
+		await page.getByTestId('logs-sentinel').scrollIntoViewIfNeeded();
+		await expect.poll(() => rows.count()).toBeGreaterThan(initial);
+		expect(cursorRequests.length).toBeGreaterThan(0);
 	});
 });
 

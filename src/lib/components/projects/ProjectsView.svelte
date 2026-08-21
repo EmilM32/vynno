@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
@@ -76,10 +77,14 @@
 
 	function canDelete(project: Project): boolean {
 		const count = sessionStore.countSessionsForProject(project.id);
-		if (count > 0) return false;
+		if (count == null || count > 0) return false;
 		if (!project.isArchived) return sessionStore.canArchiveOrDeleteActive(project.id);
 		return true;
 	}
+
+	onMount(() => {
+		void sessionStore.loadSessionCounts();
+	});
 
 	function onTabListKey(e: KeyboardEvent) {
 		if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
@@ -201,7 +206,7 @@
 		{:else}
 			<ul class="flex flex-col gap-2" data-testid="project-list">
 				{#each visible as project (project.id)}
-					{const count = $derived(sessionStore.countSessionsForProject(project.id))}
+					{const count = $derived(sessionStore.countSessionsForProject(project.id) ?? 0)}
 					<ProjectRow
 						{project}
 						sessionCount={count}

@@ -9,6 +9,18 @@
 
 	const sessionStore = useSession();
 
+	let sentinel = $state<HTMLElement | undefined>(undefined);
+
+	$effect(() => {
+		if (!sentinel || !sessionStore.nextCursor) return;
+		const node = sentinel;
+		const io = new IntersectionObserver((entries) => {
+			if (entries.some((e) => e.isIntersecting)) void sessionStore.loadMore();
+		});
+		io.observe(node);
+		return () => io.disconnect();
+	});
+
 	let query = $state('');
 
 	const live = $derived(sessionStore.activeSession);
@@ -84,6 +96,10 @@
 						{/each}
 					</div>
 				{/each}
+			{/if}
+
+			{#if sessionStore.nextCursor}
+				<div bind:this={sentinel} class="h-8" data-testid="logs-sentinel" aria-hidden="true"></div>
 			{/if}
 		</div>
 	{/snippet}

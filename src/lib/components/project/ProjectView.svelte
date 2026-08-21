@@ -15,7 +15,7 @@
 		latestStoppedStartedAt,
 		periodBucketTotals
 	} from '$lib/time/aggregates';
-	import { formatRelativePast, type ProjectPeriodKind } from '$lib/time/duration';
+	import { formatRelativePast, periodBounds, type ProjectPeriodKind } from '$lib/time/duration';
 	import { SvelteDate } from 'svelte/reactivity';
 	import ProjectEntries from './ProjectEntries.svelte';
 	import ProjectKpis from './ProjectKpis.svelte';
@@ -82,6 +82,17 @@
 		{ id: 'month' as const, label: m.insights_period_month() },
 		{ id: 'all' as const, label: m.insights_period_all() }
 	]);
+
+	$effect(() => {
+		const kind = period;
+		const timeZone = sessionStore.timeZone;
+		if (kind === 'all') {
+			void sessionStore.ensureThrough(null);
+			return;
+		}
+		const { start } = periodBounds(kind, new Date(), timeZone);
+		void sessionStore.ensureThrough(start.getTime());
+	});
 
 	function openTimer() {
 		if (!project) return;

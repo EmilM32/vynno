@@ -4,7 +4,7 @@
 	import { usePrefs } from '$lib/stores/prefs.svelte';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { periodStats } from '$lib/time/aggregates';
-	import type { PeriodKind } from '$lib/time/duration';
+	import { periodBounds, type PeriodKind } from '$lib/time/duration';
 	import ActivityBars from './ActivityBars.svelte';
 	import BreakdownTable from './BreakdownTable.svelte';
 	import KpiCards from './KpiCards.svelte';
@@ -32,6 +32,13 @@
 			sessionStore.timeZone
 		)
 	);
+
+	$effect(() => {
+		const kind = period;
+		const timeZone = sessionStore.timeZone;
+		const { start } = periodBounds(kind, new Date(), timeZone);
+		void sessionStore.ensureThrough(start.getTime());
+	});
 </script>
 
 <div class="flex w-full flex-col gap-6" data-testid="page-view">

@@ -45,7 +45,18 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await login(page);
 		await page.goto('/projects');
 		await page.getByTestId('new-project').click();
-		await expect(page.getByRole('heading', { name: 'New project' })).toBeVisible();
+		await expect(page.getByRole('dialog', { name: 'New project' })).toBeVisible();
+		await expectNoViolations(page);
+	});
+
+	test('activity type form open', async ({ page }) => {
+		await login(page);
+		await page.goto('/settings');
+		await page
+			.getByRole('region', { name: 'Activity types' })
+			.getByRole('button', { name: 'Add', exact: true })
+			.click();
+		await expect(page.getByRole('dialog', { name: 'New activity type' })).toBeVisible();
 		await expectNoViolations(page);
 	});
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { filterSessions, groupSessionsByDate } from '$lib/time/aggregates';
@@ -77,18 +78,6 @@
 		{/snippet}
 	</PageHeader>
 
-	{#if formMode}
-		{#key formMode.kind === 'edit' ? formMode.session.id : 'create'}
-			<SessionForm
-				mode={formMode.kind}
-				session={formMode.kind === 'edit' ? formMode.session : undefined}
-				{pending}
-				onsubmit={formMode.kind === 'create' ? saveCreate : saveEdit}
-				oncancel={() => (formMode = null)}
-			/>
-		{/key}
-	{/if}
-
 	{#if live && !query.trim()}
 		<div class="flex items-center gap-4 py-2">
 			<div class="font-mono text-code-label text-primary">{m.logs_in_progress()}</div>
@@ -129,6 +118,30 @@
 		{/each}
 	{/if}
 </div>
+
+<Dialog
+	open={formMode != null}
+	title={formMode?.kind === 'edit' ? m.logs_form_edit() : m.logs_form_new()}
+	onclose={() => (formMode = null)}
+	size="lg"
+>
+	{#snippet children({ close })}
+		{#if formMode}
+			{#key formMode.kind === 'edit' ? formMode.session.id : 'create'}
+				<SessionForm
+					mode={formMode.kind}
+					session={formMode.kind === 'edit' ? formMode.session : undefined}
+					{pending}
+					onsubmit={formMode.kind === 'create' ? saveCreate : saveEdit}
+					oncancel={() => close()}
+				/>
+			{/key}
+			{#if sessionStore.error}
+				<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>
+			{/if}
+		{/if}
+	{/snippet}
+</Dialog>
 
 <ConfirmDialog
 	open={deleteTarget != null}

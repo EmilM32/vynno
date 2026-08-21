@@ -53,7 +53,8 @@ test.describe('logs', () => {
 	test('can add, edit, and delete a log entry', async ({ page }) => {
 		const note = uniqueNote('manual');
 		await page.getByRole('button', { name: 'Add entry' }).click();
-		const form = page.getByTestId('session-form');
+		const dialog = page.getByRole('dialog', { name: 'Manual time entry' });
+		const form = dialog.getByTestId('session-form');
 		await expect(form).toBeVisible();
 		await form.getByLabel('Task').fill(note);
 		await form.getByRole('button', { name: 'Add', exact: true }).click();
@@ -62,8 +63,9 @@ test.describe('logs', () => {
 
 		await row.getByRole('button', { name: 'Edit' }).click();
 		const edited = `${note}-renamed`;
-		await page.getByTestId('session-form').getByLabel('Task').fill(edited);
-		await page.getByTestId('session-form').getByRole('button', { name: 'Save' }).click();
+		const editDialog = page.getByRole('dialog', { name: 'Edit session' });
+		await editDialog.getByLabel('Task').fill(edited);
+		await editDialog.getByRole('button', { name: 'Save' }).click();
 		await expect(page.getByTestId('log-row').filter({ hasText: edited })).toBeVisible();
 
 		await page

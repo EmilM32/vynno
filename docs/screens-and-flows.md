@@ -97,6 +97,7 @@ Default landing: `/login` when signed out; `/dashboard` after the stub session (
 2. Search input (grep-style placeholder)
 3. Date separators (`YYYY-MM-DD`)
 4. Entries: project color + name, `> note`, optional activity chip, time range, duration
+5. Add entry / Edit session: form dialog (not an inline card). Delete: confirm dialog
 
 ### 3.4 Insights (`/insights`)
 
@@ -116,6 +117,7 @@ No Stitch design. Implement a minimal stub:
 - Placeholder copy: preferences arrive when designed / when API exists
 - Optional static profile block matching sidebar (“Alex Dev” style) for layout completeness
 - Default project preference + link to **Manage projects** (`/projects`)
+- Activity types: compact list; Add / Edit open a form dialog. Delete: confirm dialog
 
 ### 3.6 Projects (`/projects`)
 
@@ -126,7 +128,7 @@ No Stitch design. Dev-Density Dark product screen for **PRJ-5**.
 1. Header: title “Projects”, mock-data disclaimer, **New project** CTA
 2. Tabs: **Active** | **Archived**
 3. List rows: color swatch, name, code chip, session count, actions
-4. Inline create/edit form: name, code, color palette swatches
+4. New project / Edit: form dialog (name, code, color palette)
 5. Hard-delete confirm dialog
 
 **Actions**
@@ -147,7 +149,7 @@ Time dossier for one project. Not a seventh nav item — Projects stays highligh
 **Regions**
 
 1. Header: back to list, color swatch, name, code chip, archived/live badge, last-logged subtitle
-2. Actions: Week / Month / All period toggle, Start session (or Open timer), Edit, Archive / Restore
+2. Actions: Week / Month / All period toggle, Start session (or Open timer), Edit (form dialog), Archive / Restore
 3. KPI cards: period total, daily average, share of period hours
 4. Period hours bar chart (project color; follows Week / Month / All) + time-by-activity bars
 5. Recent logs with restart

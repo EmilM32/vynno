@@ -83,12 +83,14 @@ test.describe('settings', () => {
 	test('deletes an unused activity type after confirm', async ({ page }) => {
 		const name = `unused_${Date.now().toString(36)}`;
 		const section = page.getByRole('region', { name: 'Activity types' });
-		await section.locator('#activity-type-name').fill(name);
+		await section.getByRole('button', { name: 'Add', exact: true }).click();
+		const formDialog = page.getByRole('dialog', { name: 'New activity type' });
+		await formDialog.locator('#activity-type-name').fill(name);
 		await Promise.all([
 			page.waitForRequest(
 				(r) => r.method() === 'POST' && /\/v1\/activity-types$/.test(new URL(r.url()).pathname)
 			),
-			section.getByRole('button', { name: 'Add' }).click()
+			formDialog.getByRole('button', { name: 'Add', exact: true }).click()
 		]);
 
 		const row = page.getByTestId('activity-type-row').filter({ hasText: name });

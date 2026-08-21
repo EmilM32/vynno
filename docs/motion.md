@@ -100,7 +100,7 @@ Color hovers (`transition-colors` on rows, inputs, nav) stay on Tailwind’s def
 | Current Focus (Dashboard)                      | None (solid border)                                                       | State indication       | Primary / tertiary / outline by session status.          |
 | Active status dot, TopBar record icon          | `.blink` (1s linear)                                                      | State indication       | Design-system live indicator.                            |
 | Primary / secondary chrome buttons, bottom nav | `.press` → `scale(0.97)`                                                  | Feedback               | Pointer-down, not click.                                 |
-| Confirm dialog                                 | `@starting-style` scale 0.96 + opacity, 200ms `--ease-out`, same path out | Prevent jarring change | Origin **center** (modals are not trigger-anchored).     |
+| Confirm / form dialog                          | `@starting-style` scale 0.96 + opacity, 200ms `--ease-out`, same path out | Prevent jarring change | Origin **center**. Form dialogs share this overlay.      |
 | Page header description                        | `grid-template-rows` + opacity, 200ms `--ease-in-out`                     | Prevent jarring change | Accordion exception: height-family is allowed here only. |
 | List / nav / field hovers                      | `transition-colors`                                                       | Feedback               | Tens/day; keep.                                          |
 | Command palette                                | **None**                                                                  | —                      | Keyboard, 100+/day.                                      |

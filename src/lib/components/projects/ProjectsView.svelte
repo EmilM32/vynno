@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import type { Project } from '$lib/types/domain';
@@ -134,18 +135,6 @@
 		</div>
 	{/if}
 
-	{#if formMode}
-		{#key formMode.kind === 'edit' ? formMode.project.id : 'create'}
-			<ProjectForm
-				mode={formMode.kind}
-				project={formMode.kind === 'edit' ? formMode.project : undefined}
-				pending={sessionStore.pendingAction === 'project'}
-				onsubmit={onFormSubmit}
-				oncancel={closeForm}
-			/>
-		{/key}
-	{/if}
-
 	<div
 		class="flex gap-1 rounded-DEFAULT border border-outline-variant bg-surface-container p-1"
 		role="tablist"
@@ -231,6 +220,30 @@
 		{/if}
 	</div>
 </div>
+
+<Dialog
+	open={formMode != null}
+	title={formMode?.kind === 'edit' ? m.projects_form_edit() : m.projects_form_new()}
+	onclose={closeForm}
+	size="lg"
+>
+	{#snippet children({ close })}
+		{#if formMode}
+			{#key formMode.kind === 'edit' ? formMode.project.id : 'create'}
+				<ProjectForm
+					mode={formMode.kind}
+					project={formMode.kind === 'edit' ? formMode.project : undefined}
+					pending={sessionStore.pendingAction === 'project'}
+					onsubmit={onFormSubmit}
+					oncancel={() => close()}
+				/>
+			{/key}
+			{#if sessionStore.error}
+				<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>
+			{/if}
+		{/if}
+	{/snippet}
+</Dialog>
 
 <ConfirmDialog
 	open={deleteTarget != null}

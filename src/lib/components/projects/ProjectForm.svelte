@@ -48,93 +48,82 @@
 	}
 </script>
 
-<form
-	class="rounded-lg border border-outline-variant bg-surface-container p-4"
-	onsubmit={handleSubmit}
-	novalidate
-	aria-labelledby="project-form-title"
->
-	<h2 id="project-form-title" class="mb-4 text-headline-md text-on-surface">
-		{mode === 'create' ? m.projects_form_new() : m.projects_form_edit()}
-	</h2>
+<form class="flex flex-col gap-4" onsubmit={handleSubmit} novalidate>
+	<div class="flex flex-col gap-1.5">
+		<label class="text-body-sm text-on-surface-variant" for="project-name"
+			>{m.projects_field_name()}</label
+		>
+		<input
+			id="project-name"
+			type="text"
+			required
+			maxlength="80"
+			value={name}
+			oninput={onNameInput}
+			aria-invalid={fieldErrors.name ? 'true' : undefined}
+			aria-describedby={fieldErrors.name ? 'project-name-error' : undefined}
+			class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 text-body-md text-on-surface"
+			placeholder={m.projects_name_placeholder()}
+			autocomplete="off"
+		/>
+		{#if fieldErrors.name}
+			<p id="project-name-error" class="text-body-sm text-error" role="alert">
+				{fieldErrors.name}
+			</p>
+		{/if}
+	</div>
 
-	<div class="flex flex-col gap-4">
-		<div class="flex flex-col gap-1.5">
-			<label class="text-body-sm text-on-surface-variant" for="project-name"
-				>{m.projects_field_name()}</label
-			>
-			<input
-				id="project-name"
-				type="text"
-				required
-				maxlength="80"
-				value={name}
-				oninput={onNameInput}
-				aria-invalid={fieldErrors.name ? 'true' : undefined}
-				aria-describedby={fieldErrors.name ? 'project-name-error' : undefined}
-				class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 text-body-md text-on-surface"
-				placeholder={m.projects_name_placeholder()}
-				autocomplete="off"
-			/>
-			{#if fieldErrors.name}
-				<p id="project-name-error" class="text-body-sm text-error" role="alert">
-					{fieldErrors.name}
-				</p>
-			{/if}
-		</div>
+	<div class="flex flex-col gap-1.5">
+		<label class="text-body-sm text-on-surface-variant" for="project-code">
+			{m.projects_field_code()}
+			<span class="text-on-surface-variant">{m.projects_field_code_optional()}</span>
+		</label>
+		<input
+			id="project-code"
+			type="text"
+			maxlength="8"
+			value={code}
+			oninput={onCodeInput}
+			class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface uppercase sm:max-w-xs"
+			placeholder={m.projects_code_placeholder()}
+			autocomplete="off"
+			spellcheck="false"
+			aria-invalid={fieldErrors.code ? 'true' : undefined}
+			aria-describedby={fieldErrors.code ? 'project-code-error' : undefined}
+		/>
+		{#if fieldErrors.code}
+			<p id="project-code-error" class="text-body-sm text-error" role="alert">
+				{fieldErrors.code}
+			</p>
+		{/if}
+	</div>
 
-		<div class="flex flex-col gap-1.5">
-			<label class="text-body-sm text-on-surface-variant" for="project-code">
-				{m.projects_field_code()}
-				<span class="text-on-surface-variant">{m.projects_field_code_optional()}</span>
-			</label>
-			<input
-				id="project-code"
-				type="text"
-				maxlength="8"
-				value={code}
-				oninput={onCodeInput}
-				class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface uppercase sm:max-w-xs"
-				placeholder={m.projects_code_placeholder()}
-				autocomplete="off"
-				spellcheck="false"
-				aria-invalid={fieldErrors.code ? 'true' : undefined}
-				aria-describedby={fieldErrors.code ? 'project-code-error' : undefined}
-			/>
-			{#if fieldErrors.code}
-				<p id="project-code-error" class="text-body-sm text-error" role="alert">
-					{fieldErrors.code}
-				</p>
-			{/if}
-		</div>
+	<div class="flex flex-col gap-1.5">
+		<span class="text-body-sm text-on-surface-variant" id="project-color-label"
+			>{m.projects_field_color()}</span
+		>
+		<ProjectColorPicker bind:value={color} id="project-color" />
+		{#if fieldErrors.color}
+			<p id="project-color-error" class="text-body-sm text-error" role="alert">
+				{fieldErrors.color}
+			</p>
+		{/if}
+	</div>
 
-		<div class="flex flex-col gap-1.5">
-			<span class="text-body-sm text-on-surface-variant" id="project-color-label"
-				>{m.projects_field_color()}</span
-			>
-			<ProjectColorPicker bind:value={color} id="project-color" />
-			{#if fieldErrors.color}
-				<p id="project-color-error" class="text-body-sm text-error" role="alert">
-					{fieldErrors.color}
-				</p>
-			{/if}
-		</div>
-
-		<div class="mt-1 flex flex-wrap gap-2">
-			<button
-				type="submit"
-				class="press focus-ring rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
-				disabled={pending}
-			>
-				{mode === 'create' ? m.projects_create() : m.projects_save()}
-			</button>
-			<button
-				type="button"
-				class="press focus-ring rounded border border-outline-variant bg-surface-container-low px-4 py-2 text-body-md text-on-surface hover:border-outline"
-				onclick={oncancel}
-			>
-				{m.common_cancel()}
-			</button>
-		</div>
+	<div class="mt-1 flex flex-wrap justify-end gap-2">
+		<button
+			type="button"
+			class="press focus-ring rounded border border-outline-variant bg-surface-container-low px-4 py-2 text-body-md text-on-surface hover:border-outline"
+			onclick={oncancel}
+		>
+			{m.common_cancel()}
+		</button>
+		<button
+			type="submit"
+			class="press focus-ring rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
+			disabled={pending}
+		>
+			{mode === 'create' ? m.projects_create() : m.projects_save()}
+		</button>
 	</div>
 </form>

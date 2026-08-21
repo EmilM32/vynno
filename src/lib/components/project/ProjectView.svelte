@@ -6,6 +6,7 @@
 	import ProjectForm from '$lib/components/projects/ProjectForm.svelte';
 	import WeeklyOverview from '$lib/components/dashboard/WeeklyOverview.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import {
@@ -191,7 +192,7 @@
 							class="focus-ring hidden min-h-10 items-center rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
 							onclick={() => {
 								sessionStore.clearError();
-								editing = !editing;
+								editing = true;
 							}}
 							disabled={sessionStore.pendingAction === 'project'}
 						>
@@ -237,7 +238,7 @@
 								class="focus-ring min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
 								onclick={() => {
 									sessionStore.clearError();
-									editing = !editing;
+									editing = true;
 									moreOpen = false;
 								}}
 								disabled={sessionStore.pendingAction === 'project'}
@@ -293,16 +294,6 @@
 			</div>
 		{/if}
 
-		{#if editing}
-			<ProjectForm
-				mode="edit"
-				{project}
-				pending={sessionStore.pendingAction === 'project'}
-				onsubmit={onFormSubmit}
-				oncancel={() => (editing = false)}
-			/>
-		{/if}
-
 		{#if stats}
 			<div class="flex flex-col gap-3">
 				<PeriodToggle bind:value={period} options={periodOptions} />
@@ -323,4 +314,19 @@
 
 		<ProjectEntries sessions={mine} />
 	</div>
+
+	<Dialog open={editing} title={m.projects_form_edit()} onclose={() => (editing = false)} size="lg">
+		{#snippet children({ close })}
+			<ProjectForm
+				mode="edit"
+				{project}
+				pending={sessionStore.pendingAction === 'project'}
+				onsubmit={onFormSubmit}
+				oncancel={() => close()}
+			/>
+			{#if sessionStore.error}
+				<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>
+			{/if}
+		{/snippet}
+	</Dialog>
 {/if}

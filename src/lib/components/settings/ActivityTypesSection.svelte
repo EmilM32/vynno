@@ -1,58 +1,44 @@
 <script lang="ts">
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import {
-		ACTIVITY_COLOR_TOKENS,
-		isActivityColorToken,
-		type ActivityColorToken
-	} from '$lib/time/activity-styles';
+	import type { ActivityColorToken } from '$lib/time/activity-styles';
 	import type { ActivityType } from '$lib/types/domain';
 	import ActivityChip from '$lib/components/ui/ActivityChip.svelte';
-	import ActivityColorPicker from './ActivityColorPicker.svelte';
+	import ActivityTypeForm from './ActivityTypeForm.svelte';
 
 	const sessionStore = useSession();
 
-	let nameDraft = $state('');
-	let colorDraft = $state<ActivityColorToken>(ACTIVITY_COLOR_TOKENS[0]);
-	let editing = $state<ActivityType | null>(null);
+	type FormMode = { kind: 'create' } | { kind: 'edit'; type: ActivityType } | null;
+
+	let formMode = $state<FormMode>(null);
 	let deleteTarget = $state<ActivityType | null>(null);
 
 	const busy = $derived(sessionStore.pendingAction === 'activity');
 
-	function startEdit(type: ActivityType) {
+	function openCreate() {
 		sessionStore.clearError();
-		editing = type;
-		nameDraft = type.name;
-		colorDraft = isActivityColorToken(type.color) ? type.color : ACTIVITY_COLOR_TOKENS[0];
+		formMode = { kind: 'create' };
 	}
 
-	function startCreate() {
+	function openEdit(type: ActivityType) {
 		sessionStore.clearError();
-		editing = null;
-		nameDraft = '';
-		colorDraft = ACTIVITY_COLOR_TOKENS[0];
+		formMode = { kind: 'edit', type };
 	}
 
-	async function onSave() {
-		const name = nameDraft.trim();
-		if (!name || busy) return;
-		if (editing) {
-			const ok = await sessionStore.updateActivityType(editing.id, {
-				name,
-				color: colorDraft
-			});
-			if (ok) {
-				editing = null;
-				nameDraft = '';
-			}
+	function closeForm() {
+		formMode = null;
+	}
+
+	async function onFormSubmit(values: { name: string; color: ActivityColorToken }) {
+		if (formMode?.kind === 'edit') {
+			const ok = await sessionStore.updateActivityType(formMode.type.id, values);
+			if (ok) formMode = null;
 			return;
 		}
-		const created = await sessionStore.createActivityType({ name, color: colorDraft });
-		if (created) {
-			nameDraft = '';
-			colorDraft = ACTIVITY_COLOR_TOKENS[0];
-		}
+		const created = await sessionStore.createActivityType(values);
+		if (created) formMode = null;
 	}
 
 	async function confirmDelete() {
@@ -66,15 +52,37 @@
 	class="rounded-lg border border-outline-variant bg-surface-container p-4"
 	aria-labelledby="settings-activity-types"
 >
-	<h2 id="settings-activity-types" class="mb-1 text-headline-md text-on-surface">
-		{m.settings_activity_types()}
-	</h2>
-	<p class="mb-4 text-body-sm text-on-surface-variant">{m.settings_activity_types_hint()}</p>
+	<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+		<div class="min-w-0">
+			<h2 id="settings-activity-types" class="text-headline-md text-on-surface">
+				{m.settings_activity_types()}
+			</h2>
+			<p class="mt-1 text-body-sm text-on-surface-variant">{m.settings_activity_types_hint()}</p>
+		</div>
+		<button
+			type="button"
+			class="press focus-ring shrink-0 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container"
+			onclick={openCreate}
+		>
+			{m.settings_activity_type_add()}
+		</button>
+	</div>
 
 	{#if sessionStore.activityTypes.length === 0}
-		<p class="mb-4 text-body-sm text-on-surface-variant">{m.activity_types_empty()}</p>
+		<div
+			class="rounded-lg border border-dashed border-outline-variant bg-surface-container-low/40 px-4 py-8 text-center"
+		>
+			<p class="text-body-sm text-on-surface-variant">{m.activity_types_empty()}</p>
+			<button
+				type="button"
+				class="focus-ring mt-3 text-body-sm text-primary underline"
+				onclick={openCreate}
+			>
+				{m.activity_types_create_one()}
+			</button>
+		</div>
 	{:else}
-		<ul class="mb-4 flex flex-col gap-2" data-testid="activity-type-list">
+		<ul class="flex flex-col gap-2" data-testid="activity-type-list">
 			{#each sessionStore.activityTypes as type (type.id)}
 				{const inUse = $derived(sessionStore.countSessionsForActivityType(type.id) > 0)}
 				{const deleteReasonId = $derived(`${type.id}-delete-reason`)}
@@ -89,7 +97,7 @@
 						<button
 							type="button"
 							class="press focus-ring rounded border border-outline-variant px-2 py-1 font-mono text-code-label text-on-surface hover:bg-surface-container-high"
-							onclick={() => startEdit(type)}
+							onclick={() => openEdit(type)}
 						>
 							{m.activity_types_edit()}
 						</button>
@@ -117,54 +125,33 @@
 		</ul>
 	{/if}
 
-	<form
-		class="flex flex-col gap-3"
-		onsubmit={(e) => {
-			e.preventDefault();
-			void onSave();
-		}}
-	>
-		<label class="flex flex-col gap-1 text-body-md text-on-surface" for="activity-type-name">
-			{m.settings_activity_type_name()}
-			<input
-				id="activity-type-name"
-				type="text"
-				maxlength="32"
-				bind:value={nameDraft}
-				class="rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface"
-			/>
-			<span class="text-body-sm text-on-surface-variant"
-				>{m.settings_activity_type_name_hint()}</span
-			>
-		</label>
-		<div class="flex flex-col gap-1">
-			<span class="text-body-md text-on-surface">{m.settings_activity_type_color()}</span>
-			<ActivityColorPicker bind:value={colorDraft} />
-		</div>
-		<div class="flex flex-wrap gap-2">
-			<button
-				type="submit"
-				class="press focus-ring min-h-10 rounded bg-primary px-4 py-2 font-mono text-code-data text-on-primary hover:bg-primary-container disabled:opacity-50"
-				disabled={busy || !nameDraft.trim()}
-			>
-				{editing ? m.settings_activity_type_save() : m.settings_activity_type_add()}
-			</button>
-			{#if editing}
-				<button
-					type="button"
-					class="press focus-ring min-h-10 rounded border border-outline-variant px-4 py-2 font-mono text-code-data text-on-surface"
-					onclick={startCreate}
-				>
-					{m.common_cancel()}
-				</button>
-			{/if}
-		</div>
-	</form>
-
-	{#if sessionStore.error}
+	{#if sessionStore.error && formMode === null}
 		<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>
 	{/if}
 </section>
+
+<Dialog
+	open={formMode != null}
+	title={formMode?.kind === 'edit' ? m.activity_types_form_edit() : m.activity_types_form_new()}
+	onclose={closeForm}
+>
+	{#snippet children({ close })}
+		{#if formMode}
+			{#key formMode.kind === 'edit' ? formMode.type.id : 'create'}
+				<ActivityTypeForm
+					mode={formMode.kind}
+					type={formMode.kind === 'edit' ? formMode.type : undefined}
+					pending={busy}
+					onsubmit={onFormSubmit}
+					oncancel={() => close()}
+				/>
+			{/key}
+			{#if sessionStore.error}
+				<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>
+			{/if}
+		{/if}
+	{/snippet}
+</Dialog>
 
 <ConfirmDialog
 	open={deleteTarget != null}

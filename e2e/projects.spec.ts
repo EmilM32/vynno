@@ -16,6 +16,7 @@ test.describe('projects', () => {
 	test('creates a project and lists it as active', async ({ page }) => {
 		const name = `E2E Project ${Date.now()}`;
 		await page.getByTestId('new-project').click();
+		await expect(page.getByRole('dialog', { name: 'New project' })).toBeVisible();
 		await page.getByLabel('Name').fill(name);
 		await page.locator('#project-code').fill('');
 		const [request] = await Promise.all([
@@ -75,6 +76,7 @@ test.describe('projects', () => {
 	test('new project appears in Timer picker', async ({ page }) => {
 		const name = `Timer Pick ${Date.now()}`;
 		await page.getByTestId('new-project').click();
+		await expect(page.getByRole('dialog', { name: 'New project' })).toBeVisible();
 		await page.getByLabel('Name').fill(name);
 		await page.locator('#project-code').fill('');
 		await page.getByRole('button', { name: 'Create project' }).click();

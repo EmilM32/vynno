@@ -41,8 +41,6 @@
 	let endedLocal = $state(isoToDatetimeLocal(session?.endedAt ?? new Date().toISOString()));
 	let timeError = $state<string | null>(null);
 
-	const titleId = $derived(mode === 'create' ? 'session-form-new' : 'session-form-edit');
-
 	function handleSubmit(e: Event) {
 		e.preventDefault();
 		if (pending) return;
@@ -78,109 +76,97 @@
 	}
 </script>
 
-<form
-	class="rounded-lg border border-outline-variant bg-surface-container p-4"
-	onsubmit={handleSubmit}
-	novalidate
-	aria-labelledby={titleId}
-	data-testid="session-form"
->
-	<h2 id={titleId} class="mb-4 text-headline-md text-on-surface">
-		{mode === 'create' ? m.logs_form_new() : m.logs_form_edit()}
-	</h2>
+<form class="flex flex-col gap-4" onsubmit={handleSubmit} novalidate data-testid="session-form">
+	<div class="flex flex-col gap-1.5">
+		<label class="text-body-sm text-on-surface-variant" for="session-note"
+			>{m.logs_field_note()}</label
+		>
+		<input
+			id="session-note"
+			type="text"
+			bind:value={note}
+			class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface"
+			autocomplete="off"
+		/>
+	</div>
 
-	<div class="flex flex-col gap-4">
+	<div class="grid gap-4 sm:grid-cols-2">
 		<div class="flex flex-col gap-1.5">
-			<label class="text-body-sm text-on-surface-variant" for="session-note"
-				>{m.logs_field_note()}</label
+			<label class="text-body-sm text-on-surface-variant" for="session-project"
+				>{m.logs_field_project()}</label
+			>
+			<select
+				id="session-project"
+				class="native-select w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface"
+				bind:value={projectId}
+			>
+				{#each sessionStore.allProjects as project (project.id)}
+					<option value={project.id}>{project.name}</option>
+				{/each}
+			</select>
+		</div>
+		<div class="flex flex-col gap-1.5">
+			<label class="text-body-sm text-on-surface-variant" for="session-activity"
+				>{m.logs_field_activity()}</label
+			>
+			<select
+				id="session-activity"
+				class="native-select w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface"
+				bind:value={activityTypeId}
+			>
+				<option value="">{m.logs_activity_none()}</option>
+				{#each sessionStore.activityTypes as type (type.id)}
+					<option value={type.id}>{type.name}</option>
+				{/each}
+			</select>
+		</div>
+	</div>
+
+	<div class="grid gap-4 sm:grid-cols-2">
+		<div class="flex flex-col gap-1.5">
+			<label class="text-body-sm text-on-surface-variant" for="session-started"
+				>{m.logs_field_started()}</label
 			>
 			<input
-				id="session-note"
-				type="text"
-				bind:value={note}
-				class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface"
-				autocomplete="off"
+				id="session-started"
+				type="datetime-local"
+				bind:value={startedLocal}
+				class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface"
 			/>
 		</div>
-
-		<div class="grid gap-4 sm:grid-cols-2">
+		{#if !live}
 			<div class="flex flex-col gap-1.5">
-				<label class="text-body-sm text-on-surface-variant" for="session-project"
-					>{m.logs_field_project()}</label
-				>
-				<select
-					id="session-project"
-					class="native-select w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface"
-					bind:value={projectId}
-				>
-					{#each sessionStore.allProjects as project (project.id)}
-						<option value={project.id}>{project.name}</option>
-					{/each}
-				</select>
-			</div>
-			<div class="flex flex-col gap-1.5">
-				<label class="text-body-sm text-on-surface-variant" for="session-activity"
-					>{m.logs_field_activity()}</label
-				>
-				<select
-					id="session-activity"
-					class="native-select w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface"
-					bind:value={activityTypeId}
-				>
-					<option value="">{m.logs_activity_none()}</option>
-					{#each sessionStore.activityTypes as type (type.id)}
-						<option value={type.id}>{type.name}</option>
-					{/each}
-				</select>
-			</div>
-		</div>
-
-		<div class="grid gap-4 sm:grid-cols-2">
-			<div class="flex flex-col gap-1.5">
-				<label class="text-body-sm text-on-surface-variant" for="session-started"
-					>{m.logs_field_started()}</label
+				<label class="text-body-sm text-on-surface-variant" for="session-ended"
+					>{m.logs_field_ended()}</label
 				>
 				<input
-					id="session-started"
+					id="session-ended"
 					type="datetime-local"
-					bind:value={startedLocal}
+					bind:value={endedLocal}
 					class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface"
 				/>
 			</div>
-			{#if !live}
-				<div class="flex flex-col gap-1.5">
-					<label class="text-body-sm text-on-surface-variant" for="session-ended"
-						>{m.logs_field_ended()}</label
-					>
-					<input
-						id="session-ended"
-						type="datetime-local"
-						bind:value={endedLocal}
-						class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface"
-					/>
-				</div>
-			{/if}
-		</div>
-
-		{#if timeError}
-			<p class="text-body-sm text-error" role="alert">{timeError}</p>
 		{/if}
+	</div>
 
-		<div class="flex flex-wrap justify-end gap-2">
-			<button
-				type="button"
-				class="focus-ring rounded border border-outline-variant px-3 py-1.5 text-body-sm text-on-surface hover:bg-surface-variant"
-				onclick={oncancel}
-			>
-				{m.common_cancel()}
-			</button>
-			<button
-				type="submit"
-				class="focus-ring rounded border border-transparent bg-primary px-3 py-1.5 text-body-sm text-on-primary hover:bg-primary-fixed-dim disabled:opacity-60"
-				disabled={pending}
-			>
-				{mode === 'create' ? m.logs_create() : m.logs_save()}
-			</button>
-		</div>
+	{#if timeError}
+		<p class="text-body-sm text-error" role="alert">{timeError}</p>
+	{/if}
+
+	<div class="flex flex-wrap justify-end gap-2">
+		<button
+			type="button"
+			class="focus-ring rounded border border-outline-variant px-3 py-1.5 text-body-sm text-on-surface hover:bg-surface-variant"
+			onclick={oncancel}
+		>
+			{m.common_cancel()}
+		</button>
+		<button
+			type="submit"
+			class="focus-ring rounded border border-transparent bg-primary px-3 py-1.5 text-body-sm text-on-primary hover:bg-primary-fixed-dim disabled:opacity-60"
+			disabled={pending}
+		>
+			{mode === 'create' ? m.logs_create() : m.logs_save()}
+		</button>
 	</div>
 </form>

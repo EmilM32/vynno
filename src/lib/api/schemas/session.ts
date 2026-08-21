@@ -16,7 +16,10 @@ export const sessionDtoSchema = v.object({
 	targetDurationMs: v.nullable(v.pipe(v.number(), v.minValue(0)))
 });
 
-export const sessionListDtoSchema = listSchema(sessionDtoSchema);
+export const sessionListDtoSchema = v.object({
+	items: v.array(sessionDtoSchema),
+	nextCursor: v.nullable(v.string())
+});
 
 export const startSessionDtoSchema = v.object({
 	projectId: idSchema,

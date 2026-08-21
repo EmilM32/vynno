@@ -25,6 +25,7 @@ export const apiPaths = {
 		const params = new URLSearchParams();
 		if (filters.status?.length) params.set('status', filters.status.join(','));
 		if (filters.limit != null) params.set('limit', String(filters.limit));
+		if (filters.cursor) params.set('cursor', filters.cursor);
 		return withQuery('/sessions', params);
 	},
 	sessionsActive: () => '/sessions/active',

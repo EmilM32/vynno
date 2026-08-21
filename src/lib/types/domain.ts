@@ -97,11 +97,18 @@ export interface CreateManualSessionInput {
 	pausedMs?: number;
 }
 
+export interface SessionPage {
+	items: TimeSession[];
+	nextCursor: string | null;
+}
+
 export interface SessionFilters {
 	/** Include only these statuses (default: all) */
 	status?: SessionStatus[];
-	/** Max number of sessions (newest first) */
+	/** Max number of sessions (newest first). Default 20 on the API. */
 	limit?: number;
+	/** Opaque nextCursor from the previous page. */
+	cursor?: string;
 }
 
 export interface ProjectListOptions {

@@ -6,4 +6,5 @@ export interface AppSeed {
 	projects: Project[];
 	activityTypes: ActivityType[];
 	sessions: TimeSession[];
+	nextCursor: string | null;
 }

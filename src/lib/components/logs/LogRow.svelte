@@ -29,65 +29,79 @@
 	);
 </script>
 
-<div
-	class="group flex flex-col justify-between gap-3 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline hover:bg-surface-container md:flex-row md:items-center md:gap-6"
-	data-testid="log-row"
->
-	<div class="flex min-w-0 flex-1 items-center gap-4 overflow-hidden">
-		{#if !hideProject}
-			<div class="flex min-w-[120px] items-center gap-2">
-				<div
-					class="h-2 w-2 shrink-0 rounded-full"
-					style:background-color={project?.color ?? '#64748b'}
-					aria-hidden="true"
-				></div>
-				<span class="truncate text-body-sm text-on-surface"
-					>{project?.name ?? m.common_unknown()}</span
-				>
-			</div>
-		{/if}
+{#snippet projectIdentity()}
+	<div class="flex min-w-0 items-center gap-2">
 		<div
-			class="min-w-0 flex-1 truncate font-mono text-code-data text-on-surface-variant"
-			title={session.note}
-		>
-			&gt; {session.note}
-		</div>
+			class="h-2 w-2 shrink-0 rounded-full"
+			style:background-color={project?.color ?? '#64748b'}
+			aria-hidden="true"
+		></div>
+		<span class="truncate text-body-sm text-on-surface">{project?.name ?? m.common_unknown()}</span>
 	</div>
-	<div class="flex items-center gap-4 md:justify-end">
-		{#if activity}
-			<div class="hidden gap-2 md:flex">
-				<ActivityChip type={activity} />
-			</div>
-		{/if}
+{/snippet}
+
+{#snippet timeCluster(className: string, durationClass: string)}
+	<div class="flex shrink-0 items-center gap-3 {className}">
 		<div class="font-mono text-code-data whitespace-nowrap text-on-surface-variant">
 			{range}
 		</div>
-		<div
-			class="min-w-[80px] text-right font-mono text-code-data whitespace-nowrap text-on-surface md:text-code-display"
-		>
+		<div class="font-mono text-code-data whitespace-nowrap text-on-surface {durationClass}">
 			{formatCompact(duration)}
 		</div>
-		{#if onedit || ondelete}
-			<div class="flex items-center gap-1.5">
-				{#if onedit}
-					<button
-						type="button"
-						class="focus-ring rounded border border-outline-variant px-2 py-1 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant"
-						onclick={onedit}
-					>
-						{m.logs_edit()}
-					</button>
-				{/if}
-				{#if ondelete}
-					<button
-						type="button"
-						class="focus-ring rounded border border-outline-variant px-2 py-1 text-body-sm text-error transition-colors hover:border-error/50 hover:bg-error-container/20"
-						onclick={ondelete}
-					>
-						{m.logs_delete()}
-					</button>
-				{/if}
-			</div>
-		{/if}
 	</div>
+{/snippet}
+
+<div
+	class="group flex min-w-0 flex-col gap-2 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline hover:bg-surface-container md:flex-row md:items-center md:gap-6"
+	data-testid="log-row"
+>
+	<div class="flex min-w-0 items-center justify-between gap-3 md:hidden">
+		{#if !hideProject}
+			{@render projectIdentity()}
+		{/if}
+		{@render timeCluster('ml-auto', '')}
+	</div>
+
+	{#if !hideProject}
+		<div class="hidden min-w-[120px] shrink-0 md:flex">
+			{@render projectIdentity()}
+		</div>
+	{/if}
+
+	<div
+		class="min-w-0 font-mono text-code-data break-words whitespace-normal text-on-surface-variant md:flex-1 md:truncate md:whitespace-nowrap"
+		title={session.note}
+	>
+		&gt; {session.note}
+	</div>
+
+	<div class="hidden items-center gap-4 md:flex">
+		{#if activity}
+			<ActivityChip type={activity} />
+		{/if}
+		{@render timeCluster('', 'min-w-[80px] text-right text-code-display')}
+	</div>
+
+	{#if onedit || ondelete}
+		<div class="flex shrink-0 items-center justify-end gap-1.5">
+			{#if onedit}
+				<button
+					type="button"
+					class="focus-ring rounded border border-outline-variant px-2 py-1 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant"
+					onclick={onedit}
+				>
+					{m.logs_edit()}
+				</button>
+			{/if}
+			{#if ondelete}
+				<button
+					type="button"
+					class="focus-ring rounded border border-outline-variant px-2 py-1 text-body-sm text-error transition-colors hover:border-error/50 hover:bg-error-container/20"
+					onclick={ondelete}
+				>
+					{m.logs_delete()}
+				</button>
+			{/if}
+		</div>
+	{/if}
 </div>

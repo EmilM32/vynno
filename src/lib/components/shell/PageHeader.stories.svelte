@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import ActivityChip from '$lib/components/ui/ActivityChip.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import PageHeader from './PageHeader.svelte';
 
 	const { Story } = defineMeta({
@@ -20,12 +21,7 @@
 	{#snippet template(args)}
 		<PageHeader {...args} title="Projects" description="Active and archived workstreams.">
 			{#snippet actions()}
-				<button
-					type="button"
-					class="press focus-ring min-h-10 rounded bg-primary px-3 py-2 text-body-md font-medium text-on-primary"
-				>
-					New project
-				</button>
+				<Button variant="primary">New project</Button>
 			{/snippet}
 		</PageHeader>
 	{/snippet}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Button from '$lib/components/ui/Button.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { datetimeLocalToIso, isoToDatetimeLocal } from '$lib/time/duration';
@@ -82,65 +84,58 @@
 
 	<div class="mt-6 flex w-full max-w-[280px] gap-3">
 		{#if isIdle}
-			<button
-				type="button"
-				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary hover:bg-primary-fixed-dim disabled:cursor-not-allowed disabled:opacity-60"
+			<Button
+				variant="primary"
+				size="lg"
+				class="flex-1"
 				onclick={() => sessionStore.start()}
 				disabled={pending}
 			>
-				<span
-					class="material-symbols-outlined text-[22px]"
-					style="font-variation-settings: 'FILL' 1"
-					aria-hidden="true">play_arrow</span
-				>
+				<Icon name="play_arrow" size="xl" fill />
 				{m.timer_start()}
-			</button>
+			</Button>
 		{:else if isActive}
-			<button
-				type="button"
-				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-outline-variant bg-surface-container-highest py-2 text-headline-md text-on-surface hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-60"
+			<Button
+				variant="neutral"
+				size="lg"
+				class="flex-1"
 				onclick={() => sessionStore.pause()}
 				disabled={pending}
 			>
-				<span class="material-symbols-outlined text-tertiary-fixed" aria-hidden="true">pause</span>
+				<Icon name="pause" size="2xl" class="text-tertiary-fixed" />
 				{m.timer_pause()}
-			</button>
-			<button
-				type="button"
-				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary hover:bg-primary-fixed-dim disabled:cursor-not-allowed disabled:opacity-60"
+			</Button>
+			<Button
+				variant="primary"
+				size="lg"
+				class="flex-1"
 				onclick={() => sessionStore.stop()}
 				disabled={pending}
 			>
-				<span
-					class="material-symbols-outlined text-[20px]"
-					style="font-variation-settings: 'FILL' 1"
-					aria-hidden="true">stop</span
-				>
+				<Icon name="stop" size="lg" fill />
 				{m.timer_stop()}
-			</button>
+			</Button>
 		{:else}
-			<button
-				type="button"
-				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-outline-variant bg-surface-container-highest py-2 text-headline-md text-on-surface hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-60"
+			<Button
+				variant="neutral"
+				size="lg"
+				class="flex-1"
 				onclick={() => sessionStore.resume()}
 				disabled={pending}
 			>
-				<span class="material-symbols-outlined text-secondary" aria-hidden="true">play_arrow</span>
+				<Icon name="play_arrow" size="2xl" class="text-secondary" />
 				{m.timer_resume()}
-			</button>
-			<button
-				type="button"
-				class="press focus-ring flex flex-1 items-center justify-center gap-2 rounded border border-transparent bg-primary py-2 text-headline-md text-on-primary hover:bg-primary-fixed-dim disabled:cursor-not-allowed disabled:opacity-60"
+			</Button>
+			<Button
+				variant="primary"
+				size="lg"
+				class="flex-1"
 				onclick={() => sessionStore.stop()}
 				disabled={pending}
 			>
-				<span
-					class="material-symbols-outlined text-[20px]"
-					style="font-variation-settings: 'FILL' 1"
-					aria-hidden="true">stop</span
-				>
+				<Icon name="stop" size="lg" fill />
 				{m.timer_stop()}
-			</button>
+			</Button>
 		{/if}
 	</div>
 </div>

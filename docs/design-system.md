@@ -194,32 +194,72 @@ Personality, the frequency gate, tokens, and do/don’t: **[motion.md](./motion.
 
 ## 8. Component inventory
 
+### Primitives (built)
+
+Live in `src/lib/components/ui/`. Browse them in Storybook under `UI/*`. These own their
+chrome classes — `.press`, `.focus-ring`, hover/disabled tokens, radius, and the size scale
+come from the component, never from the call site. Decision: [adr/0017-ui-primitives.md](./adr/0017-ui-primitives.md).
+
+**`Button`** — renders `<button>`, or `<a>` when given `href`.
+
+| Variant         | Look                                        | `.press` | Used for                          |
+| --------------- | ------------------------------------------- | -------- | --------------------------------- |
+| `primary`       | Solid primary fill                          | yes      | The one main action on a screen   |
+| `neutral`       | Solid neutral fill                          | yes      | Pause / Resume in the transport   |
+| `secondary`     | Bordered, no fill                           | yes      | Row actions, form cancels         |
+| `tonal`         | `primary/10` fill + `primary/30` border     | yes      | An accent action that is not main |
+| `danger`        | Bordered error                              | yes      | Destructive row actions           |
+| `danger-filled` | Solid `error-container`                     | yes      | Destructive confirm in a dialog   |
+| `quiet`         | Borderless, hover tint, inherits ink        | yes      | Quiet chrome (⌘K row, clock)      |
+| `inline`        | Underlined text, inherits ink               | no       | “Dismiss” inside a banner         |
+| `link`          | Underlined text in `primary`                | no       | A text CTA in running copy        |
+| `tab`           | Segment; `selected` drives the active state | no       | Tab strips, segmented controls    |
+
+| Size | Box                     | Type          | Used for                        |
+| ---- | ----------------------- | ------------- | ------------------------------- |
+| `xs` | `min-h-6 px-2 py-1`     | `body-sm`     | Row actions (24px = WCAG 2.5.8) |
+| `sm` | `min-h-8 px-2.5 py-1.5` | `body-sm`     | Compact forms, tabs             |
+| `md` | `min-h-10 px-4 py-2`    | `body-md`     | Default — forms, CTAs, dialogs  |
+| `lg` | `min-h-10 px-4 py-2`    | `headline-md` | Timer transport                 |
+
+`inline` and `link` take the type scale only, not the box metrics — they sit in a sentence.
+
+**`IconButton`** — icon-only, requires `label` (becomes `aria-label`). Variants `ghost` |
+`bordered`; sizes `sm` (24px) | `md` (40px). Deliberately no `.press` ([motion.md](./motion.md)).
+
+**`Icon`** — the only place `material-symbols-outlined` appears. Sizes `xs`–`2xl`
+(14/16/18/20/22/24px); `fill` drives the FILL axis for active nav items and transport glyphs.
+
+**`Dialog`** / **`ConfirmDialog`** — centered overlay, focus-trapped. **`ActivityChip`** —
+near-square pill with type colour.
+
+**Rules.** Button labels are Inter (§3: mono is for data, not labels) — mono belongs _inside_
+a button when the content is a duration or code. The `class` prop takes layout and colour
+only; padding, radius, border, background and type scale come from `variant` and `size`.
+`primitives.guard.test.ts` fails the build on a raw `<button>` or a visual utility in `class`.
+
+Non-chrome interactive surfaces are **not** `Button`: dismiss scrims, list rows, colour
+swatches and nav links stay raw markup, allowlisted with a reason in the guard test.
+
 ### Shell
 
 - **SideNav** (desktop): brand + version, nav links with left border active state, CTA, profile
 - **BottomNav** (mobile): 5 tabs, active filled/tinted
 - **TopAppBar**: brand, command-palette trigger, live indicator
 
-### Core
+### Not yet extracted
 
-- **Timer card** — largest mono display; primary pulse when active
-- **Primary button** — solid primary fill, dark text
-- **Ghost / secondary button** — bordered, Pause style
-- **Destructive-tinged Stop** — error border/fill on desktop mock
+Still hand-written at each call site; see the Phase 2/3 backlog in ADR-0017.
+
 - **Text input** — dark field, primary on-border focus (not an offset ring)
 - **Command / quick input** — mono, terminal prompt aesthetic
 - **Project chip** — short code, primary tint background
-- **Activity chip** — near-square pill with type color
 - **Status dot** — 8px circle (green / amber / slate)
+- **Timer card** — largest mono display; primary pulse when active
 - **Log row** — project dot, note, range, duration
-- **Dialog** — centered overlay for confirms and create/edit forms (focus-trapped)
 - **KPI card** — label + large mono metric + delta
 - **Progress bar** — thin track for project % or session target
 - **Charts** — donut + bar; mono tooltips; no heavy decoration
-
-### Icons
-
-Material Symbols Outlined (FILL variation for active nav items).
 
 ---
 

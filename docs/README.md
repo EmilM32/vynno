@@ -25,6 +25,7 @@ Brand: say **VIN-oh**. See [brand.md](./brand.md).
 | [tauri.md](./tauri.md)                                             | Native desktop (Tauri 2) — second target, macOS first      |
 | [adr/](./adr/)                                                     | Architecture Decision Records                              |
 | [adr/0016-storybook-workshop.md](./adr/0016-storybook-workshop.md) | Component workshop (Storybook)                             |
+| [adr/0017-ui-primitives.md](./adr/0017-ui-primitives.md)           | Button / IconButton / Icon own their chrome classes        |
 | [vynno-api](https://github.com/EmilM32/vynno-api)                  | Companion backend (API, database, auth)                    |
 
 ## Design source material

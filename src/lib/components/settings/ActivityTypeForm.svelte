@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import {
 		ACTIVITY_COLOR_TOKENS,
@@ -54,19 +55,11 @@
 		<ActivityColorPicker bind:value={color} />
 	</div>
 	<div class="flex flex-wrap justify-end gap-2">
-		<button
-			type="button"
-			class="press focus-ring min-h-10 rounded border border-outline-variant px-4 py-2 font-mono text-code-data text-on-surface"
-			onclick={oncancel}
-		>
+		<Button variant="secondary" onclick={oncancel}>
 			{m.common_cancel()}
-		</button>
-		<button
-			type="submit"
-			class="press focus-ring min-h-10 rounded bg-primary px-4 py-2 font-mono text-code-data text-on-primary hover:bg-primary-container disabled:opacity-50"
-			disabled={pending || !name.trim()}
-		>
+		</Button>
+		<Button variant="primary" type="submit" disabled={pending || !name.trim()}>
 			{mode === 'edit' ? m.settings_activity_type_save() : m.settings_activity_type_add()}
-		</button>
+		</Button>
 	</div>
 </form>

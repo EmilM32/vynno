@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { defaultProjectColor, suggestCode } from '$lib/projects/palette';
 	import { validateProjectFieldErrors, type ProjectFieldErrorKey } from '$lib/projects/validate';
@@ -111,19 +112,11 @@
 	</div>
 
 	<div class="mt-1 flex flex-wrap justify-end gap-2">
-		<button
-			type="button"
-			class="press focus-ring rounded border border-outline-variant bg-surface-container-low px-4 py-2 text-body-md text-on-surface hover:border-outline"
-			onclick={oncancel}
-		>
+		<Button variant="secondary" onclick={oncancel}>
 			{m.common_cancel()}
-		</button>
-		<button
-			type="submit"
-			class="press focus-ring rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
-			disabled={pending}
-		>
+		</Button>
+		<Button variant="primary" type="submit" disabled={pending}>
 			{mode === 'create' ? m.projects_create() : m.projects_save()}
-		</button>
+		</Button>
 	</div>
 </form>

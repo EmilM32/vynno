@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 
@@ -26,14 +27,11 @@
 			{totalLabel}
 		</div>
 		<div class="flex items-center gap-1 text-body-sm text-on-surface-variant md:mt-1">
-			<span
-				class="material-symbols-outlined text-[14px] {deltaPositive
-					? 'text-secondary'
-					: 'text-tertiary'}"
-				aria-hidden="true"
-			>
-				{deltaPositive ? 'arrow_upward' : 'arrow_downward'}
-			</span>
+			<Icon
+				name={deltaPositive ? 'arrow_upward' : 'arrow_downward'}
+				size="xs"
+				class={deltaPositive ? 'text-secondary' : 'text-tertiary'}
+			/>
 			<span class={deltaPositive ? 'text-secondary' : 'text-tertiary'}>
 				{formatHoursDecimal(deltaAbs)}
 			</span>

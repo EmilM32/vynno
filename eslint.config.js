@@ -34,11 +34,12 @@ export default defineConfig(
 		}
 	},
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
 		rules: {
 			// Prefer Svelte 5.56+ declaration tags over legacy {@const}
-			'svelte/no-at-const-tags': 'error'
+			'svelte/no-at-const-tags': 'error',
+			// Safe now that chrome goes through ui/Button.svelte, which defaults type="button".
+			// Only the allowlisted raw buttons (scrims, rows, swatches) are still checked here.
+			'svelte/button-has-type': 'error'
 		}
 	}
 );

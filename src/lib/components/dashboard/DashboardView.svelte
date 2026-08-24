@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { periodBounds } from '$lib/time/duration';
@@ -27,11 +28,9 @@
 			role="alert"
 		>
 			{sessionStore.error}
-			<button
-				type="button"
-				class="focus-ring ml-2 underline"
-				onclick={() => sessionStore.clearError()}>{m.common_dismiss()}</button
-			>
+			<Button variant="inline" size="xs" class="ml-2" onclick={() => sessionStore.clearError()}>
+				{m.common_dismiss()}
+			</Button>
 		</div>
 	{/if}
 

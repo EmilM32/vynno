@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 
@@ -43,10 +44,11 @@
 			>{m.timer_task_aria()}</label
 		>
 		<div class="group relative w-full">
-			<span
-				class="material-symbols-outlined absolute top-1/2 left-3 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary"
-				aria-hidden="true">prompt_suggestion</span
-			>
+			<Icon
+				name="prompt_suggestion"
+				size="2xl"
+				class="absolute top-1/2 left-3 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary"
+			/>
 			<input
 				id="task-note"
 				class="w-full rounded border border-outline-variant bg-surface-container-low py-3 pr-4 pl-10 font-mono text-code-data text-on-surface transition-colors placeholder:text-on-surface-variant disabled:cursor-not-allowed disabled:opacity-70 lg:border-transparent lg:bg-transparent lg:py-2 lg:pl-10"

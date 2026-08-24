@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import { m } from '$lib/paraglide/messages.js';
@@ -64,13 +65,9 @@
 			</h2>
 			<p class="mt-1 text-body-sm text-on-surface-variant">{m.settings_activity_types_hint()}</p>
 		</div>
-		<button
-			type="button"
-			class="press focus-ring shrink-0 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container"
-			onclick={openCreate}
-		>
+		<Button variant="primary" class="shrink-0" onclick={openCreate}>
 			{m.settings_activity_type_add()}
-		</button>
+		</Button>
 	</div>
 
 	{#if sessionStore.activityTypes.length === 0}
@@ -78,13 +75,9 @@
 			class="rounded-lg border border-dashed border-outline-variant bg-surface-container-low/40 px-4 py-8 text-center"
 		>
 			<p class="text-body-sm text-on-surface-variant">{m.activity_types_empty()}</p>
-			<button
-				type="button"
-				class="focus-ring mt-3 text-body-sm text-primary underline"
-				onclick={openCreate}
-			>
+			<Button variant="link" size="xs" class="mt-3" onclick={openCreate}>
 				{m.activity_types_create_one()}
-			</button>
+			</Button>
 		</div>
 	{:else}
 		<ul class="flex flex-col gap-2" data-testid="activity-type-list">
@@ -99,16 +92,12 @@
 					<ActivityChip {type} />
 					<span class="text-body-sm text-on-surface">{type.name}</span>
 					<div class="ml-auto flex gap-2">
-						<button
-							type="button"
-							class="press focus-ring rounded border border-outline-variant px-2 py-1 font-mono text-code-label text-on-surface hover:bg-surface-container-high"
-							onclick={() => openEdit(type)}
-						>
+						<Button variant="secondary" size="xs" onclick={() => openEdit(type)}>
 							{m.activity_types_edit()}
-						</button>
-						<button
-							type="button"
-							class="press focus-ring rounded border border-outline-variant px-2 py-1 font-mono text-code-label text-on-surface hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-40"
+						</Button>
+						<Button
+							variant="secondary"
+							size="xs"
 							onclick={() => {
 								sessionStore.clearError();
 								deleteTarget = type;
@@ -118,7 +107,7 @@
 							aria-describedby={inUse ? deleteReasonId : undefined}
 						>
 							{m.activity_types_delete()}
-						</button>
+						</Button>
 					</div>
 					{#if inUse}
 						<span id={deleteReasonId} class="sr-only"

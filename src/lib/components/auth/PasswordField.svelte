@@ -1,4 +1,5 @@
 <script lang="ts">
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import type { HTMLInputAttributes } from 'svelte/elements';
 
@@ -51,18 +52,14 @@
 			class="min-h-10 w-full rounded border border-outline-variant bg-surface-container-low py-2.5 pr-11 pl-3 text-body-md text-on-surface"
 		/>
 		<!-- form id does not exist: this must not be the form's default Enter button. -->
-		<button
-			type="button"
+		<IconButton
+			icon={visible ? 'visibility_off' : 'visibility'}
+			label={visible ? hideLabel : showLabel}
 			form="vynno-unassociated"
-			class="focus-ring absolute inset-y-0 right-0 flex min-w-10 items-center justify-center text-on-surface-variant hover:text-on-surface"
-			aria-label={visible ? hideLabel : showLabel}
+			class="absolute inset-y-0 right-0"
 			aria-pressed={visible}
 			onclick={() => (visible = !visible)}
-		>
-			<span class="material-symbols-outlined text-[20px]" aria-hidden="true">
-				{visible ? 'visibility_off' : 'visibility'}
-			</span>
-		</button>
+		/>
 	</div>
 	{#if error}
 		<p id={errorId} class="text-body-sm text-error" role="alert">{error}</p>

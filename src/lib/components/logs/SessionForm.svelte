@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { datetimeLocalToIso, isoToDatetimeLocal } from '$lib/time/duration';
@@ -154,19 +155,11 @@
 	{/if}
 
 	<div class="flex flex-wrap justify-end gap-2">
-		<button
-			type="button"
-			class="focus-ring rounded border border-outline-variant px-3 py-1.5 text-body-sm text-on-surface hover:bg-surface-variant"
-			onclick={oncancel}
-		>
+		<Button variant="secondary" size="sm" onclick={oncancel}>
 			{m.common_cancel()}
-		</button>
-		<button
-			type="submit"
-			class="focus-ring rounded border border-transparent bg-primary px-3 py-1.5 text-body-sm text-on-primary hover:bg-primary-fixed-dim disabled:opacity-60"
-			disabled={pending}
-		>
+		</Button>
+		<Button variant="primary" size="sm" type="submit" disabled={pending}>
 			{mode === 'create' ? m.logs_create() : m.logs_save()}
-		</button>
+		</Button>
 	</div>
 </form>

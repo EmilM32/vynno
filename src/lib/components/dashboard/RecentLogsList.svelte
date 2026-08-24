@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { formatClock, sessionElapsedMs } from '$lib/time/duration';
@@ -54,18 +55,15 @@
 						<span class="font-mono text-code-data text-on-surface tabular-nums">
 							{formatClock(duration)}
 						</span>
-						<button
-							type="button"
-							class="focus-ring flex min-h-6 min-w-6 items-center justify-center rounded p-1 text-on-surface-variant opacity-100 transition-opacity group-focus-within:opacity-100 hover:text-primary focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-30 md:opacity-0 md:group-hover:opacity-100"
+						<IconButton
+							icon="play_arrow"
+							label={m.dashboard_restart_aria({ note: log.note })}
+							size="sm"
+							class="opacity-100 transition-opacity group-focus-within:opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
 							disabled={busy}
 							onclick={() => restart(log.id)}
 							title={busy ? m.timer_stop_first() : m.dashboard_restart_task()}
-							aria-label={m.dashboard_restart_aria({ note: log.note })}
-						>
-							<span class="material-symbols-outlined text-[16px]" aria-hidden="true"
-								>play_arrow</span
-							>
-						</button>
+						/>
 					</div>
 				</div>
 			{/each}

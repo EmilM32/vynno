@@ -6,7 +6,10 @@
 	import ProjectForm from '$lib/components/projects/ProjectForm.svelte';
 	import WeeklyOverview from '$lib/components/dashboard/WeeklyOverview.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import {
@@ -123,7 +126,7 @@
 					href={resolve('/projects')}
 					class="focus-ring inline-flex items-center gap-1 text-body-sm text-primary"
 				>
-					<span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_back</span>
+					<Icon name="arrow_back" size="sm" />
 					{m.project_back()}
 				</a>
 			{/snippet}
@@ -132,13 +135,54 @@
 	</div>
 {:else}
 	<div class="flex w-full flex-col gap-6" data-testid="page-view" data-project-id={project.id}>
+		<!--
+			Rendered twice: inline on desktop, and again inside the mobile "more" menu.
+			`inMenu` only changes visibility and whether picking an action closes the menu.
+		-->
+		{#snippet secondaryActions(inMenu: boolean)}
+			{const hideOnMobile = $derived(inMenu ? undefined : 'hidden md:inline-flex')}
+			{const busyProject = $derived(sessionStore.pendingAction === 'project')}
+			<Button
+				variant="secondary"
+				class={hideOnMobile}
+				onclick={() => {
+					sessionStore.clearError();
+					editing = true;
+					if (inMenu) moreOpen = false;
+				}}
+				disabled={busyProject}
+			>
+				{m.projects_edit()}
+			</Button>
+			{#if archived}
+				<Button
+					variant="secondary"
+					class={hideOnMobile}
+					onclick={() => void sessionStore.restoreProject(project.id)}
+					disabled={busyProject}
+				>
+					{m.projects_restore()}
+				</Button>
+			{:else}
+				<Button
+					variant="secondary"
+					class={hideOnMobile}
+					onclick={() => void sessionStore.archiveProject(project.id)}
+					disabled={!canArchive || busyProject}
+					aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
+				>
+					{m.projects_archive()}
+				</Button>
+			{/if}
+		{/snippet}
+
 		<PageHeader title={project.name} description={lastLoggedLabel}>
 			{#snippet eyebrow()}
 				<a
 					href={resolve('/projects')}
 					class="focus-ring inline-flex items-center gap-1 text-body-sm text-primary"
 				>
-					<span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_back</span>
+					<Icon name="arrow_back" size="sm" />
 					{m.project_back()}
 				</a>
 			{/snippet}
@@ -187,95 +231,30 @@
 				<div class="flex w-full flex-col gap-2 sm:w-auto">
 					<div class="flex flex-wrap items-center gap-2">
 						{#if !archived}
-							<button
-								type="button"
-								class="press focus-ring min-h-10 items-center rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-40"
+							<Button
+								variant="primary"
 								onclick={openTimer}
 								disabled={startDisabled}
 								title={otherLive ? m.error_stop_before_start() : undefined}
 								data-testid="project-start"
 							>
 								{liveHere ? m.project_open_timer() : m.project_start_session()}
-							</button>
+							</Button>
 						{/if}
-						<button
-							type="button"
-							class="focus-ring hidden min-h-10 items-center rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
-							onclick={() => {
-								sessionStore.clearError();
-								editing = true;
-							}}
-							disabled={sessionStore.pendingAction === 'project'}
-						>
-							{m.projects_edit()}
-						</button>
-						{#if archived}
-							<button
-								type="button"
-								class="focus-ring hidden min-h-10 items-center rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
-								onclick={() => void sessionStore.restoreProject(project.id)}
-								disabled={sessionStore.pendingAction === 'project'}
-							>
-								{m.projects_restore()}
-							</button>
-						{:else}
-							<button
-								type="button"
-								class="focus-ring hidden min-h-10 items-center rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
-								onclick={() => void sessionStore.archiveProject(project.id)}
-								disabled={!canArchive || sessionStore.pendingAction === 'project'}
-								aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
-							>
-								{m.projects_archive()}
-							</button>
-						{/if}
-						<button
-							type="button"
-							class="focus-ring inline-flex min-h-10 min-w-10 items-center justify-center rounded border border-outline-variant px-2 text-on-surface hover:border-outline hover:bg-surface-variant md:hidden"
+						{@render secondaryActions(false)}
+						<IconButton
+							icon="more_horiz"
+							label={m.project_more_actions()}
+							variant="bordered"
+							class="md:hidden"
 							aria-expanded={moreOpen}
 							aria-controls={moreOpen ? 'project-more-actions' : undefined}
 							onclick={() => (moreOpen = !moreOpen)}
-						>
-							<span class="sr-only">{m.project_more_actions()}</span>
-							<span class="material-symbols-outlined text-[20px]" aria-hidden="true"
-								>more_horiz</span
-							>
-						</button>
+						/>
 					</div>
 					{#if moreOpen}
 						<div id="project-more-actions" class="flex flex-wrap gap-2 md:hidden">
-							<button
-								type="button"
-								class="focus-ring min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
-								onclick={() => {
-									sessionStore.clearError();
-									editing = true;
-									moreOpen = false;
-								}}
-								disabled={sessionStore.pendingAction === 'project'}
-							>
-								{m.projects_edit()}
-							</button>
-							{#if archived}
-								<button
-									type="button"
-									class="focus-ring min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
-									onclick={() => void sessionStore.restoreProject(project.id)}
-									disabled={sessionStore.pendingAction === 'project'}
-								>
-									{m.projects_restore()}
-								</button>
-							{:else}
-								<button
-									type="button"
-									class="focus-ring min-h-10 rounded border border-outline-variant px-3 py-2 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
-									onclick={() => void sessionStore.archiveProject(project.id)}
-									disabled={!canArchive || sessionStore.pendingAction === 'project'}
-									aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
-								>
-									{m.projects_archive()}
-								</button>
-							{/if}
+							{@render secondaryActions(true)}
 						</div>
 					{/if}
 					{#if !archived && !canArchive}
@@ -294,13 +273,14 @@
 			>
 				<div class="flex items-start justify-between gap-3">
 					<span>{sessionStore.error}</span>
-					<button
-						type="button"
-						class="focus-ring shrink-0 text-body-sm underline"
+					<Button
+						variant="inline"
+						size="xs"
+						class="shrink-0"
 						onclick={() => sessionStore.clearError()}
 					>
 						{m.common_dismiss_capital()}
-					</button>
+					</Button>
 				</div>
 			</div>
 		{/if}

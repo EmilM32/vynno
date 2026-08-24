@@ -11,6 +11,7 @@
 	} from '$lib/auth/validate';
 	import BrandMark from '$lib/components/shell/BrandMark.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
+	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import PasswordField from './PasswordField.svelte';
@@ -150,36 +151,34 @@
 			aria-label={m.login_tabs_aria()}
 			onkeydown={onTabListKey}
 		>
-			<button
-				type="button"
+			<Button
+				variant="tab"
+				size="sm"
+				selected={tab === 'login'}
+				class="flex-1"
 				role="tab"
 				id="tab-login"
 				aria-selected={tab === 'login'}
 				aria-controls="auth-panel"
 				tabindex={tab === 'login' ? 0 : -1}
-				class="focus-ring flex-1 rounded px-3 py-1.5 text-body-sm font-medium transition-colors {tab ===
-				'login'
-					? 'bg-surface-container-high text-primary'
-					: 'text-on-surface-variant hover:text-on-surface'}"
 				onclick={() => switchTab('login')}
 			>
 				{m.login_tab_login()}
-			</button>
-			<button
-				type="button"
+			</Button>
+			<Button
+				variant="tab"
+				size="sm"
+				selected={tab === 'register'}
+				class="flex-1"
 				role="tab"
 				id="tab-register"
 				aria-selected={tab === 'register'}
 				aria-controls="auth-panel"
 				tabindex={tab === 'register' ? 0 : -1}
-				class="focus-ring flex-1 rounded px-3 py-1.5 text-body-sm font-medium transition-colors {tab ===
-				'register'
-					? 'bg-surface-container-high text-primary'
-					: 'text-on-surface-variant hover:text-on-surface'}"
 				onclick={() => switchTab('register')}
 			>
 				{m.login_tab_register()}
-			</button>
+			</Button>
 		</div>
 
 		<div
@@ -247,13 +246,9 @@
 						<p class="text-body-sm text-error" role="alert">{formError}</p>
 					{/if}
 
-					<button
-						type="submit"
-						disabled={pending}
-						class="press focus-ring mt-1 min-h-10 w-full rounded bg-primary px-4 py-2.5 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:opacity-60"
-					>
+					<Button variant="primary" type="submit" class="mt-1 w-full" disabled={pending}>
 						{pending ? m.login_pending() : m.login_submit()}
-					</button>
+					</Button>
 				</form>
 			{:else}
 				<form
@@ -355,13 +350,14 @@
 						<p class="text-body-sm text-error" role="alert">{formError}</p>
 					{/if}
 
-					<button
+					<Button
+						variant="primary"
 						type="submit"
+						class="mt-1 w-full"
 						disabled={pending || !registerReady}
-						class="press focus-ring mt-1 min-h-10 w-full rounded bg-primary px-4 py-2.5 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
 					>
 						{pending ? m.register_pending() : m.register_submit()}
-					</button>
+					</Button>
 				</form>
 			{/if}
 		</div>

@@ -4,12 +4,22 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
 	import { useSession } from '$lib/stores/session.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import BrandMark from './BrandMark.svelte';
 	import { isNavActive } from './nav';
 
 	const sessionStore = useSession();
 
-	let commandsBtn: HTMLButtonElement | undefined = $state();
+	let commandsBtn: HTMLElement | undefined = $state();
+
+	/** The palette restores focus here on close, so it needs the rendered node. */
+	function bindCommandsBtn(node: HTMLElement) {
+		commandsBtn = node;
+		return () => {
+			if (commandsBtn === node) commandsBtn = undefined;
+		};
+	}
 
 	const live = $derived(
 		sessionStore.activeSession?.status === 'active' ||
@@ -28,45 +38,38 @@
 			<span class="text-headline-md font-bold text-primary">{m.app_name()}</span>
 		</div>
 		<div class="flex items-center gap-1">
-			<button
-				bind:this={commandsBtn}
-				type="button"
-				class="focus-ring flex min-h-10 min-w-10 items-center justify-center rounded p-2 text-on-surface-variant hover:bg-surface-container hover:text-primary"
-				aria-label={m.shell_open_command_palette()}
+			<IconButton
+				{@attach bindCommandsBtn}
+				icon="terminal"
+				label={m.shell_open_command_palette()}
 				title="⌘K"
 				onclick={() => commandPalette.show(commandsBtn)}
-			>
-				<span class="material-symbols-outlined text-[22px]" aria-hidden="true">terminal</span>
-			</button>
-			<a
+			/>
+			<IconButton
 				href={resolve('/settings')}
-				class="focus-ring flex min-h-10 min-w-10 items-center justify-center rounded p-2 hover:bg-surface-container {settingsActive
-					? 'text-primary'
-					: 'text-on-surface-variant hover:text-primary'}"
-				aria-label={m.nav_settings()}
+				icon="settings"
+				label={m.nav_settings()}
+				fill={settingsActive}
+				selected={settingsActive}
 				aria-current={settingsActive ? 'page' : undefined}
 				data-testid="shell-settings"
-			>
-				<span
-					class="material-symbols-outlined text-[22px]"
-					style={settingsActive ? "font-variation-settings: 'FILL' 1" : undefined}
-					aria-hidden="true">settings</span
-				>
-			</a>
-			<span
-				class="material-symbols-outlined px-1 text-[18px] {live
+			/>
+			<Icon
+				name="fiber_manual_record"
+				fill={live}
+				hidden={false}
+				class="px-1 {live
 					? isActive
 						? 'text-secondary'
 						: 'text-tertiary'
 					: 'text-on-surface-variant'}"
-				style={live ? "font-variation-settings: 'FILL' 1" : undefined}
 				aria-label={live
 					? isActive
 						? m.shell_session_recording()
 						: m.shell_session_paused()
 					: m.shell_no_active_session()}
-				role="status">fiber_manual_record</span
-			>
+				role="status"
+			/>
 		</div>
 	</div>
 </header>

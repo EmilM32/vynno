@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 
@@ -41,47 +44,34 @@
 					<span class="font-mono text-code-label text-tertiary">{m.timer_status_paused()}</span>
 				{/if}
 			</div>
-			<a
+			<IconButton
 				href={resolve('/timer')}
-				class="focus-ring flex min-h-6 min-w-6 items-center justify-center rounded-DEFAULT border border-outline-variant bg-surface-container p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-primary"
-				aria-label={m.dashboard_open_timer()}
-			>
-				<span class="material-symbols-outlined text-[18px]" aria-hidden="true">open_in_new</span>
-			</a>
+				icon="open_in_new"
+				label={m.dashboard_open_timer()}
+				variant="bordered"
+				size="sm"
+			/>
 		</div>
 
 		<p class="mb-2 text-headline-md text-on-surface">{session.note}</p>
 
 		<div class="mt-auto flex flex-wrap items-center gap-3 border-t border-outline-variant/50 pt-4">
 			<div class="flex items-center gap-2">
-				<button
-					type="button"
-					class="press focus-ring inline-flex min-h-10 items-center gap-2 rounded px-2 py-1.5 font-mono text-code-data tabular-nums transition-colors hover:bg-surface-container-high disabled:cursor-not-allowed disabled:opacity-60 {isActive
-						? 'text-primary'
-						: 'text-tertiary'}"
+				<Button
+					variant="quiet"
+					class={isActive ? 'text-primary' : 'text-tertiary'}
 					aria-label={toggleLabel}
 					title={toggleLabel}
 					onclick={togglePause}
 					disabled={pending}
 				>
-					<span class="material-symbols-outlined text-[18px]" aria-hidden="true">
-						{isActive ? 'pause_circle' : 'play_circle'}
-					</span>
-					{sessionStore.elapsedLabel}
-				</button>
-				<button
-					type="button"
-					class="press focus-ring inline-flex min-h-10 items-center gap-1.5 rounded border border-primary/20 bg-primary px-3 py-1.5 font-mono text-code-data text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
-					onclick={() => sessionStore.stop()}
-					disabled={pending}
-				>
-					<span
-						class="material-symbols-outlined text-[18px]"
-						style="font-variation-settings: 'FILL' 1"
-						aria-hidden="true">stop</span
-					>
+					<Icon name={isActive ? 'pause_circle' : 'play_circle'} />
+					<span class="font-mono text-code-data tabular-nums">{sessionStore.elapsedLabel}</span>
+				</Button>
+				<Button variant="primary" size="sm" onclick={() => sessionStore.stop()} disabled={pending}>
+					<Icon name="stop" fill />
 					{m.timer_stop()}
-				</button>
+				</Button>
 			</div>
 			{#if session.tags?.length}
 				<div class="h-4 w-px bg-outline-variant" aria-hidden="true"></div>
@@ -106,13 +96,10 @@
 			{m.dashboard_no_active()}
 		</p>
 		<div class="mt-auto border-t border-outline-variant/50 pt-4">
-			<a
-				href={resolve('/timer')}
-				class="press inline-flex items-center gap-2 rounded border border-primary/20 bg-primary px-3 py-1.5 font-mono text-code-data text-on-primary hover:bg-primary-container"
-			>
-				<span class="material-symbols-outlined text-[18px]" aria-hidden="true">play_arrow</span>
+			<Button variant="primary" size="sm" href={resolve('/timer')}>
+				<Icon name="play_arrow" />
 				{m.dashboard_start_session()}
-			</a>
+			</Button>
 		</div>
 	{/if}
 </div>

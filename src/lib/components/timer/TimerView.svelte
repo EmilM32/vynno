@@ -1,5 +1,6 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import RecentTasks from './RecentTasks.svelte';
@@ -31,11 +32,9 @@
 			role="alert"
 		>
 			<span>{sessionStore.error}</span>
-			<button
-				type="button"
-				class="focus-ring shrink-0 underline"
-				onclick={() => sessionStore.clearError()}>{m.common_dismiss()}</button
-			>
+			<Button variant="inline" size="xs" class="shrink-0" onclick={() => sessionStore.clearError()}>
+				{m.common_dismiss()}
+			</Button>
 		</div>
 	{/if}
 

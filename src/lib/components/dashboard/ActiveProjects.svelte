@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
@@ -57,10 +58,7 @@
 					<span class="text-body-sm text-on-surface-variant">
 						{m.dashboard_logged_this_week({ duration: formatCompact(item.ms) })}
 					</span>
-					<span
-						class="material-symbols-outlined text-[16px] text-on-surface-variant"
-						aria-hidden="true">arrow_forward</span
-					>
+					<Icon name="arrow_forward" size="sm" class="text-on-surface-variant" />
 				</div>
 			</a>
 		{/each}

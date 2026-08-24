@@ -12,17 +12,17 @@ Set `PUBLIC_API_BASE` to `/v1` (same-origin; Kit proxies to vynno-api) or to a l
 
 ## Conventions
 
-| Rule             | Value                                                |
-| ---------------- | ---------------------------------------------------- |
-| Prefix           | `/v1`                                                |
-| Format           | JSON, camelCase                                      |
-| Lists            | `{ "items": T[] }`                                   |
-| Errors           | `{ "error": { "code": string, "message": string } }` |
-| Timestamps       | ISO-8601 (`Date.toISOString()`)                      |
-| Absent optionals | JSON `null` (not omitted)                            |
-| IDs              | Opaque strings                                       |
+| Rule             | Value                                                                    |
+| ---------------- | ------------------------------------------------------------------------ |
+| Prefix           | `/v1`                                                                    |
+| Format           | JSON, camelCase                                                          |
+| Lists            | `{ "items": T[] }`                                                       |
+| Errors           | `{ "error": { "code": string, "message": string } }`                     |
+| Timestamps       | ISO-8601 (`Date.toISOString()`)                                          |
+| Absent optionals | JSON `null` (not omitted)                                                |
+| IDs              | Opaque strings                                                           |
 | Pagination       | `GET /sessions` only: `limit` + opaque `cursor`; `{ items, nextCursor }` |
-| Auth             | HttpOnly session cookie (see [Auth](#auth))          |
+| Auth             | HttpOnly session cookie (see [Auth](#auth))                              |
 
 Creates return **`201`**. Other successful writes return **`200`** with the updated resource. `DELETE` returns **`204`** with an empty body.
 
@@ -30,26 +30,26 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 
 ## Error codes
 
-| Code                     | Status  | When                                                  | UI string                             |
-| ------------------------ | ------- | ----------------------------------------------------- | ------------------------------------- |
-| `not_found`              | 404     | Unknown project, session, or activity type id         | `error_not_found`                     |
-| `invalid_query`          | 400     | Bad `status` / `limit` / `cursor`                     | fallback                              |
-| `invalid_json`           | 400     | Request or response body is not JSON                  | `error_invalid_response`              |
-| `invalid_body`           | 400     | Write body failed the request schema / validation     | fallback (`error_failed_*`)           |
-| `invalid_response`       | 502     | Client: body did not match the response schema        | `error_invalid_response`              |
-| `http_error`             | 4xx/5xx | Non-OK without an envelope                            | fallback                              |
-| `session_not_active`     | 404     | `GET /sessions/active` when idle                      | `error_not_found`                     |
-| `session_already_active` | 409     | `POST /sessions` while one is active/paused           | `error_stop_before_start`             |
-| `project_archived`       | 409     | Start against an archived project                     | `error_project_archived`              |
-| `code_in_use`            | 409     | Project `code` not unique                             | `error_code_in_use`                   |
-| `name_in_use`            | 409     | Activity type `name` not unique for this user         | `activity_types_name_in_use`          |
-| `last_active_project`    | 409     | Archive/delete of the last active project             | `error_last_active_project`           |
-| `project_has_sessions`   | 409     | Hard-delete of a project that has logs                | `projects_cannot_delete_has_sessions` |
-| `activity_type_has_sessions` | 409 | Hard-delete of an activity type that has sessions     | `activity_types_cannot_delete_has_sessions` |
-| `invalid_transition`     | 409     | Pause/resume/stop (or archive/restore) in a bad state | fallback                              |
-| `unauthorized`           | 401     | Missing, unknown, or expired session                  | `error_unauthorized`                  |
-| `invalid_credentials`    | 401     | Login username/password do not match                  | `error_invalid_credentials`           |
-| `username_in_use`        | 409     | Register with a taken username                        | `error_username_in_use`               |
+| Code                         | Status  | When                                                  | UI string                                   |
+| ---------------------------- | ------- | ----------------------------------------------------- | ------------------------------------------- |
+| `not_found`                  | 404     | Unknown project, session, or activity type id         | `error_not_found`                           |
+| `invalid_query`              | 400     | Bad `status` / `limit` / `cursor`                     | fallback                                    |
+| `invalid_json`               | 400     | Request or response body is not JSON                  | `error_invalid_response`                    |
+| `invalid_body`               | 400     | Write body failed the request schema / validation     | fallback (`error_failed_*`)                 |
+| `invalid_response`           | 502     | Client: body did not match the response schema        | `error_invalid_response`                    |
+| `http_error`                 | 4xx/5xx | Non-OK without an envelope                            | fallback                                    |
+| `session_not_active`         | 404     | `GET /sessions/active` when idle                      | `error_not_found`                           |
+| `session_already_active`     | 409     | `POST /sessions` while one is active/paused           | `error_stop_before_start`                   |
+| `project_archived`           | 409     | Start against an archived project                     | `error_project_archived`                    |
+| `code_in_use`                | 409     | Project `code` not unique                             | `error_code_in_use`                         |
+| `name_in_use`                | 409     | Activity type `name` not unique for this user         | `activity_types_name_in_use`                |
+| `last_active_project`        | 409     | Archive/delete of the last active project             | `error_last_active_project`                 |
+| `project_has_sessions`       | 409     | Hard-delete of a project that has logs                | `projects_cannot_delete_has_sessions`       |
+| `activity_type_has_sessions` | 409     | Hard-delete of an activity type that has sessions     | `activity_types_cannot_delete_has_sessions` |
+| `invalid_transition`         | 409     | Pause/resume/stop (or archive/restore) in a bad state | fallback                                    |
+| `unauthorized`               | 401     | Missing, unknown, or expired session                  | `error_unauthorized`                        |
+| `invalid_credentials`        | 401     | Login username/password do not match                  | `error_invalid_credentials`                 |
+| `username_in_use`            | 409     | Register with a taken username                        | `error_username_in_use`                     |
 
 Example envelope:
 
@@ -177,14 +177,14 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 
 Per-user dictionary. Empty until the user creates rows.
 
-| Method | Path | Body | Success | Typical errors |
-| --- | --- | --- | --- | --- |
-| GET | `/activity-types` | — | `{ items: ActivityTypeDto[] }` name-sorted | — |
-| GET | `/activity-types/:id` | — | `ActivityTypeDto` | `not_found` |
-| POST | `/activity-types` | `{ name, color }` | `ActivityTypeDto` `201` | `invalid_body`, `name_in_use` |
-| PATCH | `/activity-types/:id` | `{ name?, color? }` | `ActivityTypeDto` | `not_found`, `invalid_body`, `name_in_use` |
-| DELETE | `/activity-types/:id` | — | `204` | `not_found`, `activity_type_has_sessions` |
-| GET | `/activity-types/:id/session-count` | — | `{ "count": number }` | `not_found` |
+| Method | Path                                | Body                | Success                                    | Typical errors                             |
+| ------ | ----------------------------------- | ------------------- | ------------------------------------------ | ------------------------------------------ |
+| GET    | `/activity-types`                   | —                   | `{ items: ActivityTypeDto[] }` name-sorted | —                                          |
+| GET    | `/activity-types/:id`               | —                   | `ActivityTypeDto`                          | `not_found`                                |
+| POST   | `/activity-types`                   | `{ name, color }`   | `ActivityTypeDto` `201`                    | `invalid_body`, `name_in_use`              |
+| PATCH  | `/activity-types/:id`               | `{ name?, color? }` | `ActivityTypeDto`                          | `not_found`, `invalid_body`, `name_in_use` |
+| DELETE | `/activity-types/:id`               | —                   | `204`                                      | `not_found`, `activity_type_has_sessions`  |
+| GET    | `/activity-types/:id/session-count` | —                   | `{ "count": number }`                      | `not_found`                                |
 
 `name` is a display label (trim, 1–80 characters, stored as typed), unique per user case-insensitively. The SPA shows this string; chips render it uppercase.
 
@@ -192,18 +192,18 @@ Per-user dictionary. Empty until the user creates rows.
 
 ### Sessions
 
-| Method | Path                                     | Body              | Success                                | Typical errors                                                            |
-| ------ | ---------------------------------------- | ----------------- | -------------------------------------- | ------------------------------------------------------------------------- |
-| GET    | `/sessions?status=active,paused&limit=n&cursor=…` | —                | `{ items: SessionDto[], nextCursor }` newest-first | `invalid_query`                                                |
-| GET    | `/sessions/active`                       | —                         | `SessionDto`                           | `session_not_active`                                                      |
-| GET    | `/sessions/:id`                          | —                         | `SessionDto`                           | `not_found`                                                               |
-| POST   | `/sessions`                              | `StartSessionDto`          | `SessionDto` `201`                     | `session_already_active`, `not_found`, `project_archived`, `invalid_body` |
-| POST   | `/sessions/manual`                       | `CreateManualSessionDto`   | `SessionDto` `201`                     | `not_found`, `invalid_body`                                               |
-| PATCH  | `/sessions/:id`                          | `UpdateSessionDto`         | `SessionDto`                           | `not_found`, `invalid_body`                                               |
-| DELETE | `/sessions/:id`                          | —                         | `204`                                  | `not_found`                                                               |
-| POST   | `/sessions/:id/pause`                    | —                         | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
-| POST   | `/sessions/:id/resume`                   | —                         | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
-| POST   | `/sessions/:id/stop`                     | —                         | `SessionDto`                           | `not_found`, `invalid_transition`                                         |
+| Method | Path                                              | Body                     | Success                                            | Typical errors                                                            |
+| ------ | ------------------------------------------------- | ------------------------ | -------------------------------------------------- | ------------------------------------------------------------------------- |
+| GET    | `/sessions?status=active,paused&limit=n&cursor=…` | —                        | `{ items: SessionDto[], nextCursor }` newest-first | `invalid_query`                                                           |
+| GET    | `/sessions/active`                                | —                        | `SessionDto`                                       | `session_not_active`                                                      |
+| GET    | `/sessions/:id`                                   | —                        | `SessionDto`                                       | `not_found`                                                               |
+| POST   | `/sessions`                                       | `StartSessionDto`        | `SessionDto` `201`                                 | `session_already_active`, `not_found`, `project_archived`, `invalid_body` |
+| POST   | `/sessions/manual`                                | `CreateManualSessionDto` | `SessionDto` `201`                                 | `not_found`, `invalid_body`                                               |
+| PATCH  | `/sessions/:id`                                   | `UpdateSessionDto`       | `SessionDto`                                       | `not_found`, `invalid_body`                                               |
+| DELETE | `/sessions/:id`                                   | —                        | `204`                                              | `not_found`                                                               |
+| POST   | `/sessions/:id/pause`                             | —                        | `SessionDto`                                       | `not_found`, `invalid_transition`                                         |
+| POST   | `/sessions/:id/resume`                            | —                        | `SessionDto`                                       | `not_found`, `invalid_transition`                                         |
+| POST   | `/sessions/:id/stop`                              | —                        | `SessionDto`                                       | `not_found`, `invalid_transition`                                         |
 
 `SessionDto`:
 
@@ -271,13 +271,13 @@ UI code uses `$lib/types/domain` (`isArchived`, omitted optionals). DTOs use `ar
 
 Not in this contract. Do not invent them to “complete” the API without a contract amendment.
 
-| Area                                  | Client today                                 |
-| ------------------------------------- | -------------------------------------------- |
-| Profile edit                          | `GET /me` only                               |
-| Prefs (daily target, default project) | In-memory `prefsStore`                       |
-| Theme / locale                        | Device-local                                 |
-| Insights / dashboard totals           | Computed on the client from loaded sessions  |
-| Session target duration UI            | Field exists on `StartSessionDto`; UI is P2  |
+| Area                                  | Client today                                |
+| ------------------------------------- | ------------------------------------------- |
+| Profile edit                          | `GET /me` only                              |
+| Prefs (daily target, default project) | In-memory `prefsStore`                      |
+| Theme / locale                        | Device-local                                |
+| Insights / dashboard totals           | Computed on the client from loaded sessions |
+| Session target duration UI            | Field exists on `StartSessionDto`; UI is P2 |
 
 ---
 

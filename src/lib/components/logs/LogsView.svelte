@@ -1,5 +1,7 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { filterSessions, groupSessionsByDate } from '$lib/time/aggregates';
@@ -39,10 +41,10 @@
 				{#snippet actions()}
 					<div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
 						<div class="group relative w-full md:w-64">
-							<span
-								class="material-symbols-outlined absolute top-1/2 left-3 -translate-y-1/2 text-[18px] text-on-surface-variant transition-colors group-focus-within:text-primary"
-								aria-hidden="true">search</span
-							>
+							<Icon
+								name="search"
+								class="absolute top-1/2 left-3 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary"
+							/>
 							<input
 								class="w-full rounded-DEFAULT border border-outline-variant bg-surface-container-low py-2 pr-3 pl-9 font-mono text-code-label text-on-surface transition-colors placeholder:text-on-surface-variant"
 								type="search"
@@ -51,13 +53,9 @@
 								aria-label={m.logs_search_aria()}
 							/>
 						</div>
-						<button
-							type="button"
-							class="focus-ring rounded border border-transparent bg-primary px-3 py-2 text-body-sm text-on-primary hover:bg-primary-fixed-dim"
-							onclick={openCreate}
-						>
+						<Button variant="primary" size="sm" onclick={openCreate}>
 							{m.logs_add_entry()}
-						</button>
+						</Button>
 					</div>
 				{/snippet}
 			</PageHeader>

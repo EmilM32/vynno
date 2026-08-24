@@ -9,6 +9,7 @@
 	import { useSession } from '$lib/stores/session.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ProfileAvatar from '$lib/components/shell/ProfileAvatar.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
 	import ActivityTypesSection from './ActivityTypesSection.svelte';
 	import ThemeSelect from './ThemeSelect.svelte';
@@ -107,23 +108,13 @@
 				aria-hidden="true"
 				onchange={onPhotoSelected}
 			/>
-			<button
-				type="button"
-				class="press focus-ring min-h-10 rounded border border-outline-variant px-4 py-2 font-mono text-code-data text-on-surface hover:bg-surface-container-high disabled:opacity-50"
-				disabled={profileBusy}
-				onclick={() => fileInput?.click()}
-			>
+			<Button variant="secondary" disabled={profileBusy} onclick={() => fileInput?.click()}>
 				{m.settings_change_photo()}
-			</button>
+			</Button>
 			{#if prefsStore.avatarUrl}
-				<button
-					type="button"
-					class="press focus-ring min-h-10 rounded border border-outline-variant px-4 py-2 font-mono text-code-data text-on-surface hover:bg-surface-container-high disabled:opacity-50"
-					disabled={profileBusy}
-					onclick={onRemovePhoto}
-				>
+				<Button variant="secondary" disabled={profileBusy} onclick={onRemovePhoto}>
 					{m.settings_remove_photo()}
-				</button>
+				</Button>
 			{/if}
 		</div>
 		<p class="mt-2 text-body-sm text-on-surface-variant">{m.settings_photo_hint()}</p>
@@ -142,27 +133,22 @@
 					class="rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface"
 				/>
 			</label>
-			<button
-				type="button"
-				class="press focus-ring min-h-10 rounded border border-primary/30 bg-primary/10 px-4 py-2 font-mono text-code-data text-primary hover:bg-primary/20 disabled:opacity-50"
+			<Button
+				variant="tonal"
 				disabled={profileBusy || !nameDirty || !displayNameDraft.trim()}
 				onclick={onSaveName}
 			>
 				{m.settings_save_profile()}
-			</button>
+			</Button>
 		</div>
 
 		{#if sessionStore.error}
 			<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>
 		{/if}
 
-		<button
-			type="button"
-			class="press focus-ring mt-4 min-h-10 rounded border border-outline-variant px-4 py-2 font-mono text-code-data text-on-surface hover:bg-surface-container-high"
-			onclick={onLogout}
-		>
+		<Button variant="secondary" class="mt-4" onclick={onLogout}>
 			{m.settings_logout()}
-		</button>
+		</Button>
 	</section>
 
 	<ActivityTypesSection />

@@ -1,5 +1,6 @@
 <script module lang="ts">
 	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import Button from '$lib/components/ui/Button.svelte';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
 	import CommandPalette from './CommandPalette.svelte';
 
@@ -13,13 +14,7 @@
 <Story name="Open">
 	{#snippet template()}
 		<div class="min-h-screen bg-surface p-4">
-			<button
-				type="button"
-				class="press focus-ring min-h-10 rounded bg-primary px-3 py-2 text-body-md font-medium text-on-primary"
-				onclick={() => commandPalette.show()}
-			>
-				Open commands
-			</button>
+			<Button variant="primary" onclick={() => commandPalette.show()}>Open commands</Button>
 			<CommandPalette />
 		</div>
 	{/snippet}

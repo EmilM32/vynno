@@ -134,6 +134,17 @@ Pressable chrome uses the shared `.press` class. Do not sprinkle a new scale on 
 }
 ```
 
+You do not apply `.press` by hand any more. `src/lib/components/ui/Button.svelte` maps it from the variant, and that map is the implementation of the rule above ([ADR-0017](./adr/0017-ui-primitives.md)):
+
+| Variant                                                                        | `.press` | Why                                                    |
+| ------------------------------------------------------------------------------ | -------- | ------------------------------------------------------ |
+| `primary`, `neutral`, `secondary`, `tonal`, `danger`, `danger-filled`, `quiet` | yes      | Chrome — a labelled control the user aims at           |
+| `tab`                                                                          | no       | Segment in a strip; the selected state is the feedback |
+| `inline`, `link`                                                               | no       | Text in a sentence, not a box to push                  |
+| `IconButton` (any variant)                                                     | no       | “Icon-only table actions” above                        |
+
+Note that a text button inside a list row (`ProjectRow`'s Edit / Archive / Delete) **is** chrome and does press. The exclusion covers the _row surface itself_, icon-only row actions, and nav links — not every button that happens to sit in a row. Surfaces that are not buttons — `RecentTasks`' row, `SideNav`'s nav links, the dialog scrim — stay raw markup and stay unpressed.
+
 Group entrances (stagger 30–80ms) are decorative and must never block input. Daily screens (Dashboard, Insights, Timer) do not stagger.
 
 ---

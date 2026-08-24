@@ -39,6 +39,11 @@ export type HydrateOptions = {
 	repo?: TimeTrackingRepository;
 };
 
+/** Session counts live in a `$state.raw` map, so drop a key by rebuilding it. */
+function withoutKey(counts: Record<string, number>, id: string): Record<string, number> {
+	return Object.fromEntries(Object.entries(counts).filter(([key]) => key !== id));
+}
+
 /**
  * Session lifecycle + projection of repository data for the UI.
  * Created per server request; cached as a client singleton after hydrate
@@ -232,11 +237,7 @@ export class SessionStore {
 	ensureThrough = async (startedAtMs: number | null): Promise<void> => {
 		while (this.nextCursor) {
 			const oldest = this.sessions.at(-1);
-			if (
-				startedAtMs != null &&
-				oldest != null &&
-				Date.parse(oldest.startedAt) <= startedAtMs
-			) {
+			if (startedAtMs != null && oldest != null && Date.parse(oldest.startedAt) <= startedAtMs) {
 				return;
 			}
 			const more = await this.loadMore();
@@ -254,8 +255,16 @@ export class SessionStore {
 				async (a) => [a.id, await repo.countSessionsForActivityType(a.id)] as const
 			)
 		);
-		this.projectSessionCounts = Object.fromEntries(projectEntries);
-		this.activityTypeSessionCounts = Object.fromEntries(activityEntries);
+		// Merge rather than replace: the entries were built from the entity lists as
+		// they were at call time, so a create that lands mid-flight keeps its seeded 0.
+		this.projectSessionCounts = {
+			...this.projectSessionCounts,
+			...Object.fromEntries(projectEntries)
+		};
+		this.activityTypeSessionCounts = {
+			...this.activityTypeSessionCounts,
+			...Object.fromEntries(activityEntries)
+		};
 	};
 
 	createProject = async (input: CreateProjectInput): Promise<Project | null> => {
@@ -264,6 +273,9 @@ export class SessionStore {
 		try {
 			const project = await this.#requireRepo().createProject(input);
 			await this.refresh();
+			// Known-unused without a round-trip; otherwise the delete guard reads
+			// the missing entry as "unknown" and stays blocked until a reload.
+			this.projectSessionCounts = { ...this.projectSessionCounts, [project.id]: 0 };
 			return project;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_create_project);
@@ -324,6 +336,7 @@ export class SessionStore {
 		try {
 			await this.#requireRepo().deleteProject(id);
 			await this.refresh();
+			this.projectSessionCounts = withoutKey(this.projectSessionCounts, id);
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_delete_project);
@@ -339,6 +352,7 @@ export class SessionStore {
 		try {
 			const created = await this.#requireRepo().createActivityType(input);
 			await this.refresh();
+			this.activityTypeSessionCounts = { ...this.activityTypeSessionCounts, [created.id]: 0 };
 			return created;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_create_activity_type);
@@ -372,6 +386,7 @@ export class SessionStore {
 		try {
 			await this.#requireRepo().deleteActivityType(id);
 			await this.refresh();
+			this.activityTypeSessionCounts = withoutKey(this.activityTypeSessionCounts, id);
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_delete_activity_type);

@@ -82,7 +82,8 @@
 	{:else}
 		<ul class="flex flex-col gap-2" data-testid="activity-type-list">
 			{#each sessionStore.activityTypes as type (type.id)}
-				{const inUse = $derived((sessionStore.countSessionsForActivityType(type.id) ?? 1) > 0)}
+				{const sessionCount = $derived(sessionStore.countSessionsForActivityType(type.id))}
+				{const knownInUse = $derived(sessionCount != null && sessionCount > 0)}
 				{const deleteReasonId = $derived(`${type.id}-delete-reason`)}
 				<li
 					class="flex flex-wrap items-center gap-2 rounded border border-outline-variant bg-surface-container-low px-3 py-2"
@@ -102,14 +103,14 @@
 								sessionStore.clearError();
 								deleteTarget = type;
 							}}
-							disabled={inUse}
-							title={inUse ? m.activity_types_cannot_delete_has_sessions() : undefined}
-							aria-describedby={inUse ? deleteReasonId : undefined}
+							disabled={sessionCount == null || sessionCount > 0}
+							title={knownInUse ? m.activity_types_cannot_delete_has_sessions() : undefined}
+							aria-describedby={knownInUse ? deleteReasonId : undefined}
 						>
 							{m.activity_types_delete()}
 						</Button>
 					</div>
-					{#if inUse}
+					{#if knownInUse}
 						<span id={deleteReasonId} class="sr-only"
 							>{m.activity_types_cannot_delete_has_sessions()}</span
 						>

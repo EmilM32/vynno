@@ -71,6 +71,7 @@ test.describe('projects', () => {
 		);
 		await expect(page.getByTestId('page-header-description')).toBeVisible();
 		await expect(page.getByRole('link', { name: 'Projects' }).first()).toBeVisible();
+		await expect(page.getByTestId('error-page')).toHaveCount(0);
 	});
 
 	test('can edit and delete a project entry', async ({ page }) => {

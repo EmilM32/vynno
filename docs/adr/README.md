@@ -22,6 +22,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0016](./0016-storybook-workshop.md)       | Storybook as the component workshop                 | Accepted |
 | [0017](./0017-ui-primitives.md)            | UI primitives own their chrome classes              | Accepted |
 | [0018](./0018-atomic-ui-layer.md)          | Atomic UI layer beyond buttons                      | Accepted |
+| [0019](./0019-error-pages.md)              | Error pages (`+error.svelte` / `error.html`)        | Accepted |
 
 ## Format
 

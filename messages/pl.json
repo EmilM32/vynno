@@ -333,6 +333,11 @@
 	"error_load_title": "Nie udało się wczytać przestrzeni",
 	"error_load_body": "Sprawdź połączenie i spróbuj ponownie.",
 	"error_load_retry": "Ponów",
+	"error_page_not_found_title": "Nie znaleziono strony",
+	"error_page_not_found_body": "Tej ścieżki nie ma w Vynno.",
+	"error_page_internal_title": "Coś poszło nie tak",
+	"error_page_internal_body": "Żądanie nie powiodło się. Spróbuj ponownie albo wróć do znanego ekranu.",
+	"error_page_go_dashboard": "Przejdź do pulpitu",
 	"placeholder_scaffold": "// zastępczy szkielet",
 	"placeholder_phase_note": "Interfejs funkcji pojawi się w późniejszej fazie.",
 	"placeholder_design_ref": "Odniesienie projektowe: pierwotnie Google Stitch · docs/screens-and-flows.md"

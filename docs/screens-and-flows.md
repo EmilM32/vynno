@@ -1,7 +1,7 @@
 # Screens and Flows — Vynno
 
 **Status:** Draft  
-**Last updated:** 2026-08-14
+**Last updated:** 2026-08-26
 
 Screen inventory, viewport notes, and primary user flows. Layouts were originally prototyped in Google Stitch during the design phase; those exports are no longer in the repo.
 
@@ -11,16 +11,17 @@ Screen inventory, viewport notes, and primary user flows. Layouts were originall
 
 Each primary route is one responsive page (mobile + desktop). Settings, Projects, and Login were not in the original Stitch set. Named themes (`dark`, `light`, `deep-dark`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md).
 
-| Route            | Mobile                                          | Desktop                              | Purpose                   |
-| ---------------- | ----------------------------------------------- | ------------------------------------ | ------------------------- |
-| `/timer`         | Active session control                          | Timer + command panel + recent table | Active session            |
-| `/dashboard`     | Today, focus, projects, week chart, recent logs | Same with sidebar shell              | Home overview             |
-| `/logs`          | Chronological system logs                       | Same denser layout                   | Activity logs             |
-| `/insights`      | Analytics overview                              | Same with sidebar shell              | Analytics                 |
-| `/settings`      | Preferences                                     | Same with sidebar shell              | No original Stitch screen |
-| `/projects`      | Project management                              | Same with sidebar shell              | No original Stitch screen |
-| `/projects/[id]` | Per-project time dossier                        | Same with sidebar shell              | No original Stitch screen |
-| `/login`         | Auth stub                                       | Auth stub                            | No original Stitch screen |
+| Route            | Mobile                                          | Desktop                              | Purpose                                                                        |
+| ---------------- | ----------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------ |
+| `/timer`         | Active session control                          | Timer + command panel + recent table | Active session                                                                 |
+| `/dashboard`     | Today, focus, projects, week chart, recent logs | Same with sidebar shell              | Home overview                                                                  |
+| `/logs`          | Chronological system logs                       | Same denser layout                   | Activity logs                                                                  |
+| `/insights`      | Analytics overview                              | Same with sidebar shell              | Analytics                                                                      |
+| `/settings`      | Preferences                                     | Same with sidebar shell              | No original Stitch screen                                                      |
+| `/projects`      | Project management                              | Same with sidebar shell              | No original Stitch screen                                                      |
+| `/projects/[id]` | Per-project time dossier                        | Same with sidebar shell              | No original Stitch screen                                                      |
+| `/login`         | Auth stub                                       | Auth stub                            | No original Stitch screen                                                      |
+| _(no route)_     | Chrome-less error card (404 / 5xx)              | Same as mobile                       | Kit `+error.svelte` — see [adr/0019-error-pages.md](./adr/0019-error-pages.md) |
 
 ---
 

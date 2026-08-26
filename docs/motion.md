@@ -106,6 +106,7 @@ Color hovers (`transition-colors` on rows, inputs, nav) stay on Tailwind’s def
 | Command palette                                | **None**                                                                  | —                      | Keyboard, 100+/day.                                      |
 | Insights bars, donut, KPIs, clock              | **None**                                                                  | —                      | Functional data.                                         |
 | Route / page content                           | **None**                                                                  | —                      | Core nav.                                                |
+| Error page (`ErrorState`)                      | **None**                                                                  | —                      | Rare, but the job is to get unstuck; no entrance motion. |
 
 A toast is mentioned in [screens-and-flows.md](./screens-and-flows.md) but does not exist. When it is built, enter and exit the **same edge** with a CSS transition (not keyframes), `translateY(100%)`, `--ease-out`, 200–300ms.
 

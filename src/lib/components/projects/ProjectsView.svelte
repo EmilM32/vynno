@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import Banner from '$lib/components/ui/Banner.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
@@ -119,22 +120,14 @@
 	</PageHeader>
 
 	{#if sessionStore.error}
-		<div
-			class="rounded border border-error/40 bg-error-container/15 px-3 py-2 text-body-sm text-error"
-			role="alert"
-		>
-			<div class="flex items-start justify-between gap-3">
-				<span>{sessionStore.error}</span>
-				<Button
-					variant="inline"
-					size="xs"
-					class="shrink-0"
-					onclick={() => sessionStore.clearError()}
-				>
+		<Banner>
+			{sessionStore.error}
+			{#snippet action()}
+				<Button variant="inline" size="xs" onclick={() => sessionStore.clearError()}>
 					{m.common_dismiss_capital()}
 				</Button>
-			</div>
-		</div>
+			{/snippet}
+		</Banner>
 	{/if}
 
 	<div

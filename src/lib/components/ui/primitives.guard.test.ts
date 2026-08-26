@@ -26,8 +26,21 @@ const RAW_BUTTON_ALLOWLIST: Record<string, string> = {
 	'lib/components/ui/Dialog.svelte': 'full-bleed dismiss scrim, not chrome',
 	'lib/components/shell/CommandPalette.svelte': 'full-bleed dismiss scrim, not chrome',
 	'lib/components/timer/RecentTasks.svelte': 'list row — motion.md excludes rows from .press',
-	'lib/components/projects/ProjectColorPicker.svelte': 'swatch radio — Phase 3',
-	'lib/components/settings/ActivityColorPicker.svelte': 'swatch radio — Phase 3'
+	'lib/components/ui/SwatchPicker.svelte': 'swatch radio — not chrome'
+};
+
+/**
+ * Fields that are deliberately NOT `Input` / `Select`.
+ * Form chrome lives on the primitives; these are a different category.
+ */
+const RAW_FIELD_ALLOWLIST: Record<string, string> = {
+	'lib/components/ui/Input.svelte': 'the primitive itself',
+	'lib/components/ui/Select.svelte': 'the primitive itself',
+	'lib/components/shell/CommandPalette.svelte':
+		'flush command field — parent :focus-within is the indicator',
+	'lib/components/timer/TaskInput.svelte': 'command / quick input — not a form field',
+	'lib/components/settings/SettingsView.svelte': 'hidden file input for avatar',
+	'lib/components/auth/LoginView.svelte': 'remember-me checkbox — wait for a third checkbox'
 };
 
 /**
@@ -128,11 +141,36 @@ describe('UI primitives guard', () => {
 		}
 	});
 
+	it('routes every input and select through Input/Select', () => {
+		const offenders = files
+			.filter(({ path }) => !(path in RAW_FIELD_ALLOWLIST))
+			.filter(({ source }) => /<(input|select)[\s>]/.test(source))
+			.map(({ path }) => path);
+
+		expect(
+			offenders,
+			'Raw <input> or <select> found. Use $lib/components/ui/Input.svelte (or Select), ' +
+				'or add the file to RAW_FIELD_ALLOWLIST with a reason.'
+		).toEqual([]);
+	});
+
+	it('keeps every field allowlist entry justified and in use', () => {
+		for (const [path, reason] of Object.entries(RAW_FIELD_ALLOWLIST)) {
+			const file = files.find((f) => f.path === path);
+			expect(file, `Allowlisted file no longer exists: ${path}`).toBeDefined();
+			expect(reason.length, `Allowlist entry needs a reason: ${path}`).toBeGreaterThan(0);
+			expect(
+				/<(input|select)[\s>]/.test(file!.source),
+				`${path} no longer has a raw <input> or <select>`
+			).toBe(true);
+		}
+	});
+
 	it('never passes visual utilities into a primitive class prop', () => {
 		const offenders: string[] = [];
 
 		for (const { path, source } of files) {
-			for (const tag of ['Button', 'IconButton']) {
+			for (const tag of ['Button', 'IconButton', 'Field', 'Input', 'Select']) {
 				for (const value of classAttrsOn(source, tag)) {
 					const hits = bannedUtilitiesIn(value);
 					if (hits.length > 0) {

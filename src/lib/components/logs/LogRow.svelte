@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ActivityChip from '$lib/components/ui/ActivityChip.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { formatCompact, formatTimeRange, sessionElapsedMs } from '$lib/time/duration';
@@ -32,11 +33,7 @@
 
 {#snippet projectIdentity()}
 	<div class="flex min-w-0 items-center gap-2">
-		<div
-			class="h-2 w-2 shrink-0 rounded-full"
-			style:background-color={project?.color ?? '#64748b'}
-			aria-hidden="true"
-		></div>
+		<ColorDot color={project?.color ?? '#64748b'} />
 		<span class="truncate text-body-sm text-on-surface">{project?.name ?? m.common_unknown()}</span>
 	</div>
 {/snippet}

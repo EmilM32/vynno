@@ -1,5 +1,6 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import Banner from '$lib/components/ui/Banner.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
@@ -27,15 +28,14 @@
 	<PageHeader title={m.timer_title()} description={m.timer_subtitle()} />
 
 	{#if sessionStore.error}
-		<div
-			class="flex items-start justify-between gap-3 rounded border border-error/40 bg-error-container/20 px-3 py-2 font-mono text-code-label text-error"
-			role="alert"
-		>
-			<span>{sessionStore.error}</span>
-			<Button variant="inline" size="xs" class="shrink-0" onclick={() => sessionStore.clearError()}>
-				{m.common_dismiss()}
-			</Button>
-		</div>
+		<Banner>
+			{sessionStore.error}
+			{#snippet action()}
+				<Button variant="inline" size="xs" onclick={() => sessionStore.clearError()}>
+					{m.common_dismiss()}
+				</Button>
+			{/snippet}
+		</Banner>
 	{/if}
 
 	<div

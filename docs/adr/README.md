@@ -20,6 +20,8 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0014](./0014-local-production-spa.md)     | Local production SPA (adapter-node on this machine) | Accepted |
 | [0015](./0015-native-desktop-tauri.md)     | Native desktop via Tauri 2                          | Accepted |
 | [0016](./0016-storybook-workshop.md)       | Storybook as the component workshop                 | Accepted |
+| [0017](./0017-ui-primitives.md)            | UI primitives own their chrome classes              | Accepted |
+| [0018](./0018-atomic-ui-layer.md)          | Atomic UI layer beyond buttons                      | Accepted |
 
 ## Format
 

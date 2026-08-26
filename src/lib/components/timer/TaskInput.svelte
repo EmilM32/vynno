@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 
@@ -66,9 +67,10 @@
 		<label class="font-mono text-code-label text-on-surface-variant lg:sr-only" for="project-select"
 			>{m.timer_project_label()}</label
 		>
-		<select
+		<Select
 			id="project-select"
-			class="native-select min-w-[10rem] flex-1 rounded border border-outline-variant bg-surface-container-low py-1.5 pl-3 font-mono text-code-label text-on-surface disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none lg:w-48"
+			size="sm"
+			class="min-w-[10rem] flex-1 sm:flex-none lg:w-48"
 			bind:value={sessionStore.draftProjectId}
 			disabled={locked}
 			onchange={onProjectChange}
@@ -76,14 +78,15 @@
 			{#each sessionStore.projects as project (project.id)}
 				<option value={project.id}>{project.name}</option>
 			{/each}
-		</select>
+		</Select>
 		<label
 			class="font-mono text-code-label text-on-surface-variant lg:sr-only"
 			for="activity-select">{m.timer_activity_label()}</label
 		>
-		<select
+		<Select
 			id="activity-select"
-			class="native-select min-w-[8.5rem] flex-1 rounded border border-outline-variant bg-surface-container-low py-1.5 pl-3 font-mono text-code-label text-on-surface disabled:cursor-not-allowed disabled:opacity-70 sm:flex-none lg:w-40"
+			size="sm"
+			class="min-w-[8.5rem] flex-1 sm:flex-none lg:w-40"
 			bind:value={sessionStore.draftActivityType}
 			disabled={locked}
 			data-testid="activity-select"
@@ -93,6 +96,6 @@
 			{#each sessionStore.activityTypes as type (type.id)}
 				<option value={type.id}>{type.name}</option>
 			{/each}
-		</select>
+		</Select>
 	</div>
 </div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
@@ -39,11 +40,7 @@
 					class="group flex items-center justify-between rounded-DEFAULT border border-transparent p-2 transition-colors hover:border-outline-variant/50 hover:bg-surface-container-high"
 				>
 					<div class="flex min-w-0 items-center gap-3 overflow-hidden">
-						<div
-							class="h-2 w-2 shrink-0 rounded-full"
-							style:background-color={project?.color ?? '#64748b'}
-							aria-hidden="true"
-						></div>
+						<ColorDot color={project?.color ?? '#64748b'} />
 						<div class="flex min-w-0 flex-col">
 							<span class="truncate text-body-sm text-on-surface">{log.note}</span>
 							<span class="font-mono text-code-label text-[10px] text-on-surface-variant">

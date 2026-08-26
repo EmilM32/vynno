@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
+	import StatusDot, { type StatusDotTone } from '$lib/components/ui/StatusDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { datetimeLocalToIso, isoToDatetimeLocal } from '$lib/time/duration';
@@ -20,9 +22,7 @@
 	const statusColor = $derived(
 		isActive ? 'text-secondary' : isPaused ? 'text-tertiary' : 'text-on-surface-variant'
 	);
-	const statusDot = $derived(
-		isActive ? 'bg-secondary blink' : isPaused ? 'bg-tertiary' : 'bg-outline-variant'
-	);
+	const statusDot: StatusDotTone = $derived(isActive ? 'active' : isPaused ? 'paused' : 'idle');
 
 	const cardBorder = $derived(
 		isActive
@@ -57,7 +57,7 @@
 	</div>
 
 	<div class="mt-3 flex items-center gap-2">
-		<div class="h-1.5 w-1.5 rounded-full {statusDot}" aria-hidden="true"></div>
+		<StatusDot tone={statusDot} />
 		<span class="font-mono text-code-label uppercase {statusColor}" data-testid="timer-status"
 			>{statusLabel}</span
 		>
@@ -71,9 +71,10 @@
 	{#if session}
 		<label class="mt-3 flex items-center gap-2 font-mono text-code-label text-on-surface-variant">
 			<span>{m.timer_started_at()}</span>
-			<input
+			<Input
 				type="datetime-local"
-				class="rounded border border-outline-variant bg-surface-container-low px-2 py-1 text-on-surface disabled:opacity-60"
+				tone="code"
+				size="sm"
 				value={isoToDatetimeLocal(session.startedAt)}
 				onchange={onStartedChange}
 				disabled={pending}

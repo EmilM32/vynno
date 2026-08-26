@@ -1,5 +1,8 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
+	import Field from '$lib/components/ui/Field.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { datetimeLocalToIso, isoToDatetimeLocal } from '$lib/time/duration';
@@ -78,75 +81,36 @@
 </script>
 
 <form class="flex flex-col gap-4" onsubmit={handleSubmit} novalidate data-testid="session-form">
-	<div class="flex flex-col gap-1.5">
-		<label class="text-body-sm text-on-surface-variant" for="session-note"
-			>{m.logs_field_note()}</label
-		>
-		<input
-			id="session-note"
-			type="text"
-			bind:value={note}
-			class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface"
-			autocomplete="off"
-		/>
-	</div>
+	<Field id="session-note" label={m.logs_field_note()}>
+		<Input tone="data" type="text" bind:value={note} autocomplete="off" class="w-full" />
+	</Field>
 
 	<div class="grid gap-4 sm:grid-cols-2">
-		<div class="flex flex-col gap-1.5">
-			<label class="text-body-sm text-on-surface-variant" for="session-project"
-				>{m.logs_field_project()}</label
-			>
-			<select
-				id="session-project"
-				class="native-select w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface"
-				bind:value={projectId}
-			>
+		<Field id="session-project" label={m.logs_field_project()}>
+			<Select bind:value={projectId} class="w-full">
 				{#each sessionStore.allProjects as project (project.id)}
 					<option value={project.id}>{project.name}</option>
 				{/each}
-			</select>
-		</div>
-		<div class="flex flex-col gap-1.5">
-			<label class="text-body-sm text-on-surface-variant" for="session-activity"
-				>{m.logs_field_activity()}</label
-			>
-			<select
-				id="session-activity"
-				class="native-select w-full rounded border border-outline-variant bg-surface-container-low py-2 pl-3 font-mono text-code-label text-on-surface"
-				bind:value={activityTypeId}
-			>
+			</Select>
+		</Field>
+		<Field id="session-activity" label={m.logs_field_activity()}>
+			<Select bind:value={activityTypeId} class="w-full">
 				<option value="">{m.logs_activity_none()}</option>
 				{#each sessionStore.activityTypes as type (type.id)}
 					<option value={type.id}>{type.name}</option>
 				{/each}
-			</select>
-		</div>
+			</Select>
+		</Field>
 	</div>
 
 	<div class="grid gap-4 sm:grid-cols-2">
-		<div class="flex flex-col gap-1.5">
-			<label class="text-body-sm text-on-surface-variant" for="session-started"
-				>{m.logs_field_started()}</label
-			>
-			<input
-				id="session-started"
-				type="datetime-local"
-				bind:value={startedLocal}
-				class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface"
-			/>
-		</div>
+		<Field id="session-started" label={m.logs_field_started()}>
+			<Input tone="code" type="datetime-local" bind:value={startedLocal} class="w-full" />
+		</Field>
 		{#if !live}
-			<div class="flex flex-col gap-1.5">
-				<label class="text-body-sm text-on-surface-variant" for="session-ended"
-					>{m.logs_field_ended()}</label
-				>
-				<input
-					id="session-ended"
-					type="datetime-local"
-					bind:value={endedLocal}
-					class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface"
-				/>
-			</div>
+			<Field id="session-ended" label={m.logs_field_ended()}>
+				<Input tone="code" type="datetime-local" bind:value={endedLocal} class="w-full" />
+			</Field>
 		{/if}
 	</div>
 

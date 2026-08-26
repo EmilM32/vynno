@@ -2,6 +2,7 @@
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { filterSessions, groupSessionsByDate } from '$lib/time/aggregates';
@@ -40,19 +41,19 @@
 			<PageHeader title={m.logs_title()} description={m.logs_subtitle()}>
 				{#snippet actions()}
 					<div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
-						<div class="group relative w-full md:w-64">
-							<Icon
-								name="search"
-								class="absolute top-1/2 left-3 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary"
-							/>
-							<input
-								class="w-full rounded-DEFAULT border border-outline-variant bg-surface-container-low py-2 pr-3 pl-9 font-mono text-code-label text-on-surface transition-colors placeholder:text-on-surface-variant"
-								type="search"
-								placeholder={m.logs_search_placeholder()}
-								bind:value={query}
-								aria-label={m.logs_search_aria()}
-							/>
-						</div>
+						<Input
+							type="search"
+							tone="code"
+							size="sm"
+							class="w-full md:w-64"
+							placeholder={m.logs_search_placeholder()}
+							bind:value={query}
+							aria-label={m.logs_search_aria()}
+						>
+							{#snippet leading()}
+								<Icon name="search" />
+							{/snippet}
+						</Input>
 						<Button variant="primary" size="sm" onclick={openCreate}>
 							{m.logs_add_entry()}
 						</Button>

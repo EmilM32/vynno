@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import { fn } from 'storybook/test';
+	import Banner from './Banner.svelte';
 	import Button, { type ButtonSize, type ButtonVariant } from './Button.svelte';
 	import Icon from './Icon.svelte';
 
@@ -145,13 +146,12 @@
 <Story name="InlineAndLink">
 	{#snippet template()}
 		<div class="flex flex-col gap-4">
-			<div
-				class="flex items-start justify-between gap-3 rounded border border-error/40 bg-error-container/15 px-3 py-2 text-body-sm text-error"
-				role="alert"
-			>
-				<span>Could not reach the API.</span>
-				<Button variant="inline" size="xs" class="shrink-0">Dismiss</Button>
-			</div>
+			<Banner>
+				Could not reach the API.
+				{#snippet action()}
+					<Button variant="inline" size="xs">Dismiss</Button>
+				{/snippet}
+			</Banner>
 			<p class="text-body-md text-on-surface-variant">
 				No projects yet. <Button variant="link" size="sm">Create one</Button>
 			</p>

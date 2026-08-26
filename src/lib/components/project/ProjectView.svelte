@@ -6,10 +6,14 @@
 	import ProjectForm from '$lib/components/projects/ProjectForm.svelte';
 	import WeeklyOverview from '$lib/components/dashboard/WeeklyOverview.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import Banner from '$lib/components/ui/Banner.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Chip from '$lib/components/ui/Chip.svelte';
+	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
+	import StatusDot from '$lib/components/ui/StatusDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import {
@@ -187,19 +191,11 @@
 				</a>
 			{/snippet}
 			{#snippet leading()}
-				<div
-					class="h-3.5 w-3.5 shrink-0 rounded-sm"
-					style:background-color={project.color}
-					aria-hidden="true"
-				></div>
+				<ColorDot color={project.color} size="md" />
 			{/snippet}
 			{#snippet titleExtra()}
 				{#if project.code}
-					<span
-						class="rounded bg-surface-container-high px-1.5 py-0.5 font-mono text-code-label text-on-surface-variant"
-					>
-						{project.code}
-					</span>
+					<Chip>{project.code}</Chip>
 				{/if}
 				{#if archived}
 					<span class="font-mono text-[10px] tracking-wide text-on-surface-variant uppercase"
@@ -211,12 +207,7 @@
 						href={resolve('/timer')}
 						class="focus-ring inline-flex items-center gap-1.5 rounded px-1 py-0.5"
 					>
-						<span
-							class="h-1.5 w-1.5 rounded-full {liveHere.status === 'active'
-								? 'blink bg-secondary'
-								: 'bg-tertiary'}"
-							aria-hidden="true"
-						></span>
+						<StatusDot tone={liveHere.status === 'active' ? 'active' : 'paused'} />
 						<span
 							class="font-mono text-[10px] tracking-wide uppercase {liveHere.status === 'active'
 								? 'text-secondary'
@@ -267,22 +258,14 @@
 		</PageHeader>
 
 		{#if sessionStore.error}
-			<div
-				class="rounded border border-error/40 bg-error-container/15 px-3 py-2 text-body-sm text-error"
-				role="alert"
-			>
-				<div class="flex items-start justify-between gap-3">
-					<span>{sessionStore.error}</span>
-					<Button
-						variant="inline"
-						size="xs"
-						class="shrink-0"
-						onclick={() => sessionStore.clearError()}
-					>
+			<Banner>
+				{sessionStore.error}
+				{#snippet action()}
+					<Button variant="inline" size="xs" onclick={() => sessionStore.clearError()}>
 						{m.common_dismiss_capital()}
 					</Button>
-				</div>
-			</div>
+				{/snippet}
+			</Banner>
 		{/if}
 
 		{#if stats}

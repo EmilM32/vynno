@@ -1,5 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
+	import Field from '$lib/components/ui/Field.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { defaultProjectColor, suggestCode } from '$lib/projects/palette';
 	import { validateProjectFieldErrors, type ProjectFieldErrorKey } from '$lib/projects/validate';
@@ -50,54 +52,35 @@
 </script>
 
 <form class="flex flex-col gap-4" onsubmit={handleSubmit} novalidate>
-	<div class="flex flex-col gap-1.5">
-		<label class="text-body-sm text-on-surface-variant" for="project-name"
-			>{m.projects_field_name()}</label
-		>
-		<input
-			id="project-name"
+	<Field id="project-name" label={m.projects_field_name()} error={fieldErrors.name}>
+		<Input
 			type="text"
 			required
 			maxlength="80"
 			value={name}
 			oninput={onNameInput}
-			aria-invalid={fieldErrors.name ? 'true' : undefined}
-			aria-describedby={fieldErrors.name ? 'project-name-error' : undefined}
-			class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 text-body-md text-on-surface"
 			placeholder={m.projects_name_placeholder()}
 			autocomplete="off"
+			class="w-full"
 		/>
-		{#if fieldErrors.name}
-			<p id="project-name-error" class="text-body-sm text-error" role="alert">
-				{fieldErrors.name}
-			</p>
-		{/if}
-	</div>
+	</Field>
 
-	<div class="flex flex-col gap-1.5">
-		<label class="text-body-sm text-on-surface-variant" for="project-code">
-			{m.projects_field_code()}
-			<span class="text-on-surface-variant">{m.projects_field_code_optional()}</span>
-		</label>
-		<input
-			id="project-code"
+	<Field id="project-code" label={m.projects_field_code()} error={fieldErrors.code}>
+		{#snippet extra()}
+			<span class="text-on-surface-variant"> {m.projects_field_code_optional()}</span>
+		{/snippet}
+		<Input
+			tone="code"
 			type="text"
 			maxlength="8"
 			value={code}
 			oninput={onCodeInput}
-			class="w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-label text-on-surface uppercase sm:max-w-xs"
+			class="w-full uppercase sm:max-w-xs"
 			placeholder={m.projects_code_placeholder()}
 			autocomplete="off"
 			spellcheck="false"
-			aria-invalid={fieldErrors.code ? 'true' : undefined}
-			aria-describedby={fieldErrors.code ? 'project-code-error' : undefined}
 		/>
-		{#if fieldErrors.code}
-			<p id="project-code-error" class="text-body-sm text-error" role="alert">
-				{fieldErrors.code}
-			</p>
-		{/if}
-	</div>
+	</Field>
 
 	<div class="flex flex-col gap-1.5">
 		<span class="text-body-sm text-on-surface-variant" id="project-color-label"

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
+	import Field from '$lib/components/ui/Field.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import {
 		ACTIVITY_COLOR_TOKENS,
@@ -39,17 +41,13 @@
 </script>
 
 <form class="flex flex-col gap-3" onsubmit={handleSubmit}>
-	<label class="flex flex-col gap-1 text-body-md text-on-surface" for="activity-type-name">
-		{m.settings_activity_type_name()}
-		<input
-			id="activity-type-name"
-			type="text"
-			maxlength="32"
-			bind:value={name}
-			class="rounded border border-outline-variant bg-surface-container-low px-3 py-2 font-mono text-code-data text-on-surface"
-		/>
-		<span class="text-body-sm text-on-surface-variant">{m.settings_activity_type_name_hint()}</span>
-	</label>
+	<Field
+		id="activity-type-name"
+		label={m.settings_activity_type_name()}
+		hint={m.settings_activity_type_name_hint()}
+	>
+		<Input tone="data" type="text" maxlength="32" bind:value={name} class="w-full" />
+	</Field>
 	<div class="flex flex-col gap-1">
 		<span class="text-body-md text-on-surface">{m.settings_activity_type_color()}</span>
 		<ActivityColorPicker bind:value={color} />

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { formatCompact } from '$lib/time/duration';
 	import type { BreakdownRow } from '$lib/time/aggregates';
@@ -50,11 +51,7 @@
 									class="focus-ring flex items-center gap-2 rounded-sm font-mono text-code-data text-on-surface hover:text-primary"
 									aria-label={m.insights_open_project({ name: row.projectName })}
 								>
-									<div
-										class="h-2 w-2 shrink-0 rounded-full"
-										style:background-color={row.projectColor}
-										aria-hidden="true"
-									></div>
+									<ColorDot color={row.projectColor} />
 									<span class="truncate">{row.projectName}</span>
 								</a>
 							</td>

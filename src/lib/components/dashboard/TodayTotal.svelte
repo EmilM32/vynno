@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import StatusDot from '$lib/components/ui/StatusDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 
@@ -19,8 +20,7 @@
 		<h2 class="text-body-sm tracking-wider text-on-surface-variant uppercase">
 			{m.dashboard_today_total()}
 		</h2>
-		<span class="today-glow hidden h-2 w-2 rounded-full bg-secondary md:block" aria-hidden="true"
-		></span>
+		<StatusDot tone="live" class="hidden md:block" />
 	</div>
 	<div class="mt-auto flex items-end justify-between gap-3 md:block">
 		<div class="font-mono text-code-display tracking-tight text-primary" data-testid="today-total">

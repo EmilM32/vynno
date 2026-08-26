@@ -12,6 +12,8 @@
 	import BrandMark from '$lib/components/shell/BrandMark.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Field from '$lib/components/ui/Field.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import PasswordField from './PasswordField.svelte';
@@ -194,12 +196,8 @@
 					novalidate
 					data-testid="login-form"
 				>
-					<div class="flex flex-col gap-1.5">
-						<label class="text-body-sm text-on-surface-variant" for="login-username">
-							{m.login_username()}
-						</label>
-						<input
-							id="login-username"
+					<Field id="login-username" label={m.login_username()} error={loginFieldErrors.username}>
+						<Input
 							type="text"
 							name="username"
 							required
@@ -208,16 +206,9 @@
 							spellcheck="false"
 							bind:value={loginUsername}
 							onkeydown={onFieldKeydown}
-							aria-invalid={loginFieldErrors.username ? 'true' : undefined}
-							aria-describedby={loginFieldErrors.username ? 'login-username-error' : undefined}
-							class="min-h-10 w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2.5 text-body-md text-on-surface"
+							class="w-full"
 						/>
-						{#if loginFieldErrors.username}
-							<p id="login-username-error" class="text-body-sm text-error" role="alert">
-								{loginFieldErrors.username}
-							</p>
-						{/if}
-					</div>
+					</Field>
 
 					<PasswordField
 						id="login-password"
@@ -258,12 +249,12 @@
 					novalidate
 					data-testid="register-form"
 				>
-					<div class="flex flex-col gap-1.5">
-						<label class="text-body-sm text-on-surface-variant" for="register-username">
-							{m.login_username()}
-						</label>
-						<input
-							id="register-username"
+					<Field
+						id="register-username"
+						label={m.login_username()}
+						error={registerFieldErrors.username}
+					>
+						<Input
 							type="text"
 							name="username"
 							required
@@ -272,18 +263,9 @@
 							spellcheck="false"
 							bind:value={registerUsername}
 							onkeydown={onFieldKeydown}
-							aria-invalid={registerFieldErrors.username ? 'true' : undefined}
-							aria-describedby={registerFieldErrors.username
-								? 'register-username-error'
-								: undefined}
-							class="min-h-10 w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2.5 text-body-md text-on-surface"
+							class="w-full"
 						/>
-						{#if registerFieldErrors.username}
-							<p id="register-username-error" class="text-body-sm text-error" role="alert">
-								{registerFieldErrors.username}
-							</p>
-						{/if}
-					</div>
+					</Field>
 
 					<PasswordField
 						id="register-password"
@@ -306,31 +288,22 @@
 						onkeydown={onFieldKeydown}
 					/>
 
-					<div class="flex flex-col gap-1.5">
-						<label class="text-body-sm text-on-surface-variant" for="register-display-name">
-							{m.register_display_name()}
-						</label>
-						<input
-							id="register-display-name"
+					<Field
+						id="register-display-name"
+						label={m.register_display_name()}
+						hint={m.register_display_name_hint()}
+						error={registerFieldErrors.displayName}
+					>
+						<Input
 							type="text"
 							name="displayName"
 							autocomplete="nickname"
 							maxlength="80"
 							bind:value={registerDisplayName}
 							onkeydown={onFieldKeydown}
-							aria-describedby="register-display-name-hint"
-							aria-invalid={registerFieldErrors.displayName ? 'true' : undefined}
-							class="min-h-10 w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2.5 text-body-md text-on-surface"
+							class="w-full"
 						/>
-						<p id="register-display-name-hint" class="text-body-sm text-on-surface-variant">
-							{m.register_display_name_hint()}
-						</p>
-						{#if registerFieldErrors.displayName}
-							<p id="register-display-name-error" class="text-body-sm text-error" role="alert">
-								{registerFieldErrors.displayName}
-							</p>
-						{/if}
-					</div>
+					</Field>
 
 					<label
 						class="flex items-center gap-2 text-body-sm text-on-surface-variant"

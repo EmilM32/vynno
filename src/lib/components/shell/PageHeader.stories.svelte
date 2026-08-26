@@ -2,6 +2,7 @@
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import ActivityChip from '$lib/components/ui/ActivityChip.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import PageHeader from './PageHeader.svelte';
 
 	const { Story } = defineMeta({
@@ -31,7 +32,7 @@
 	{#snippet template(args)}
 		<PageHeader {...args} title="Identity" description="AUTH · 12 sessions">
 			{#snippet leading()}
-				<div class="h-3.5 w-3.5 rounded-sm bg-[#3b82f6]" aria-hidden="true"></div>
+				<ColorDot color="#3b82f6" size="md" />
 			{/snippet}
 			{#snippet titleExtra()}
 				<ActivityChip type={{ id: 'act-deep', name: 'Deep Work', color: 'primary' }} />

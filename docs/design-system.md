@@ -198,7 +198,8 @@ Personality, the frequency gate, tokens, and do/don’t: **[motion.md](./motion.
 
 Live in `src/lib/components/ui/`. Browse them in Storybook under `UI/*`. These own their
 chrome classes — `.press`, `.focus-ring`, hover/disabled tokens, radius, and the size scale
-come from the component, never from the call site. Decision: [adr/0017-ui-primitives.md](./adr/0017-ui-primitives.md).
+come from the component, never from the call site. Decisions: [adr/0017-ui-primitives.md](./adr/0017-ui-primitives.md),
+[adr/0018-atomic-ui-layer.md](./adr/0018-atomic-ui-layer.md).
 
 **`Button`** — renders `<button>`, or `<a>` when given `href`.
 
@@ -233,10 +234,29 @@ come from the component, never from the call site. Decision: [adr/0017-ui-primit
 **`Dialog`** / **`ConfirmDialog`** — centered overlay, focus-trapped. **`ActivityChip`** —
 near-square pill with type colour.
 
+**`Field`** — label + optional hint/error. Layouts `stack` (dialogs) and `split` (Settings
+rows). Sets context so nested `Input` / `Select` inherit `id`, `aria-invalid`, and
+`aria-describedby`.
+
+**`Input`** — owns the `<input>` chrome. Tones `ui` (Inter) / `data` (mono `code-data`) /
+`code` (mono `code-label`); sizes `sm` / `md`. Optional `leading` / `trailing` snippets
+own the extra padding. Focus is the global on-border treatment, not `.focus-ring`.
+
+**`Select`** — owns `<select>` plus the inset chevron (`.native-select`). Same surface as
+`Input tone="code"`.
+
+**`KpiCard`** — label + large mono metric + optional caption. **`ProgressBar`** — thin
+track; `label` is the accessible name. **`Banner`** — error strip; optional dismiss
+action. **`Chip`** — `code` (project code), `tag` (session tag), `ticket`. **`ColorDot`**
+— project identity (`sm` 8px circle, `md` 14px square). **`StatusDot`** — 8px live mark
+(`active` / `paused` / `idle` / `live`). **`SwatchPicker`** — colour radiogroup; domain
+wrappers stay in Projects / Settings.
+
 **Rules.** Button labels are Inter (§3: mono is for data, not labels) — mono belongs _inside_
 a button when the content is a duration or code. The `class` prop takes layout and colour
 only; padding, radius, border, background and type scale come from `variant` and `size`.
-`primitives.guard.test.ts` fails the build on a raw `<button>` or a visual utility in `class`.
+`primitives.guard.test.ts` fails the build on a raw `<button>`, a raw `<input>`/`<select>`,
+or a visual utility in `class`.
 
 Non-chrome interactive surfaces are **not** `Button`: dismiss scrims, list rows, colour
 swatches and nav links stay raw markup, allowlisted with a reason in the guard test.
@@ -247,19 +267,15 @@ swatches and nav links stay raw markup, allowlisted with a reason in the guard t
 - **BottomNav** (mobile): 5 tabs, active filled/tinted
 - **TopAppBar**: brand, command-palette trigger, live indicator
 
-### Not yet extracted
+### Intentionally not extracted
 
-Still hand-written at each call site; see the Phase 2/3 backlog in ADR-0017.
+Composed widgets, store-owned screens, and one-off fields. See [ADR-0018](./adr/0018-atomic-ui-layer.md).
 
-- **Text input** — dark field, primary on-border focus (not an offset ring)
-- **Command / quick input** — mono, terminal prompt aesthetic
-- **Project chip** — short code, primary tint background
-- **Status dot** — 8px circle (green / amber / slate)
+- **Command / quick input** — timer `TaskInput` note and the command-palette flush field
 - **Timer card** — largest mono display; primary pulse when active
-- **Log row** — project dot, note, range, duration
-- **KPI card** — label + large mono metric + delta
-- **Progress bar** — thin track for project % or session target
-- **Charts** — donut + bar; mono tooltips; no heavy decoration
+- **Log row / project row** — consume `ColorDot`, `Chip`, `ActivityChip`; stay composed
+- **Charts** — donut + bar; LayerChart wrappers; no heavy decoration
+- **Generic card / panel** — padding and header splits vary too much to own
 
 ---
 

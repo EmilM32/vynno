@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Chip from '$lib/components/ui/Chip.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
@@ -34,11 +35,7 @@
 					{m.dashboard_current_focus()}
 				</h2>
 				{#if session.ticketId}
-					<div
-						class="rounded-DEFAULT border border-outline-variant bg-surface-container-high px-2 py-0.5"
-					>
-						<span class="font-mono text-code-label text-primary">{session.ticketId}</span>
-					</div>
+					<Chip variant="ticket">{session.ticketId}</Chip>
 				{/if}
 				{#if isPaused}
 					<span class="font-mono text-code-label text-tertiary">{m.timer_status_paused()}</span>
@@ -77,11 +74,7 @@
 				<div class="h-4 w-px bg-outline-variant" aria-hidden="true"></div>
 				<div class="flex flex-wrap gap-2">
 					{#each session.tags as tag (tag)}
-						<span
-							class="rounded-DEFAULT border border-primary/20 bg-primary/10 px-2 py-0.5 font-mono text-code-label text-primary"
-						>
-							{tag}
-						</span>
+						<Chip variant="tag">{tag}</Chip>
 					{/each}
 				</div>
 			{/if}

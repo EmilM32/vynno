@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 	import LogRow from '$lib/components/logs/LogRow.svelte';
 	import SessionMutations from '$lib/components/logs/SessionMutations.svelte';
 	import { m } from '$lib/paraglide/messages.js';
@@ -26,19 +27,19 @@
 		<section class="flex flex-col gap-4" aria-label={m.project_entries_aria()}>
 			<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 				<h2 class="text-headline-md text-on-surface">{m.project_entries()}</h2>
-				<div class="group relative w-full sm:w-64">
-					<Icon
-						name="search"
-						class="absolute top-1/2 left-3 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary"
-					/>
-					<input
-						class="w-full rounded-DEFAULT border border-outline-variant bg-surface-container-low py-2 pr-3 pl-9 font-mono text-code-label text-on-surface transition-colors placeholder:text-on-surface-variant"
-						type="search"
-						placeholder={m.logs_search_placeholder()}
-						bind:value={query}
-						aria-label={m.project_entries_search_aria()}
-					/>
-				</div>
+				<Input
+					type="search"
+					tone="code"
+					size="sm"
+					class="w-full sm:w-64"
+					placeholder={m.logs_search_placeholder()}
+					bind:value={query}
+					aria-label={m.project_entries_search_aria()}
+				>
+					{#snippet leading()}
+						<Icon name="search" />
+					{/snippet}
+				</Input>
 			</div>
 
 			{#if groups.length === 0}

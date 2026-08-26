@@ -18,4 +18,7 @@
 	let { tone, class: className = '' }: Props = $props();
 </script>
 
-<span class="h-2 w-2 shrink-0 rounded-full {TONE[tone]} {className}" aria-hidden="true"></span>
+<span
+	class="inline-block h-2 w-2 shrink-0 rounded-full {TONE[tone]} {className}"
+	aria-hidden="true"
+></span>

@@ -249,7 +249,7 @@ own the extra padding. Focus is the global on-border treatment, not `.focus-ring
 track; `label` is the accessible name. **`Banner`** — error strip; optional dismiss
 action. **`Chip`** — `code` (project code), `tag` (session tag), `ticket`. **`ColorDot`**
 — project identity (`sm` 8px circle, `md` 14px square). **`StatusDot`** — 8px live mark
-(`active` / `paused` / `idle` / `live`). **`SwatchPicker`** — colour radiogroup; domain
+(`live` / `paused` / `idle`). **`SwatchPicker`** — colour radiogroup; domain
 wrappers stay in Projects / Settings.
 
 **Rules.** Button labels are Inter (§3: mono is for data, not labels) — mono belongs _inside_

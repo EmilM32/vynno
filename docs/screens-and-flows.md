@@ -29,7 +29,7 @@ Each primary route is one responsive page (mobile + desktop). Settings, Projects
 
 ### Desktop
 
-- Fixed left **sidebar** (~240px): brand, version label, primary nav, “Start New Session” CTA, profile footer (varies slightly by screen)
+- Fixed left **sidebar** (~240px): brand, primary nav, session chip (idle = “Start New Session”; live = status + elapsed + project/note), profile footer
 - Optional **top bar**: search, notifications, avatar
 - Main content offset by sidebar width
 

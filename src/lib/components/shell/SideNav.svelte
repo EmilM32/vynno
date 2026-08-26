@@ -8,6 +8,7 @@
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import BrandMark from './BrandMark.svelte';
 	import ProfileAvatar from './ProfileAvatar.svelte';
+	import SessionChip from './SessionChip.svelte';
 	import { NAV_ITEMS, isNavActive } from './nav';
 
 	const prefsStore = usePrefs();
@@ -34,10 +35,7 @@
 	</div>
 
 	<div class="mb-4 px-4">
-		<Button variant="primary" href={resolve('/timer')} class="w-full">
-			<Icon name="play_arrow" />
-			{m.nav_start_new_session()}
-		</Button>
+		<SessionChip />
 	</div>
 
 	<ul class="flex flex-1 flex-col gap-1 px-3">

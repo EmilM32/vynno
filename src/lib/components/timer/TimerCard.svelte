@@ -22,7 +22,7 @@
 	const statusColor = $derived(
 		isActive ? 'text-secondary' : isPaused ? 'text-tertiary' : 'text-on-surface-variant'
 	);
-	const statusDot: StatusDotTone = $derived(isActive ? 'active' : isPaused ? 'paused' : 'idle');
+	const statusDot: StatusDotTone = $derived(isActive ? 'live' : isPaused ? 'paused' : 'idle');
 
 	const cardBorder = $derived(
 		isActive

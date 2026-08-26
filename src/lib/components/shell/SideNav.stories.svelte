@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import StoryProviders from '$lib/storybook/StoryProviders.svelte';
+	import { liveStorySeed } from '$lib/storybook/seed';
 	import SideNav from './SideNav.svelte';
 
 	const { Story } = defineMeta({
@@ -20,6 +21,26 @@
 <Story name="Desktop">
 	{#snippet template()}
 		<StoryProviders>
+			<div class="sb-shell-desktop relative min-h-screen bg-surface">
+				<SideNav />
+			</div>
+		</StoryProviders>
+	{/snippet}
+</Story>
+
+<Story name="Active">
+	{#snippet template()}
+		<StoryProviders seed={liveStorySeed('active')} nowMs={Date.now()}>
+			<div class="sb-shell-desktop relative min-h-screen bg-surface">
+				<SideNav />
+			</div>
+		</StoryProviders>
+	{/snippet}
+</Story>
+
+<Story name="Paused">
+	{#snippet template()}
+		<StoryProviders seed={liveStorySeed('paused')} nowMs={Date.now()}>
 			<div class="sb-shell-desktop relative min-h-screen bg-surface">
 				<SideNav />
 			</div>

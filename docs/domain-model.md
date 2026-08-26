@@ -202,7 +202,7 @@ interface UserProfile {
 | --------------------------- | ----------------------------------------------- |
 | Timer big clock             | Live duration of active/paused session          |
 | `PROJ: AUTH` chip           | `Project.code` or abbreviated name              |
-| `ACTIVE` / green pulse      | `status === 'active'`                           |
+| `ACTIVE` / live glow        | `status === 'active'`                           |
 | Amber pause affordance      | `status === 'paused'` (design system)           |
 | Log row `> note`            | `note`                                          |
 | Log date groups             | Local calendar date of `startedAt` or `endedAt` |

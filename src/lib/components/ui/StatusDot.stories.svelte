@@ -6,18 +6,17 @@
 		title: 'UI/StatusDot',
 		component: StatusDot,
 		args: {
-			tone: 'active'
+			tone: 'live'
 		}
 	});
 
-	const TONES: StatusDotTone[] = ['active', 'paused', 'idle', 'live'];
+	const TONES: StatusDotTone[] = ['live', 'paused', 'idle'];
 </script>
 
 <Story name="Default" />
 
 <!--
-	`active` blinks; `live` glows. With reduced motion, `blink` is suppressed
-	globally (layout.css) — confirm the dot stays secondary and fully opaque.
+	`live` glows (`today-glow`). `paused` and `idle` are static fills.
 -->
 <Story name="Tones">
 	{#snippet template()}

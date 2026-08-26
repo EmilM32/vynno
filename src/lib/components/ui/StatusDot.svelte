@@ -1,11 +1,10 @@
 <script lang="ts" module>
-	export type StatusDotTone = 'active' | 'paused' | 'idle' | 'live';
+	export type StatusDotTone = 'live' | 'paused' | 'idle';
 
 	const TONE: Record<StatusDotTone, string> = {
-		active: 'bg-secondary blink',
+		live: 'today-glow bg-secondary',
 		paused: 'bg-tertiary',
-		idle: 'bg-outline-variant',
-		live: 'today-glow bg-secondary'
+		idle: 'bg-outline-variant'
 	};
 </script>
 
@@ -18,7 +17,5 @@
 	let { tone, class: className = '' }: Props = $props();
 </script>
 
-<span
-	class="inline-block h-2 w-2 shrink-0 rounded-full {TONE[tone]} {className}"
-	aria-hidden="true"
+<span class="inline-block h-2 w-2 shrink-0 rounded-full {TONE[tone]} {className}" aria-hidden="true"
 ></span>

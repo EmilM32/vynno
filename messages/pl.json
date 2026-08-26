@@ -30,6 +30,7 @@
 	"shell_session_recording": "Sesja w toku",
 	"shell_session_paused": "Sesja wstrzymana",
 	"shell_no_active_session": "Brak aktywnej sesji",
+	"shell_session_chip_aria": "{status}, {elapsed}, {detail}. Otwórz timer.",
 	"command_palette_aria": "Paleta poleceń",
 	"command_palette_close": "Zamknij paletę poleceń",
 	"command_palette_placeholder": "Wpisz polecenie…",

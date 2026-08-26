@@ -39,18 +39,8 @@
 
 /* Timer / status motion — respect reduced motion */
 @layer utilities {
-	.blink {
-		animation: blinker 1s linear infinite;
-	}
-
 	.pulse-border {
 		animation: borderPulse 2s infinite;
-	}
-
-	@keyframes blinker {
-		50% {
-			opacity: 0;
-		}
 	}
 
 	@keyframes borderPulse {
@@ -69,7 +59,6 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.blink,
 		.pulse-border {
 			animation: none;
 		}

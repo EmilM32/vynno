@@ -30,6 +30,7 @@ Stitch provides separate mobile and desktop HTML for each feature, but navigatio
 5. Active nav item derived from the current pathname.
 6. “Start New Session” CTA navigates to `/timer` and/or focuses start action (exact behavior at implementation).
 7. Nav order: Timer · Dashboard · Logs · Insights · **Projects** · Settings.
+8. Unknown URLs and errors above `(app)` use root `+error.svelte` (chrome-less, like `/login`). Page-level throws inside `(app)` keep the shell. See [0019-error-pages.md](./0019-error-pages.md).
 
 ## Consequences
 
@@ -56,3 +57,4 @@ Stitch provides separate mobile and desktop HTML for each feature, but navigatio
 
 - [../screens-and-flows.md](../screens-and-flows.md)
 - [0001-frontend-stack.md](./0001-frontend-stack.md)
+- [0019-error-pages.md](./0019-error-pages.md)

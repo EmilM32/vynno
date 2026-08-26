@@ -333,6 +333,11 @@
 	"error_load_title": "Couldn't load workspace",
 	"error_load_body": "Check your connection and try again.",
 	"error_load_retry": "Retry",
+	"error_page_not_found_title": "Page not found",
+	"error_page_not_found_body": "That path isn't a Vynno screen.",
+	"error_page_internal_title": "Something went wrong",
+	"error_page_internal_body": "The request failed. Retry, or continue to a known screen.",
+	"error_page_go_dashboard": "Go to Dashboard",
 	"placeholder_scaffold": "// scaffold placeholder",
 	"placeholder_phase_note": "Feature UI arrives in a later phase.",
 	"placeholder_design_ref": "Design reference: originally Google Stitch · docs/screens-and-flows.md"

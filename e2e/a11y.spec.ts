@@ -78,6 +78,21 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 	});
 });
 
+test.describe('WCAG 2.2 AA (axe) — 404', () => {
+	for (const theme of themes) {
+		test(`theme ${theme}`, async ({ page }) => {
+			await page.addInitScript((id) => {
+				localStorage.setItem('vynno-theme', id);
+			}, theme);
+			await page.goto('/this-route-does-not-exist');
+			await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+			await expect(page.getByTestId('error-page')).toBeVisible();
+			await expect(page).toHaveTitle(/Page not found · Vynno$/);
+			await expectNoViolations(page);
+		});
+	}
+});
+
 test.describe('keyboard', () => {
 	test('skip link moves focus to main', async ({ page }) => {
 		await login(page);

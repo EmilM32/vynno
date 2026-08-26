@@ -1,4 +1,4 @@
-import type { Handle, HandleFetch } from '@sveltejs/kit';
+import type { Handle, HandleFetch, HandleServerError } from '@sveltejs/kit';
 import { getApiBase, isVynnoApiUrl } from '$lib/api/config';
 import { getTextDirection } from '$lib/paraglide/runtime';
 import { paraglideMiddleware } from '$lib/paraglide/server';
@@ -16,6 +16,11 @@ const handleParaglide: Handle = ({ event, resolve }) =>
 	});
 
 export const handle: Handle = handleParaglide;
+
+export const handleError: HandleServerError = ({ error, message }) => {
+	console.error(error);
+	return { message };
+};
 
 /**
  * Kit only auto-forwards cookies to the app origin (or a subdomain of it).

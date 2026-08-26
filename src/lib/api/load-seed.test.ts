@@ -27,7 +27,7 @@ describe('loadAppSeed', () => {
 		expect(String(fetchFn.mock.calls.find((c) => String(c[0]).includes('/sessions'))?.[0])).toBe(
 			`${api}/sessions?limit=15`
 		);
-		expect(loaded.profile.handle).toBe('@alexdev');
+		expect(loaded.profile.email).toBe('alexdev@vynno.local');
 		expect(loaded.projects.map((p) => p.id)).toEqual(['proj-auth']);
 		expect(loaded.sessions).toEqual([]);
 		expect(loaded.nextCursor).toBeNull();

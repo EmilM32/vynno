@@ -4,7 +4,7 @@ import type { UserProfile } from '$lib/types/domain';
 export function profileFromDto(dto: ProfileDto): UserProfile {
 	const profile: UserProfile = {
 		displayName: dto.displayName,
-		handle: dto.handle
+		email: dto.email
 	};
 	if (dto.avatarUrl) profile.avatarUrl = dto.avatarUrl;
 	return profile;
@@ -13,7 +13,12 @@ export function profileFromDto(dto: ProfileDto): UserProfile {
 export function profileToDto(profile: UserProfile): ProfileDto {
 	return {
 		displayName: profile.displayName,
-		handle: profile.handle,
+		email: profile.email,
 		avatarUrl: profile.avatarUrl ?? null
 	};
+}
+
+/** Chrome identity: display name if set, otherwise the raw email. */
+export function profileLabel(profile: { displayName: string; email: string }): string {
+	return profile.displayName.trim() || profile.email;
 }

@@ -124,12 +124,12 @@ describe('session mappers', () => {
 describe('profile mappers', () => {
 	it('omits null avatar from domain', () => {
 		expect(
-			profileFromDto({ displayName: 'Alex Dev', handle: '@alexdev', avatarUrl: null })
-		).toEqual({ displayName: 'Alex Dev', handle: '@alexdev' });
+			profileFromDto({ displayName: 'Alex Dev', email: 'alex@example.com', avatarUrl: null })
+		).toEqual({ displayName: 'Alex Dev', email: 'alex@example.com' });
 	});
 
 	it('round-trips avatar', () => {
-		const profile = { displayName: 'Alex', handle: '@a', avatarUrl: 'https://x/a.png' };
+		const profile = { displayName: 'Alex', email: 'a@example.com', avatarUrl: 'https://x/a.png' };
 		expect(profileFromDto(profileToDto(profile))).toEqual(profile);
 	});
 });

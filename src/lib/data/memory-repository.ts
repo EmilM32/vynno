@@ -281,8 +281,8 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 
 	async updateProfile(input: UpdateProfileInput): Promise<UserProfile> {
 		const name = input.displayName.trim();
-		if (!name || name.length > 80) {
-			throw new DomainError('invalid_body', 'Display name is required.');
+		if (name.length > 80) {
+			throw new DomainError('invalid_body', 'Display name is too long.');
 		}
 		this.#profile = { ...this.#profile, displayName: name };
 		return { ...this.#profile };

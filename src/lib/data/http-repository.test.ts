@@ -112,7 +112,7 @@ describe('HttpTimeTrackingRepository', () => {
 			return jsonResponse({ error: { code: 'not_found', message: url } }, 404);
 		});
 		const repo = HttpTimeTrackingRepository.fromFetch(fetchFn, api);
-		expect((await repo.getProfile()).handle).toBe('@alexdev');
+		expect((await repo.getProfile()).email).toBe('alexdev@vynno.local');
 		await repo.listSessions({ status: ['stopped'], limit: 2, cursor: 'abc' });
 		expect(String(fetchFn.mock.calls[1]?.[0])).toBe(
 			`${api}/sessions?status=stopped&limit=2&cursor=abc`
@@ -123,17 +123,17 @@ describe('HttpTimeTrackingRepository', () => {
 		const fetchFn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
 			const url = String(input);
 			if (url.endsWith('/me') && init?.method === 'PATCH') {
-				return jsonResponse({ displayName: 'Renamed', handle: '@alexdev', avatarUrl: null });
+				return jsonResponse({ displayName: 'Renamed', email: 'alexdev@vynno.local', avatarUrl: null });
 			}
 			if (url.endsWith('/me/avatar') && init?.method === 'PUT') {
 				return jsonResponse({
 					displayName: 'Renamed',
-					handle: '@alexdev',
+					email: 'alexdev@vynno.local',
 					avatarUrl: 'https://api.example.test/v1/avatars/abc'
 				});
 			}
 			if (url.endsWith('/me/avatar') && init?.method === 'DELETE') {
-				return jsonResponse({ displayName: 'Renamed', handle: '@alexdev', avatarUrl: null });
+				return jsonResponse({ displayName: 'Renamed', email: 'alexdev@vynno.local', avatarUrl: null });
 			}
 			return jsonResponse({ error: { code: 'not_found', message: url } }, 404);
 		});

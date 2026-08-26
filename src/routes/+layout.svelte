@@ -35,9 +35,9 @@
 	$effect(() => {
 		persistTimeZoneCookie();
 		if (data.seed) {
-			const handle = data.seed.profile.handle.replace(/^@/, '');
-			if (handle && !authStore.loggedIn) {
-				authStore.applySession(handle);
+			const email = data.seed.profile.email;
+			if (email && !authStore.loggedIn) {
+				authStore.applySession(email);
 			}
 		}
 	});

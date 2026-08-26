@@ -18,10 +18,10 @@ describe('userMessageForError', () => {
 			'Please sign in again.'
 		);
 		expect(userMessageForError(new ApiError(401, 'invalid_credentials', 'x'), () => 'fb')).toBe(
-			'Username or password is incorrect.'
+			'Email or password is incorrect.'
 		);
-		expect(userMessageForError(new ApiError(409, 'username_in_use', 'x'), () => 'fb')).toBe(
-			'That username is already taken.'
+		expect(userMessageForError(new ApiError(409, 'email_in_use', 'x'), () => 'fb')).toBe(
+			'That email is already taken.'
 		);
 		expect(userMessageForError(new ApiError(409, 'name_in_use', 'x'), () => 'fb')).toBe(
 			'That name is already in use.'

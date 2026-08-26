@@ -7,6 +7,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import BrandMark from './BrandMark.svelte';
+	import { profileLabel } from '$lib/api/mappers/profile';
 	import ProfileAvatar from './ProfileAvatar.svelte';
 	import SessionChip from './SessionChip.svelte';
 	import { NAV_ITEMS, isNavActive } from './nav';
@@ -83,10 +84,10 @@
 				href={resolve('/settings')}
 				class="focus-ring flex items-center gap-3 rounded-DEFAULT px-3 py-2 transition-colors hover:bg-surface-variant"
 			>
-				<ProfileAvatar name={prefsStore.displayName} src={prefsStore.avatarUrl} size="sm" />
+				<ProfileAvatar name={profileLabel(prefsStore)} src={prefsStore.avatarUrl} size="sm" />
 				<div class="min-w-0">
-					<p class="truncate text-body-sm font-medium text-on-surface">{prefsStore.displayName}</p>
-					<p class="truncate font-mono text-[10px] text-on-surface-variant">{prefsStore.handle}</p>
+					<p class="truncate text-body-sm font-medium text-on-surface">{profileLabel(prefsStore)}</p>
+					<p class="truncate font-mono text-[10px] text-on-surface-variant">{prefsStore.email}</p>
 				</div>
 			</a>
 		</div>

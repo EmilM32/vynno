@@ -32,22 +32,22 @@ test.describe('login', () => {
 		await page.getByRole('button', { name: 'Log in' }).click();
 		await expect(page).toHaveURL(/\/login$/);
 		await expect(page.getByRole('alert')).toHaveCount(2);
-		await expect(page.getByText('Username is required.')).toBeVisible();
+		await expect(page.getByText('Email is required.')).toBeVisible();
 		await expect(page.getByText('Password is required.')).toBeVisible();
 	});
 
 	test('empty Enter submit stays and shows field errors', async ({ page }) => {
 		await page.goto('/login');
-		await page.getByLabel('Username').press('Enter');
+		await page.getByLabel('Email').press('Enter');
 		await expect(page).toHaveURL(/\/login$/);
 		await expect(page.getByRole('alert')).toHaveCount(2);
-		await expect(page.getByText('Username is required.')).toBeVisible();
+		await expect(page.getByText('Email is required.')).toBeVisible();
 		await expect(page.getByText('Password is required.')).toBeVisible();
 	});
 
 	test('valid credentials proceed to the dashboard', async ({ page }) => {
 		const account = await registerAccount(page.request);
-		await loginWith(page, account.username, account.password);
+		await loginWith(page, account.email, account.password);
 		await expect(page.getByTestId('page-view')).toBeVisible();
 		await expect(desktopNav(page).getByText('Vynno', { exact: true })).toBeVisible();
 	});
@@ -55,7 +55,7 @@ test.describe('login', () => {
 	test('Enter in the password field signs in', async ({ page }) => {
 		const account = await registerAccount(page.request);
 		await page.goto('/login');
-		await page.getByLabel('Username').fill(account.username);
+		await page.getByLabel('Email').fill(account.email);
 		const password = page.getByRole('textbox', { name: 'Password', exact: true });
 		await password.fill(account.password);
 		await password.press('Enter');
@@ -65,7 +65,7 @@ test.describe('login', () => {
 
 	test('root goes to dashboard after login', async ({ page }) => {
 		const account = await registerAccount(page.request);
-		await loginWith(page, account.username, account.password);
+		await loginWith(page, account.email, account.password);
 
 		await page.goto('/');
 		await expect(page).toHaveURL(/\/dashboard$/);
@@ -79,7 +79,7 @@ test.describe('register', () => {
 		const submit = page.getByRole('button', { name: 'Create account' });
 		await expect(submit).toBeDisabled();
 
-		await page.getByLabel('Username').fill('new_user');
+		await page.getByLabel('Email').fill('new.user@example.com');
 		await page.getByLabel('Password', { exact: true }).fill('long-enough');
 		await expect(submit).toBeDisabled();
 		await expect(page.getByText('Passwords do not match.')).toHaveCount(0);
@@ -93,34 +93,34 @@ test.describe('register', () => {
 		await expect(submit).toBeEnabled();
 	});
 
-	test('empty username with matching passwords stays and shows a field error', async ({ page }) => {
+	test('empty email with matching passwords stays and shows a field error', async ({ page }) => {
 		await page.goto('/login');
 		await page.getByRole('tab', { name: 'Create account' }).click();
 		await page.getByLabel('Password', { exact: true }).fill('long-enough');
 		await page.getByRole('textbox', { name: 'Confirm password' }).fill('long-enough');
 		await page.getByRole('button', { name: 'Create account' }).click();
 		await expect(page).toHaveURL(/\/login$/);
-		await expect(page.getByText('Username is required.')).toBeVisible();
+		await expect(page.getByText('Email is required.')).toBeVisible();
 	});
 
 	test('create account proceeds to the dashboard', async ({ page }) => {
-		const username = `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+		const local = `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 		await page.goto('/login');
 		await page.getByRole('tab', { name: 'Create account' }).click();
-		await page.getByLabel('Username').fill(username);
+		await page.getByLabel('Email').fill(`${local}@example.com`);
 		await page.getByLabel('Password', { exact: true }).fill('e2epassword');
 		await page.getByRole('textbox', { name: 'Confirm password' }).fill('e2epassword');
-		await page.getByLabel('Display name').fill(`E2E ${username}`);
+		await page.getByLabel('Display name').fill(`E2E ${local}`);
 		await page.getByRole('button', { name: 'Create account' }).click();
 		await expect(page).toHaveURL(/\/dashboard$/);
 		await expect(page.getByTestId('page-view')).toBeVisible();
 	});
 
 	test('Enter in the confirm field creates an account', async ({ page }) => {
-		const username = `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+		const local = `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 		await page.goto('/login');
 		await page.getByRole('tab', { name: 'Create account' }).click();
-		await page.getByLabel('Username').fill(username);
+		await page.getByLabel('Email').fill(`${local}@example.com`);
 		await page.getByLabel('Password', { exact: true }).fill('e2epassword');
 		const confirm = page.getByRole('textbox', { name: 'Confirm password' });
 		await confirm.fill('e2epassword');
@@ -130,16 +130,16 @@ test.describe('register', () => {
 		await expect(page.getByTestId('page-view')).toBeVisible();
 	});
 
-	test('taken username shows an error', async ({ page }) => {
+	test('taken email shows an error', async ({ page }) => {
 		const account = await registerAccount(page.request);
 		await page.goto('/login');
 		await page.getByRole('tab', { name: 'Create account' }).click();
-		await page.getByLabel('Username').fill(account.username);
+		await page.getByLabel('Email').fill(account.email);
 		await page.getByLabel('Password', { exact: true }).fill('e2epassword');
 		await page.getByRole('textbox', { name: 'Confirm password' }).fill('e2epassword');
 		await page.getByRole('button', { name: 'Create account' }).click();
 		await expect(page).toHaveURL(/\/login$/);
-		await expect(page.getByText('That username is already taken.')).toBeVisible();
+		await expect(page.getByText('That email is already taken.')).toBeVisible();
 	});
 
 	test('password visibility toggle reveals the typed value', async ({ page }) => {

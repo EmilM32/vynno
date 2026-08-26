@@ -6,7 +6,7 @@ export const PROJECT_IDS = {
 } as const;
 
 export function sampleProfileDto() {
-	return { displayName: 'Alex Dev', handle: '@alexdev', avatarUrl: null };
+	return { displayName: 'Alex Dev', email: 'alexdev@vynno.local', avatarUrl: null };
 }
 
 export function sampleProjectListDto() {
@@ -63,7 +63,7 @@ export function localIso(
 }
 
 export function sampleAppSeed(now = FIXED_NOW): AppSeed {
-	const profile: UserProfile = { displayName: 'Alex Dev', handle: '@alexdev' };
+	const profile: UserProfile = { displayName: 'Alex Dev', email: 'alexdev@vynno.local' };
 	const projects: Project[] = [
 		{ id: PROJECT_IDS.auth, name: 'Identity', color: '#3b82f6', code: 'AUTH' }
 	];

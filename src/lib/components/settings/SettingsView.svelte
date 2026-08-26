@@ -9,6 +9,7 @@
 	import { useSession } from '$lib/stores/session.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ProfileAvatar from '$lib/components/shell/ProfileAvatar.svelte';
+	import { profileLabel } from '$lib/api/mappers/profile';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
@@ -27,8 +28,8 @@
 	const nameDirty = $derived(displayNameDraft.trim() !== prefsStore.displayName);
 
 	async function onSaveName() {
+		if (profileBusy) return;
 		const name = displayNameDraft.trim();
-		if (!name || profileBusy) return;
 		const ok = await sessionStore.updateProfile({ displayName: name });
 		if (ok) displayNameDraft = prefsStore.displayName;
 	}
@@ -93,11 +94,15 @@
 			{m.settings_profile()}
 		</h2>
 		<div class="flex items-center gap-4">
-			<ProfileAvatar name={prefsStore.displayName} src={prefsStore.avatarUrl} size="lg" />
+			<ProfileAvatar
+				name={profileLabel(prefsStore)}
+				src={prefsStore.avatarUrl}
+				size="lg"
+			/>
 			<div class="min-w-0">
-				<p class="text-headline-md text-on-surface">{prefsStore.displayName}</p>
-				<p class="font-mono text-code-label text-on-surface-variant">{prefsStore.handle}</p>
-				<p class="mt-1 text-body-sm text-on-surface-variant">{m.settings_handle_readonly()}</p>
+				<p class="text-headline-md text-on-surface">{profileLabel(prefsStore)}</p>
+				<p class="font-mono text-code-label text-on-surface-variant">{prefsStore.email}</p>
+				<p class="mt-1 text-body-sm text-on-surface-variant">{m.settings_email_readonly()}</p>
 			</div>
 		</div>
 
@@ -134,7 +139,7 @@
 			</Field>
 			<Button
 				variant="tonal"
-				disabled={profileBusy || !nameDirty || !displayNameDraft.trim()}
+				disabled={profileBusy || !nameDirty}
 				onclick={onSaveName}
 			>
 				{m.settings_save_profile()}

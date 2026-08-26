@@ -27,7 +27,7 @@
 		<Field
 			id="display-name"
 			label="Display name"
-			hint="Shown on the profile chip. The handle stays as you registered."
+			hint="Shown on the profile chip. The email stays as you registered."
 		>
 			<Input value="Ada" />
 		</Field>

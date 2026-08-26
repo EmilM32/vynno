@@ -1,7 +1,7 @@
 # Vynno API contract (frontend-proposed)
 
 **Status:** Implemented on the client (Phase 5c) — live API + auth  
-**Last updated:** 2026-08-21  
+**Last updated:** 2026-08-26  
 **Executable schemas:** `src/lib/api/schemas/` (source of truth if this doc and code drift)
 
 This is the wire format the SvelteKit app speaks. The backend should implement these resources. If the live API diverges, change **schemas + mappers only** — not views or the session store.
@@ -48,8 +48,8 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 | `activity_type_has_sessions` | 409     | Hard-delete of an activity type that has sessions     | `activity_types_cannot_delete_has_sessions` |
 | `invalid_transition`         | 409     | Pause/resume/stop (or archive/restore) in a bad state | fallback                                    |
 | `unauthorized`               | 401     | Missing, unknown, or expired session                  | `error_unauthorized`                        |
-| `invalid_credentials`        | 401     | Login username/password do not match                  | `error_invalid_credentials`                 |
-| `username_in_use`            | 409     | Register with a taken username                        | `error_username_in_use`                     |
+| `invalid_credentials`        | 401     | Login email/password do not match                     | `error_invalid_credentials`                 |
+| `email_in_use`               | 409     | Register with a taken email                           | `error_email_in_use`                        |
 
 Example envelope:
 
@@ -90,8 +90,8 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 
 | Method | Path             | Auth | Body                                                | Success                      |
 | ------ | ---------------- | ---- | --------------------------------------------------- | ---------------------------- |
-| POST   | `/auth/register` | no   | `{ username, password, displayName?, rememberMe? }` | `{ profile }` `201` + cookie |
-| POST   | `/auth/login`    | no   | `{ username, password, rememberMe? }`               | `{ profile }` `200` + cookie |
+| POST   | `/auth/register` | no   | `{ email, password, displayName?, rememberMe? }` | `{ profile }` `201` + cookie |
+| POST   | `/auth/login`    | no   | `{ email, password, rememberMe? }`               | `{ profile }` `200` + cookie |
 | POST   | `/auth/logout`   | yes  | —                                                   | `204` + clear cookie         |
 
 `rememberMe` omitted is `true` (cookie `Max-Age` 30 days). `false` is a session cookie.
@@ -111,12 +111,12 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 ```json
 {
 	"displayName": "Alex Dev",
-	"handle": "@alexdev",
+	"email": "alex@example.com",
 	"avatarUrl": null
 }
 ```
 
-`avatarUrl` is JSON `null` when absent. When set it is an absolute URL `{PUBLIC_API_ORIGIN}/v1/avatars/{uuid}`.
+`displayName` may be `""`. `email` is the login identifier (not writable after register). `avatarUrl` is JSON `null` when absent. When set it is an absolute URL `{PUBLIC_API_ORIGIN}/v1/avatars/{uuid}`. There is no `handle`. Chrome shows `displayName` if non-empty, otherwise the raw email.
 
 `UpdateProfileDto` — all fields optional:
 
@@ -124,8 +124,8 @@ Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authoriza
 { "displayName": "Alex Dev" }
 ```
 
-- `displayName`: trim; 1–80 characters. Omit = leave unchanged. `null` or `""` → `invalid_body`.
-- Do not send `handle` or `avatarUrl`. Handle stays derived from the username. Avatar is only `PUT` / `DELETE /me/avatar`.
+- `displayName`: trim; at most 80 characters. Omit = leave unchanged. `""` clears the name so the UI falls back to email. `null` → `invalid_body`.
+- Do not send `email` or `avatarUrl`. Email is not user-editable. Avatar is only `PUT` / `DELETE /me/avatar`.
 
 `PUT /me/avatar`: field `file`; JPEG / PNG / WebP by magic bytes; max 1 MiB. Replace allocates a new UUID.
 

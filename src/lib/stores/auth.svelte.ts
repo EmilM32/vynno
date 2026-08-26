@@ -8,7 +8,7 @@ import { resetClientSessionStore } from '$lib/stores/session.svelte';
 export const AUTH_STORAGE_KEY = 'vynno-auth';
 export const AUTH_REMEMBER_KEY = 'vynno-auth-remember';
 
-function readStoredUsername(): string {
+function readStoredEmail(): string {
 	if (!browser) return '';
 	try {
 		const remember = localStorage.getItem(AUTH_REMEMBER_KEY) !== '0';
@@ -19,15 +19,15 @@ function readStoredUsername(): string {
 	}
 }
 
-function persistUsername(username: string, rememberMe: boolean): void {
+function persistEmail(email: string, rememberMe: boolean): void {
 	if (!browser) return;
 	try {
 		sessionStorage.removeItem(AUTH_STORAGE_KEY);
 		localStorage.removeItem(AUTH_STORAGE_KEY);
 		localStorage.removeItem(AUTH_REMEMBER_KEY);
-		if (!username) return;
+		if (!email) return;
 		const store = rememberMe ? localStorage : sessionStorage;
-		store.setItem(AUTH_STORAGE_KEY, username);
+		store.setItem(AUTH_STORAGE_KEY, email);
 		localStorage.setItem(AUTH_REMEMBER_KEY, rememberMe ? '1' : '0');
 	} catch {
 		// Private mode / disabled storage — in-memory flag still works.
@@ -36,16 +36,16 @@ function persistUsername(username: string, rememberMe: boolean): void {
 
 /**
  * Signed-in flag for chrome. The session secret is the HttpOnly cookie;
- * this only caches the username so we can skip `/login` on return.
+ * this only caches the email so we can skip `/login` on return.
  */
 class AuthStore {
 	loggedIn = $state(false);
-	username = $state('');
+	email = $state('');
 
 	constructor() {
-		const stored = readStoredUsername();
+		const stored = readStoredEmail();
 		if (stored) {
-			this.username = stored;
+			this.email = stored;
 			this.loggedIn = true;
 		}
 		setUnauthorizedHandler(() => {
@@ -56,16 +56,16 @@ class AuthStore {
 		});
 	}
 
-	applySession = (username: string, rememberMe = true): void => {
-		this.username = username.trim();
+	applySession = (email: string, rememberMe = true): void => {
+		this.email = email.trim();
 		this.loggedIn = true;
-		persistUsername(this.username, rememberMe);
+		persistEmail(this.email, rememberMe);
 	};
 
 	clearSession = (): void => {
-		this.username = '';
+		this.email = '';
 		this.loggedIn = false;
-		persistUsername('', true);
+		persistEmail('', true);
 		resetClientSessionStore();
 		resetClientPrefsStore();
 	};

@@ -4,7 +4,7 @@
 	import { loginRequest, registerRequest } from '$lib/api/auth';
 	import { userMessageForError } from '$lib/api/user-message';
 	import {
-		normalizeUsername,
+		normalizeEmail,
 		passwordsMatch,
 		validateRegisterFieldErrors,
 		type RegisterFieldErrorKey
@@ -24,12 +24,12 @@
 	let pending = $state(false);
 	let formError = $state('');
 
-	let loginUsername = $state('');
+	let loginEmail = $state('');
 	let loginPassword = $state('');
 	let loginRemember = $state(true);
-	let loginFieldErrors = $state<{ username?: string; password?: string }>({});
+	let loginFieldErrors = $state<{ email?: string; password?: string }>({});
 
-	let registerUsername = $state('');
+	let registerEmail = $state('');
 	let registerPassword = $state('');
 	let registerConfirm = $state('');
 	let registerDisplayName = $state('');
@@ -54,7 +54,7 @@
 		if (e.key !== 'Enter' || e.isComposing || e.repeat) return;
 		const target = e.currentTarget;
 		if (!(target instanceof HTMLInputElement)) return;
-		if (target.type !== 'text' && target.type !== 'password') return;
+		if (target.type !== 'text' && target.type !== 'password' && target.type !== 'email') return;
 		const form = target.form;
 		if (!form) return;
 		const submitter = form.querySelector<HTMLButtonElement>('button[type="submit"]');
@@ -83,17 +83,18 @@
 
 	async function handleLogin(e: Event) {
 		e.preventDefault();
-		const errors: { username?: string; password?: string } = {};
-		if (!loginUsername.trim()) errors.username = m.login_username_required();
+		const errors: { email?: string; password?: string } = {};
+		if (!loginEmail.trim()) errors.email = m.login_email_required();
 		if (!loginPassword) errors.password = m.login_password_required();
 		loginFieldErrors = errors;
 		formError = '';
-		if (errors.username || errors.password) return;
+		if (errors.email || errors.password) return;
 
 		pending = true;
 		try {
-			await loginRequest(loginUsername.trim(), loginPassword, loginRemember);
-			authStore.applySession(loginUsername, loginRemember);
+			const email = normalizeEmail(loginEmail);
+			await loginRequest(email, loginPassword, loginRemember);
+			authStore.applySession(email, loginRemember);
 			await goto(resolve('/dashboard'), { invalidateAll: true });
 		} catch (err) {
 			formError = userMessageForError(err, () => m.error_invalid_credentials());
@@ -107,25 +108,25 @@
 		if (!registerReady) return;
 
 		const errors = validateRegisterFieldErrors({
-			username: registerUsername,
+			email: registerEmail,
 			password: registerPassword,
 			confirm: registerConfirm,
 			displayName: registerDisplayName
 		});
 		registerFieldErrors = errors;
 		formError = '';
-		if (errors.username || errors.password || errors.confirm || errors.displayName) return;
+		if (errors.email || errors.password || errors.confirm || errors.displayName) return;
 
 		pending = true;
 		try {
-			const username = normalizeUsername(registerUsername);
+			const email = normalizeEmail(registerEmail);
 			await registerRequest(
-				username,
+				email,
 				registerPassword,
 				registerRemember,
 				registerDisplayName.trim() || undefined
 			);
-			authStore.applySession(username, registerRemember);
+			authStore.applySession(email, registerRemember);
 			await goto(resolve('/dashboard'), { invalidateAll: true });
 		} catch (err) {
 			formError = userMessageForError(err, () => m.error_failed_register());
@@ -196,15 +197,15 @@
 					novalidate
 					data-testid="login-form"
 				>
-					<Field id="login-username" label={m.login_username()} error={loginFieldErrors.username}>
+					<Field id="login-email" label={m.login_email()} error={loginFieldErrors.email}>
 						<Input
-							type="text"
-							name="username"
+							type="email"
+							name="email"
 							required
 							autocapitalize="none"
-							autocomplete="username"
+							autocomplete="email"
 							spellcheck="false"
-							bind:value={loginUsername}
+							bind:value={loginEmail}
 							onkeydown={onFieldKeydown}
 							class="w-full"
 						/>
@@ -250,18 +251,18 @@
 					data-testid="register-form"
 				>
 					<Field
-						id="register-username"
-						label={m.login_username()}
-						error={registerFieldErrors.username}
+						id="register-email"
+						label={m.login_email()}
+						error={registerFieldErrors.email}
 					>
 						<Input
-							type="text"
-							name="username"
+							type="email"
+							name="email"
 							required
 							autocapitalize="none"
-							autocomplete="username"
+							autocomplete="email"
 							spellcheck="false"
-							bind:value={registerUsername}
+							bind:value={registerEmail}
 							onkeydown={onFieldKeydown}
 							class="w-full"
 						/>

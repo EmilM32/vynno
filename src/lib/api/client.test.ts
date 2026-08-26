@@ -16,11 +16,11 @@ describe('ApiClient', () => {
 		const fetchFn = vi
 			.fn()
 			.mockResolvedValue(
-				jsonResponse({ displayName: 'Alex Dev', handle: '@alexdev', avatarUrl: null })
+				jsonResponse({ displayName: 'Alex Dev', email: 'alex@example.com', avatarUrl: null })
 			);
 		const client = new ApiClient(fetchFn, 'https://api.example.test/v1');
 		const profile = await client.get('/me', profileDtoSchema);
-		expect(profile.handle).toBe('@alexdev');
+		expect(profile.email).toBe('alex@example.com');
 		expect(fetchFn).toHaveBeenCalledWith(
 			'https://api.example.test/v1/me',
 			expect.objectContaining({ method: 'GET', credentials: 'include' })
@@ -59,7 +59,7 @@ describe('ApiClient', () => {
 		const fetchFn = vi.fn().mockResolvedValue(
 			jsonResponse({
 				displayName: 'Alex',
-				handle: '@a',
+				email: 'a@example.com',
 				avatarUrl: 'https://api.example.test/v1/avatars/1'
 			})
 		);

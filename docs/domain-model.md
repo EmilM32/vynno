@@ -188,8 +188,8 @@ interface TimeSession {
 }
 
 interface UserProfile {
-	displayName: string;
-	handle: string; // derived from username; not editable
+	displayName: string; // may be empty; chrome then shows email
+	email: string; // login identifier; not editable
 	avatarUrl?: string; // absolute URL from GET /me when a photo is set
 }
 ```

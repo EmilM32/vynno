@@ -17,7 +17,7 @@ The app ran as a client-only SPA (`export const ssr = false` in the root layout)
 1. **SSR is on** (SvelteKit default). The root layout no longer exports `ssr = false`.
 2. **`+layout.server.ts` is the source of first-paint data.** It loads the workspace seed via `loadAppSeed(fetch)`, records `nowMs` and `timeZone`, and returns `{ seed, loggedIn, loadError, nowMs, timeZone }`. `load` stays pure — it never writes stores.
 3. **Same-origin `/v1` BFF.** The browser calls `/v1`. The `src/routes/v1` handler proxies to vynno-api (`API_ORIGIN`, required, no source default) and forwards `Set-Cookie`, so `vynno_session` is first-party on the SPA origin. A cross-origin login to the API origin would store a third-party cookie that Kit never sees. `handleFetch` still copies `Cookie` / `Authorization` if `PUBLIC_API_BASE` is an absolute API origin. See [ADR-0012](./0012-env-origins.md).
-4. **Routing uses `data.loggedIn`**, not `authStore`. `authStore` remains a client chrome/username cache.
+4. **Routing uses `data.loggedIn`**, not `authStore`. `authStore` remains a client chrome/email cache.
 5. **Stores are factories + Svelte context.** `createSessionStore` / `createPrefsStore` produce a fresh instance per server request and cache a **client singleton** after hydrate so the live timer survives in-app navigation (ADR-0004). Components call `useSession()` / `usePrefs()`.
 6. **Time contract.** First-paint day keys and `HH:MM` labels use an explicit IANA `timeZone` from the `vynno_tz` cookie (fallback `UTC`). The live clock starts only in the browser, initialized from seed `nowMs`.
 7. **Locale.** Paraglide strategy is `cookie` → `localStorage` → `preferredLanguage` → `baseLocale` so the server and the first HTML agree.

@@ -199,7 +199,7 @@ See [screens-and-flows.md](./screens-and-flows.md) §3.6 and [adr/0006-project-l
 | ID    | Requirement                                    | Priority |
 | ----- | ---------------------------------------------- | -------- |
 | SET-1 | Settings route exists (stub)                   | P0       |
-| SET-2 | Profile display (name/handle) matching mockups | P2       |
+| SET-2 | Profile display (name/email) matching mockups | P2       |
 | SET-3 | Daily hour target for insights                 | P2       |
 | SET-4 | Preferences (e.g. default project)             | P2       |
 

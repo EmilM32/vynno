@@ -2,7 +2,7 @@ import { expect, type APIRequestContext, type Locator, type Page } from '@playwr
 import { apiBase, apiOrigin, e2eOrigin } from './env';
 
 /** Bootstrap account — only for optional overrides. Default e2e login registers a throwaway user. */
-export const E2E_USERNAME = process.env.E2E_USERNAME ?? 'alexdev';
+export const E2E_EMAIL = process.env.E2E_EMAIL ?? 'alexdev@vynno.local';
 export const E2E_PASSWORD = process.env.E2E_PASSWORD ?? 'local-dev-password';
 
 /** Direct vynno-api `/v1` for e2e setup (not the SPA `/v1` proxy). */
@@ -10,7 +10,7 @@ export const API_BASE = apiBase;
 const SPA_ORIGIN = e2eOrigin;
 
 export type E2EAccount = {
-	username: string;
+	email: string;
 	password: string;
 	displayName: string;
 };
@@ -20,14 +20,15 @@ export function uniqueNote(prefix = 'e2e'): string {
 }
 
 export async function registerAccount(_request?: APIRequestContext): Promise<E2EAccount> {
-	const username = `e2e_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+	const local = `e2e_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+	const email = `${local}@example.com`;
 	const password = 'e2epassword';
-	const displayName = `E2E ${username}`;
+	const displayName = `E2E ${local}`;
 	// Node fetch so Playwright's page cookie jar is not seeded (SSR would skip /login).
 	const res = await fetch(`${API_BASE}/auth/register`, {
 		method: 'POST',
 		headers: { 'content-type': 'application/json', origin: SPA_ORIGIN },
-		body: JSON.stringify({ username, password, displayName, rememberMe: true })
+		body: JSON.stringify({ email, password, displayName, rememberMe: true })
 	});
 	if (!res.ok) {
 		const body = await res.text();
@@ -36,21 +37,21 @@ export async function registerAccount(_request?: APIRequestContext): Promise<E2E
 				`Start vynno-api on ${apiOrigin}, then re-run npm run test:e2e.`
 		);
 	}
-	return { username, password, displayName };
+	return { email, password, displayName };
 }
 
-export async function loginWith(page: Page, username: string, password: string) {
+export async function loginWith(page: Page, email: string, password: string) {
 	await page.goto('/login');
-	await page.getByLabel('Username').fill(username);
+	await page.getByLabel('Email').fill(email);
 	await page.getByRole('textbox', { name: 'Password', exact: true }).fill(password);
 	await page.getByRole('button', { name: 'Log in' }).click();
 	await expect(page).toHaveURL(/\/dashboard$/);
 }
 
-/** Register a throwaway user and sign in. Does not touch the local `alexdev` account. */
+/** Register a throwaway user and sign in. Does not touch the local seed account. */
 export async function login(page: Page, account?: E2EAccount): Promise<E2EAccount> {
 	const creds = account ?? (await registerAccount(page.request));
-	await loginWith(page, creds.username, creds.password);
+	await loginWith(page, creds.email, creds.password);
 	return creds;
 }
 

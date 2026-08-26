@@ -214,13 +214,13 @@ describe('MemoryTimeTrackingRepository', () => {
 	describe('getProject / getProfile', () => {
 		it('returns known project and profile', async () => {
 			expect((await repo.getProject(PROJECT_IDS.auth))?.name).toBe('Identity');
-			expect((await repo.getProfile()).handle).toBe('@alexdev');
+			expect((await repo.getProfile()).email).toBe('alexdev@vynno.local');
 		});
 
 		it('updates display name and avatar', async () => {
 			const renamed = await repo.updateProfile({ displayName: '  Renamed  ' });
 			expect(renamed.displayName).toBe('Renamed');
-			await expectCode(repo.updateProfile({ displayName: '  ' }), 'invalid_body');
+			expect((await repo.updateProfile({ displayName: '  ' })).displayName).toBe('');
 
 			const jpeg = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0x00])], { type: 'image/jpeg' });
 			const withPhoto = await repo.uploadAvatar(jpeg);

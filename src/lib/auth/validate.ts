@@ -1,21 +1,29 @@
 import { m } from '$lib/paraglide/messages.js';
 
-export const USERNAME_PATTERN = /^[a-z0-9_]{3,32}$/;
+export const EMAIL_MAX = 254;
 export const PASSWORD_MIN = 8;
 export const PASSWORD_MAX = 128;
 export const DISPLAY_NAME_MAX = 80;
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export type RegisterFieldValues = {
-	username: string;
+	email: string;
 	password: string;
 	confirm: string;
 	displayName: string;
 };
 
-export type RegisterFieldErrorKey = 'username' | 'password' | 'confirm' | 'displayName';
+export type RegisterFieldErrorKey = 'email' | 'password' | 'confirm' | 'displayName';
 
-export function normalizeUsername(raw: string): string {
+export function normalizeEmail(raw: string): string {
 	return raw.trim().toLowerCase();
+}
+
+export function isValidEmail(raw: string): boolean {
+	const email = normalizeEmail(raw);
+	if (email.length < 3 || email.length > EMAIL_MAX) return false;
+	return EMAIL_PATTERN.test(email);
 }
 
 export function passwordsMatch(password: string, confirm: string): boolean {
@@ -26,10 +34,10 @@ export function validateRegisterFieldErrors(
 	input: RegisterFieldValues
 ): Partial<Record<RegisterFieldErrorKey, string>> {
 	const errors: Partial<Record<RegisterFieldErrorKey, string>> = {};
-	const username = normalizeUsername(input.username);
+	const email = normalizeEmail(input.email);
 
-	if (!username) errors.username = m.login_username_required();
-	else if (!USERNAME_PATTERN.test(username)) errors.username = m.register_username_format();
+	if (!email) errors.email = m.login_email_required();
+	else if (!isValidEmail(email)) errors.email = m.register_email_format();
 
 	if (!input.password) errors.password = m.login_password_required();
 	else if (input.password.length < PASSWORD_MIN || input.password.length > PASSWORD_MAX) {

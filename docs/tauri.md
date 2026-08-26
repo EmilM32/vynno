@@ -61,7 +61,7 @@ Already usable from a static SPA:
 
 - `ApiClient` takes a `FetchFn` — inject Tauri `fetch` without rewriting views.
 - `loadAppSeed(fetch)` is isomorphic — client seed for desktop `+layout.ts`.
-- `authStore` is chrome/username only; the secret is the cookie.
+- `authStore` is chrome/email only; the secret is the cookie.
 - Theme and locale already fall back to `localStorage`.
 - Session/prefs are factories + context ([ADR-0011](./adr/0011-ssr-session-state.md)).
 

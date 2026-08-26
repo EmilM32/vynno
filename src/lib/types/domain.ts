@@ -56,7 +56,7 @@ export interface TimeSession {
 
 export interface UserProfile {
 	displayName: string;
-	handle: string;
+	email: string;
 	avatarUrl?: string;
 }
 

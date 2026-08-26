@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
 	DISPLAY_NAME_MAX,
-	normalizeUsername,
+	normalizeEmail,
 	passwordsMatch,
 	validateRegisterFieldErrors
 } from './validate';
 
 const valid = {
-	username: 'alex_dev',
+	email: 'alex@example.com',
 	password: 'long-enough',
 	confirm: 'long-enough',
 	displayName: 'Alex'
 };
 
-describe('normalizeUsername', () => {
+describe('normalizeEmail', () => {
 	it('trims and lowercases', () => {
-		expect(normalizeUsername('  Alex_Dev  ')).toBe('alex_dev');
+		expect(normalizeEmail('  Alex@Example.COM  ')).toBe('alex@example.com');
 	});
 });
 
@@ -32,14 +32,14 @@ describe('validateRegisterFieldErrors', () => {
 		expect(validateRegisterFieldErrors(valid)).toEqual({});
 	});
 
-	it('requires username', () => {
-		expect(validateRegisterFieldErrors({ ...valid, username: '  ' }).username).toMatch(/required/i);
+	it('requires email', () => {
+		expect(validateRegisterFieldErrors({ ...valid, email: '  ' }).email).toMatch(/required/i);
 	});
 
-	it('rejects a short or illegal username', () => {
-		expect(validateRegisterFieldErrors({ ...valid, username: 'ab' }).username).toMatch(/3–32/);
-		expect(validateRegisterFieldErrors({ ...valid, username: 'Alex-Dev' }).username).toMatch(
-			/underscore/i
+	it('rejects an invalid email', () => {
+		expect(validateRegisterFieldErrors({ ...valid, email: 'not-an-email' }).email).toMatch(/email/i);
+		expect(validateRegisterFieldErrors({ ...valid, email: 'user@localhost' }).email).toMatch(
+			/email/i
 		);
 	});
 

@@ -14,7 +14,7 @@ test.describe('settings', () => {
 		await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 		const profile = page.getByRole('region', { name: 'Profile' });
 		await expect(profile.getByText(account.displayName)).toBeVisible();
-		await expect(profile.getByText(`@${account.username}`)).toBeVisible();
+		await expect(profile.getByText(account.email)).toBeVisible();
 	});
 
 	test('daily target is editable in-session', async ({ page }) => {

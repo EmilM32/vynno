@@ -6,16 +6,16 @@ describe('authStore', () => {
 		authStore.clearSession();
 	});
 
-	it('logs in with a trimmed username', () => {
-		authStore.applySession('  emil  ');
+	it('logs in with a trimmed email', () => {
+		authStore.applySession('  emil@example.com  ');
 		expect(authStore.loggedIn).toBe(true);
-		expect(authStore.username).toBe('emil');
+		expect(authStore.email).toBe('emil@example.com');
 	});
 
-	it('logs out and clears the username', () => {
-		authStore.applySession('emil');
+	it('logs out and clears the email', () => {
+		authStore.applySession('emil@example.com');
 		authStore.clearSession();
 		expect(authStore.loggedIn).toBe(false);
-		expect(authStore.username).toBe('');
+		expect(authStore.email).toBe('');
 	});
 });

@@ -39,18 +39,20 @@ test.describe('dashboard active focus (SPA)', () => {
 		const note = uniqueNote('focus-spa');
 		await startSession(page, note);
 		await spaGo(page, 'Dashboard', '/dashboard');
-		await expect(page.getByText(note, { exact: true })).toBeVisible();
-		await expect(page.getByText('No active session')).toHaveCount(0);
+		const view = page.getByTestId('page-view');
+		await expect(view.getByText(note, { exact: true })).toBeVisible();
+		await expect(view.getByText('No active session')).toHaveCount(0);
 	});
 
 	test('pause, resume, and stop from current focus', async ({ page }) => {
 		const note = uniqueNote('focus-controls');
 		await startSession(page, note);
 		await spaGo(page, 'Dashboard', '/dashboard');
-		await expect(page.getByText(note, { exact: true })).toBeVisible();
+		const view = page.getByTestId('page-view');
+		await expect(view.getByText(note, { exact: true })).toBeVisible();
 
 		await page.getByRole('button', { name: 'Pause' }).click();
-		await expect(page.getByText('PAUSED', { exact: true })).toBeVisible();
+		await expect(view.getByText('PAUSED', { exact: true })).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
 
 		const frozen = await page.getByRole('button', { name: 'Resume' }).textContent();
@@ -58,11 +60,11 @@ test.describe('dashboard active focus (SPA)', () => {
 		await expect(page.getByRole('button', { name: 'Resume' })).toHaveText(frozen!);
 
 		await page.getByRole('button', { name: 'Resume' }).click();
-		await expect(page.getByText('PAUSED', { exact: true })).toHaveCount(0);
+		await expect(view.getByText('PAUSED', { exact: true })).toHaveCount(0);
 		await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
 
 		await page.getByRole('button', { name: 'Stop' }).click();
-		await expect(page.getByText('No active session. Start tracking from the Timer.')).toBeVisible();
+		await expect(view.getByText('No active session. Start tracking from the Timer.')).toBeVisible();
 		await expect(page.getByRole('link', { name: /Start session/i })).toBeVisible();
 	});
 });

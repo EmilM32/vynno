@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { desktopNav, login, mobileNav } from './helpers';
 
 async function openPaletteWithShortcut(page: Page) {
+	await expect(page.getByTestId('page-view')).toBeVisible();
 	await page.evaluate(() => {
 		window.dispatchEvent(
 			new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true, cancelable: true })
@@ -63,7 +64,6 @@ test.describe('command palette', () => {
 	test('opens via keyboard shortcut (meta/ctrl + k)', async ({ page }) => {
 		await login(page);
 		await page.goto('/dashboard');
-		await expect(page.getByTestId('page-view')).toBeVisible();
 		// Headless Chromium often swallows real Meta/Control+K (omnibox / OS).
 		// Dispatch the same keydown the app window listener expects.
 		await openPaletteWithShortcut(page);
@@ -92,7 +92,7 @@ test.describe('command palette', () => {
 	test('arrow keys keep the active option in view', async ({ page }) => {
 		await login(page);
 		await page.goto('/dashboard');
-		await openPaletteWithShortcut(page);
+		await desktopNav(page).getByRole('button', { name: 'Commands' }).click();
 		const dialog = page.getByRole('dialog', { name: 'Command palette' });
 		await expect(dialog).toBeVisible();
 		const listbox = dialog.getByRole('listbox');

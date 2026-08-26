@@ -66,7 +66,7 @@ test.describe('cross-screen data', () => {
 
 		await spaGo(page, 'Dashboard', '/dashboard');
 		await expect(page.getByRole('heading', { name: 'Current Focus' })).toBeVisible();
-		await expect(page.getByText(note, { exact: true })).toBeVisible();
+		await expect(page.getByTestId('page-view').getByText(note, { exact: true })).toBeVisible();
 
 		await spaGo(page, 'Timer', '/timer');
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');

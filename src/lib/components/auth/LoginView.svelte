@@ -11,6 +11,9 @@
 	} from '$lib/auth/validate';
 	import BrandMark from '$lib/components/shell/BrandMark.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Field from '$lib/components/ui/Field.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import PasswordField from './PasswordField.svelte';
@@ -150,36 +153,34 @@
 			aria-label={m.login_tabs_aria()}
 			onkeydown={onTabListKey}
 		>
-			<button
-				type="button"
+			<Button
+				variant="tab"
+				size="sm"
+				selected={tab === 'login'}
+				class="flex-1"
 				role="tab"
 				id="tab-login"
 				aria-selected={tab === 'login'}
 				aria-controls="auth-panel"
 				tabindex={tab === 'login' ? 0 : -1}
-				class="focus-ring flex-1 rounded px-3 py-1.5 text-body-sm font-medium transition-colors {tab ===
-				'login'
-					? 'bg-surface-container-high text-primary'
-					: 'text-on-surface-variant hover:text-on-surface'}"
 				onclick={() => switchTab('login')}
 			>
 				{m.login_tab_login()}
-			</button>
-			<button
-				type="button"
+			</Button>
+			<Button
+				variant="tab"
+				size="sm"
+				selected={tab === 'register'}
+				class="flex-1"
 				role="tab"
 				id="tab-register"
 				aria-selected={tab === 'register'}
 				aria-controls="auth-panel"
 				tabindex={tab === 'register' ? 0 : -1}
-				class="focus-ring flex-1 rounded px-3 py-1.5 text-body-sm font-medium transition-colors {tab ===
-				'register'
-					? 'bg-surface-container-high text-primary'
-					: 'text-on-surface-variant hover:text-on-surface'}"
 				onclick={() => switchTab('register')}
 			>
 				{m.login_tab_register()}
-			</button>
+			</Button>
 		</div>
 
 		<div
@@ -195,12 +196,8 @@
 					novalidate
 					data-testid="login-form"
 				>
-					<div class="flex flex-col gap-1.5">
-						<label class="text-body-sm text-on-surface-variant" for="login-username">
-							{m.login_username()}
-						</label>
-						<input
-							id="login-username"
+					<Field id="login-username" label={m.login_username()} error={loginFieldErrors.username}>
+						<Input
 							type="text"
 							name="username"
 							required
@@ -209,16 +206,9 @@
 							spellcheck="false"
 							bind:value={loginUsername}
 							onkeydown={onFieldKeydown}
-							aria-invalid={loginFieldErrors.username ? 'true' : undefined}
-							aria-describedby={loginFieldErrors.username ? 'login-username-error' : undefined}
-							class="min-h-10 w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2.5 text-body-md text-on-surface"
+							class="w-full"
 						/>
-						{#if loginFieldErrors.username}
-							<p id="login-username-error" class="text-body-sm text-error" role="alert">
-								{loginFieldErrors.username}
-							</p>
-						{/if}
-					</div>
+					</Field>
 
 					<PasswordField
 						id="login-password"
@@ -247,13 +237,9 @@
 						<p class="text-body-sm text-error" role="alert">{formError}</p>
 					{/if}
 
-					<button
-						type="submit"
-						disabled={pending}
-						class="press focus-ring mt-1 min-h-10 w-full rounded bg-primary px-4 py-2.5 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:opacity-60"
-					>
+					<Button variant="primary" type="submit" class="mt-1 w-full" disabled={pending}>
 						{pending ? m.login_pending() : m.login_submit()}
-					</button>
+					</Button>
 				</form>
 			{:else}
 				<form
@@ -263,12 +249,12 @@
 					novalidate
 					data-testid="register-form"
 				>
-					<div class="flex flex-col gap-1.5">
-						<label class="text-body-sm text-on-surface-variant" for="register-username">
-							{m.login_username()}
-						</label>
-						<input
-							id="register-username"
+					<Field
+						id="register-username"
+						label={m.login_username()}
+						error={registerFieldErrors.username}
+					>
+						<Input
 							type="text"
 							name="username"
 							required
@@ -277,18 +263,9 @@
 							spellcheck="false"
 							bind:value={registerUsername}
 							onkeydown={onFieldKeydown}
-							aria-invalid={registerFieldErrors.username ? 'true' : undefined}
-							aria-describedby={registerFieldErrors.username
-								? 'register-username-error'
-								: undefined}
-							class="min-h-10 w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2.5 text-body-md text-on-surface"
+							class="w-full"
 						/>
-						{#if registerFieldErrors.username}
-							<p id="register-username-error" class="text-body-sm text-error" role="alert">
-								{registerFieldErrors.username}
-							</p>
-						{/if}
-					</div>
+					</Field>
 
 					<PasswordField
 						id="register-password"
@@ -311,31 +288,22 @@
 						onkeydown={onFieldKeydown}
 					/>
 
-					<div class="flex flex-col gap-1.5">
-						<label class="text-body-sm text-on-surface-variant" for="register-display-name">
-							{m.register_display_name()}
-						</label>
-						<input
-							id="register-display-name"
+					<Field
+						id="register-display-name"
+						label={m.register_display_name()}
+						hint={m.register_display_name_hint()}
+						error={registerFieldErrors.displayName}
+					>
+						<Input
 							type="text"
 							name="displayName"
 							autocomplete="nickname"
 							maxlength="80"
 							bind:value={registerDisplayName}
 							onkeydown={onFieldKeydown}
-							aria-describedby="register-display-name-hint"
-							aria-invalid={registerFieldErrors.displayName ? 'true' : undefined}
-							class="min-h-10 w-full rounded border border-outline-variant bg-surface-container-low px-3 py-2.5 text-body-md text-on-surface"
+							class="w-full"
 						/>
-						<p id="register-display-name-hint" class="text-body-sm text-on-surface-variant">
-							{m.register_display_name_hint()}
-						</p>
-						{#if registerFieldErrors.displayName}
-							<p id="register-display-name-error" class="text-body-sm text-error" role="alert">
-								{registerFieldErrors.displayName}
-							</p>
-						{/if}
-					</div>
+					</Field>
 
 					<label
 						class="flex items-center gap-2 text-body-sm text-on-surface-variant"
@@ -355,13 +323,14 @@
 						<p class="text-body-sm text-error" role="alert">{formError}</p>
 					{/if}
 
-					<button
+					<Button
+						variant="primary"
 						type="submit"
+						class="mt-1 w-full"
 						disabled={pending || !registerReady}
-						class="press focus-ring mt-1 min-h-10 w-full rounded bg-primary px-4 py-2.5 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
 					>
 						{pending ? m.register_pending() : m.register_submit()}
-					</button>
+					</Button>
 				</form>
 			{/if}
 		</div>

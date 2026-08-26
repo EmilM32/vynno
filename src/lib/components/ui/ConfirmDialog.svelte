@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
+	import Button from './Button.svelte';
 	import Dialog from './Dialog.svelte';
 
 	interface Props {
@@ -60,24 +61,16 @@
 			{message}
 		</p>
 		<div class="mt-5 flex flex-wrap justify-end gap-2">
-			<button
-				{@attach bindCancel}
-				type="button"
-				class="press focus-ring min-h-10 rounded border border-outline-variant bg-surface-container-low px-3 py-2 text-body-md text-on-surface hover:border-outline"
-				onclick={() => close(oncancel)}
-			>
+			<Button {@attach bindCancel} variant="secondary" onclick={() => close(oncancel)}>
 				{cancelText}
-			</button>
-			<button
+			</Button>
+			<Button
 				{@attach bindConfirm}
-				type="button"
-				class="press focus-ring min-h-10 rounded px-3 py-2 text-body-md font-medium {destructive
-					? 'bg-error-container text-on-error-container hover:opacity-90'
-					: 'bg-primary text-on-primary hover:bg-primary-container'}"
+				variant={destructive ? 'danger-filled' : 'primary'}
 				onclick={() => close(onconfirm)}
 			>
 				{confirmText}
-			</button>
+			</Button>
 		</div>
 	{/snippet}
 </Dialog>

@@ -1,0 +1,7 @@
+html,
+body,
+#storybook-root {
+	background: var(--color-surface);
+	color: var(--color-on-surface);
+	min-height: 100%;
+}

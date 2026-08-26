@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { trapFocus } from '$lib/a11y/focus-trap';
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
 	import { NAV_ITEMS, type AppRoute } from './nav';
@@ -158,6 +159,7 @@
 		{@attach trapOverlay}
 		class="fixed inset-0 z-100 flex items-start justify-center overscroll-contain px-4 pt-[15vh]"
 	>
+		<!-- Scrim, not chrome: a full-bleed dismiss surface, so it stays a raw button. -->
 		<button
 			type="button"
 			tabindex="-1"
@@ -175,10 +177,11 @@
 			<div
 				class="group flex items-center gap-2 border-b border-outline-variant px-3 transition-colors focus-within:border-primary focus-within:shadow-[inset_0_-1px_0_var(--color-primary)]"
 			>
-				<span
-					class="material-symbols-outlined text-on-surface-variant transition-colors group-focus-within:text-primary"
-					aria-hidden="true">search</span
-				>
+				<Icon
+					name="search"
+					size="2xl"
+					class="text-on-surface-variant transition-colors group-focus-within:text-primary"
+				/>
 				<input
 					bind:this={inputEl}
 					bind:value={query}
@@ -233,9 +236,7 @@
 								}
 							}}
 						>
-							<span class="material-symbols-outlined text-[20px]" aria-hidden="true"
-								>{cmd.icon}</span
-							>
+							<Icon name={cmd.icon} size="lg" />
 							<span class="flex-1 text-body-md">{cmd.label}</span>
 							<span class="font-mono text-code-label text-on-surface-variant">{cmd.hint}</span>
 						</li>

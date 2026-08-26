@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 
@@ -33,6 +34,11 @@
 			{#each items as item (item.sessionId)}
 				{const project = $derived(sessionStore.getProject(item.projectId))}
 				<li class="border-b border-outline-variant last:border-b-0">
+					<!--
+						Stays a raw <button>: this is a list row, not chrome. docs/motion.md excludes
+						list rows from `.press`, and the row fills its container instead of taking
+						Button's centred box metrics. Allowlisted in primitives.guard.test.ts.
+					-->
 					<button
 						type="button"
 						class="focus-ring group flex w-full items-center justify-between py-2.5 text-left transition-colors hover:bg-surface-container/80 disabled:cursor-not-allowed disabled:opacity-60"
@@ -54,10 +60,10 @@
 							<span class="font-mono text-code-data text-on-surface-variant">
 								{formatCompact(item.durationMs)}
 							</span>
-							<span
-								class="material-symbols-outlined text-[18px] text-on-surface-variant transition-colors group-hover:text-primary group-disabled:opacity-50"
-								aria-hidden="true">play_arrow</span
-							>
+							<Icon
+								name="play_arrow"
+								class="text-on-surface-variant transition-colors group-hover:text-primary group-disabled:opacity-50"
+							/>
 						</div>
 					</button>
 				</li>

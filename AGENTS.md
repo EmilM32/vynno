@@ -17,6 +17,12 @@ Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwi
 - **TypeScript** for new modules
 - **Tailwind CSS v4** with Dev-Density Dark tokens (see `docs/design-system.md`)
 - Prefer small presentational components; shared shell lives in `src/lib/components/shell/`
+- **Never write a raw `<button>` or a `material-symbols-outlined` span.** Use
+  `$lib/components/ui/Button.svelte`, `IconButton.svelte`, `Icon.svelte` — they own
+  `.press`, `.focus-ring`, hover/disabled tokens and the size scale. Their `class` prop
+  takes layout and colour only; padding, radius, border, background and type scale come
+  from `variant` and `size`. Enforced by `src/lib/components/ui/primitives.guard.test.ts`
+  (see `docs/adr/0017-ui-primitives.md`).
 - Live API is same-origin `/v1` (Kit proxies to vynno-api). Set `PUBLIC_API_BASE` / `API_ORIGIN` in `.env` (see `.env.example`). Auth is the HttpOnly cookie.
 
 ### Useful commands

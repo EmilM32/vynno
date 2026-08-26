@@ -30,6 +30,9 @@ vite.config.ts.timestamp-*
 /blob-report/
 /playwright/.cache/
 
+# Storybook
+/storybook-static/
+
 .agents
 .claude
 .grok

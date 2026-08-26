@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import Banner from '$lib/components/ui/Banner.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { periodBounds } from '$lib/time/duration';
@@ -22,17 +24,14 @@
 	<PageHeader title={m.dashboard_title()} description={m.dashboard_subtitle()} />
 
 	{#if sessionStore.error}
-		<div
-			class="rounded border border-error/40 bg-error-container/20 px-3 py-2 font-mono text-code-label text-error"
-			role="alert"
-		>
+		<Banner>
 			{sessionStore.error}
-			<button
-				type="button"
-				class="focus-ring ml-2 underline"
-				onclick={() => sessionStore.clearError()}>{m.common_dismiss()}</button
-			>
-		</div>
+			{#snippet action()}
+				<Button variant="inline" size="xs" onclick={() => sessionStore.clearError()}>
+					{m.common_dismiss()}
+				</Button>
+			{/snippet}
+		</Banner>
 	{/if}
 
 	<div class="grid grid-cols-1 gap-gutter md:grid-cols-12">

@@ -46,17 +46,17 @@ Sequence and runbook: [tauri.md](../tauri.md). Roadmap Phase 7: [roadmap.md](../
 
 ## Alternatives considered
 
-| Option | Why not |
-| --- | --- |
-| Electron | Ships Chromium + Node. No benefit for a local HTTP UI. |
-| Point Tauri at `http://localhost:3000` forever | Works as a spike (real HTTP origin, cookies unchanged). The `.app` still needs the Node SPA. Custom browser window, not a native app. |
-| Node sidecar inside the `.app` | Keeps SSR/BFF; ships Node; fights Tauri’s size and permission model. |
-| Webview `fetch` + CORS `SPA_ORIGIN` for the custom protocol | Custom-protocol cookies are unreliable on WKWebView. |
-| Bearer token in `localStorage` | Weaker than HttpOnly; XSS in the webview steals the session. |
-| Bearer + macOS Keychain | Better native secret storage, but vynno-api has no token grant. Fallback if the cookie jar fails. |
-| Embed vynno-api + SQLite | Violates [0002](./0002-frontend-only-separation.md). |
-| Wails / SwiftUI rewrite | Weaker SvelteKit path, or abandons this UI. |
-| Deno desktop | Experimental (2026). |
+| Option                                                      | Why not                                                                                                                               |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Electron                                                    | Ships Chromium + Node. No benefit for a local HTTP UI.                                                                                |
+| Point Tauri at `http://localhost:3000` forever              | Works as a spike (real HTTP origin, cookies unchanged). The `.app` still needs the Node SPA. Custom browser window, not a native app. |
+| Node sidecar inside the `.app`                              | Keeps SSR/BFF; ships Node; fights Tauri’s size and permission model.                                                                  |
+| Webview `fetch` + CORS `SPA_ORIGIN` for the custom protocol | Custom-protocol cookies are unreliable on WKWebView.                                                                                  |
+| Bearer token in `localStorage`                              | Weaker than HttpOnly; XSS in the webview steals the session.                                                                          |
+| Bearer + macOS Keychain                                     | Better native secret storage, but vynno-api has no token grant. Fallback if the cookie jar fails.                                     |
+| Embed vynno-api + SQLite                                    | Violates [0002](./0002-frontend-only-separation.md).                                                                                  |
+| Wails / SwiftUI rewrite                                     | Weaker SvelteKit path, or abandons this UI.                                                                                           |
+| Deno desktop                                                | Experimental (2026).                                                                                                                  |
 
 ## Related
 

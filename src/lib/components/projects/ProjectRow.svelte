@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Chip from '$lib/components/ui/Chip.svelte';
+	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import type { Project } from '$lib/types/domain';
 
 	interface Props {
@@ -54,22 +57,14 @@
 			class="focus-ring flex min-w-0 items-start gap-3 rounded-sm"
 			data-testid="project-open"
 		>
-			<div
-				class="mt-0.5 h-3.5 w-3.5 shrink-0 rounded-sm"
-				style:background-color={project.color}
-				aria-hidden="true"
-			></div>
+			<ColorDot color={project.color} size="md" class="mt-0.5" />
 			<div class="min-w-0">
 				<div class="flex flex-wrap items-center gap-2">
 					<span class="text-body-md font-medium text-on-surface hover:text-primary"
 						>{project.name}</span
 					>
 					{#if project.code}
-						<span
-							class="rounded bg-surface-container-high px-1.5 py-0.5 font-mono text-code-label text-on-surface-variant"
-						>
-							{project.code}
-						</span>
+						<Chip>{project.code}</Chip>
 					{/if}
 					{#if archived}
 						<span class="font-mono text-[10px] tracking-wide text-on-surface-variant uppercase"
@@ -87,47 +82,37 @@
 
 	<div class="flex flex-wrap items-center gap-1.5 sm:shrink-0">
 		{#if !archived}
-			<button
-				type="button"
-				class="focus-ring rounded border border-outline-variant px-2.5 py-1.5 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
-				onclick={onedit}
-				disabled={busy}
-			>
+			<Button variant="secondary" size="sm" onclick={onedit} disabled={busy}>
 				{m.projects_edit()}
-			</button>
-			<button
-				type="button"
-				class="focus-ring rounded border border-outline-variant px-2.5 py-1.5 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
+			</Button>
+			<Button
+				variant="secondary"
+				size="sm"
 				onclick={onarchive}
 				disabled={!canArchive || busy}
 				aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
 			>
 				{m.projects_archive()}
-			</button>
+			</Button>
 			{#if !canArchive}
 				<span id={`${project.id}-archive-reason`} class="sr-only"
 					>{m.projects_cannot_archive_last()}</span
 				>
 			{/if}
 		{:else}
-			<button
-				type="button"
-				class="focus-ring rounded border border-outline-variant px-2.5 py-1.5 text-body-sm text-on-surface transition-colors hover:border-outline hover:bg-surface-variant disabled:cursor-not-allowed disabled:opacity-40"
-				onclick={onrestore}
-				disabled={busy}
-			>
+			<Button variant="secondary" size="sm" onclick={onrestore} disabled={busy}>
 				{m.projects_restore()}
-			</button>
+			</Button>
 		{/if}
-		<button
-			type="button"
-			class="focus-ring rounded border border-error/40 px-2.5 py-1.5 text-body-sm text-error transition-colors hover:bg-error-container/20 disabled:cursor-not-allowed disabled:opacity-40"
+		<Button
+			variant="danger"
+			size="sm"
 			onclick={ondelete}
 			disabled={!canDelete || busy}
 			aria-describedby={!canDelete ? `${project.id}-delete-reason` : undefined}
 		>
 			{m.projects_delete()}
-		</button>
+		</Button>
 		{#if !canDelete}
 			<span id={`${project.id}-delete-reason`} class="sr-only">
 				{sessionCount > 0

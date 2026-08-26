@@ -97,4 +97,34 @@ describe('SessionStore draft activity', () => {
 		await store.refresh();
 		expect(store.sessions).toHaveLength(15);
 	});
+
+	it('keeps session counts coherent across activity type create and delete', async () => {
+		const repo = new MemoryTimeTrackingRepository(sampleAppSeed());
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(sampleAppSeed(), { repo });
+		await store.loadSessionCounts();
+
+		// A just-created type has no sessions, so the delete guard must read 0 —
+		// not `undefined`, which it treats as "in use".
+		const created = await store.createActivityType({ name: 'unused', color: 'secondary' });
+		expect(created).not.toBeNull();
+		expect(store.countSessionsForActivityType(created!.id)).toBe(0);
+
+		expect(await store.deleteActivityType(created!.id)).toBe(true);
+		expect(store.countSessionsForActivityType(created!.id)).toBeUndefined();
+	});
+
+	it('seeds a zero session count for a newly created project', async () => {
+		const repo = new MemoryTimeTrackingRepository(sampleAppSeed());
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(sampleAppSeed(), { repo });
+		await store.loadSessionCounts();
+
+		const project = await store.createProject({ name: 'Fresh', color: '#3b82f6', code: 'FRSH' });
+		expect(project).not.toBeNull();
+		expect(store.countSessionsForProject(project!.id)).toBe(0);
+
+		expect(await store.deleteProject(project!.id)).toBe(true);
+		expect(store.countSessionsForProject(project!.id)).toBeUndefined();
+	});
 });

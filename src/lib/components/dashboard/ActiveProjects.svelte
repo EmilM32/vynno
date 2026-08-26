@@ -1,4 +1,7 @@
 <script lang="ts">
+	import ColorDot from '$lib/components/ui/ColorDot.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
 	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
@@ -33,11 +36,7 @@
 			>
 				<div class="flex items-start justify-between">
 					<div class="flex items-center gap-2">
-						<div
-							class="h-3 w-3 rounded-sm"
-							style:background-color={item.project.color}
-							aria-hidden="true"
-						></div>
+						<ColorDot color={item.project.color} size="md" />
 						<span class="text-body-md font-medium text-on-surface">{item.project.name}</span>
 					</div>
 					{#if item.progressPercent != null}
@@ -45,22 +44,18 @@
 					{/if}
 				</div>
 				{#if item.progressPercent != null}
-					<div class="h-1.5 w-full overflow-hidden rounded-full bg-surface-dim">
-						<div
-							class="h-full rounded-full"
-							style:width="{pct}%"
-							style:background-color={item.project.color}
-						></div>
-					</div>
+					<ProgressBar
+						value={pct}
+						fill={item.project.color}
+						label={m.dashboard_logged_this_week({ duration: formatCompact(item.ms) })}
+						class="w-full"
+					/>
 				{/if}
 				<div class="mt-1 flex items-center justify-between">
 					<span class="text-body-sm text-on-surface-variant">
 						{m.dashboard_logged_this_week({ duration: formatCompact(item.ms) })}
 					</span>
-					<span
-						class="material-symbols-outlined text-[16px] text-on-surface-variant"
-						aria-hidden="true">arrow_forward</span
-					>
+					<Icon name="arrow_forward" size="sm" class="text-on-surface-variant" />
 				</div>
 			</a>
 		{/each}

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import Banner from '$lib/components/ui/Banner.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import { m } from '$lib/paraglide/messages.js';
@@ -111,33 +113,21 @@
 >
 	<PageHeader title={m.projects_title()} description={m.projects_subtitle()}>
 		{#snippet actions()}
-			<button
-				type="button"
-				class="press focus-ring shrink-0 rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary hover:bg-primary-container"
-				onclick={openCreate}
-				data-testid="new-project"
-			>
+			<Button variant="primary" class="shrink-0" onclick={openCreate} data-testid="new-project">
 				{m.projects_new()}
-			</button>
+			</Button>
 		{/snippet}
 	</PageHeader>
 
 	{#if sessionStore.error}
-		<div
-			class="rounded border border-error/40 bg-error-container/15 px-3 py-2 text-body-sm text-error"
-			role="alert"
-		>
-			<div class="flex items-start justify-between gap-3">
-				<span>{sessionStore.error}</span>
-				<button
-					type="button"
-					class="focus-ring shrink-0 text-body-sm underline"
-					onclick={() => sessionStore.clearError()}
-				>
+		<Banner>
+			{sessionStore.error}
+			{#snippet action()}
+				<Button variant="inline" size="xs" onclick={() => sessionStore.clearError()}>
 					{m.common_dismiss_capital()}
-				</button>
-			</div>
-		</div>
+				</Button>
+			{/snippet}
+		</Banner>
 	{/if}
 
 	<div
@@ -147,38 +137,36 @@
 		aria-label={m.projects_status_aria()}
 		onkeydown={onTabListKey}
 	>
-		<button
-			type="button"
+		<Button
+			variant="tab"
+			size="sm"
+			selected={tab === 'active'}
+			class="flex-1"
 			role="tab"
 			aria-selected={tab === 'active'}
 			aria-controls="projects-panel"
 			id="tab-active"
 			tabindex={tab === 'active' ? 0 : -1}
-			class="focus-ring flex-1 rounded px-3 py-1.5 text-body-sm font-medium transition-colors {tab ===
-			'active'
-				? 'bg-surface-container-high text-primary'
-				: 'text-on-surface-variant hover:text-on-surface'}"
 			onclick={() => (tab = 'active')}
 		>
 			{m.projects_tab_active()}
 			<span class="ml-1 font-mono text-code-label">({activeList.length})</span>
-		</button>
-		<button
-			type="button"
+		</Button>
+		<Button
+			variant="tab"
+			size="sm"
+			selected={tab === 'archived'}
+			class="flex-1"
 			role="tab"
 			aria-selected={tab === 'archived'}
 			aria-controls="projects-panel"
 			id="tab-archived"
 			tabindex={tab === 'archived' ? 0 : -1}
-			class="focus-ring flex-1 rounded px-3 py-1.5 text-body-sm font-medium transition-colors {tab ===
-			'archived'
-				? 'bg-surface-container-high text-primary'
-				: 'text-on-surface-variant hover:text-on-surface'}"
 			onclick={() => (tab = 'archived')}
 		>
 			{m.projects_tab_archived()}
 			<span class="ml-1 font-mono text-code-label">({archivedList.length})</span>
-		</button>
+		</Button>
 	</div>
 
 	<div
@@ -194,13 +182,9 @@
 					{tab === 'active' ? m.projects_empty_active() : m.projects_empty_archived()}
 				</p>
 				{#if tab === 'active'}
-					<button
-						type="button"
-						class="focus-ring mt-3 text-body-sm text-primary underline"
-						onclick={openCreate}
-					>
+					<Button variant="link" size="xs" class="mt-3" onclick={openCreate}>
 						{m.projects_create_one()}
-					</button>
+					</Button>
 				{/if}
 			</div>
 		{:else}

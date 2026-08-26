@@ -1,0 +1,53 @@
+<script module lang="ts">
+	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import ActivityChip from '$lib/components/ui/ActivityChip.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import ColorDot from '$lib/components/ui/ColorDot.svelte';
+	import PageHeader from './PageHeader.svelte';
+
+	const { Story } = defineMeta({
+		title: 'Shell/PageHeader',
+		component: PageHeader,
+		args: {
+			title: 'Logs',
+			description: 'Stopped sessions. Filter, edit, or add a manual entry.',
+			showDescriptionOnMobile: false
+		}
+	});
+</script>
+
+<Story name="Default" />
+
+<Story name="WithActions">
+	{#snippet template(args)}
+		<PageHeader {...args} title="Projects" description="Active and archived workstreams.">
+			{#snippet actions()}
+				<Button variant="primary">New project</Button>
+			{/snippet}
+		</PageHeader>
+	{/snippet}
+</Story>
+
+<Story name="WithLeadingAndExtra">
+	{#snippet template(args)}
+		<PageHeader {...args} title="Identity" description="AUTH · 12 sessions">
+			{#snippet leading()}
+				<ColorDot color="#3b82f6" size="md" />
+			{/snippet}
+			{#snippet titleExtra()}
+				<ActivityChip type={{ id: 'act-deep', name: 'Deep Work', color: 'primary' }} />
+			{/snippet}
+		</PageHeader>
+	{/snippet}
+</Story>
+
+<Story name="CompactOnScroll">
+	{#snippet template(args)}
+		<div id="main-content" class="h-72 overflow-y-auto rounded-lg border border-outline-variant">
+			<PageHeader {...args} />
+			<div class="h-[120vh] px-4 py-6 text-body-sm text-on-surface-variant">
+				Scroll this pane on a desktop-width canvas. The subtitle collapses when the header pins.
+			</div>
+		</div>
+	{/snippet}
+</Story>

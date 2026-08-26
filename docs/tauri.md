@@ -30,14 +30,14 @@ Pointing a Tauri window at `http://localhost:3000` works as a **one-hour spike**
 
 ## Two targets
 
-| | **web** (default) | **desktop** (`VYNNO_TARGET=desktop`) |
-| --- | --- | --- |
-| Adapter | `@sveltejs/adapter-node` → `build/` | `@sveltejs/adapter-static` fallback `index.html` → `build-desktop/` |
-| SSR | On (`src/routes/+layout.server.ts`) | Off (root `+layout.ts`) |
-| API base | `PUBLIC_API_BASE=/v1` (BFF) | Absolute `PUBLIC_API_BASE` = vynno-api `/v1` from `.env` |
-| `fetch` | `globalThis.fetch` | `@tauri-apps/plugin-http` |
-| Cookies | Browser, first-party on `:3000` | Rust jar (plugin `cookies` feature). Not the webview cookie store. |
-| CORS | vynno-api `SPA_ORIGIN` | Does not apply (Rust is not a browser). API Origin/CSRF is a spike in Phase 7d. |
+|          | **web** (default)                   | **desktop** (`VYNNO_TARGET=desktop`)                                            |
+| -------- | ----------------------------------- | ------------------------------------------------------------------------------- |
+| Adapter  | `@sveltejs/adapter-node` → `build/` | `@sveltejs/adapter-static` fallback `index.html` → `build-desktop/`             |
+| SSR      | On (`src/routes/+layout.server.ts`) | Off (root `+layout.ts`)                                                         |
+| API base | `PUBLIC_API_BASE=/v1` (BFF)         | Absolute `PUBLIC_API_BASE` = vynno-api `/v1` from `.env`                        |
+| `fetch`  | `globalThis.fetch`                  | `@tauri-apps/plugin-http`                                                       |
+| Cookies  | Browser, first-party on `:3000`     | Rust jar (plugin `cookies` feature). Not the webview cookie store.              |
+| CORS     | vynno-api `SPA_ORIGIN`              | Does not apply (Rust is not a browser). API Origin/CSRF is a spike in Phase 7d. |
 
 Do not overwrite `build/` with the static output. `scripts/build` / `scripts/start` keep using the Node server.
 
@@ -67,7 +67,7 @@ Already usable from a static SPA:
 
 Must change before a `.app` can log in:
 
-- Dual adapter in `vite.config.ts` (this repo has no `svelte.config.js`).
+- Dual adapter in `svelte.config.js` (Storybook needs this file — ADR-0016). `vite.config.ts` still hosts target-specific Vite plugins.
 - Desktop `ssr = false` and a client `load` that matches `+layout.server.ts` (`seed`, `loggedIn`, `loadError`, `nowMs`, `timeZone`).
 - Fetch injection module (web = `globalThis.fetch`, desktop = plugin-http). Views stay target-agnostic.
 - Confirm `$lib/server/env` / `/v1` are not in the static module graph.
@@ -130,11 +130,11 @@ VYNNO_TARGET=desktop npm run build   # → build-desktop/
 
 ## How to verify (definition of done)
 
-| Stage | Proof |
-| --- | --- |
+| Stage          | Proof                                                                                                                                                                                                                                                 |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 7b Dual-target | `VYNNO_TARGET=desktop npm run build` writes `build-desktop/index.html`. Default `npm run build` still writes `build/index.js`. `scripts/start` unaffected. A Chrome preview of the static build is **not** expected to log in (cross-origin cookies). |
-| 7c Scaffold | Packaged `.app` shows `/login` without vynno-api. Node `build/` untouched. |
-| 7d Auth | Packaged `.app` + running API: sign in, start/stop timer, see Logs. Quit and reopen: remember-me session still valid. Logout clears it. Then the same in `tauri dev` to confirm that path is not secretly using the BFF. |
+| 7c Scaffold    | Packaged `.app` shows `/login` without vynno-api. Node `build/` untouched.                                                                                                                                                                            |
+| 7d Auth        | Packaged `.app` + running API: sign in, start/stop timer, see Logs. Quit and reopen: remember-me session still valid. Logout clears it. Then the same in `tauri dev` to confirm that path is not secretly using the BFF.                              |
 
 Playwright stays on `vite preview` + BFF ([ADR-0014](./adr/0014-local-production-spa.md) §8). Do not put Tauri on the git hook.
 
@@ -149,7 +149,7 @@ Playwright stays on `vite preview` + BFF ([ADR-0014](./adr/0014-local-production
 - Tray timer, global hotkeys, notifications (Phase 7e, after the window is usable)
 - Signing, notarization, auto-update
 
-The first *real* native feature after auth is a menu-bar extra with elapsed time and start/stop. That is why desktop is worth it; it is not required to prove the shell.
+The first _real_ native feature after auth is a menu-bar extra with elapsed time and start/stop. That is why desktop is worth it; it is not required to prove the shell.
 
 ---
 
@@ -157,13 +157,13 @@ The first *real* native feature after auth is a menu-bar extra with elapsed time
 
 See [roadmap.md](./roadmap.md) Phase 7.
 
-| Phase | In this repo | Notes |
-| --- | --- | --- |
-| **7a** Docs | This file, [ADR-0015](./adr/0015-native-desktop-tauri.md) | Current |
-| **7b** Dual-target web | Adapter switch, client seed, fetch seam, fonts | No `src-tauri/` |
-| **7c** Tauri scaffold | `src-tauri/`, icons, capabilities deny-by-default | Unsigned `.app` → login |
-| **7d** plugin-http | Cookie session in the packaged app | May need a tiny vynno-api Origin tweak |
-| **7e** Native UX | Window state, tray, shortcuts, notifications | One capability per change |
+| Phase                  | In this repo                                              | Notes                                  |
+| ---------------------- | --------------------------------------------------------- | -------------------------------------- |
+| **7a** Docs            | This file, [ADR-0015](./adr/0015-native-desktop-tauri.md) | Current                                |
+| **7b** Dual-target web | Adapter switch, client seed, fetch seam, fonts            | No `src-tauri/`                        |
+| **7c** Tauri scaffold  | `src-tauri/`, icons, capabilities deny-by-default         | Unsigned `.app` → login                |
+| **7d** plugin-http     | Cookie session in the packaged app                        | May need a tiny vynno-api Origin tweak |
+| **7e** Native UX       | Window state, tray, shortcuts, notifications              | One capability per change              |
 
 ---
 

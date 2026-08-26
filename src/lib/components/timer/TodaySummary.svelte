@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { usePrefs } from '$lib/stores/prefs.svelte';
 	import { useSession } from '$lib/stores/session.svelte';
@@ -38,33 +40,24 @@
 		{totalLabel}
 	</p>
 	<p class="flex shrink-0 items-center gap-1 text-body-sm text-on-surface-variant">
-		<span
-			class="material-symbols-outlined text-[14px] {deltaPositive
-				? 'text-secondary'
-				: 'text-tertiary'}"
-			aria-hidden="true"
-		>
-			{deltaPositive ? 'arrow_upward' : 'arrow_downward'}
-		</span>
+		<Icon
+			name={deltaPositive ? 'arrow_upward' : 'arrow_downward'}
+			size="xs"
+			class={deltaPositive ? 'text-secondary' : 'text-tertiary'}
+		/>
 		<span class={deltaPositive ? 'text-secondary' : 'text-tertiary'}>
 			{formatHoursDecimal(deltaAbs)}
 		</span>
 		<span>{m.dashboard_vs_yesterday()}</span>
 	</p>
 	<div class="ml-auto flex max-w-sm min-w-0 flex-1 items-center gap-3">
-		<div
-			class="h-1 min-w-16 flex-1 overflow-hidden rounded-full bg-surface-dim"
-			role="progressbar"
-			aria-valuemin="0"
-			aria-valuemax="100"
-			aria-valuenow={Math.min(100, pct)}
-			aria-label={m.timer_today_aria()}
-		>
-			<div
-				class="h-full rounded-full {overTarget ? 'bg-secondary' : 'bg-primary'}"
-				style:width="{barPct}%"
-			></div>
-		</div>
+		<ProgressBar
+			value={barPct}
+			size="sm"
+			fill={overTarget ? 'secondary' : 'primary'}
+			label={m.timer_today_aria()}
+			class="min-w-16 flex-1"
+		/>
 		<span class="shrink-0 font-mono text-code-label text-on-surface-variant">
 			{pct}% · {targetLabel}
 		</span>

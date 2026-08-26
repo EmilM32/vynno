@@ -1,4 +1,5 @@
 <script lang="ts" generics="T extends string">
+	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 
 	let {
@@ -20,16 +21,14 @@
 	aria-label={groupLabel}
 >
 	{#each options as opt (opt.id)}
-		<button
-			type="button"
-			class="focus-ring min-h-6 rounded-sm px-3 py-1 font-mono text-code-label transition-colors {value ===
-			opt.id
-				? 'bg-primary/15 text-primary'
-				: 'text-on-surface-variant hover:text-on-surface'}"
+		<Button
+			variant="tab"
+			size="sm"
+			selected={value === opt.id}
 			aria-pressed={value === opt.id}
 			onclick={() => (value = opt.id)}
 		>
 			{opt.label}
-		</button>
+		</Button>
 	{/each}
 </div>

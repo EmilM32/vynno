@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { MOBILE_TAB_ITEMS, isNavActive } from './nav';
 </script>
@@ -19,11 +20,7 @@
 					: 'text-on-surface-variant hover:text-primary'}"
 				aria-current={active ? 'page' : undefined}
 			>
-				<span
-					class="material-symbols-outlined mb-0.5 text-[20px]"
-					style={active ? "font-variation-settings: 'FILL' 1" : undefined}
-					aria-hidden="true">{item.icon}</span
-				>
+				<Icon name={item.icon} size="lg" fill={active} class="mb-0.5" />
 				<span class="max-w-full truncate text-[11px] leading-tight">{item.label()}</span>
 			</a>
 		{/each}

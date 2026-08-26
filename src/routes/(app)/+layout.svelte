@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import AppShell from '$lib/components/shell/AppShell.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 
 	let { children, data } = $props();
@@ -16,13 +17,9 @@
 			<h1 class="text-headline-md text-error">{m.error_load_title()}</h1>
 			<p class="text-body-md text-on-surface-variant">{data.loadError}</p>
 			<p class="text-body-sm text-on-surface-variant">{m.error_load_body()}</p>
-			<button
-				type="button"
-				class="press focus-ring self-start rounded bg-primary px-4 py-2 font-mono text-code-data font-medium text-on-primary"
-				onclick={() => invalidateAll()}
-			>
+			<Button variant="primary" class="self-start" onclick={() => invalidateAll()}>
 				{m.error_load_retry()}
-			</button>
+			</Button>
 		</div>
 	{:else}
 		{@render children()}

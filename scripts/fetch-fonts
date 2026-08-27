@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Download self-hosted woff2 files into src/lib/theme/fonts/.
+# Re-run after adding a Material Symbols ligature (keep ICON_NAMES in sync with fonts.css).
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+OUT="$ROOT/src/lib/theme/fonts"
+UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+ICON_NAMES='analytics,arrow_back,arrow_downward,arrow_forward,arrow_upward,dashboard,fiber_manual_record,folder_managed,list_alt,more_horiz,open_in_new,pause,pause_circle,play_arrow,play_circle,prompt_suggestion,search,settings,stop,terminal,timer,visibility,visibility_off'
+
+mkdir -p "$OUT"
+
+url_for() {
+	local css="$1" label="$2"
+	python3 -c '
+import re, sys
+css, label = sys.argv[1], sys.argv[2]
+if label:
+    m = re.search(r"/\* " + re.escape(label) + r" \*/\s*@font-face\s*\{[^}]*url\(([^)]+)\)", css)
+else:
+    m = re.search(r"url\(([^)]+)\)", css)
+if not m:
+    sys.exit("no url for %s" % (label or "first"))
+print(m.group(1))
+' "$css" "$label"
+}
+
+download() {
+	local url="$1" dest="$2"
+	curl -fsSL -A "$UA" -o "$dest" "$url"
+	echo "$(basename "$dest") $(wc -c <"$dest" | tr -d ' ') bytes"
+}
+
+inter=$(curl -fsSL -A "$UA" 'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap')
+download "$(url_for "$inter" 'latin')" "$OUT/inter-latin.woff2"
+download "$(url_for "$inter" 'latin-ext')" "$OUT/inter-latin-ext.woff2"
+
+mono=$(curl -fsSL -A "$UA" 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..700&display=swap')
+download "$(url_for "$mono" 'latin')" "$OUT/jetbrains-mono-latin.woff2"
+download "$(url_for "$mono" 'latin-ext')" "$OUT/jetbrains-mono-latin-ext.woff2"
+
+icons=$(curl -fsSL -A "$UA" "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&icon_names=${ICON_NAMES}&display=swap")
+download "$(url_for "$icons" '')" "$OUT/material-symbols-outlined.woff2"

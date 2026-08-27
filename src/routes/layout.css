@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'layerchart/core.css';
+@import '../lib/theme/fonts.css';
 @import '../lib/theme/tokens.css';
 @import '../lib/theme/dark.css';
 @import '../lib/theme/light.css';

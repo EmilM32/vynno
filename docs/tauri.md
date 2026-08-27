@@ -71,7 +71,7 @@ Must change before a `.app` can log in:
 - Desktop `ssr = false` and a client `load` that matches `+layout.server.ts` (`seed`, `loggedIn`, `loadError`, `nowMs`, `timeZone`).
 - Fetch injection module (web = `globalThis.fetch`, desktop = plugin-http). Views stay target-agnostic.
 - Confirm `$lib/server/env` / `/v1` are not in the static module graph.
-- Self-host Inter, JetBrains Mono, and Material Symbols (`src/app.html` currently loads Google Fonts — bad fit for Tauri CSP).
+- Fonts are already self-hosted (`src/lib/theme/fonts.css`); keep CSP off `fonts.googleapis.com`.
 
 Rust in this repo is **not** a second API. No SQLite, no session rules, no secrets ([ADR-0002](./adr/0002-frontend-only-separation.md)).
 

@@ -36,20 +36,20 @@ Project colors are per-project hex from a fixed UI palette (not design-system to
 
 ## 3. Typography
 
-| Family             | Use                                                                                |
-| ------------------ | ---------------------------------------------------------------------------------- |
-| **Inter**          | Labels, headers, instructional UI text                                             |
-| **JetBrains Mono** | Timestamps, durations, project codes, ticket ids, numerical data, “command” inputs |
+| Family             | Use                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------- |
+| **Inter**          | Labels, headers, instructional UI text. Self-hosted variable latin + latin-ext (`src/lib/theme/fonts.css`) |
+| **JetBrains Mono** | Timestamps, durations, project codes, ticket ids, numerical data, “command” inputs. Same files             |
 
-| Token          | Family         | Size / line / weight                                          |
-| -------------- | -------------- | ------------------------------------------------------------- |
-| `headline-lg`  | Inter          | 24px / 32px / 600, letter-spacing -0.02em                     |
-| `headline-md`  | Inter          | 18px / 24px / 600, letter-spacing -0.01em                     |
-| `body-md`      | Inter          | 14px / 20px / 400                                             |
-| `body-sm`      | Inter          | 12px / 16px / 400                                             |
-| `code-display` | JetBrains Mono | 28px / 32px / 500 (Timer mobile uses larger ~48–80px)         |
-| `code-label`   | JetBrains Mono | 13px / 18px / 400                                             |
-| `code-data`    | JetBrains Mono | 14px / 20px / 500                                             |
+| Token          | Family         | Size / line / weight                                  |
+| -------------- | -------------- | ----------------------------------------------------- |
+| `headline-lg`  | Inter          | 24px / 32px / 600, letter-spacing -0.02em             |
+| `headline-md`  | Inter          | 18px / 24px / 600, letter-spacing -0.01em             |
+| `body-md`      | Inter          | 14px / 20px / 400                                     |
+| `body-sm`      | Inter          | 12px / 16px / 400                                     |
+| `code-display` | JetBrains Mono | 28px / 32px / 500 (Timer mobile uses larger ~48–80px) |
+| `code-label`   | JetBrains Mono | 13px / 18px / 400                                     |
+| `code-data`    | JetBrains Mono | 14px / 20px / 500                                     |
 
 **Rule:** Mobile may scale Inter headlines ~15% down; **keep mono data sizes** for alignment. Button labels are Inter — mono belongs _inside_ a button when the content is a duration or code.
 
@@ -75,11 +75,11 @@ Project colors are per-project hex from a fixed UI palette (not design-system to
 
 ## 5. Shape
 
-| Element              | Radius                                                               |
-| -------------------- | -------------------------------------------------------------------- |
-| Buttons & inputs     | ~4px                                                                 |
-| Cards                | 4px or 8px                                                           |
-| Status pills / chips | ~2px (near-square)                                                   |
+| Element              | Radius                                                                |
+| -------------------- | --------------------------------------------------------------------- |
+| Buttons & inputs     | ~4px                                                                  |
+| Cards                | 4px or 8px                                                            |
+| Status pills / chips | ~2px (near-square)                                                    |
 | Full pills           | Avoid for status; use for mobile nav active tab if matching the shell |
 
 ---

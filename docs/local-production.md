@@ -26,6 +26,7 @@ brew install caddy   # loopback :80 proxy
 # this repo
 cp .env.example .env   # if you do not already have one
 # confirm ORIGIN=http://vynno.local / HOST=127.0.0.1 / PORT=27180 / BODY_SIZE_LIMIT / API_ORIGIN=http://localhost:27182
+# Do not set API_ORIGIN to :8081 for daily start — playground e2e uses E2E_API_BASE.
 ./scripts/build
 ```
 
@@ -52,7 +53,7 @@ A fresh production database has no users. First visit is **register**: send a co
 ./scripts/stop            # detached SPA and :80 proxy; does not stop the API
 ```
 
-`scripts/start` fails if `.env` is missing, `build/` is missing (`scripts/build` first), the SPA is already running, `GET $API_ORIGIN/healthz` is down, `caddy` is missing, or port 80 is taken.
+`scripts/start` fails if `.env` is missing, `build/` is missing (`scripts/build` first), `GET $API_ORIGIN/healthz` is down, `API_ORIGIN` is playground `:8081`, `caddy` is missing, or port 80 is taken. `--detach` is idempotent if Node is already listening (it still starts Caddy).
 
 ## If login fails
 

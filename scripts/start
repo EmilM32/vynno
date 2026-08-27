@@ -38,21 +38,32 @@ require_build
 require_api
 
 if pid="$(spa_pid)"; then
+	if [[ "$DETACH" -eq 1 ]]; then
+		mkdir -p "$ROOT/var"
+		echo "$pid" >"$PIDFILE"
+		wait_for_spa "$pid"
+		start_proxy
+		echo "already running pid $pid"
+		exit 0
+	fi
 	die "already running (pid $pid); scripts/stop first"
 fi
 
 export NODE_ENV=production
 export HOST PORT ORIGIN BODY_SIZE_LIMIT
 
-start_proxy
-
+# Node first so Caddy does not 502 on the first request.
 if [[ "$DETACH" -eq 1 ]]; then
 	mkdir -p "$ROOT/logs" "$ROOT/var"
 	nohup node --env-file="$ROOT/.env" "$ROOT/build" >>"$ROOT/logs/spa.log" 2>&1 &
-	echo $! >"$PIDFILE"
-	echo "started pid $!  log $ROOT/logs/spa.log  ${ORIGIN}"
+	pid=$!
+	echo "$pid" >"$PIDFILE"
+	wait_for_spa "$pid"
+	start_proxy
+	echo "started pid $pid  log $ROOT/logs/spa.log  ${ORIGIN}"
 	exit 0
 fi
 
+start_proxy
 trap stop_proxy EXIT
 node --env-file="$ROOT/.env" "$ROOT/build"

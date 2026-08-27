@@ -1,6 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { desktopNav, fillRegisterCode, fillResetCode, loginWith, registerAccount } from './helpers';
+import {
+	desktopNav,
+	fillRegisterCode,
+	fillResetCode,
+	gotoLogin,
+	loginWith,
+	registerAccount
+} from './helpers';
 
 const themes = ['dark', 'light', 'deep-dark'] as const;
 
@@ -9,6 +16,17 @@ async function expectNoViolations(page: Page) {
 		.withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
 		.analyze();
 	expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
+}
+
+/** Click Forgot after hydration; a pre-hydrate click on type=button is a no-op. */
+async function openForgotForm(page: Page) {
+	const trigger = page.getByRole('button', { name: 'Forgot password?' });
+	await expect(trigger).toBeVisible();
+	await expect(async () => {
+		if (await page.getByTestId('forgot-form').isVisible()) return;
+		await trigger.click();
+		await expect(page.getByTestId('forgot-form')).toBeVisible({ timeout: 1000 });
+	}).toPass({ timeout: 10_000 });
 }
 
 test.describe('login', () => {
@@ -20,7 +38,7 @@ test.describe('login', () => {
 	});
 
 	test('login has no app shell chrome', async ({ page }) => {
-		await page.goto('/login');
+		await gotoLogin(page);
 		await expect(desktopNav(page)).toHaveCount(0);
 		await expect(page.getByRole('link', { name: 'Skip to content' })).toHaveCount(0);
 		await expect(page.getByRole('button', { name: 'Open command palette' })).toHaveCount(0);
@@ -28,7 +46,7 @@ test.describe('login', () => {
 	});
 
 	test('empty submit stays and shows field errors', async ({ page }) => {
-		await page.goto('/login');
+		await gotoLogin(page);
 		await page.getByRole('button', { name: 'Log in' }).click();
 		await expect(page).toHaveURL(/\/login$/);
 		await expect(page.getByRole('alert')).toHaveCount(2);
@@ -37,7 +55,7 @@ test.describe('login', () => {
 	});
 
 	test('empty Enter submit stays and shows field errors', async ({ page }) => {
-		await page.goto('/login');
+		await gotoLogin(page);
 		await page.getByLabel('Email').press('Enter');
 		await expect(page).toHaveURL(/\/login$/);
 		await expect(page.getByRole('alert')).toHaveCount(2);
@@ -54,7 +72,7 @@ test.describe('login', () => {
 
 	test('Enter in the password field signs in', async ({ page }) => {
 		const account = await registerAccount(page.request);
-		await page.goto('/login');
+		await gotoLogin(page);
 		await page.getByLabel('Email').fill(account.email);
 		const password = page.getByRole('textbox', { name: 'Password', exact: true });
 		await password.fill(account.password);
@@ -74,7 +92,7 @@ test.describe('login', () => {
 
 test.describe('register', () => {
 	test('create-account tab shows a disabled submit until passwords match', async ({ page }) => {
-		await page.goto('/login');
+		await gotoLogin(page);
 		await page.getByRole('tab', { name: 'Create account' }).click();
 		const submit = page.getByRole('button', { name: 'Send confirmation code' });
 		await expect(submit).toBeDisabled();
@@ -94,7 +112,7 @@ test.describe('register', () => {
 	});
 
 	test('empty email with matching passwords stays and shows a field error', async ({ page }) => {
-		await page.goto('/login');
+		await gotoLogin(page);
 		await page.getByRole('tab', { name: 'Create account' }).click();
 		await page.getByLabel('Password', { exact: true }).fill('long-enough');
 		await page.getByRole('textbox', { name: 'Confirm password' }).fill('long-enough');
@@ -106,7 +124,7 @@ test.describe('register', () => {
 	test('create account proceeds to the dashboard', async ({ page }) => {
 		const local = `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 		const email = `${local}@example.com`;
-		await page.goto('/login');
+		await gotoLogin(page);
 		await page.getByRole('tab', { name: 'Create account' }).click();
 		await page.getByLabel('Email').fill(email);
 		await page.getByLabel('Password', { exact: true }).fill('e2epassword');
@@ -123,7 +141,7 @@ test.describe('register', () => {
 	test('Enter in the confirm field sends a code', async ({ page }) => {
 		const local = `ui_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 		const email = `${local}@example.com`;
-		await page.goto('/login');
+		await gotoLogin(page);
 		await page.getByRole('tab', { name: 'Create account' }).click();
 		await page.getByLabel('Email').fill(email);
 		await page.getByLabel('Password', { exact: true }).fill('e2epassword');
@@ -140,7 +158,7 @@ test.describe('register', () => {
 
 	test('taken email shows an error', async ({ page }) => {
 		const account = await registerAccount(page.request);
-		await page.goto('/login');
+		await gotoLogin(page);
 		await page.getByRole('tab', { name: 'Create account' }).click();
 		await page.getByLabel('Email').fill(account.email);
 		await page.getByLabel('Password', { exact: true }).fill('e2epassword');
@@ -151,7 +169,7 @@ test.describe('register', () => {
 	});
 
 	test('password visibility toggle reveals the typed value', async ({ page }) => {
-		await page.goto('/login');
+		await gotoLogin(page);
 		const password = page.getByLabel('Password', { exact: true });
 		await password.fill('secret-value');
 		await expect(password).toHaveAttribute('type', 'password');
@@ -163,17 +181,16 @@ test.describe('register', () => {
 
 test.describe('forgot password', () => {
 	test('link opens the reset form', async ({ page }) => {
-		await page.goto('/login');
-		await page.getByRole('button', { name: 'Forgot password?' }).click();
-		await expect(page.getByTestId('forgot-form')).toBeVisible();
+		await gotoLogin(page);
+		await openForgotForm(page);
 		await expect(page.getByRole('heading', { name: 'Reset password' })).toBeVisible();
 		await page.getByRole('button', { name: 'Back to log in' }).click();
 		await expect(page.getByTestId('login-form')).toBeVisible();
 	});
 
 	test('unknown email still shows the code step', async ({ page }) => {
-		await page.goto('/login');
-		await page.getByRole('button', { name: 'Forgot password?' }).click();
+		await gotoLogin(page);
+		await openForgotForm(page);
 		await page.getByLabel('Email').fill(`missing_${Date.now().toString(36)}@example.com`);
 		await page.getByRole('button', { name: 'Send reset code' }).click();
 		await expect(page.getByLabel('Reset code')).toBeVisible();
@@ -183,8 +200,8 @@ test.describe('forgot password', () => {
 	test('reset then login with the new password', async ({ page }) => {
 		const account = await registerAccount(page.request);
 		const nextPassword = 'new-e2e-pass-1';
-		await page.goto('/login');
-		await page.getByRole('button', { name: 'Forgot password?' }).click();
+		await gotoLogin(page);
+		await openForgotForm(page);
 		await page.getByLabel('Email').fill(account.email);
 		await page.getByRole('button', { name: 'Send reset code' }).click();
 		await expect(page.getByLabel('Reset code')).toBeVisible();
@@ -204,23 +221,22 @@ test.describe('login a11y', () => {
 			await page.addInitScript((id) => {
 				localStorage.setItem('vynno-theme', id);
 			}, theme);
-			await page.goto('/login');
+			await gotoLogin(page);
 			await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
 			await expectNoViolations(page);
 		});
 	}
 
 	test('axe register tab', async ({ page }) => {
-		await page.goto('/login');
+		await gotoLogin(page);
 		await page.getByRole('tab', { name: 'Create account' }).click();
 		await expect(page.getByTestId('register-form')).toBeVisible();
 		await expectNoViolations(page);
 	});
 
 	test('axe forgot form', async ({ page }) => {
-		await page.goto('/login');
-		await page.getByRole('button', { name: 'Forgot password?' }).click();
-		await expect(page.getByTestId('forgot-form')).toBeVisible();
+		await gotoLogin(page);
+		await openForgotForm(page);
 		await expectNoViolations(page);
 	});
 });

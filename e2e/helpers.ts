@@ -104,8 +104,14 @@ export async function fillResetCode(page: Page, email: string) {
 	await page.getByLabel('Reset code').fill(code);
 }
 
-export async function loginWith(page: Page, email: string, password: string) {
+/** LoginView is SSR'd; native submit 405s until Kit client mount (`#svelte-announcer`). */
+export async function gotoLogin(page: Page) {
 	await page.goto('/login');
+	await expect(page.locator('#svelte-announcer')).toBeAttached();
+}
+
+export async function loginWith(page: Page, email: string, password: string) {
+	await gotoLogin(page);
 	await page.getByLabel('Email').fill(email);
 	await page.getByRole('textbox', { name: 'Password', exact: true }).fill(password);
 	await page.getByRole('button', { name: 'Log in' }).click();

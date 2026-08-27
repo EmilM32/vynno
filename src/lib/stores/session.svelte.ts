@@ -31,7 +31,7 @@ import type {
 	UpdateSessionInput
 } from '$lib/types/domain';
 import { createContext } from 'svelte';
-import { SvelteDate, SvelteSet } from 'svelte/reactivity';
+import { createSubscriber, SvelteDate, SvelteSet } from 'svelte/reactivity';
 
 export type HydrateOptions = {
 	nowMs?: number;
@@ -54,7 +54,10 @@ export class SessionStore {
 	#hydrated = false;
 	#prefs: PrefsStore;
 
-	/** Wall-clock used for live elapsed (updated on an interval while browser). */
+	/**
+	 * Snapshot wall-clock for day keys and paused elapsed.
+	 * Live ticking does not write this — see `#liveNowMs`.
+	 */
 	nowMs = $state(0);
 
 	/** IANA zone for first-paint day keys and local times. */
@@ -91,7 +94,13 @@ export class SessionStore {
 
 	busy = $derived(this.pendingAction != null);
 
-	#tickId: ReturnType<typeof setInterval> | null = null;
+	#visibilityBound = false;
+
+	/** Interval only while an effect reads `#liveNowMs` (active elapsed / live KPIs). */
+	#clockSubscribe = createSubscriber((update) => {
+		const id = setInterval(update, 250);
+		return () => clearInterval(id);
+	});
 
 	constructor(prefs: PrefsStore) {
 		this.#prefs = prefs;
@@ -130,7 +139,7 @@ export class SessionStore {
 		}
 		if (browser) {
 			this.#repo ??= createRepository();
-			this.#startClock();
+			this.#bindVisibility();
 		}
 	};
 
@@ -145,17 +154,18 @@ export class SessionStore {
 	elapsedMs = $derived.by(() => {
 		const s = this.activeSession;
 		if (!s) return 0;
+		if (s.status === 'active') return sessionElapsedMs(s, this.#liveNowMs());
 		return sessionElapsedMs(s, this.nowMs);
 	});
 
 	elapsedLabel = $derived(formatClock(this.elapsedMs));
 
 	todayTotalMs = $derived.by(() =>
-		todayTotalMs(this.sessions, new SvelteDate(this.nowMs), this.timeZone)
+		todayTotalMs(this.sessions, new SvelteDate(this.#asOfMs()), this.timeZone)
 	);
 
 	todayDeltaMs = $derived.by(() =>
-		todayDeltaMs(this.sessions, new SvelteDate(this.nowMs), this.timeZone)
+		todayDeltaMs(this.sessions, new SvelteDate(this.#asOfMs()), this.timeZone)
 	);
 
 	recentLogs = $derived.by(() => recentStoppedSessions(this.sessions, 8));
@@ -201,14 +211,16 @@ export class SessionStore {
 
 	refresh = async (): Promise<void> => {
 		const repo = this.#requireRepo();
-		const page = await repo.listSessions({ limit: SESSION_PAGE_SIZE });
+		const [page, allProjects, activityTypes] = await Promise.all([
+			repo.listSessions({ limit: SESSION_PAGE_SIZE }),
+			repo.listProjects({ includeArchived: true }),
+			repo.listActivityTypes()
+		]);
 		this.sessions = page.items;
 		this.nextCursor = page.nextCursor;
-		this.projects = await repo.listProjects();
-		this.allProjects = await repo.listProjects({ includeArchived: true });
-		this.activityTypes = await repo.listActivityTypes();
-		this.#normalizeProjectSelection();
-		this.#normalizeActivitySelection();
+		this.#setProjects(allProjects);
+		this.#setActivityTypes(activityTypes);
+		this.#syncClock();
 	};
 
 	loadMore = async (): Promise<boolean> => {
@@ -272,7 +284,7 @@ export class SessionStore {
 		this.error = null;
 		try {
 			const project = await this.#requireRepo().createProject(input);
-			await this.refresh();
+			this.#upsertProject(project);
 			// Known-unused without a round-trip; otherwise the delete guard reads
 			// the missing entry as "unknown" and stays blocked until a reload.
 			this.projectSessionCounts = { ...this.projectSessionCounts, [project.id]: 0 };
@@ -290,7 +302,7 @@ export class SessionStore {
 		this.error = null;
 		try {
 			const project = await this.#requireRepo().updateProject(id, input);
-			await this.refresh();
+			this.#upsertProject(project);
 			return project;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_update_project);
@@ -304,8 +316,8 @@ export class SessionStore {
 		if (!this.#begin('project')) return false;
 		this.error = null;
 		try {
-			await this.#requireRepo().archiveProject(id);
-			await this.refresh();
+			const project = await this.#requireRepo().archiveProject(id);
+			this.#upsertProject(project);
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_archive_project);
@@ -319,8 +331,8 @@ export class SessionStore {
 		if (!this.#begin('project')) return false;
 		this.error = null;
 		try {
-			await this.#requireRepo().restoreProject(id);
-			await this.refresh();
+			const project = await this.#requireRepo().restoreProject(id);
+			this.#upsertProject(project);
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_restore_project);
@@ -335,7 +347,7 @@ export class SessionStore {
 		this.error = null;
 		try {
 			await this.#requireRepo().deleteProject(id);
-			await this.refresh();
+			this.#removeProject(id);
 			this.projectSessionCounts = withoutKey(this.projectSessionCounts, id);
 			return true;
 		} catch (e) {
@@ -351,7 +363,7 @@ export class SessionStore {
 		this.error = null;
 		try {
 			const created = await this.#requireRepo().createActivityType(input);
-			await this.refresh();
+			this.#upsertActivityType(created);
 			this.activityTypeSessionCounts = { ...this.activityTypeSessionCounts, [created.id]: 0 };
 			return created;
 		} catch (e) {
@@ -370,7 +382,7 @@ export class SessionStore {
 		this.error = null;
 		try {
 			const updated = await this.#requireRepo().updateActivityType(id, input);
-			await this.refresh();
+			this.#upsertActivityType(updated);
 			return updated;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_update_activity_type);
@@ -385,7 +397,7 @@ export class SessionStore {
 		this.error = null;
 		try {
 			await this.#requireRepo().deleteActivityType(id);
-			await this.refresh();
+			this.#removeActivityType(id);
 			this.activityTypeSessionCounts = withoutKey(this.activityTypeSessionCounts, id);
 			return true;
 		} catch (e) {
@@ -409,14 +421,15 @@ export class SessionStore {
 			this.draftProjectId = projectId;
 			this.draftNote = note;
 			this.draftActivityType = activityTypeId ?? '';
-			await this.#requireRepo().startSession({
+			const started = await this.#requireRepo().startSession({
 				projectId,
 				note,
 				ticketId: input?.ticketId,
 				activityTypeId,
 				tags: input?.tags
 			});
-			await this.refresh();
+			this.#upsertSession(started);
+			this.#adjustSessionCount(started.projectId, started.activityTypeId, 1);
 			announce(m.announce_session_started());
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_start_session);
@@ -460,7 +473,7 @@ export class SessionStore {
 		this.error = null;
 		try {
 			const updated = await this.#requireRepo().updateSession(id, input);
-			await this.refresh();
+			this.#upsertSession(updated);
 			if (updated.status === 'active' || updated.status === 'paused') {
 				this.#applyDraftFromSession(updated);
 			}
@@ -478,8 +491,12 @@ export class SessionStore {
 		if (!this.#begin('session')) return false;
 		this.error = null;
 		try {
+			const existing = this.sessions.find((s) => s.id === id);
 			await this.#requireRepo().deleteSession(id);
-			await this.refresh();
+			this.#removeSession(id);
+			if (existing) {
+				this.#adjustSessionCount(existing.projectId, existing.activityTypeId, -1);
+			}
 			announce(m.announce_session_deleted());
 			return true;
 		} catch (e) {
@@ -495,7 +512,8 @@ export class SessionStore {
 		this.error = null;
 		try {
 			const created = await this.#requireRepo().createManualSession(input);
-			await this.refresh();
+			this.#upsertSession(created);
+			this.#adjustSessionCount(created.projectId, created.activityTypeId, 1);
 			announce(m.announce_session_created());
 			return created;
 		} catch (e) {
@@ -512,8 +530,8 @@ export class SessionStore {
 		if (!this.#begin('pause')) return;
 		this.error = null;
 		try {
-			await this.#requireRepo().pauseSession(s.id);
-			await this.refresh();
+			const paused = await this.#requireRepo().pauseSession(s.id);
+			this.#upsertSession(paused);
 			announce(m.announce_session_paused());
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_pause);
@@ -528,8 +546,8 @@ export class SessionStore {
 		if (!this.#begin('resume')) return;
 		this.error = null;
 		try {
-			await this.#requireRepo().resumeSession(s.id);
-			await this.refresh();
+			const resumed = await this.#requireRepo().resumeSession(s.id);
+			this.#upsertSession(resumed);
 			announce(m.announce_session_resumed());
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_resume);
@@ -546,7 +564,7 @@ export class SessionStore {
 		try {
 			const stopped = await this.#requireRepo().stopSession(s.id);
 			this.#applyDraftFromSession(stopped);
-			await this.refresh();
+			this.#upsertSession(stopped);
 			announce(m.announce_session_stopped());
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_stop);
@@ -648,17 +666,99 @@ export class SessionStore {
 		}
 	};
 
-	#startClock = (): void => {
-		if (this.#tickId != null) return;
-		this.#tickId = setInterval(() => {
-			this.nowMs = Date.now();
-		}, 250);
+	#syncClock = (): void => {
+		this.nowMs = Date.now();
+	};
+
+	/** Tick only while a reader is subscribed (active elapsed / live today KPIs). */
+	#liveNowMs = (): number => {
+		this.#clockSubscribe();
+		return Date.now();
+	};
+
+	#asOfMs = (): number => {
+		if (this.activeSession?.status === 'active') return this.#liveNowMs();
+		return this.nowMs;
+	};
+
+	#bindVisibility = (): void => {
+		if (this.#visibilityBound || typeof document === 'undefined') return;
+		this.#visibilityBound = true;
+		document.addEventListener('visibilitychange', this.#onVisible);
+	};
+
+	#onVisible = (): void => {
+		if (document.visibilityState === 'visible') this.#syncClock();
+	};
+
+	#upsertById = <T extends { id: string }>(list: T[], item: T): T[] => {
+		const i = list.findIndex((x) => x.id === item.id);
+		if (i === -1) return [item, ...list];
+		return list.map((x, idx) => (idx === i ? item : x));
+	};
+
+	#setProjects = (all: Project[]): void => {
+		this.allProjects = all;
+		this.projects = all.filter((p) => !p.isArchived);
+		this.#normalizeProjectSelection();
+	};
+
+	#upsertProject = (project: Project): void => {
+		this.#setProjects(this.#upsertById(this.allProjects, project));
+	};
+
+	#removeProject = (id: string): void => {
+		this.#setProjects(this.allProjects.filter((p) => p.id !== id));
+	};
+
+	#setActivityTypes = (types: ActivityType[]): void => {
+		this.activityTypes = types;
+		this.#normalizeActivitySelection();
+	};
+
+	#upsertActivityType = (type: ActivityType): void => {
+		this.#setActivityTypes(this.#upsertById(this.activityTypes, type));
+	};
+
+	#removeActivityType = (id: string): void => {
+		this.#setActivityTypes(this.activityTypes.filter((a) => a.id !== id));
+		if (this.draftActivityType === id) this.draftActivityType = '';
+	};
+
+	#upsertSession = (session: TimeSession): void => {
+		this.sessions = this.#upsertById(this.sessions, session);
+		this.#syncClock();
+	};
+
+	#removeSession = (id: string): void => {
+		this.sessions = this.sessions.filter((s) => s.id !== id);
+		this.#syncClock();
+	};
+
+	/** Counts are loaded lazily; only bump keys that already exist. */
+	#adjustSessionCount = (
+		projectId: string,
+		activityTypeId: string | undefined,
+		delta: number
+	): void => {
+		if (this.projectSessionCounts[projectId] != null) {
+			this.projectSessionCounts = {
+				...this.projectSessionCounts,
+				[projectId]: Math.max(0, this.projectSessionCounts[projectId] + delta)
+			};
+		}
+		if (activityTypeId && this.activityTypeSessionCounts[activityTypeId] != null) {
+			this.activityTypeSessionCounts = {
+				...this.activityTypeSessionCounts,
+				[activityTypeId]: Math.max(0, this.activityTypeSessionCounts[activityTypeId] + delta)
+			};
+		}
 	};
 
 	reset = (): void => {
-		if (this.#tickId != null) {
-			clearInterval(this.#tickId);
-			this.#tickId = null;
+		if (this.#visibilityBound && typeof document !== 'undefined') {
+			document.removeEventListener('visibilitychange', this.#onVisible);
+			this.#visibilityBound = false;
 		}
 		this.#repo = null;
 		this.#hydrated = false;

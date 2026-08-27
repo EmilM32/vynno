@@ -1,14 +1,30 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MemoryTimeTrackingRepository } from '$lib/data/memory-repository';
-import { FIXED_NOW, makeSession, sampleAppSeed } from '$lib/test/factories';
+import { FIXED_NOW, makeProject, makeSession, sampleAppSeed } from '$lib/test/factories';
+import { sessionElapsedMs } from '$lib/time/duration';
 import { PrefsStore } from './prefs.svelte';
 import { SessionStore } from './session.svelte';
+
+function hydrateWithRepo(seed = sampleAppSeed()) {
+	const repo = new MemoryTimeTrackingRepository(seed);
+	const store = new SessionStore(new PrefsStore());
+	store.hydrate(seed, { repo });
+	return {
+		store,
+		repo,
+		listSessions: vi.spyOn(repo, 'listSessions'),
+		listProjects: vi.spyOn(repo, 'listProjects'),
+		listActivityTypes: vi.spyOn(repo, 'listActivityTypes')
+	};
+}
 
 describe('SessionStore draft activity', () => {
 	let store: SessionStore;
 
 	afterEach(() => {
 		store?.reset();
+		vi.useRealTimers();
+		vi.restoreAllMocks();
 	});
 
 	it('hydrates draft activity from the live session', () => {
@@ -126,5 +142,108 @@ describe('SessionStore draft activity', () => {
 
 		expect(await store.deleteProject(project!.id)).toBe(true);
 		expect(store.countSessionsForProject(project!.id)).toBeUndefined();
+	});
+
+	it('patches timer writes without re-listing sessions or catalog', async () => {
+		const { store: s, listSessions, listProjects, listActivityTypes } = hydrateWithRepo();
+		store = s;
+
+		await store.start({ projectId: 'proj-auth', note: 'Live' });
+		expect(store.activeSession?.status).toBe('active');
+		expect(store.activeSession?.note).toBe('Live');
+		expect(listSessions).not.toHaveBeenCalled();
+		expect(listProjects).not.toHaveBeenCalled();
+		expect(listActivityTypes).not.toHaveBeenCalled();
+
+		await store.pause();
+		expect(store.activeSession?.status).toBe('paused');
+		expect(store.activeSession?.pausedAt).toBeTruthy();
+		expect(listSessions).not.toHaveBeenCalled();
+		expect(listProjects).not.toHaveBeenCalled();
+		expect(listActivityTypes).not.toHaveBeenCalled();
+
+		await store.resume();
+		expect(store.activeSession?.status).toBe('active');
+		expect(store.activeSession?.pausedAt).toBeUndefined();
+		expect(listSessions).not.toHaveBeenCalled();
+
+		const liveId = store.activeSession?.id;
+		await store.stop();
+		expect(store.activeSession).toBeNull();
+		expect(store.sessions.find((s) => s.id === liveId)?.status).toBe('stopped');
+		expect(listSessions).not.toHaveBeenCalled();
+		expect(listProjects).not.toHaveBeenCalled();
+		expect(listActivityTypes).not.toHaveBeenCalled();
+	});
+
+	it('patches project and activity catalog writes without refresh', async () => {
+		const seed = {
+			...sampleAppSeed(),
+			projects: [
+				makeProject({ id: 'proj-auth', code: 'AUTH' }),
+				makeProject({ id: 'proj-other', name: 'Other', color: '#10b981', code: 'OTHR' })
+			]
+		};
+		const { store: s, listSessions, listProjects, listActivityTypes } = hydrateWithRepo(seed);
+		store = s;
+
+		const created = await store.createProject({ name: 'Fresh', color: '#3b82f6', code: 'FRSH' });
+		expect(created).not.toBeNull();
+		expect(store.projects.some((p) => p.id === created!.id)).toBe(true);
+		expect(store.allProjects.some((p) => p.id === created!.id)).toBe(true);
+
+		expect(await store.archiveProject(created!.id)).toBe(true);
+		expect(store.projects.some((p) => p.id === created!.id)).toBe(false);
+		expect(store.allProjects.find((p) => p.id === created!.id)?.isArchived).toBe(true);
+
+		expect(await store.restoreProject(created!.id)).toBe(true);
+		expect(store.projects.some((p) => p.id === created!.id)).toBe(true);
+
+		const type = await store.createActivityType({ name: 'review', color: 'tertiary' });
+		expect(type).not.toBeNull();
+		expect(store.activityTypes.some((a) => a.id === type!.id)).toBe(true);
+
+		expect(listSessions).not.toHaveBeenCalled();
+		expect(listProjects).not.toHaveBeenCalled();
+		expect(listActivityTypes).not.toHaveBeenCalled();
+	});
+
+	it('does not start a wall-clock interval on hydrate', () => {
+		vi.useFakeTimers();
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(sampleAppSeed(), { nowMs: 1_000 });
+		expect(store.nowMs).toBe(1_000);
+		expect(store.elapsedMs).toBe(0);
+		vi.advanceTimersByTime(5_000);
+		expect(store.nowMs).toBe(1_000);
+	});
+
+	it('freezes elapsed while paused and uses Date.now() while active', () => {
+		const paused = makeSession({
+			id: 'live',
+			status: 'paused',
+			endedAt: undefined,
+			startedAt: '2026-03-11T10:00:00.000Z',
+			pausedAt: '2026-03-11T10:05:00.000Z',
+			pausedMs: 0
+		});
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(
+			{ ...sampleAppSeed(), sessions: [paused] },
+			{ nowMs: Date.parse('2026-03-11T12:00:00.000Z') }
+		);
+		expect(store.elapsedMs).toBe(sessionElapsedMs(paused, store.nowMs));
+
+		const active = makeSession({
+			id: 'live',
+			status: 'active',
+			endedAt: undefined,
+			startedAt: '2026-03-11T10:00:00.000Z',
+			pausedMs: 0
+		});
+		store.reset();
+		store = new SessionStore(new PrefsStore());
+		store.hydrate({ ...sampleAppSeed(), sessions: [active] }, { nowMs: Date.now() });
+		expect(store.elapsedMs).toBe(sessionElapsedMs(active, Date.now()));
 	});
 });

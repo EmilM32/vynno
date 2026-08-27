@@ -54,22 +54,24 @@
 				aria-current={settingsActive ? 'page' : undefined}
 				data-testid="shell-settings"
 			/>
-			<Icon
-				name="fiber_manual_record"
-				fill={live}
-				hidden={false}
-				class="px-1 {live
-					? isActive
-						? 'text-secondary'
-						: 'text-tertiary'
-					: 'text-on-surface-variant'}"
+			<span
+				role="status"
 				aria-label={live
 					? isActive
 						? m.shell_session_recording()
 						: m.shell_session_paused()
 					: m.shell_no_active_session()}
-				role="status"
-			/>
+			>
+				<Icon
+					name="fiber_manual_record"
+					fill={live}
+					class="px-1 {live
+						? isActive
+							? 'text-secondary'
+							: 'text-tertiary'
+						: 'text-on-surface-variant'}"
+				/>
+			</span>
 		</div>
 	</div>
 </header>

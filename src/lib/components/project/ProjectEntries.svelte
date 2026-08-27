@@ -28,6 +28,8 @@
 			<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 				<h2 class="text-headline-md text-on-surface">{m.project_entries()}</h2>
 				<Input
+					id="project-entries-search"
+					name="q"
 					type="search"
 					tone="code"
 					size="sm"

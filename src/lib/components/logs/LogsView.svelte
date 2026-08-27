@@ -42,6 +42,8 @@
 				{#snippet actions()}
 					<div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
 						<Input
+							id="logs-search"
+							name="q"
 							type="search"
 							tone="code"
 							size="sm"

@@ -6,7 +6,7 @@
 
 ## Context
 
-Sessions always reference a `projectId`. The UI needs create/edit/remove flows (PRJ-5) without breaking historical logs or leaving Timer without a selectable project. A real API will later map to soft-delete semantics; the mock repository should mirror that.
+Sessions always reference a `projectId`. The UI needs create/edit/remove flows without breaking historical logs or leaving Timer without a selectable project. The API enforces the same lifecycle.
 
 ## Decision
 
@@ -15,8 +15,8 @@ Sessions always reference a `projectId`. The UI needs create/edit/remove flows (
 3. **Last active project** cannot be archived or hard-deleted.
 4. **Code uniqueness** applies only when `code` is non-empty (case-insensitive among all non-deleted projects).
 5. **Colors** come from a fixed palette in the UI (not free-form hex) for a11y and consistency.
-6. Mutations go over HTTP (`POST`/`PATCH`/`DELETE` on `/projects`). On the mock, a full reload still resets because the mock workspace is SPA-scoped (ADR-0010).
-7. Dedicated route **`/projects`** in primary navigation (ADR-0005 updated).
+6. Mutations go over HTTP (`POST`/`PATCH`/`DELETE` on `/projects`).
+7. Dedicated route **`/projects`** in primary navigation (ADR-0005).
 
 ## Consequences
 
@@ -24,24 +24,23 @@ Sessions always reference a `projectId`. The UI needs create/edit/remove flows (
 
 - Historical sessions keep resolvable project identity after archive.
 - Timer/Settings pickers stay clean.
-- Repository contract maps cleanly to a future soft-delete API.
+- Repository contract matches the API’s archive / hard-delete rules.
 
 ### Negative / tradeoffs
 
 - Insights that join only on active `listProjects()` may under-show archived project series until a later “include archived” option.
-- Hard-delete of unused projects is permanent in-session (no trash beyond archive).
+- Hard-delete of unused projects is permanent (no trash beyond archive).
 
 ## Alternatives considered
 
 | Option                      | Why not                                                                |
 | --------------------------- | ---------------------------------------------------------------------- |
 | Hard delete only            | Breaks or orphans historical logs unless cascade/reassign UI is built. |
-| Archive only                | Simpler, but unused mock projects cannot be purged during demos.       |
-| Reassign sessions on delete | Higher scope; defer until API.                                         |
+| Archive only                | Simpler, but unused projects cannot be purged.                         |
+| Reassign sessions on delete | Higher scope; not in the contract.                                     |
 
 ## Related
 
 - [../domain-model.md](../domain-model.md)
-- [../prd.md](../prd.md) §8.6 PRJ-5
-- [0004-state-and-data-strategy.md](./0004-state-and-data-strategy.md)
 - [0005-routing-and-app-shell.md](./0005-routing-and-app-shell.md)
+- [0010-http-json-contract.md](./0010-http-json-contract.md)

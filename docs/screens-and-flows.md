@@ -1,27 +1,27 @@
 # Screens and Flows — Vynno
 
-**Status:** Draft  
-**Last updated:** 2026-08-26
+**Status:** Living  
+**Last updated:** 2026-08-27
 
-Screen inventory, viewport notes, and primary user flows. Layouts were originally prototyped in Google Stitch during the design phase; those exports are no longer in the repo.
+Route inventory, shell, and primary user flows. Named themes (`dark`, `light`, `deep-dark`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md). Unbuilt extras: [open.md](./open.md).
 
 ---
 
 ## 1. Screen inventory
 
-Each primary route is one responsive page (mobile + desktop). Settings, Projects, and Login were not in the original Stitch set. Named themes (`dark`, `light`, `deep-dark`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md).
+Each primary route is one responsive page (mobile + desktop).
 
-| Route            | Mobile                                          | Desktop                              | Purpose                                                                        |
-| ---------------- | ----------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------ |
-| `/timer`         | Active session control                          | Timer + command panel + recent table | Active session                                                                 |
-| `/dashboard`     | Today, focus, projects, week chart, recent logs | Same with sidebar shell              | Home overview                                                                  |
-| `/logs`          | Chronological system logs                       | Same denser layout                   | Activity logs                                                                  |
-| `/insights`      | Analytics overview                              | Same with sidebar shell              | Analytics                                                                      |
-| `/settings`      | Preferences                                     | Same with sidebar shell              | No original Stitch screen                                                      |
-| `/projects`      | Project management                              | Same with sidebar shell              | No original Stitch screen                                                      |
-| `/projects/[id]` | Per-project time dossier                        | Same with sidebar shell              | No original Stitch screen                                                      |
-| `/login`         | Auth stub                                       | Auth stub                            | No original Stitch screen                                                      |
-| _(no route)_     | Chrome-less error card (404 / 5xx)              | Same as mobile                       | Kit `+error.svelte` — see [adr/0019-error-pages.md](./adr/0019-error-pages.md) |
+| Route            | Purpose                                                                        |
+| ---------------- | ------------------------------------------------------------------------------ |
+| `/timer`         | Active session                                                                 |
+| `/dashboard`     | Home overview                                                                  |
+| `/logs`          | Chronological time entries                                                     |
+| `/insights`      | Analytics                                                                      |
+| `/settings`      | Preferences, profile, language, activity types                                 |
+| `/projects`      | Project management                                                             |
+| `/projects/[id]` | Per-project time dossier                                                       |
+| `/login`         | Sign in / register / forgot password (no app chrome)                           |
+| _(no route)_     | Chrome-less error card (404 / 5xx) — [adr/0019-error-pages.md](./adr/0019-error-pages.md) |
 
 ---
 
@@ -30,27 +30,26 @@ Each primary route is one responsive page (mobile + desktop). Settings, Projects
 ### Desktop
 
 - Fixed left **sidebar** (~240px): brand, primary nav, session chip (idle = “Start New Session”; live = status + elapsed + project/note), profile footer
-- Optional **top bar**: search, notifications, avatar
 - Main content offset by sidebar width
 
 ### Mobile
 
-- Sticky **top bar**: brand + status/indicators
+- Sticky **top bar**: brand, command-palette trigger, live indicator
 - **Bottom tab bar**: Timer, Dashboard, Logs, Insights, Projects, Settings
-- Content padded above bottom nav (`pb-safe` pattern in mockups)
+- Content padded above bottom nav
 
-### Navigation model
+### Navigation
 
-| Label     | Icon (Material Symbols)             | Route        |
-| --------- | ----------------------------------- | ------------ |
-| Timer     | `timer`                             | `/timer`     |
-| Dashboard | `dashboard`                         | `/dashboard` |
-| Logs      | `list_alt` / `format_list_bulleted` | `/logs`      |
-| Insights  | `analytics`                         | `/insights`  |
-| Projects  | `folder_managed`                    | `/projects`  |
-| Settings  | `settings`                          | `/settings`  |
+| Label     | Route        |
+| --------- | ------------ |
+| Timer     | `/timer`     |
+| Dashboard | `/dashboard` |
+| Logs      | `/logs`      |
+| Insights  | `/insights`  |
+| Projects  | `/projects`  |
+| Settings  | `/settings`  |
 
-Default landing: `/login` when signed out; `/dashboard` after the stub session (and for returning signed-in users).
+Default landing: `/login` when signed out; `/dashboard` when signed in. Feature routes require a session cookie.
 
 ---
 
@@ -58,21 +57,10 @@ Default landing: `/login` when signed out; `/dashboard` after the stub session (
 
 ### 3.1 Timer (`/timer`)
 
-**Mobile layout**
-
-1. Task input: “What are you working on?”
-2. Timer card: status ACTIVE, project chip, large `HH:MM:SS`, Pause + Stop
-3. Recent Tasks list + “Press [CMD+K] to search” hint
-
-**Desktop additions**
-
-1. Breadcrumb / path aesthetic (`~/dev/auth-service` → task)
-2. Session target progress
-3. Quick Command panel (CLI-style)
-4. Today’s Summary mini stats
-5. Recent Tasks table (status, name, project, duration, play)
-
-**States to design in implementation**
+1. Task input: “What are you working on?” + project picker
+2. Timer card: status, project chip, large `HH:MM:SS`, Start / Pause / Resume / Stop
+3. Today’s Summary mini stats
+4. Recent Tasks list with restart
 
 | State  | UI                                                        |
 | ------ | --------------------------------------------------------- |
@@ -80,29 +68,24 @@ Default landing: `/login` when signed out; `/dashboard` after the stub session (
 | Active | Pulsing border/status; live clock; Pause + Stop           |
 | Paused | Amber/paused indicator; frozen clock; Resume + Stop       |
 
+Not built on this screen: session target progress, desktop Quick Command panel. See [open.md](./open.md).
+
 ### 3.2 Dashboard (`/dashboard`)
 
-**Regions**
-
 1. **Today’s Total** — monospaced duration + delta vs yesterday
-2. **Current Focus** — ticket id, title, live timer, tags
-3. **Active Projects** — horizontal cards: color, name, progress %, week hours
+2. **Current Focus** — title, live timer, tags
+3. **Active Projects** — horizontal cards: color, name, optional progress %, week hours → `/projects/[id]`
 4. **Weekly Overview** — bar chart Mon–Sun
-5. **Recent Logs** — compact list + filter icon + restart affordance
+5. **Recent Logs** — compact list + restart
 
 ### 3.3 Logs (`/logs`)
 
-**Regions**
-
-1. Title “System Logs” + subtitle
-2. Search input (grep-style placeholder)
-3. Date separators (`YYYY-MM-DD`)
-4. Entries: project color + name, `> note`, optional activity chip, time range, duration
-5. Add entry / Edit session: form dialog (not an inline card). Delete: confirm dialog
+1. Title + grep-style search
+2. Date separators (`YYYY-MM-DD`)
+3. Entries: project color + name, `> note`, optional activity chip, time range, duration
+4. Add entry / Edit session: form dialog. Delete: confirm dialog
 
 ### 3.4 Insights (`/insights`)
-
-**Regions**
 
 1. Header + Week / Month toggle
 2. KPI cards: total time, most productive day, daily average
@@ -112,51 +95,38 @@ Default landing: `/login` when signed out; `/dashboard` after the stub session (
 
 ### 3.5 Settings (`/settings`)
 
-No Stitch design. Implement a minimal stub:
-
-- Page title
-- Placeholder copy: preferences arrive when designed / when API exists
-- Optional static profile block matching sidebar (“Alex Dev” style) for layout completeness
-- Default project preference + link to **Manage projects** (`/projects`)
-- Activity types: compact list; Add / Edit open a form dialog. Delete: confirm dialog
+- Profile (display name, avatar)
+- Appearance (named theme list)
+- Language (Paraglide, no URL prefixes)
+- Daily hour target (in-memory)
+- Default project
+- Activity types: compact list; Add / Edit form dialog; Delete confirm
+- About + Log out
 
 ### 3.6 Projects (`/projects`)
 
-No Stitch design. Dev-Density Dark product screen for **PRJ-5**.
-
-**Regions**
-
-1. Header: title “Projects”, mock-data disclaimer, **New project** CTA
+1. Header + **New project** CTA
 2. Tabs: **Active** | **Archived**
-3. List rows: color swatch, name, code chip, session count, actions
-4. New project / Edit: form dialog (name, code, color palette)
+3. List rows: color swatch, name, code chip, session count, actions. Name/code links to `/projects/[id]`
+4. New / Edit: form dialog (name, code, color palette)
 5. Hard-delete confirm dialog
-
-**Actions**
 
 | State        | Actions                                                      |
 | ------------ | ------------------------------------------------------------ |
 | Active row   | Edit, Archive, Delete (if zero sessions and not last active) |
 | Archived row | Restore, Delete (if zero sessions)                           |
 
-**Rules:** see [domain-model.md](./domain-model.md) §4.1 and [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md).
-
-Row name/code is a link to `/projects/[id]`. Dashboard Active Projects cards use the same destination.
+Rules: [domain-model.md](./domain-model.md) §4.1 and [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md).
 
 ### 3.6b Project view (`/projects/[id]`)
 
 Time dossier for one project. Not a seventh nav item — Projects stays highlighted (`/projects/*`).
 
-**Regions**
-
-1. Header: back to list, color swatch, name, code chip, archived/live badge, last-logged subtitle
-2. Actions: Week / Month / All period toggle, Start session (or Open timer), Edit (form dialog), Archive / Restore
+1. Header: back, color, name, code, archived/live badge
+2. Actions: Week / Month / All, Start session (or Open timer), Edit, Archive / Restore
 3. KPI cards: period total, daily average, share of period hours
-4. Period hours bar chart (project color; follows Week / Month / All) + time-by-activity bars
-5. Recent logs with restart
-6. Date-grouped entries (project column omitted) + grep-style search
-
-**States**
+4. Period hours bar + time-by-activity bars
+5. Recent logs with restart; date-grouped entries + search
 
 | State                           | UI                                                         |
 | ------------------------------- | ---------------------------------------------------------- |
@@ -170,104 +140,74 @@ Start session sets `draftProjectId` and navigates to `/timer` (does not auto-sta
 
 ### 3.7 Login (`/login`)
 
-No Stitch mock. Dev-Density card using the same input/button language as Projects and Settings, plus the sidebar brand (timer icon + Vynno wordmark).
-
-**Layout**
-
-- Full-viewport `surface` background, no sidebar / top bar / bottom nav
-- Centered `max-w-sm` card: brand + tagline, **Log in | Create account** tabs, then the active form
-- Log in: email, password (with show/hide), remember-me, **Forgot password?**, **Log in**
-- Create account: email, password, confirm password (both with show/hide), optional display name, remember-me, **Send confirmation code**, then a 6-digit code field and **Create account**
-- Forgot password (replaces the tabs): email, **Send reset code**, then 6-digit code + new password + confirm, **Reset password**. Success returns to Log in.
-
-**Behavior**
-
-- Default tab is Log in. Login is `POST /v1/auth/login`. Register is `POST /v1/auth/register/code` then `POST /v1/auth/register` with the code from mail. Both login and a successful register set the session cookie and land on `/dashboard`. Forgot password is `POST /v1/auth/password/forgot` then `/auth/password/reset`; it does not set a cookie.
-- Remember-me is checked by default (30-day cookie).
-- Send-code stays disabled until password and confirm are non-empty and identical. Create-account stays disabled until the code is six digits.
-- Optional display name: omitted → stored empty; chrome shows the email.
-- `/` redirects to `/login` when signed out, `/dashboard` after a session.
-- Feature routes require a signed-in flag; the session secret is the HttpOnly cookie.
+Chrome-less card. Login is `POST /v1/auth/login`. Register is `POST /v1/auth/register/code` then `POST /v1/auth/register`. Forgot password is `POST /v1/auth/password/forgot` then `/auth/password/reset`. Successful login/register lands on `/dashboard`. Remember-me is checked by default (30-day cookie).
 
 ---
 
 ## 4. Primary user flows
 
-### Flow A — Start a timed session
+### A — Start a timed session
 
 ```
 [Timer] → enter note (optional) → select project (if not default)
-       → Start / Start New Session
+       → Start
        → status Active, clock ticks
 ```
 
-### Flow B — Pause and resume
+### B — Pause and resume
 
 ```
 [Active] → Pause → frozen elapsed, status Paused
         → Resume → Active again
 ```
 
-### Flow C — Stop and log
+### C — Stop and log
 
 ```
 [Active|Paused] → Stop → session becomes stopped entry
                 → appears in Logs + feeds Dashboard/Insights
-                → Timer returns to Idle (or shows completed toast)
+                → Timer returns to Idle
 ```
 
-### Flow D — Restart from recent
+### D — Restart from recent
 
 ```
 [Timer Recent Tasks | Dashboard Recent Logs] → Play
   → new session with same project + note
-  → if another session active: block or prompt (prefer block until stop)
+  → if another session active: block until stop
 ```
 
-### Flow E — Review the day / week
+### E — Review the day / week
 
 ```
 [Dashboard] → scan Today Total + Current Focus
             → scan Weekly Overview + Recent Logs
-            → optional open Logs for detail
 ```
 
-### Flow F — Analyze period
+### F — Analyze period
 
 ```
-[Insights] → select Week or Month
-           → read KPIs
-           → inspect project donut + activity bar + table
+[Insights] → select Week or Month → read KPIs + charts + table
 ```
 
-### Flow G — Search logs
+### G — Search logs
 
 ```
 [Logs] → type in search → filter by project name / note text
 ```
 
-### Flow H — Manage projects
+### H — Manage projects
 
 ```
-[Projects] → New project → name + color (+ optional code) → Save
-           → project appears in Active list + Timer/Settings pickers
-
-[Projects] → Edit row → change name/color/code → Save
-
-[Projects] → Archive → hidden from pickers; still resolvable on Logs history
-           → Archived tab → Restore
-
-[Projects] → Delete (only if no sessions) → confirm → removed permanently
+[Projects] → New / Edit / Archive / Restore / Delete (unused only)
 ```
 
-### Flow I — Open a project dossier
+### I — Open a project dossier
 
 ```
-[Dashboard Active Projects | Projects row | Insights legend | ⌘K]
+[Dashboard cards | Projects row | Insights legend | ⌘K]
   → /projects/{id}
-  → scan week hours + activity mix + entries
   → Start session → Timer with this project selected
-  → or play a recent log → new session, Timer
 ```
 
 ---
@@ -282,23 +222,14 @@ No Stitch mock. Dev-Density card using the same input/button language as Project
 | Insights     | Aggregates for period                                  | Period toggle only                                 |
 | Projects     | All projects + session counts                          | Create/update/archive/restore/delete               |
 | Project view | One project + its sessions + period aggregates         | Edit / archive / restore; start or restart session |
-| Settings     | Profile / prefs, active projects                       | Daily target, default project                      |
+| Settings     | Profile / prefs, active projects                       | Daily target, default project, profile, theme      |
 
 ---
 
-## 6. Implementation notes for SvelteKit
+## 6. Implementation notes
 
-- Shared `(app)/+layout.svelte` for shell (sidebar / bottom nav). `/login` sits outside that group.
-- Route pages thin; feature UI in components.
-- Prefer one responsive page per route over separate mobile/desktop route trees; use CSS breakpoints as mockups do.
-- Keep Stitch HTML out of `src/`; copy patterns manually into components.
+- Shared `(app)/+layout.svelte` for shell. `/login` sits outside that group.
+- Route pages thin; feature UI in `*View.svelte` components.
+- One responsive page per route; CSS breakpoints, not `/m/` vs `/desktop/` trees.
 
 See [adr/0005-routing-and-app-shell.md](./adr/0005-routing-and-app-shell.md).
-
----
-
-## 7. Related documents
-
-- [prd.md](./prd.md)
-- [design-system.md](./design-system.md)
-- [domain-model.md](./domain-model.md)

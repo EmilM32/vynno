@@ -30,7 +30,7 @@ A sun/moon toggle or Tailwind `dark:` variants would have to be rewritten when t
 
 ### Negative / tradeoffs
 
-- Theme is the only locally persisted preference (inconsistent with other mock prefs, by design).
+- Theme is the only locally persisted preference (daily target and default project stay in-memory — see [open.md](../open.md)).
 - Inline `app.html` script is a small string-match of the storage key, not the TypeScript registry.
 
 ## Alternatives considered
@@ -44,4 +44,3 @@ A sun/moon toggle or Tailwind `dark:` variants would have to be rewritten when t
 ## Related
 
 - [../design-system.md](../design-system.md)
-- [0003-design-system-source.md](./0003-design-system-source.md)

@@ -56,8 +56,23 @@ Keep the path `d` identical across the three SVGs and `BrandMark.svelte`.
 
 The public name, this repository, and the npm package are **Vynno** / `vynno`. The companion API is [vynno-api](https://github.com/EmilM32/vynno-api).
 
-CSS prefix `--dt-*` stays until a deliberate token rename. See [rename-process.md](./rename-process.md).
+CSS prefix `--dt-*` stays until a deliberate token rename. That is not a public-name change.
 
 ## In the product
 
 Settings → **About Vynno** is the in-app home for pronunciation and meaning.
+
+## Public rename checklist
+
+How to change the **user-facing** name. This is not a git-repo rename. Decision: [ADR-0009](./adr/0009-product-name.md).
+
+1. Update this file first (name, pronunciation, tagline, one-liner, spelling).
+2. `messages/en.json` — `app_name`, `title_app`, Settings About strings (`settings_about_*`).
+3. Shell — brand comes from `m.app_name()`. Do not hardcode the name in `nav.ts`.
+4. Settings About copy — must still match this file.
+5. Root `README.md` and `docs/README.md` headings.
+6. `AGENTS.md` opener.
+7. `e2e/navigation.spec.ts` — shell brand assertion.
+8. Amend [ADR-0009](./adr/0009-product-name.md) if the decision changed. Do not invent a new ADR number for a copy-only rename.
+
+Leave `--dt-*` tokens alone. After copy edits: `npm run check`, `npm test`, and at least the navigation + settings e2e projects.

@@ -16,7 +16,7 @@ A packaged webview is not an HTTP origin. It cannot run the Node adapter, `+serv
 
 1. **Shell is Tauri 2.** System webview (WKWebView on this Mac), Rust process, capability-based permissions. Official SvelteKit path: static SPA, not a Kit server.
 2. **Desktop is a second target.** Default `npm run build` / `scripts/start` stay adapter-node ([0014](./0014-local-production-spa.md)). Desktop is opt-in (`VYNNO_TARGET=desktop`). This ADR amends 0014; it does not replace it.
-3. **macOS first.** Windows and Linux after a packaged `.app` is in daily use. Mobile is still out of scope ([prd.md](../prd.md)).
+3. **macOS first.** Windows and Linux after a packaged `.app` is in daily use. Mobile is out of scope.
 4. **Static SPA in the webview.** `@sveltejs/adapter-static` with SPA fallback `index.html`, `ssr = false` on the desktop target only. Output directory is **`build-desktop/`**, never `build/` (the Node server).
 5. **API traffic goes through `@tauri-apps/plugin-http`.** Rust reqwest + cookie jar replaces the `/v1` BFF. JS does not `fetch` vynno-api from the webview origin. Cookie contract (`vynno_session`) stays; no Bearer-token grant in vynno-api unless the jar fails.
 6. **`PUBLIC_API_BASE` for desktop is an absolute API `/v1`**, set in `.env` at desktop build time. No localhost default in source ([0012](./0012-env-origins.md)).
@@ -25,7 +25,7 @@ A packaged webview is not an HTTP origin. It cannot run the Node adapter, `+serv
 9. **Native OS features (tray, global shortcuts, notifications) come after** login and the timer work in the `.app`. Capabilities stay deny-by-default; HTTP allowlist is the vynno-api origin only.
 10. **Playwright stays on the Node preview.** Husky does not run Tauri.
 
-Sequence and runbook: [tauri.md](../tauri.md). Roadmap Phase 7: [roadmap.md](../roadmap.md).
+Sequence and runbook: [tauri.md](../tauri.md). Remaining work: [open.md](../open.md).
 
 ## Consequences
 
@@ -65,5 +65,5 @@ Sequence and runbook: [tauri.md](../tauri.md). Roadmap Phase 7: [roadmap.md](../
 - [0012-env-origins.md](./0012-env-origins.md)
 - [0014-local-production-spa.md](./0014-local-production-spa.md)
 - [../tauri.md](../tauri.md)
-- [../roadmap.md](../roadmap.md) Phase 7
+- [../open.md](../open.md)
 - [../local-production.md](../local-production.md)

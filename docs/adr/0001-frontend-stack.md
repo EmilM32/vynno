@@ -6,7 +6,7 @@
 
 ## Context
 
-Vynno’s UI is specified via Google Stitch mockups that already use Tailwind utility classes, a dark design-token set, and dense interactive layouts (timer, charts, navigation shells). This repository will implement only the frontend. We need a modern SPA/SSR-capable framework with first-class TypeScript and straightforward Tailwind integration.
+Vynno is a dense, keyboard-first focus tracker. This repository implements only the frontend. We need a modern SPA/SSR-capable framework with first-class TypeScript and straightforward Tailwind integration.
 
 ## Decision
 
@@ -27,7 +27,7 @@ No backend framework is introduced in this repository.
 
 - Svelte’s reactivity fits a live timer and shared session state with little boilerplate.
 - SvelteKit file-based routing maps cleanly to Timer / Dashboard / Logs / Insights / Settings.
-- Tailwind matches the Stitch export language, speeding visual implementation.
+- Tailwind maps cleanly onto the design-token CSS in `src/lib/theme/`.
 - TypeScript supports a clear domain model and a swappable data repository interface.
 
 ### Negative / tradeoffs
@@ -43,9 +43,9 @@ No backend framework is introduced in this repository.
 | React + Next/Vite     | Valid, but SvelteKit was an explicit product preference. |
 | Vue / Nuxt            | Same — not selected.                                     |
 | Plain Svelte (no Kit) | Loses routing, layouts, and future SSR/adapter options.  |
-| CSS Modules only      | Slower to match Stitch Tailwind mockups.                 |
+| CSS Modules only      | Slower to match the existing token + utility system.     |
 
 ## Related
 
 - [0002-frontend-only-separation.md](./0002-frontend-only-separation.md)
-- [../prd.md](../prd.md)
+- [../design-system.md](../design-system.md)

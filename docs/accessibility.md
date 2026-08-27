@@ -38,11 +38,11 @@ Use `on-surface` / `on-surface-variant` for text. Do **not** use `outline`, `out
 
 Contrast pairs live in `src/lib/a11y/contrast.ts` and are unit-tested.
 
-## N/A for this frontend-only mock
+## N/A for this product
 
 1.2 time-based media, 1.4.2 audio control, 2.2.1 session timeouts, 2.5.7 dragging, 3.1.2 language of parts, 3.2.6 consistent help, 3.3.7 redundant entry.
 
-3.3.8 (accessible authentication) is stub-covered for the login view (visible labels + password-manager autocomplete). Re-audit against a real IdP when auth lands.
+3.3.8 (accessible authentication): login uses visible labels + password-manager autocomplete. No third-party IdP.
 
 ## Known AAA exclusions
 

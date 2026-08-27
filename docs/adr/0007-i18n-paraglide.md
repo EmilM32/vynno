@@ -17,10 +17,10 @@ Use **Paraglide JS** (`@inlang/paraglide-js`) — SvelteKit’s recommended i18n
 - Locale strategy: `cookie` → `localStorage` → `preferredLanguage` → `baseLocale` (**no URL strategy**). Cookie is first so SSR and the first HTML agree ([ADR-0011](./0011-ssr-session-state.md)).
 - Language switcher lives in Settings; `setLocale()` reloads the document
 - Translate **typical product UI copy** (labels, buttons, headings, empty states, dialogs, validation/errors shown in UI)
-- Do **not** translate technical identifiers (Material icon ligatures, test ids, routes) or user/mock content (project names, session notes)
+- Do **not** translate technical identifiers (Material icon ligatures, test ids, routes) or user content (project names, session notes)
 
 ## Consequences
 
 - Adding a language: extend `project.inlang` locales + add `messages/<tag>.json`
-- Locale change reloads the SPA (resets in-memory mock session state for v1)
+- Locale change reloads the document (in-memory prefs other than theme reset)
 - e2e continues to assert English (base locale)

@@ -25,7 +25,7 @@ The product still has to work. Agent output is reviewed and held to the same sta
 | ------------------------------------------------------ | ----------------------------------------------------------------------- |
 | SvelteKit + TypeScript + Tailwind UI                   | [vynno-api](https://github.com/EmilM32/vynno-api) — API, database, auth |
 | HTTP client + cookie auth                              | Persistence and multi-device sync                                       |
-| Design system (originally prototyped in Google Stitch) | Business rules that must stay on the server                             |
+| Design system                                          | Business rules that must stay on the server                             |
 
 ## Stack
 
@@ -130,21 +130,17 @@ Reusable components (primitives, shell chrome, prop-driven widgets) have colocat
 
 Start here: **[docs/README.md](./docs/README.md)**
 
-| Doc                                                                          | Description                   |
-| ---------------------------------------------------------------------------- | ----------------------------- |
-| [docs/brand.md](./docs/brand.md)                                             | Name, pronunciation, meaning  |
-| [docs/rename-process.md](./docs/rename-process.md)                           | How to change the public name |
-| [docs/prd.md](./docs/prd.md)                                                 | Product requirements          |
-| [docs/domain-model.md](./docs/domain-model.md)                               | Domain model                  |
-| [docs/screens-and-flows.md](./docs/screens-and-flows.md)                     | Screens & flows               |
-| [docs/design-system.md](./docs/design-system.md)                             | Design tokens                 |
-| [docs/roadmap.md](./docs/roadmap.md)                                         | Delivery phases               |
-| [docs/local-production.md](./docs/local-production.md)                       | Production UI on this machine |
-| [docs/adr/](./docs/adr/)                                                     | Architecture decisions        |
-| [docs/adr/0016-storybook-workshop.md](./docs/adr/0016-storybook-workshop.md) | Storybook workshop            |
+| Doc                                                    | Description                   |
+| ------------------------------------------------------ | ----------------------------- |
+| [docs/brand.md](./docs/brand.md)                       | Name, pronunciation, voice    |
+| [docs/domain-model.md](./docs/domain-model.md)         | Domain model                  |
+| [docs/screens-and-flows.md](./docs/screens-and-flows.md) | Screens & flows             |
+| [docs/design-system.md](./docs/design-system.md)       | UI rules                      |
+| [docs/motion.md](./docs/motion.md)                     | Animation taste               |
+| [docs/local-production.md](./docs/local-production.md) | Production UI on this machine |
+| [docs/open.md](./docs/open.md)                         | What is not built yet         |
+| [docs/adr/](./docs/adr/)                               | Architecture decisions        |
 
 ## Status
 
-- **Phase 0:** Planning docs complete
-- **Phase 1:** App scaffold + shell + placeholder routes
-- **Phase 6:** Local production — `adapter-node` on this machine (`scripts/start`)
+Live API + cookie auth. Local production is `adapter-node` on this machine (`scripts/start`). Native desktop is a second target — [docs/tauri.md](./docs/tauri.md). Remaining work: [docs/open.md](./docs/open.md).

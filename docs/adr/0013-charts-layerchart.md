@@ -8,8 +8,6 @@
 
 Hours histograms were hand-rolled CSS bars. Y-axis ticks were absolute hours, but bar height was a percentage of a column with no definite height, so a 5h day sat under the 3h tick. The project dossier also needed week / month / all buckets (7 vs ~31 vs N bars) with a real scale.
 
-Stitch used Chart.js. [prd.md](../prd.md) left the library open (Q6). [p2-backlog.md](../p2-backlog.md) CHART said CSS was enough for the mock.
-
 [shadcn-svelte charts](https://www.shadcn-svelte.com/charts/bar) are LayerChart plus a token wrapper. This repo has no shadcn kit.
 
 ## Decision
@@ -42,5 +40,5 @@ Motion is off (`motion="none"`) per [motion.md](../motion.md). Axis / tooltip / 
 | Option                  | Why not                                                |
 | ----------------------- | ------------------------------------------------------ |
 | Fix CSS `%` height only | Still homemade axes for 31-day / multi-month views.    |
-| Chart.js                | Canvas; Stitch leftover; poorer Svelte 5 fit.          |
+| Chart.js                | Canvas; poorer Svelte 5 fit.                           |
 | Full shadcn-svelte kit  | Would fight the existing token system for one feature. |

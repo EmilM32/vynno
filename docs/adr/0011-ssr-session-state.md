@@ -6,7 +6,7 @@
 
 ## Context
 
-The app ran as a client-only SPA (`export const ssr = false` in the root layout) because mock session state lived in process-wide module singletons ([ADR-0004](./0004-state-and-data-strategy.md), [ssr-enablement.md](../ssr-enablement.md)). Phase 5c replaced the mock tree with vynno-api and an HttpOnly `vynno_session` cookie. First paint can now come from the server, but only if:
+The app ran as a client-only SPA (`export const ssr = false` in the root layout) because session state lived in process-wide module singletons. The live API and an HttpOnly `vynno_session` cookie made first paint from the server possible, but only if:
 
 1. Identity is the cookie, not `localStorage`
 2. Stores are request-scoped on the server
@@ -35,6 +35,18 @@ The app ran as a client-only SPA (`export const ssr = false` in the root layout)
 - Split-host production (`app.` vs `api.`) will not send `vynno_session` to the Kit origin unless the API sets `Domain=.parent` or a same-origin BFF is added (ADR-0002 already allows a BFF). Same-host ports share a host-only cookie (`Path=/`, `SameSite=Lax`).
 - First visit without `vynno_tz` formats times in UTC until the client writes the cookie.
 
+## Hydration rules
+
+Do not reintroduce module singletons on the server.
+
+1. **First paint comes from serialized layout data** (`+layout.server.ts`). The client hydrates from that payload — it does not rebuild seed by re-fetching with a different clock.
+2. **No shared mutable module state on the server.** Fresh store per request via context; client singleton only after hydrate so the timer survives in-app navigation. `load` stays pure.
+3. **Time contract.** Serialize `nowMs`. First-paint aggregates use seed `nowMs`, not bare `Date.now()` in render paths. Start the live clock only in the browser.
+4. **Timezone contract.** Format SSR-visible times and day keys with the explicit shared `timeZone` (`vynno_tz` cookie, fallback `UTC`). Host-local `getHours()` hydrates wrong.
+5. **Browser-only APIs** (`window`, `document`, `localStorage`, rAF) only inside `$effect`, `onMount`, or `if (browser)` paths that do not change first-paint markup. Layout is CSS breakpoints.
+6. **Locale parity.** Server and client resolve the same locale for the first document (cookie first — [0007](./0007-i18n-paraglide.md)).
+7. **Verify** cold load of primary routes with a clean console (no hydration warnings) and that mutations in one session do not appear in another request’s HTML.
+
 ## Alternatives considered
 
 | Option                      | Why not                                                                      |
@@ -49,4 +61,3 @@ The app ran as a client-only SPA (`export const ssr = false` in the root layout)
 - [0007-i18n-paraglide.md](./0007-i18n-paraglide.md)
 - [0010-http-json-contract.md](./0010-http-json-contract.md)
 - [0012-env-origins.md](./0012-env-origins.md)
-- [../ssr-enablement.md](../ssr-enablement.md)

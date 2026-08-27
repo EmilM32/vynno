@@ -44,4 +44,4 @@ Local development still needs those values. They belong in `.env`, not in source
 
 - [0011-ssr-session-state.md](./0011-ssr-session-state.md)
 - [0014-local-production-spa.md](./0014-local-production-spa.md)
-- [../api-next.md](../api-next.md)
+- [../api-contract.md](../api-contract.md)

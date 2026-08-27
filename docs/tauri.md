@@ -6,7 +6,7 @@
 
 Packaged macOS app around the existing SvelteKit UI. vynno-api stays the backend. Browser local production is unchanged ([local-production.md](./local-production.md), [ADR-0014](./adr/0014-local-production-spa.md)).
 
-This page is the architecture note and the runbook. Commands for `tauri dev` / `tauri build` land with the scaffold (roadmap Phase 7c). Until then there is no `src-tauri/` in this repo.
+This page is the architecture note and the runbook. Commands for `tauri dev` / `tauri build` land with the scaffold (sequence 7c below). Until then there is no `src-tauri/` in this repo.
 
 ---
 
@@ -155,7 +155,7 @@ The first _real_ native feature after auth is a menu-bar extra with elapsed time
 
 ## Sequence
 
-See [roadmap.md](./roadmap.md) Phase 7.
+Remaining work is also listed in [open.md](./open.md).
 
 | Phase                  | In this repo                                              | Notes                                  |
 | ---------------------- | --------------------------------------------------------- | -------------------------------------- |
@@ -173,6 +173,6 @@ See [roadmap.md](./roadmap.md) Phase 7.
 - [adr/0014-local-production-spa.md](./adr/0014-local-production-spa.md)
 - [local-production.md](./local-production.md)
 - [adr/0002-frontend-only-separation.md](./adr/0002-frontend-only-separation.md)
-- [roadmap.md](./roadmap.md)
+- [open.md](./open.md)
 - [Tauri 2 — SvelteKit](https://v2.tauri.app/start/frontend/sveltekit/)
 - [Tauri 2 — HTTP plugin](https://v2.tauri.app/plugin/http-client/)

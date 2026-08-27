@@ -38,7 +38,7 @@ Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwi
 
 ### Docs
 
-Product and design context: `docs/README.md`, ADRs under `docs/adr/`. Motion taste and rules: [docs/motion.md](./docs/motion.md).
+Index: `docs/README.md`. Motion: [docs/motion.md](./docs/motion.md). UI primitives: [docs/adr/0017-ui-primitives.md](./docs/adr/0017-ui-primitives.md). Open work: [docs/open.md](./docs/open.md).
 
 ---
 

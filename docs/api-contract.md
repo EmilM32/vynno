@@ -1,6 +1,6 @@
-# Vynno API contract (frontend-proposed)
+# Vynno API contract
 
-**Status:** Implemented on the client (Phase 5c) — live API + auth  
+**Status:** Living — the SPA speaks this contract against vynno-api  
 **Last updated:** 2026-08-27  
 **Executable schemas:** `src/lib/api/schemas/` (source of truth if this doc and code drift)
 
@@ -290,11 +290,6 @@ Not in this contract. Do not invent them to “complete” the API without a con
 
 ---
 
-## Swap to a live API
+## Live API
 
-1. Implement this contract (schemas in `src/lib/api/schemas/`).
-2. Set `PUBLIC_API_BASE=https://…/v1`.
-3. `ApiClient` sends `credentials: 'include'`.
-4. Mock `/mock/v1` is deleted.
-
-The SPA already uses `HttpTimeTrackingRepository` for every read and write. No view or store rewrite.
+The SPA already uses `HttpTimeTrackingRepository` for every read and write against vynno-api. `PUBLIC_API_BASE` is `/v1` (same-origin BFF). `ApiClient` sends `credentials: 'include'`. Schema/mapper changes absorb wire-format drift; do not rewrite views or the session store.

@@ -6,7 +6,7 @@
 
 ## Context
 
-The UI talks to vynno-api (Phase 5c) and SSR is on ([0011](./0011-ssr-session-state.md)). The API already runs as a host binary on this machine with Postgres in Docker ([vynno-api ADR-0011](https://github.com/EmilM32/vynno-api/blob/main/docs/adr/0011-local-production-host.md)). The SPA was still `adapter-auto` + `vite preview`, which is a cloud-platform picker and a build check, not a daily production process.
+The UI talks to vynno-api and SSR is on ([0011](./0011-ssr-session-state.md)). The API already runs as a host binary on this machine with Postgres in Docker ([vynno-api ADR-0011](https://github.com/EmilM32/vynno-api/blob/main/docs/adr/0011-local-production-host.md)). The SPA was still `adapter-auto` + `vite preview`, which is a cloud-platform picker and a build check, not a daily production process.
 
 The owner is the only user. Nothing is published to a public host.
 
@@ -51,5 +51,4 @@ The owner is the only user. Nothing is published to a public host.
 - [0011-ssr-session-state.md](./0011-ssr-session-state.md)
 - [0012-env-origins.md](./0012-env-origins.md)
 - [../local-production.md](../local-production.md)
-- [../roadmap.md](../roadmap.md) Phase 6
 - [0015-native-desktop-tauri.md](./0015-native-desktop-tauri.md) — native `.app` is a second target; this ADR stays the browser daily driver

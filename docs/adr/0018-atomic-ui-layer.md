@@ -8,7 +8,7 @@
 
 [ADR-0017](./0017-ui-primitives.md) extracted `Button`, `IconButton`, and `Icon` after Storybook made the missing atomic layer obvious. What remained under `UI/*` was still a handful of primitives plus composed widgets (`LogRow`, `ProjectRow`, shell chrome). Larger blocks kept copy-pasting field chrome, KPI tiles, colour swatches, and status marks — the same class of drift 0017 fixed for buttons (padding, typeface, size, a11y wiring).
 
-[design-system.md](../design-system.md) §8 already named the leftover inventory and pointed at a Phase 2/3 backlog in 0017 that was never written.
+[design-system.md](../design-system.md) §8 already named the leftover inventory and pointed at a follow-up in 0017 that was never written.
 
 ## Decision
 

@@ -18,6 +18,7 @@ Agent entry: [AGENTS.md](../AGENTS.md). Open work: [open.md](./open.md).
 | [accessibility.md](./accessibility.md)                   | WCAG 2.2 AA target, patterns, how to run axe         |
 | [api-contract.md](./api-contract.md)                     | REST + JSON DTO contract the SPA speaks              |
 | [local-production.md](./local-production.md)             | Run the production UI on this machine                |
+| [devtools-audit.md](./devtools-audit.md)                 | Chrome DevTools MCP audit of the production UI       |
 | [tauri.md](./tauri.md)                                   | Native desktop (Tauri 2) — second target, macOS first |
 | [open.md](./open.md)                                     | What is not built yet                                |
 | [adr/](./adr/)                                           | Architecture Decision Records                        |

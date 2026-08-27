@@ -6,11 +6,11 @@
 
 ## Context
 
-The UI is a SvelteKit app with SSR, `@sveltejs/adapter-node`, and a same-origin `/v1` BFF that forwards the HttpOnly `vynno_session` cookie to vynno-api ([0011](./0011-ssr-session-state.md), [0014](./0014-local-production-spa.md)). Daily use is a browser at `http://localhost:3000`.
+The UI is a SvelteKit app with SSR, `@sveltejs/adapter-node`, and a same-origin `/v1` BFF that forwards the HttpOnly `vynno_session` cookie to vynno-api ([0011](./0011-ssr-session-state.md), [0014](./0014-local-production-spa.md)). Daily use is a browser at `http://vynno.local`.
 
 The owner wants a **native desktop app** — a dock icon and a window, not a browser tab. The product UI stays this repository. vynno-api stays the system of record ([0002](./0002-frontend-only-separation.md)).
 
-A packaged webview is not an HTTP origin. It cannot run the Node adapter, `+server.ts`, or `+layout.server.ts`. The session cookie cannot be first-party on `tauri://localhost` the way it is on `:3000`.
+A packaged webview is not an HTTP origin. It cannot run the Node adapter, `+server.ts`, or `+layout.server.ts`. The session cookie cannot be first-party on `tauri://localhost` the way it is on `http://vynno.local`.
 
 ## Decision
 
@@ -49,7 +49,7 @@ Sequence and runbook: [tauri.md](../tauri.md). Remaining work: [open.md](../open
 | Option                                                      | Why not                                                                                                                               |
 | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Electron                                                    | Ships Chromium + Node. No benefit for a local HTTP UI.                                                                                |
-| Point Tauri at `http://localhost:3000` forever              | Works as a spike (real HTTP origin, cookies unchanged). The `.app` still needs the Node SPA. Custom browser window, not a native app. |
+| Point Tauri at `http://vynno.local` forever                 | Works as a spike (real HTTP origin, cookies unchanged). The `.app` still needs the Node SPA. Custom browser window, not a native app. |
 | Node sidecar inside the `.app`                              | Keeps SSR/BFF; ships Node; fights Tauri’s size and permission model.                                                                  |
 | Webview `fetch` + CORS `SPA_ORIGIN` for the custom protocol | Custom-protocol cookies are unreliable on WKWebView.                                                                                  |
 | Bearer token in `localStorage`                              | Weaker than HttpOnly; XSS in the webview steals the session.                                                                          |

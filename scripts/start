@@ -5,7 +5,7 @@ set -euo pipefail
 
 usage() {
 	cat <<'EOF'
-Start the production Node server (does not build).
+Start the production Node server and the loopback :80 proxy (does not build).
 
   scripts/start           run in the foreground
   scripts/start --detach  background; pid in var/spa.pid, logs in logs/spa.log
@@ -44,6 +44,8 @@ fi
 export NODE_ENV=production
 export HOST PORT ORIGIN BODY_SIZE_LIMIT
 
+start_proxy
+
 if [[ "$DETACH" -eq 1 ]]; then
 	mkdir -p "$ROOT/logs" "$ROOT/var"
 	nohup node --env-file="$ROOT/.env" "$ROOT/build" >>"$ROOT/logs/spa.log" 2>&1 &
@@ -52,4 +54,5 @@ if [[ "$DETACH" -eq 1 ]]; then
 	exit 0
 fi
 
-exec node --env-file="$ROOT/.env" "$ROOT/build"
+trap stop_proxy EXIT
+node --env-file="$ROOT/.env" "$ROOT/build"

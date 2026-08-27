@@ -17,7 +17,7 @@ Local development still needs those values. They belong in `.env`, not in source
 3. **`PUBLIC_API_BASE` stays a path** (`/v1` by default). That is a prefix, not a host.
 4. **Playwright reads `.env`.** `E2E_ORIGIN` is the preview `baseURL` (must include a port). `API_ORIGIN` is the vynno-api origin for `/healthz` and registration. `E2E_API_BASE` optionally overrides `${API_ORIGIN}/v1`.
 5. **Unit tests use reserved fixture hosts** (`https://api.example.test`, `https://app.example.test`). They do not read `.env` and they do not talk to a network.
-6. **Production `ORIGIN`** is documented (SvelteKit CSRF / absolute URLs). Local production uses `ORIGIN=http://localhost:3000` ([0014](./0014-local-production-spa.md)). It is not committed.
+6. **Production `ORIGIN`** is documented (SvelteKit CSRF / absolute URLs). Local production uses `ORIGIN=http://vynno.local` ([0014](./0014-local-production-spa.md)). It is not committed.
 
 ## Consequences
 
@@ -39,6 +39,10 @@ Local development still needs those values. They belong in `.env`, not in source
 | Keep localhost source defaults         | Production footgun                                             |
 | Read unit-test URLs from `.env`        | Couples isolated tests to a local stack                        |
 | `$env/static/private` for `API_ORIGIN` | Inlines at build time; container deploys inject env at runtime |
+
+## Amendment (2026-08-27)
+
+Local production `ORIGIN` is `http://vynno.local`. Decision clause 6 updated in place.
 
 ## Related
 

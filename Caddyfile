@@ -1,0 +1,9 @@
+{
+	admin 127.0.0.1:27179
+	auto_https off
+}
+
+http://vynno.local {
+	bind 127.0.0.1
+	reverse_proxy 127.0.0.1:{$PORT:27180}
+}

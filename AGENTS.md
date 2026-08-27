@@ -29,7 +29,7 @@ Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwi
 
 - `npm run dev` — Vite dev server
 - `./scripts/build` — production build (`adapter-node`)
-- `./scripts/start` / `./scripts/start --detach` / `./scripts/stop` — launch the built server only (no rebuild). Runbook: [docs/local-production.md](./docs/local-production.md)
+- `./scripts/start` / `./scripts/start --detach` / `./scripts/stop` — launch the built server and loopback `:80` proxy (sudo for port 80). Daily URL: `http://vynno.local`. Runbook: [docs/local-production.md](./docs/local-production.md)
 - `npm run check` — `svelte-kit sync` + `svelte-check`
 - `npm run lint` / `npm run format` — Prettier + ESLint
 - `npm test` / `npm run test:watch` — Vitest unit tests (domain + HTTP repo with mocked fetch). Husky runs this on commit and push.

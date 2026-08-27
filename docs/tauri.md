@@ -14,17 +14,17 @@ This page is the architecture note and the runbook. Commands for `tauri dev` / `
 
 ```
 Today (web)
-browser  →  http://localhost:3000  (adapter-node, SSR, /v1 BFF)
-                └── cookie first-party ──►  vynno-api :8080
+browser  →  http://vynno.local  (Caddy :80 → adapter-node :27180, SSR, /v1 BFF)
+                └── cookie first-party ──►  vynno-api :27182
 
 Desktop (target)
 .app webview  →  static files (adapter-static, ssr = false)
-                    └── plugin-http (Rust cookie jar) ──►  vynno-api :8080
+                    └── plugin-http (Rust cookie jar) ──►  vynno-api :27182
 ```
 
 Tauri does not run SvelteKit SSR or `+server.ts`. Official guidance: [`adapter-static`](https://v2.tauri.app/start/frontend/sveltekit/) + SPA fallback.
 
-Pointing a Tauri window at `http://localhost:3000` works as a **one-hour spike** (the webview is a real HTTP origin). It is not the architecture: the `.app` would still require `scripts/start`.
+Pointing a Tauri window at `http://vynno.local` works as a **one-hour spike** (the webview is a real HTTP origin). It is not the architecture: the `.app` would still require `scripts/start`.
 
 ---
 
@@ -36,7 +36,7 @@ Pointing a Tauri window at `http://localhost:3000` works as a **one-hour spike**
 | SSR      | On (`src/routes/+layout.server.ts`) | Off (root `+layout.ts`)                                                         |
 | API base | `PUBLIC_API_BASE=/v1` (BFF)         | Absolute `PUBLIC_API_BASE` = vynno-api `/v1` from `.env`                        |
 | `fetch`  | `globalThis.fetch`                  | `@tauri-apps/plugin-http`                                                       |
-| Cookies  | Browser, first-party on `:3000`     | Rust jar (plugin `cookies` feature). Not the webview cookie store.              |
+| Cookies  | Browser, first-party on `vynno.local` | Rust jar (plugin `cookies` feature). Not the webview cookie store.            |
 | CORS     | vynno-api `SPA_ORIGIN`              | Does not apply (Rust is not a browser). API Origin/CSRF is a spike in Phase 7d. |
 
 Do not overwrite `build/` with the static output. `scripts/build` / `scripts/start` keep using the Node server.
@@ -94,7 +94,7 @@ Phase 7d spike: login from plugin-http likely sends **no** `Origin`. If vynno-ap
 ## Security
 
 - Treat the webview as untrusted. Capabilities are the boundary.
-- HTTP allowlist = vynno-api origin only (example: `http://localhost:8080/*`). No `https://*`, no `fs` / `shell` until a feature needs them.
+- HTTP allowlist = vynno-api origin only (example: `http://localhost:27182/*`). No `https://*`, no `fs` / `shell` until a feature needs them.
 - CSP: `'self'` + Tauri IPC. JS must not `connect-src` the API origin if all traffic is plugin-http.
 - Cookie file is equivalent to a browser profile. Do not log it; do not commit it.
 - API stays loopback. Wide capabilities would make the `.app` local malware surface.

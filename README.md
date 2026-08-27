@@ -49,7 +49,7 @@ App opens at the Vite URL (printed in the terminal). `/` redirects to `/login` w
 
 Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) through a same-origin `/v1` proxy. Set `API_ORIGIN` in `.env` (see `.env.example`). You do **not** need the API running to commit or push.
 
-Daily production UI on this machine is the Node server at `http://localhost:3000` ([docs/local-production.md](./docs/local-production.md)). A native macOS app (Tauri 2) is a **second target**, not the daily driver yet — [docs/tauri.md](./docs/tauri.md), [ADR-0015](./docs/adr/0015-native-desktop-tauri.md).
+Daily production UI on this machine is [http://vynno.local](http://vynno.local) ([docs/local-production.md](./docs/local-production.md)). A native macOS app (Tauri 2) is a **second target**, not the daily driver yet — [docs/tauri.md](./docs/tauri.md), [ADR-0015](./docs/adr/0015-native-desktop-tauri.md).
 
 | Script                    | Purpose                                                            |
 | ------------------------- | ------------------------------------------------------------------ |
@@ -88,18 +88,18 @@ npm run test:e2e
 No cloud host. The production UI is a Node process on loopback. Full runbook: **[docs/local-production.md](./docs/local-production.md)**. Decision: [ADR-0014](./docs/adr/0014-local-production-spa.md).
 
 ```sh
-# vynno-api — list http://localhost:3000 in SPA_ORIGIN
+# vynno-api — list http://vynno.local in SPA_ORIGIN
 ./scripts/start
 
 # this repo — rebuild only when the UI source changed
 ./scripts/build
 ./scripts/start           # foreground; does not rebuild
-# open http://localhost:3000
+# open http://vynno.local
 ```
 
-`./scripts/start --detach` writes `var/spa.pid` and `logs/spa.log`. `./scripts/stop` stops that process only.
+`./scripts/start --detach` writes `var/spa.pid` and `logs/spa.log`, and starts Caddy on `127.0.0.1:80`. `./scripts/stop` stops Node and Caddy.
 
-The server binds `127.0.0.1`. Bookmark `http://localhost:3000`, not `http://127.0.0.1:3000` — they do not share the session cookie.
+The Node process binds `127.0.0.1:27180`. Bookmark `http://vynno.local`, not `:27180` and not `127.0.0.1` — those origins do not share the session cookie. Needs `/etc/hosts` `127.0.0.1 vynno.local` and `caddy` (`brew install caddy`).
 
 ## Routes
 

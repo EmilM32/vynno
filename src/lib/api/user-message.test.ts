@@ -23,6 +23,12 @@ describe('userMessageForError', () => {
 		expect(userMessageForError(new ApiError(409, 'email_in_use', 'x'), () => 'fb')).toBe(
 			'That email is already taken.'
 		);
+		expect(userMessageForError(new ApiError(401, 'invalid_code', 'x'), () => 'fb')).toBe(
+			'That code is invalid or has expired.'
+		);
+		expect(userMessageForError(new ApiError(429, 'rate_limited', 'x'), () => 'fb')).toBe(
+			'Too many attempts. Wait a minute and try again.'
+		);
 		expect(userMessageForError(new ApiError(409, 'name_in_use', 'x'), () => 'fb')).toBe(
 			'That name is already in use.'
 		);

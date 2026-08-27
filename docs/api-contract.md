@@ -1,7 +1,7 @@
 # Vynno API contract (frontend-proposed)
 
 **Status:** Implemented on the client (Phase 5c) — live API + auth  
-**Last updated:** 2026-08-26  
+**Last updated:** 2026-08-27  
 **Executable schemas:** `src/lib/api/schemas/` (source of truth if this doc and code drift)
 
 This is the wire format the SvelteKit app speaks. The backend should implement these resources. If the live API diverges, change **schemas + mappers only** — not views or the session store.
@@ -50,6 +50,8 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 | `unauthorized`               | 401     | Missing, unknown, or expired session                  | `error_unauthorized`                        |
 | `invalid_credentials`        | 401     | Login email/password do not match                     | `error_invalid_credentials`                 |
 | `email_in_use`               | 409     | Register with a taken email                           | `error_email_in_use`                        |
+| `invalid_code`               | 401     | Wrong, expired, or already used one-time code         | `error_invalid_code`                        |
+| `rate_limited`               | 429     | Register/reset send cooldown, send cap, or too many guesses | `error_rate_limited`                  |
 
 Example envelope:
 
@@ -88,11 +90,18 @@ Login and register set an HttpOnly cookie `vynno_session`. The JSON body is `{ "
 
 Protected routes accept the cookie (SPA: `credentials: 'include'`) or `Authorization: Bearer <token>` (curl/tests).
 
-| Method | Path             | Auth | Body                                                | Success                      |
-| ------ | ---------------- | ---- | --------------------------------------------------- | ---------------------------- |
-| POST   | `/auth/register` | no   | `{ email, password, displayName?, rememberMe? }` | `{ profile }` `201` + cookie |
-| POST   | `/auth/login`    | no   | `{ email, password, rememberMe? }`               | `{ profile }` `200` + cookie |
-| POST   | `/auth/logout`   | yes  | —                                                   | `204` + clear cookie         |
+| Method | Path | Auth | Body | Success |
+| ------ | ---- | ---- | ---- | ------- |
+| POST | `/auth/register/code` | no | `{ email }` | `204` empty |
+| POST | `/auth/register` | no | `{ email, password, code, displayName?, rememberMe? }` | `{ profile }` `201` + cookie |
+| POST | `/auth/login` | no | `{ email, password, rememberMe? }` | `{ profile }` `200` + cookie |
+| POST | `/auth/logout` | yes | — | `204` + clear cookie |
+| POST | `/auth/password/forgot` | no | `{ email }` | `204` empty |
+| POST | `/auth/password/reset` | no | `{ email, code, password }` | `204` empty |
+
+Register is two steps. `POST /auth/register/code` emails a 6-digit code when the address is free (`409 email_in_use` if taken). `POST /auth/register` requires that `code` (exactly six digits). Wrong or expired code is `401 invalid_code`. Send cooldown / cap / too many guesses is `429 rate_limited`.
+
+Password reset is two steps. `POST /auth/password/forgot` always `204` for a well-formed email (including unknown addresses) and sends a code only when the account exists. `POST /auth/password/reset` sets a new password and revokes every session. No cookie; log in afterwards.
 
 `rememberMe` omitted is `true` (cookie `Max-Age` 30 days). `false` is a session cookie.
 

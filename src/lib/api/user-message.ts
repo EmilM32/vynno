@@ -28,6 +28,10 @@ export function userMessageForError(e: unknown, fallback: () => string): string 
 			return m.error_invalid_credentials();
 		case 'email_in_use':
 			return m.error_email_in_use();
+		case 'invalid_code':
+			return m.error_invalid_code();
+		case 'rate_limited':
+			return m.error_rate_limited();
 		case 'name_in_use':
 			return m.activity_types_name_in_use();
 		case 'activity_type_has_sessions':

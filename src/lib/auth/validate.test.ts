@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
 	DISPLAY_NAME_MAX,
+	isValidOTP,
+	isValidRegisterCode,
 	normalizeEmail,
 	passwordsMatch,
-	validateRegisterFieldErrors
+	validateRegisterFieldErrors,
+	validateResetFieldErrors
 } from './validate';
 
 const valid = {
@@ -37,7 +40,9 @@ describe('validateRegisterFieldErrors', () => {
 	});
 
 	it('rejects an invalid email', () => {
-		expect(validateRegisterFieldErrors({ ...valid, email: 'not-an-email' }).email).toMatch(/email/i);
+		expect(validateRegisterFieldErrors({ ...valid, email: 'not-an-email' }).email).toMatch(
+			/email/i
+		);
 		expect(validateRegisterFieldErrors({ ...valid, email: 'user@localhost' }).email).toMatch(
 			/email/i
 		);
@@ -66,5 +71,35 @@ describe('validateRegisterFieldErrors', () => {
 
 	it('allows an empty display name', () => {
 		expect(validateRegisterFieldErrors({ ...valid, displayName: '  ' })).toEqual({});
+	});
+});
+
+describe('isValidRegisterCode', () => {
+	it('accepts exactly six digits', () => {
+		expect(isValidRegisterCode('012345')).toBe(true);
+		expect(isValidRegisterCode(' 123456 ')).toBe(true);
+		expect(isValidRegisterCode('12345')).toBe(false);
+		expect(isValidRegisterCode('12345a')).toBe(false);
+		expect(isValidOTP('012345')).toBe(true);
+	});
+});
+
+describe('validateResetFieldErrors', () => {
+	const reset = {
+		email: 'alex@example.com',
+		password: 'long-enough',
+		confirm: 'long-enough'
+	};
+
+	it('accepts a valid payload', () => {
+		expect(validateResetFieldErrors(reset)).toEqual({});
+	});
+
+	it('requires email and password like register', () => {
+		expect(validateResetFieldErrors({ ...reset, email: '  ' }).email).toMatch(/required/i);
+		expect(validateResetFieldErrors({ ...reset, password: '', confirm: '' }).password).toMatch(
+			/required/i
+		);
+		expect(validateResetFieldErrors({ ...reset, confirm: 'other-pass' }).confirm).toMatch(/match/i);
 	});
 });

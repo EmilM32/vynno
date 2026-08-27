@@ -14,10 +14,20 @@ export async function loginRequest(
 	return client.post(apiPaths.authLogin(), { email, password, rememberMe }, authResponseSchema);
 }
 
+export async function requestRegisterCode(
+	email: string,
+	fetchFn: FetchFn = globalThis.fetch,
+	base = getApiBase()
+): Promise<void> {
+	const client = new ApiClient(fetchFn, base);
+	await client.postNoContent(apiPaths.authRegisterCode(), { email });
+}
+
 export async function registerRequest(
 	email: string,
 	password: string,
 	rememberMe: boolean,
+	code: string,
 	displayName?: string,
 	fetchFn: FetchFn = globalThis.fetch,
 	base = getApiBase()
@@ -29,11 +39,32 @@ export async function registerRequest(
 		{
 			email,
 			password,
+			code,
 			rememberMe,
 			...(trimmedName ? { displayName: trimmedName } : {})
 		},
 		authResponseSchema
 	);
+}
+
+export async function requestPasswordReset(
+	email: string,
+	fetchFn: FetchFn = globalThis.fetch,
+	base = getApiBase()
+): Promise<void> {
+	const client = new ApiClient(fetchFn, base);
+	await client.postNoContent(apiPaths.authPasswordForgot(), { email });
+}
+
+export async function resetPasswordRequest(
+	email: string,
+	code: string,
+	password: string,
+	fetchFn: FetchFn = globalThis.fetch,
+	base = getApiBase()
+): Promise<void> {
+	const client = new ApiClient(fetchFn, base);
+	await client.postNoContent(apiPaths.authPasswordReset(), { email, code, password });
 }
 
 export async function logoutRequest(

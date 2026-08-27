@@ -1,5 +1,5 @@
 import { expect, type APIRequestContext, type Locator, type Page } from '@playwright/test';
-import { apiBase, apiOrigin, e2eOrigin } from './env';
+import { apiBase, apiOrigin, e2eOrigin, mailpitUrl } from './env';
 
 /** Bootstrap account — only for optional overrides. Default e2e login registers a throwaway user. */
 export const E2E_EMAIL = process.env.E2E_EMAIL ?? 'alexdev@vynno.local';
@@ -19,16 +19,70 @@ export function uniqueNote(prefix = 'e2e'): string {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+const otpPat = /\b(\d{6})\b/;
+
+type MailpitSearch = {
+	messages?: { ID: string }[];
+};
+
+async function waitForMailpitCode(
+	email: string,
+	opts: { subjectIncludes?: string } = {}
+): Promise<string> {
+	const query = encodeURIComponent(`to:${email}`);
+	const deadline = Date.now() + 10_000;
+	let lastStatus = 0;
+	while (Date.now() < deadline) {
+		const res = await fetch(`${mailpitUrl}/api/v1/search?query=${query}`);
+		lastStatus = res.status;
+		if (res.ok) {
+			const data = (await res.json()) as MailpitSearch;
+			for (const item of data.messages ?? []) {
+				const msgRes = await fetch(`${mailpitUrl}/api/v1/message/${item.ID}`);
+				if (!msgRes.ok) continue;
+				const msg = (await msgRes.json()) as { Text?: string; Subject?: string };
+				if (
+					opts.subjectIncludes &&
+					!msg.Subject?.toLowerCase().includes(opts.subjectIncludes.toLowerCase())
+				) {
+					continue;
+				}
+				const match = msg.Text?.match(otpPat);
+				if (match) return match[1];
+			}
+		}
+		await new Promise((r) => setTimeout(r, 200));
+	}
+	throw new Error(
+		`No Mailpit code for ${email} (${mailpitUrl} last HTTP ${lastStatus}). ` +
+			`Start vynno-api with MAIL_MODE=smtp pointing at Mailpit, then re-run npm run test:e2e.`
+	);
+}
+
 export async function registerAccount(_request?: APIRequestContext): Promise<E2EAccount> {
 	const local = `e2e_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 	const email = `${local}@example.com`;
 	const password = 'e2epassword';
 	const displayName = `E2E ${local}`;
+	const headers = { 'content-type': 'application/json', origin: SPA_ORIGIN };
 	// Node fetch so Playwright's page cookie jar is not seeded (SSR would skip /login).
+	const codeRes = await fetch(`${API_BASE}/auth/register/code`, {
+		method: 'POST',
+		headers,
+		body: JSON.stringify({ email })
+	});
+	if (!codeRes.ok) {
+		const body = await codeRes.text();
+		throw new Error(
+			`Could not request register code (${codeRes.status} ${body}). ` +
+				`Start vynno-api on ${apiOrigin} with Mailpit, then re-run npm run test:e2e.`
+		);
+	}
+	const code = await waitForMailpitCode(email);
 	const res = await fetch(`${API_BASE}/auth/register`, {
 		method: 'POST',
-		headers: { 'content-type': 'application/json', origin: SPA_ORIGIN },
-		body: JSON.stringify({ email, password, displayName, rememberMe: true })
+		headers,
+		body: JSON.stringify({ email, password, displayName, rememberMe: true, code })
 	});
 	if (!res.ok) {
 		const body = await res.text();
@@ -38,6 +92,16 @@ export async function registerAccount(_request?: APIRequestContext): Promise<E2E
 		);
 	}
 	return { email, password, displayName };
+}
+
+export async function fillRegisterCode(page: Page, email: string) {
+	const code = await waitForMailpitCode(email, { subjectIncludes: 'confirmation' });
+	await page.getByLabel('Confirmation code').fill(code);
+}
+
+export async function fillResetCode(page: Page, email: string) {
+	const code = await waitForMailpitCode(email, { subjectIncludes: 'password reset' });
+	await page.getByLabel('Reset code').fill(code);
 }
 
 export async function loginWith(page: Page, email: string, password: string) {

@@ -176,15 +176,15 @@ No Stitch mock. Dev-Density card using the same input/button language as Project
 
 - Full-viewport `surface` background, no sidebar / top bar / bottom nav
 - Centered `max-w-sm` card: brand + tagline, **Log in | Create account** tabs, then the active form
-- Log in: email, password (with show/hide), remember-me, **Log in**
-- Create account: email, password, confirm password (both with show/hide), optional display name, remember-me, **Create account**
-- No forgot-password link
+- Log in: email, password (with show/hide), remember-me, **Forgot password?**, **Log in**
+- Create account: email, password, confirm password (both with show/hide), optional display name, remember-me, **Send confirmation code**, then a 6-digit code field and **Create account**
+- Forgot password (replaces the tabs): email, **Send reset code**, then 6-digit code + new password + confirm, **Reset password**. Success returns to Log in.
 
 **Behavior**
 
-- Default tab is Log in. Login is `POST /v1/auth/login`. Register is `POST /v1/auth/register`. Both set the session cookie and land on `/dashboard`.
+- Default tab is Log in. Login is `POST /v1/auth/login`. Register is `POST /v1/auth/register/code` then `POST /v1/auth/register` with the code from mail. Both login and a successful register set the session cookie and land on `/dashboard`. Forgot password is `POST /v1/auth/password/forgot` then `/auth/password/reset`; it does not set a cookie.
 - Remember-me is checked by default (30-day cookie).
-- Register submit stays disabled until password and confirm are non-empty and identical. Only the password field is sent to the API.
+- Send-code stays disabled until password and confirm are non-empty and identical. Create-account stays disabled until the code is six digits.
 - Optional display name: omitted → stored empty; chrome shows the email.
 - `/` redirects to `/login` when signed out, `/dashboard` after a session.
 - Feature routes require a signed-in flag; the session secret is the HttpOnly cookie.

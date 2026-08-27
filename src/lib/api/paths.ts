@@ -3,6 +3,9 @@ import type { ProjectListOptions, SessionFilters } from '$lib/types/domain';
 export const apiPaths = {
 	authLogin: () => '/auth/login',
 	authRegister: () => '/auth/register',
+	authRegisterCode: () => '/auth/register/code',
+	authPasswordForgot: () => '/auth/password/forgot',
+	authPasswordReset: () => '/auth/password/reset',
 	authLogout: () => '/auth/logout',
 	me: () => '/me',
 	meAvatar: () => '/me/avatar',

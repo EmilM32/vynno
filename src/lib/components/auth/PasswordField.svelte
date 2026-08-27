@@ -14,7 +14,8 @@
 		error = '',
 		showLabel = m.login_show_password(),
 		hideLabel = m.login_hide_password(),
-		onkeydown
+		onkeydown,
+		disabled = false
 	}: {
 		id: string;
 		label: string;
@@ -25,6 +26,7 @@
 		showLabel?: string;
 		hideLabel?: string;
 		onkeydown?: (e: KeyboardEvent) => void;
+		disabled?: boolean;
 	} = $props();
 
 	let visible = $state(false);
@@ -40,6 +42,7 @@
 		spellcheck="false"
 		bind:value
 		{onkeydown}
+		{disabled}
 		class="w-full"
 	>
 		{#snippet trailing()}

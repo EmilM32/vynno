@@ -25,6 +25,9 @@ export const e2ePreview = { host: preview.host, port: preview.port };
 /** vynno-api origin (no `/v1`). */
 export const apiOrigin = parseHttpOrigin(process.env.API_ORIGIN, 'API_ORIGIN');
 
+/** Mailpit HTTP API (Compose UI/API on 8025). */
+export const mailpitUrl = (process.env.MAILPIT_URL ?? 'http://127.0.0.1:8025').replace(/\/$/, '');
+
 /** Direct vynno-api `/v1` for e2e setup. Override with `E2E_API_BASE`. */
 export const apiBase = (() => {
 	const override = process.env.E2E_API_BASE?.trim();

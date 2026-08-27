@@ -14,7 +14,17 @@ export type RegisterFieldValues = {
 	displayName: string;
 };
 
-export type RegisterFieldErrorKey = 'email' | 'password' | 'confirm' | 'displayName';
+export type RegisterFieldErrorKey = 'email' | 'password' | 'confirm' | 'displayName' | 'code';
+
+export type ResetFieldErrorKey = 'email' | 'password' | 'confirm' | 'code';
+
+export function isValidOTP(raw: string): boolean {
+	return /^\d{6}$/.test(raw.trim());
+}
+
+export function isValidRegisterCode(raw: string): boolean {
+	return isValidOTP(raw);
+}
 
 export function normalizeEmail(raw: string): string {
 	return raw.trim().toLowerCase();
@@ -51,6 +61,28 @@ export function validateRegisterFieldErrors(
 	if (displayName.length > DISPLAY_NAME_MAX) {
 		errors.displayName = m.register_display_name_max({ max: DISPLAY_NAME_MAX });
 	}
+
+	return errors;
+}
+
+export function validateResetFieldErrors(input: {
+	email: string;
+	password: string;
+	confirm: string;
+}): Partial<Record<ResetFieldErrorKey, string>> {
+	const errors: Partial<Record<ResetFieldErrorKey, string>> = {};
+	const email = normalizeEmail(input.email);
+
+	if (!email) errors.email = m.login_email_required();
+	else if (!isValidEmail(email)) errors.email = m.register_email_format();
+
+	if (!input.password) errors.password = m.login_password_required();
+	else if (input.password.length < PASSWORD_MIN || input.password.length > PASSWORD_MAX) {
+		errors.password = m.register_password_length();
+	}
+
+	if (!input.confirm) errors.confirm = m.register_confirm_required();
+	else if (input.password !== input.confirm) errors.confirm = m.register_password_mismatch();
 
 	return errors;
 }

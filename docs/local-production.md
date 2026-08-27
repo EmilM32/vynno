@@ -34,6 +34,8 @@ In **vynno-api** `.env`, `SPA_ORIGIN` must include `http://localhost:3000` (keep
 
 Open [http://localhost:3000](http://localhost:3000).
 
+A fresh production database has no users. First visit is **register**: send a confirmation code, read it from Mailpit at [http://127.0.0.1:8025](http://127.0.0.1:8025) (or a real inbox), then create the account. Forgot password uses the same inbox. If send-code fails with a generic error, the API SMTP is down — see vynno-api `docs/local-production.md` (Mail). Existing accounts log in without mail. Seed users (`alexdev@vynno.local`) live on playground `vynno_dev` only.
+
 ```sh
 ./scripts/stop            # detached SPA only; does not stop the API
 ```
@@ -48,6 +50,7 @@ Open [http://localhost:3000](http://localhost:3000).
 2. This repo `ORIGIN=http://localhost:3000`.
 3. vynno-api `SPA_ORIGIN` lists that exact origin.
 4. vynno-api `COOKIE_SECURE=false` (loopback HTTP).
+5. First register / forgot password: Mailpit (or real SMTP) is up; the code is not in the JSON response.
 
 ## What this does not do
 

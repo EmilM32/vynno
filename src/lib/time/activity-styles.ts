@@ -19,9 +19,9 @@ export const ACTIVITY_CHIP_CLASS: Record<ActivityColorToken, string> = {
 	error: 'bg-error/10 text-error border-error/20',
 	'on-surface-variant': 'bg-on-surface-variant/10 text-on-surface-variant border-outline-variant',
 	outline: 'bg-surface-variant text-on-surface-variant border-outline-variant',
-	'primary-container': 'bg-primary-container/40 text-on-primary-container border-primary-container',
+	'primary-container': 'bg-primary-container text-on-primary-container border-primary-container',
 	'secondary-container':
-		'bg-secondary-container/40 text-on-secondary-container border-secondary-container'
+		'bg-secondary-container text-on-secondary-container border-secondary-container'
 };
 
 /** Chart fill keyed by stored color token. */

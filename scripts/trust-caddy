@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
+
+usage() {
+	cat <<'EOF'
+Install Caddy’s local CA into the macOS trust store (once).
+
+  scripts/trust-caddy
+
+Must run as sudo so it matches the CA created by sudo Caddy on :443.
+Start the SPA once first so Caddy has issued the vynno.local cert.
+Then restart Chrome so it picks up the keychain CA.
+EOF
+}
+
+for arg in "$@"; do
+	case "$arg" in
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*)
+		die "unknown argument: $arg"
+		;;
+	esac
+done
+
+require_caddy
+bin="$(caddy_bin)"
+# Same root as scripts/start — user-level `caddy trust` would install a different CA.
+if sudo "$bin" trust; then
+	echo "Caddy local CA is in the system trust store. Restart Chrome (Firefox has its own store)."
+	exit 0
+fi
+die "caddy trust failed — start the SPA first (scripts/start) so the local CA exists, then retry"

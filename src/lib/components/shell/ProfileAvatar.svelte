@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { rewriteAvatarUrl } from '$lib/api/mappers/profile';
+
 	let {
 		name,
 		src,
@@ -8,6 +10,8 @@
 		src?: string;
 		size?: 'sm' | 'md' | 'lg';
 	} = $props();
+
+	const imageSrc = $derived(src ? rewriteAvatarUrl(src) : undefined);
 
 	const initials = $derived(
 		name
@@ -27,9 +31,9 @@
 	);
 </script>
 
-{#if src}
+{#if imageSrc}
 	<img
-		{src}
+		src={imageSrc}
 		alt=""
 		class="{box} shrink-0 rounded-DEFAULT border border-outline-variant object-cover"
 	/>

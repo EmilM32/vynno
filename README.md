@@ -49,9 +49,9 @@ npm run dev
 
 App opens at the Vite URL (printed in the terminal). `/` redirects to `/login` when signed out, or `/dashboard` when a session is stored.
 
-Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) through a same-origin `/v1` proxy. Vite reads `API_ORIGIN` from `.env.development` (playground `:8081`). Daily Node reads `.env.production` (`:27182`). You do **not** need the API running to commit or push. Production (`http://vynno.local`) can stay up while `npm run dev` runs.
+Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) through a same-origin `/v1` proxy. Vite reads `API_ORIGIN` from `.env.development` (playground `:8081`). Daily Node reads `.env.production` (`:27182`). You do **not** need the API running to commit or push. Production (`https://vynno.local`) can stay up while `npm run dev` runs.
 
-Daily production UI on this machine is [http://vynno.local](http://vynno.local) ([docs/local-production.md](./docs/local-production.md)). A native macOS app (Tauri 2) is a **second target**, not the daily driver yet — [docs/tauri.md](./docs/tauri.md), [ADR-0015](./docs/adr/0015-native-desktop-tauri.md).
+Daily production UI on this machine is [https://vynno.local](https://vynno.local) ([docs/local-production.md](./docs/local-production.md)). A native macOS app (Tauri 2) is a **second target**, not the daily driver yet — [docs/tauri.md](./docs/tauri.md), [ADR-0015](./docs/adr/0015-native-desktop-tauri.md).
 
 | Script                    | Purpose                                                            |
 | ------------------------- | ------------------------------------------------------------------ |
@@ -90,18 +90,19 @@ npm run test:e2e
 No cloud host. The production UI is a Node process on loopback. Full runbook: **[docs/local-production.md](./docs/local-production.md)**. Decision: [ADR-0014](./docs/adr/0014-local-production-spa.md).
 
 ```sh
-# vynno-api — list http://vynno.local in SPA_ORIGIN
+# vynno-api — list https://vynno.local in SPA_ORIGIN, COOKIE_SECURE=true
 ./scripts/start
 
 # this repo — rebuild only when the UI source changed
 ./scripts/build
 ./scripts/start           # foreground; does not rebuild
-# open http://vynno.local
+# first HTTPS start: ./scripts/trust-caddy  (once; then restart Chrome)
+# open https://vynno.local
 ```
 
-`./scripts/start --detach` writes `var/spa.pid` and `logs/spa.log`, and starts Caddy on `127.0.0.1:80`. `./scripts/stop` stops Node and Caddy.
+`./scripts/start --detach` writes `var/spa.pid` and `logs/spa.log`, and starts Caddy on `127.0.0.1:80` (redirect) and `127.0.0.1:443` (TLS, HTTP/2 + HTTP/3). `./scripts/stop` stops Node and Caddy.
 
-The Node process binds `127.0.0.1:27180`. Bookmark `http://vynno.local`, not `:27180` and not `127.0.0.1` — those origins do not share the session cookie. Needs `/etc/hosts` `127.0.0.1 vynno.local` and `caddy` (`brew install caddy`).
+The Node process binds `127.0.0.1:27180`. Bookmark `https://vynno.local`, not `:27180` and not `127.0.0.1` — those origins do not share the session cookie. Needs `/etc/hosts` `127.0.0.1 vynno.local` and `caddy` (`brew install caddy`).
 
 ## Routes
 

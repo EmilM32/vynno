@@ -14,13 +14,13 @@ The owner is the only user. Nothing is published to a public host.
 
 1. **v1 production UI is the owner’s machine.** A later public host amends this ADR (or writes a new one that supersedes it).
 2. **Adapter is `@sveltejs/adapter-node`.** SSR and the `/v1` BFF need a long-lived Node server. `adapter-auto` is removed.
-3. **The process is the built server** (`node build`, env already exported) on `127.0.0.1:27180` with `ORIGIN=http://vynno.local`. `scripts/start` and `npm run start` source `.env` then `.env.production` (no `--env-file`). Build (`scripts/build`) and start (`scripts/start`) are separate so a restart does not rebuild.
+3. **The process is the built server** (`node build`, env already exported) on `127.0.0.1:27180` with `ORIGIN=https://vynno.local`. `scripts/start` and `npm run start` source `.env` then `.env.production` (no `--env-file`). Build (`scripts/build`) and start (`scripts/start`) are separate so a restart does not rebuild.
 4. **Bind loopback only** (`HOST=127.0.0.1`). Register stays public on the API; loopback is the exposure control.
-5. **One browser origin:** `http://vynno.local`. That origin, `http://vynno.local:27180`, `localhost`, and `127.0.0.1` do not share cookies. `ORIGIN` must also be listed in vynno-api `SPA_ORIGIN`.
+5. **One browser origin:** `https://vynno.local`. That origin, `http://vynno.local`, `http://vynno.local:27180`, `localhost`, and `127.0.0.1` do not share cookies. `ORIGIN` must also be listed in vynno-api `SPA_ORIGIN`.
 6. **Secrets and origins stay in gitignored env files.** Shared `.env` plus `.env.production` for daily Node. Vite and Playwright use `.env` plus `.env.development` and never load `.env.production`. Production Node inherits the shell merge; it does not read `.env` on its own.
 7. **`BODY_SIZE_LIMIT=2M`.** Avatar PUT is 1 MiB and goes through the BFF; adapter-node’s default is 512 KB.
 8. **Playwright stays on `vite preview`** at `E2E_ORIGIN` (`:4173`). The daily Node server is not part of e2e.
-9. **No SPA Dockerfile, no parent compose** until a public-host ADR. Postgres remains the only container (API repo). A **loopback Caddy** on `127.0.0.1:80` is in scope so the daily URL has no port (`http://vynno.local` → Node on `127.0.0.1:27180`). No TLS, no LAN bind.
+9. **No SPA Dockerfile, no parent compose** until a public-host ADR. Postgres remains the only container (API repo). A **loopback Caddy** on `127.0.0.1:443` (TLS, HTTP/2 + HTTP/3) and `127.0.0.1:80` (redirect) is in scope so the daily URL has no port (`https://vynno.local` → Node on `127.0.0.1:27180`). Certificates are Caddy `tls internal` plus a one-time `scripts/trust-caddy`. No LAN bind. No Let's Encrypt (`.local` is not publicly issuable).
 
 ## Consequences
 
@@ -29,26 +29,30 @@ The owner is the only user. Nothing is published to a public host.
 - Daily use matches the API: host process + scripts, not a container stack.
 - Restarts are cheap; rebuilds are explicit.
 - A misconfigured start fails loudly (missing `.env` / `.env.production`, missing `build/`, API `/healthz` down, playground `API_ORIGIN`).
-- A later cloud ADR can add TLS, `COOKIE_SECURE`, and a Dockerfile without changing the wire format.
+- A later cloud ADR can add a public hostname, Let's Encrypt, and a Dockerfile without changing the wire format. Local TLS is loopback Caddy only.
 
 ### Negative / tradeoffs
 
 - Availability is “the laptop is on.”
 - Three processes to start (API, Node SPA, loopback Caddy). `scripts/start` in this repo starts Node and Caddy.
-- HTTP on loopback; no TLS termination in this repo.
+- TLS terminates at loopback Caddy (`tls internal`). Node and vynno-api stay HTTP on loopback.
 
 ## Alternatives considered
 
 | Option                                  | Why not                                                                                                                                               |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Dockerize the SPA / full-stack Compose  | Diverges from API ADR-0011 (host binary + Postgres in Docker). Extra rebuilds and a compose file that would live in the wrong repo or couple the two. |
-| nginx in front of Node                  | Rejected when there was no hostname to terminate. A loopback Caddy on :80 is now the daily URL (`http://vynno.local`). Still no TLS and no LAN bind. |
+| nginx in front of Node                  | Rejected when there was no hostname to terminate. A loopback Caddy on :443/:80 is now the daily URL (`https://vynno.local`). Still no LAN bind. |
 | Keep `vite preview` as the daily driver | Preview is a build check, not a production server.                                                                                                    |
 | Stay on `adapter-auto`                  | Picks cloud adapters; on this machine it is the wrong target.                                                                                         |
 
 ## Amendment (2026-08-27)
 
 Daily origin is **`http://vynno.local`**. Node stays on loopback **`127.0.0.1:27180`** (was `:3000`; 3000/8080 collide with other local tools). Caddy binds **`127.0.0.1:80`** and reverse-proxies to Node. `/etc/hosts` maps `vynno.local` → `127.0.0.1` (IPv4 only). Decision clauses 3, 5, and 9 are updated in place.
+
+## Amendment (2026-08-28)
+
+Daily origin is **`https://vynno.local`**. Caddy binds **`127.0.0.1:443`** (`tls internal`, HTTP/2 + HTTP/3) and **`127.0.0.1:80`** (308 to HTTPS). `scripts/trust-caddy` installs Caddy’s local CA once. Node stays HTTP on **`127.0.0.1:27180`**. Decision clauses 3, 5, and 9 updated in place.
 
 ## Amendment (2026-08-28)
 

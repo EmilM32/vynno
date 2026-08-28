@@ -22,7 +22,7 @@ export async function loadAppSeed(fetchFn: FetchFn, base = getApiBase()): Promis
 	]);
 
 	return {
-		profile: profileFromDto(profile),
+		profile: profileFromDto(profile, base),
 		projects: projectList.items.map(projectFromDto),
 		activityTypes: activityList.items.map(activityTypeFromDto),
 		sessions: sessionList.items.map(sessionFromDto),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeProject, makeSession } from '$lib/test/factories';
-import { profileFromDto, profileToDto } from './profile';
+import { profileFromDto, profileToDto, rewriteAvatarUrl } from './profile';
 import {
 	createProjectFromDto,
 	createProjectToDto,
@@ -131,5 +131,27 @@ describe('profile mappers', () => {
 	it('round-trips avatar', () => {
 		const profile = { displayName: 'Alex', email: 'a@example.com', avatarUrl: 'https://x/a.png' };
 		expect(profileFromDto(profileToDto(profile))).toEqual(profile);
+	});
+
+	it('rewrites absolute API avatar URLs to the same-origin BFF path', () => {
+		expect(rewriteAvatarUrl('http://vynno.local:27182/v1/avatars/abc', '/v1')).toBe(
+			'/v1/avatars/abc'
+		);
+		expect(rewriteAvatarUrl('https://vynno.local:27182/v1/avatars/abc', '/v1')).toBe(
+			'/v1/avatars/abc'
+		);
+		expect(
+			profileFromDto({
+				displayName: 'Alex',
+				email: 'a@example.com',
+				avatarUrl: 'http://vynno.local:27182/v1/avatars/abc'
+			})
+		).toEqual({ displayName: 'Alex', email: 'a@example.com', avatarUrl: '/v1/avatars/abc' });
+	});
+
+	it('leaves avatar URLs alone when PUBLIC_API_BASE is an absolute origin', () => {
+		expect(
+			rewriteAvatarUrl('http://vynno.local:27182/v1/avatars/abc', 'https://api.example.test/v1')
+		).toBe('http://vynno.local:27182/v1/avatars/abc');
 	});
 });

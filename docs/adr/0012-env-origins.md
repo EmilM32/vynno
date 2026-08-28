@@ -17,7 +17,7 @@ Local development still needs those values. They belong in env files, not in sou
 3. **`PUBLIC_API_BASE` stays a path** (`/v1` by default). That is a prefix, not a host. It lives in shared `.env`.
 4. **Playwright reads `.env` then `.env.development`.** `E2E_ORIGIN` (shared) is the preview `baseURL` (must include a port). `API_ORIGIN` is the vynno-api origin for `/healthz` and registration (playground by default). `E2E_API_BASE` optionally overrides `${API_ORIGIN}/v1`.
 5. **Unit tests use reserved fixture hosts** (`https://api.example.test`, `https://app.example.test`). They do not read env files and they do not talk to a network.
-6. **Production `ORIGIN`** is documented (SvelteKit CSRF / absolute URLs). Local production uses `ORIGIN=http://vynno.local` in `.env.production` ([0014](./0014-local-production-spa.md)). It is not committed. `ORIGIN` / `HOST` / `PORT` must not live in shared `.env` (Vite would see them).
+6. **Production `ORIGIN`** is documented (SvelteKit CSRF / absolute URLs). Local production uses `ORIGIN=https://vynno.local` in `.env.production` ([0014](./0014-local-production-spa.md)). It is not committed. `ORIGIN` / `HOST` / `PORT` must not live in shared `.env` (Vite would see them).
 7. **Layered env files, no overlapping keys.** Shared `.env`; Vite/Playwright overlay `.env.development`; daily Node overlay `.env.production`. Do not edit a file to switch modes. Committed templates are `.env.example`, `.env.development.example`, `.env.production.example`.
 
 ## Consequences
@@ -46,6 +46,10 @@ Local development still needs those values. They belong in env files, not in sou
 ## Amendment (2026-08-27)
 
 Local production `ORIGIN` is `http://vynno.local`. Decision clause 6 updated in place.
+
+## Amendment (2026-08-28)
+
+Local production `ORIGIN` is `https://vynno.local` (loopback Caddy TLS). Decision clause 6 updated in place.
 
 ## Amendment (2026-08-28)
 

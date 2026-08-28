@@ -1,12 +1,29 @@
+import { getApiBase } from '$lib/api/config';
 import type { ProfileDto } from '$lib/api/schemas/profile';
 import type { UserProfile } from '$lib/types/domain';
 
-export function profileFromDto(dto: ProfileDto): UserProfile {
+/**
+ * Same-origin `/v1` BFF: rewrite absolute API avatar URLs to a path so HTTPS
+ * pages do not load mixed-content `http://vynno.local:27182/v1/avatars/…`.
+ * Absolute PUBLIC_API_BASE (desktop) keeps the API origin.
+ */
+export function rewriteAvatarUrl(url: string, base = getApiBase()): string {
+	if (!base.startsWith('/')) return url;
+	try {
+		const parsed = new URL(url);
+		if (parsed.pathname.startsWith('/v1/avatars/')) return parsed.pathname;
+	} catch {
+		/* relative or invalid — keep */
+	}
+	return url;
+}
+
+export function profileFromDto(dto: ProfileDto, base = getApiBase()): UserProfile {
 	const profile: UserProfile = {
 		displayName: dto.displayName,
 		email: dto.email
 	};
-	if (dto.avatarUrl) profile.avatarUrl = dto.avatarUrl;
+	if (dto.avatarUrl) profile.avatarUrl = rewriteAvatarUrl(dto.avatarUrl, base);
 	return profile;
 }
 

@@ -14,7 +14,7 @@ This page is the architecture note and the runbook. Commands for `tauri dev` / `
 
 ```
 Today (web)
-browser  →  http://vynno.local  (Caddy :80 → adapter-node :27180, SSR, /v1 BFF)
+browser  →  https://vynno.local  (Caddy :443 → adapter-node :27180, SSR, /v1 BFF)
                 └── cookie first-party ──►  vynno-api :27182
 
 Desktop (target)
@@ -24,7 +24,7 @@ Desktop (target)
 
 Tauri does not run SvelteKit SSR or `+server.ts`. Official guidance: [`adapter-static`](https://v2.tauri.app/start/frontend/sveltekit/) + SPA fallback.
 
-Pointing a Tauri window at `http://vynno.local` works as a **one-hour spike** (the webview is a real HTTP origin). It is not the architecture: the `.app` would still require `scripts/start`.
+Pointing a Tauri window at `https://vynno.local` works as a **one-hour spike** (the webview is a real HTTP origin). It is not the architecture: the `.app` would still require `scripts/start`.
 
 ---
 

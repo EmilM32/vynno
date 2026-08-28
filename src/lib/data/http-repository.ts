@@ -41,13 +41,15 @@ import type { TimeTrackingRepository } from './repository';
 
 export class HttpTimeTrackingRepository implements TimeTrackingRepository {
 	#client: ApiClient;
+	#base: string;
 
-	constructor(client: ApiClient) {
+	constructor(client: ApiClient, base = getApiBase()) {
 		this.#client = client;
+		this.#base = base;
 	}
 
 	static fromFetch(fetchFn: FetchFn, base = getApiBase()): HttpTimeTrackingRepository {
-		return new HttpTimeTrackingRepository(new ApiClient(fetchFn, base));
+		return new HttpTimeTrackingRepository(new ApiClient(fetchFn, base), base);
 	}
 
 	async listProjects(options: ProjectListOptions = {}): Promise<Project[]> {
@@ -143,7 +145,7 @@ export class HttpTimeTrackingRepository implements TimeTrackingRepository {
 
 	async getProfile(): Promise<UserProfile> {
 		const dto = await this.#client.get(apiPaths.me(), profileDtoSchema);
-		return profileFromDto(dto);
+		return profileFromDto(dto, this.#base);
 	}
 
 	async updateProfile(input: UpdateProfileInput): Promise<UserProfile> {
@@ -152,17 +154,17 @@ export class HttpTimeTrackingRepository implements TimeTrackingRepository {
 			{ displayName: input.displayName },
 			profileDtoSchema
 		);
-		return profileFromDto(dto);
+		return profileFromDto(dto, this.#base);
 	}
 
 	async uploadAvatar(file: Blob): Promise<UserProfile> {
 		const dto = await this.#client.putFile(apiPaths.meAvatar(), file, profileDtoSchema);
-		return profileFromDto(dto);
+		return profileFromDto(dto, this.#base);
 	}
 
 	async deleteAvatar(): Promise<UserProfile> {
 		const dto = await this.#client.deleteJson(apiPaths.meAvatar(), profileDtoSchema);
-		return profileFromDto(dto);
+		return profileFromDto(dto, this.#base);
 	}
 
 	async listSessions(filters: SessionFilters = {}): Promise<SessionPage> {

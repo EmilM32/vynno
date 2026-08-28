@@ -5,7 +5,7 @@ set -euo pipefail
 
 usage() {
 	cat <<'EOF'
-Start the production Node server and the loopback :80 proxy (does not build).
+Start the production Node server and the loopback :80/:443 proxy (does not build).
 
   scripts/start           run in the foreground
   scripts/start --detach  background; pid in var/spa.pid, logs in logs/spa.log

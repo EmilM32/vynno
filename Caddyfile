@@ -1,9 +1,24 @@
 {
 	admin 127.0.0.1:27179
-	auto_https off
+	auto_https disable_redirects
+	local_certs
+	skip_install_trust
+	# :80 is the HTTP redirect. Pin h1 so Caddy does not WARN "HTTP/2 skipped because it requires TLS".
+	servers 127.0.0.1:80 {
+		protocols h1
+	}
+	servers 127.0.0.1:443 {
+		protocols h1 h2 h3
+	}
 }
 
 http://vynno.local {
 	bind 127.0.0.1
+	redir https://{host}{uri} 308
+}
+
+https://vynno.local {
+	bind 127.0.0.1
+	tls internal
 	reverse_proxy 127.0.0.1:{$PORT:27180}
 }

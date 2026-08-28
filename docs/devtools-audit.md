@@ -3,13 +3,13 @@
 **Status:** Living  
 **Last updated:** 2026-08-27
 
-Repeatable frontend check of the **production UI** with the **chrome-devtools MCP**. You bring a running `http://vynno.local` and a login; an agent follows this doc. Findings stay in the chat unless you ask to save them.
+Repeatable frontend check of the **production UI** with the **chrome-devtools MCP**. You bring a running `https://vynno.local` and a login; an agent follows this doc. Findings stay in the chat unless you ask to save them.
 
 Prompt to paste:
 
-> Run the DevTools audit in `docs/devtools-audit.md`. Production is on http://vynno.local. Account is ready.
+> Run the DevTools audit in `docs/devtools-audit.md`. Production is on https://vynno.local. Account is ready.
 
-This is **not** a substitute for `npm test`, `npm run check`, or `npm run test:e2e` (axe). How to run axe: [accessibility.md](./accessibility.md). Screen inventory: [screens-and-flows.md](./screens-and-flows.md). How to boot `http://vynno.local`: [local-production.md](./local-production.md).
+This is **not** a substitute for `npm test`, `npm run check`, or `npm run test:e2e` (axe). How to run axe: [accessibility.md](./accessibility.md). Screen inventory: [screens-and-flows.md](./screens-and-flows.md). How to boot `https://vynno.local`: [local-production.md](./local-production.md).
 
 ---
 
@@ -30,11 +30,11 @@ After a production UI change that can affect load, `/v1` waterfalls, timer jank,
 Agent **stops** if any of these fail. Do not invent a user or measure Vite instead.
 
 1. Production UI: `./scripts/build` (if `build/` is stale) then `./scripts/start --detach`. Runbook: [local-production.md](./local-production.md).
-2. vynno-api up. `SPA_ORIGIN` includes `http://vynno.local`.
-3. Browser URL is **`http://vynno.local`**, not `http://127.0.0.1` and not `http://vynno.local:27180` (different origins; cookie will not stick).
+2. vynno-api up. `SPA_ORIGIN` includes `https://vynno.local`.
+3. Browser URL is **`https://vynno.local`**, not `http://127.0.0.1` and not `http://vynno.local:27180` (different origins; cookie will not stick).
 4. A working login. Default from e2e helpers: `alexdev@vynno.local` / `local-dev-password`. Seed users live on playground `vynno_dev` only — `401` means stop, not register, unless the operator says to.
 
-Confirm with a GET of `http://vynno.local/` before opening Chrome. `ERR_CONNECTION_REFUSED` is a setup fail.
+Confirm with a GET of `https://vynno.local/` before opening Chrome. `ERR_CONNECTION_REFUSED` is a setup fail.
 
 ---
 
@@ -138,12 +138,12 @@ Primary flow: login → dashboard → start session on timer → pause → resum
 
 ## Procedure
 
-Isolated context. Origin **`http://vynno.local`**. Record evidence (req id, insight name, snapshot uid) as you go.
+Isolated context. Origin **`https://vynno.local`**. Record evidence (req id, insight name, snapshot uid) as you go.
 
 ### 0. Gate
 
 1. `chrome-devtools__list_pages`.
-2. `chrome-devtools__new_page` `url=http://vynno.local/login`, `isolatedContext` set (any stable name, e.g. `vynno-audit`).
+2. `chrome-devtools__new_page` `url=https://vynno.local/login`, `isolatedContext` set (any stable name, e.g. `vynno-audit`).
 3. If the tab never loads: stop (server / origin).
 4. `chrome-devtools__take_snapshot`. Expect login, not app chrome.
 5. `chrome-devtools__list_network_requests`. Expect hashed `/_app/immutable/*`, fonts, document — **not** a Vite graph.
@@ -237,7 +237,7 @@ Hunt overflow, overlapping chrome, dialogs vs bottom nav, palette clipping.
 
 ### 8. Heap (light)
 
-`chrome-devtools__take_heapsnapshot` on `http://vynno.local` only:
+`chrome-devtools__take_heapsnapshot` on `https://vynno.local` only:
 
 1. Dashboard idle.
 2. Start session, ~15s of ticks, stop.
@@ -255,7 +255,7 @@ Fill per run. Email only in the setup row — never paste passwords.
 
 | Field    | Value                                  |
 | -------- | -------------------------------------- |
-| Origin   | `http://vynno.local`                   |
+| Origin   | `https://vynno.local`                   |
 | Build    | date / `scripts/build` freshness       |
 | Account  | email only                             |
 | Viewport | desktop px; mobile px                  |

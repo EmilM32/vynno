@@ -16,7 +16,10 @@ die() {
 
 require_env_file() {
 	if [[ ! -f "$ROOT/.env" ]]; then
-		die "missing $ROOT/.env — copy .env.example and set ORIGIN, HOST, PORT, API_ORIGIN"
+		die "missing $ROOT/.env — copy .env.example"
+	fi
+	if [[ ! -f "$ROOT/.env.production" ]]; then
+		die "missing $ROOT/.env.production — copy .env.production.example (ORIGIN, HOST, PORT, API_ORIGIN)"
 	fi
 }
 
@@ -25,13 +28,15 @@ load_env() {
 	set -a
 	# shellcheck disable=SC1091
 	. "$ROOT/.env"
+	# shellcheck disable=SC1091
+	. "$ROOT/.env.production"
 	set +a
 }
 
 require_var() {
 	local name="$1"
 	if [[ -z "${!name:-}" ]]; then
-		die "missing $name in .env — see .env.example"
+		die "missing $name in .env / .env.production — see the .env*.example files"
 	fi
 }
 
@@ -172,7 +177,7 @@ require_api() {
 	local probe i
 	# Playground (scripts/dev). Daily Node must talk to the production binary.
 	if [[ "$origin" == *:8081 ]]; then
-		die "API_ORIGIN is playground ${origin} — daily start needs http://localhost:27182 (use E2E_API_BASE for playground e2e). Start vynno-api scripts/start, then ./vynno status"
+		die "API_ORIGIN is playground ${origin} — daily start needs http://localhost:27182 in .env.production (playground belongs in .env.development). Start vynno-api scripts/start, then ./vynno status"
 	fi
 	probe="$(ipv4_probe_origin "$origin")"
 	for i in $(seq 1 40); do

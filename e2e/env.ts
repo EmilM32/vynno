@@ -6,9 +6,13 @@ import { parseHttpOrigin, parseHttpOriginWithPort } from '../src/lib/origin';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 function loadDotEnv() {
-	const path = resolve(root, '.env');
-	if (existsSync(path)) {
-		process.loadEnvFile(path);
+	// Shared then development overlay. loadEnvFile does not override keys already
+	// in the process environment (escape hatch: API_ORIGIN=… npm run test:e2e).
+	for (const name of ['.env', '.env.development']) {
+		const path = resolve(root, name);
+		if (existsSync(path)) {
+			process.loadEnvFile(path);
+		}
 	}
 }
 

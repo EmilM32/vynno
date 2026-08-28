@@ -50,12 +50,12 @@ if pid="$(spa_pid)"; then
 fi
 
 export NODE_ENV=production
-export HOST PORT ORIGIN BODY_SIZE_LIMIT
+export HOST PORT ORIGIN BODY_SIZE_LIMIT API_ORIGIN
 
 # Node first so Caddy does not 502 on the first request.
 if [[ "$DETACH" -eq 1 ]]; then
 	mkdir -p "$ROOT/logs" "$ROOT/var"
-	nohup node --env-file="$ROOT/.env" "$ROOT/build" >>"$ROOT/logs/spa.log" 2>&1 &
+	nohup node "$ROOT/build" >>"$ROOT/logs/spa.log" 2>&1 &
 	pid=$!
 	echo "$pid" >"$PIDFILE"
 	wait_for_spa "$pid"
@@ -66,4 +66,4 @@ fi
 
 start_proxy
 trap stop_proxy EXIT
-node --env-file="$ROOT/.env" "$ROOT/build"
+node "$ROOT/build"

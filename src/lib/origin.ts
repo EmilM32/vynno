@@ -2,7 +2,9 @@
 export function parseHttpOrigin(raw: string | undefined, name: string): string {
 	const value = raw?.trim();
 	if (!value) {
-		throw new Error(`${name} is required. Copy .env.example to .env and set it.`);
+		throw new Error(
+			`${name} is required. Copy .env.example, .env.development.example, and .env.production.example.`
+		);
 	}
 
 	let url: URL;

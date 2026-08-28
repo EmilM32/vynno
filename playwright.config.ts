@@ -4,7 +4,7 @@ import { e2eOrigin, e2ePreview } from './e2e/env';
 /**
  * E2E against a production preview build (stable, no HMR flakes).
  * Locally: reuse an already-running preview if present.
- * Origins come from `.env` (`E2E_ORIGIN`, `API_ORIGIN`).
+ * Origins come from `.env` (`E2E_ORIGIN`) and `.env.development` (`API_ORIGIN`).
  */
 export default defineConfig({
 	testDir: 'e2e',

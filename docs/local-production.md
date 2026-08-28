@@ -24,9 +24,11 @@ sudo killall -HUP mDNSResponder
 brew install caddy   # loopback :80 proxy
 
 # this repo
-cp .env.example .env   # if you do not already have one
-# confirm ORIGIN=http://vynno.local / HOST=127.0.0.1 / PORT=27180 / BODY_SIZE_LIMIT / API_ORIGIN=http://localhost:27182
-# Do not set API_ORIGIN to :8081 for daily start — playground e2e uses E2E_API_BASE.
+cp .env.example .env
+cp .env.development.example .env.development   # Vite + Playwright → playground :8081
+cp .env.production.example .env.production     # daily Node → :27182
+# confirm .env.production: ORIGIN=http://vynno.local / HOST=127.0.0.1 / PORT=27180 / API_ORIGIN=http://localhost:27182
+# Do not put API_ORIGIN=:8081 in .env.production — that belongs in .env.development.
 ./scripts/build
 ```
 
@@ -53,12 +55,14 @@ A fresh production database has no users. First visit is **register**: send a co
 ./scripts/stop            # detached SPA and :80 proxy; does not stop the API
 ```
 
-`scripts/start` fails if `.env` is missing, `build/` is missing (`scripts/build` first), `GET $API_ORIGIN/healthz` is down, `API_ORIGIN` is playground `:8081`, `caddy` is missing, or port 80 is taken. `--detach` is idempotent if Node is already listening (it still starts Caddy).
+`scripts/start` fails if `.env` or `.env.production` is missing, `build/` is missing (`scripts/build` first), `GET $API_ORIGIN/healthz` is down, `API_ORIGIN` is playground `:8081`, `caddy` is missing, or port 80 is taken. `--detach` is idempotent if Node is already listening (it still starts Caddy).
+
+Vite (`npm run dev`) and Playwright load `.env` + `.env.development` and do not read `.env.production`. Daily Node and `npm run start` (`scripts/run-node`) load `.env` + `.env.production`. Production and Vite can run at the same time; do not edit a file to switch modes. Escape hatch: `API_ORIGIN=http://localhost:27182 npm run dev`.
 
 ## If login fails
 
 1. Browser URL is `http://vynno.local`, not `http://127.0.0.1`, `http://localhost:3000`, or `http://vynno.local:27180`.
-2. This repo `ORIGIN=http://vynno.local`.
+2. This repo `.env.production` has `ORIGIN=http://vynno.local`.
 3. vynno-api `SPA_ORIGIN` lists that exact origin.
 4. vynno-api `COOKIE_SECURE=false` (loopback HTTP).
 5. First register / forgot password: Mailpit (or real SMTP) is up; the code is not in the JSON response.
@@ -68,7 +72,7 @@ A fresh production database has no users. First visit is **register**: send a co
 - Does not start vynno-api or Docker. Backups stay in that repo (`scripts/backup` / `scripts/restore`). Do not `docker compose down -v`.
 - Does not listen on the LAN (`HOST=127.0.0.1`; Caddy `bind 127.0.0.1`).
 - Does not rebuild on start. After pulling UI changes, run `scripts/build` again.
-- Playwright (`npm run test:e2e`) still uses `vite preview` at `E2E_ORIGIN` (`:4173`), not this server.
+- Playwright (`npm run test:e2e`) still uses `vite preview` at `E2E_ORIGIN` (`:4173`), not this server. E2e talks to playground `:8081` (`.env.development`) so it does not register throwaway users into daily `vynno`.
 
 Start-on-login (launchd) is a later optional step, not part of this cut.
 

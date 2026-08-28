@@ -41,13 +41,15 @@ The product still has to work. Agent output is reviewed and held to the same sta
 nvm use
 
 npm install
-cp .env.example .env   # hosts and ports — edit if your API is not on the example origin
+cp .env.example .env
+cp .env.development.example .env.development   # API_ORIGIN → playground :8081
+cp .env.production.example .env.production     # daily Node; not used by Vite
 npm run dev
 ```
 
 App opens at the Vite URL (printed in the terminal). `/` redirects to `/login` when signed out, or `/dashboard` when a session is stored.
 
-Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) through a same-origin `/v1` proxy. Set `API_ORIGIN` in `.env` (see `.env.example`). You do **not** need the API running to commit or push.
+Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) through a same-origin `/v1` proxy. Vite reads `API_ORIGIN` from `.env.development` (playground `:8081`). Daily Node reads `.env.production` (`:27182`). You do **not** need the API running to commit or push. Production (`http://vynno.local`) can stay up while `npm run dev` runs.
 
 Daily production UI on this machine is [http://vynno.local](http://vynno.local) ([docs/local-production.md](./docs/local-production.md)). A native macOS app (Tauri 2) is a **second target**, not the daily driver yet — [docs/tauri.md](./docs/tauri.md), [ADR-0015](./docs/adr/0015-native-desktop-tauri.md).
 
@@ -56,7 +58,7 @@ Daily production UI on this machine is [http://vynno.local](http://vynno.local) 
 | `npm run dev`             | Dev server                                                         |
 | `npm run build`           | Production build (`scripts/build` is the same)                     |
 | `npm run preview`         | Preview production build (Playwright; not the daily driver)        |
-| `npm run start`           | Run the adapter-node build (requires a prior build)                |
+| `npm run start`           | Adapter-node only (`.env` + `.env.production`; no Caddy)           |
 | `npm run check`           | `svelte-check` + sync                                              |
 | `npm run lint`            | Prettier + ESLint                                                  |
 | `npm run format`          | Format with Prettier                                               |
@@ -75,13 +77,13 @@ When you want the full product path (login, timer, projects against the live con
 
 ```sh
 # in vynno-api
-go run ./cmd/api
+./scripts/dev            # playground :8081 → vynno_dev; do not use go run on the daily bind
 
 # in this repo
 npm run test:e2e
 ```
 
-`npm run test:e2e` builds the SPA, starts the preview at `E2E_ORIGIN`, and registers throwaway users so it does not leave `alexdev` with a live session. It fails fast if `/healthz` on `API_ORIGIN` is down. A missing Chromium install is the usual browser-side failure — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
+`npm run test:e2e` builds the SPA, starts the preview at `E2E_ORIGIN`, and registers throwaway users so it does not leave `alexdev` with a live session. It fails fast if `/healthz` on `API_ORIGIN` (playground, `.env.development`) is down. A missing Chromium install is the usual browser-side failure — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
 
 ## Run in production (this machine)
 

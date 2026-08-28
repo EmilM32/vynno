@@ -23,7 +23,7 @@ Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwi
   takes layout and colour only; padding, radius, border, background and type scale come
   from `variant` and `size`. Enforced by `src/lib/components/ui/primitives.guard.test.ts`
   (see `docs/adr/0017-ui-primitives.md`).
-- Live API is same-origin `/v1` (Kit proxies to vynno-api). Set `PUBLIC_API_BASE` / `API_ORIGIN` in `.env` (see `.env.example`). Auth is the HttpOnly cookie.
+- Live API is same-origin `/v1` (Kit proxies to vynno-api). `PUBLIC_API_BASE` is in `.env`; `API_ORIGIN` is in `.env.development` (Vite/e2e → `:8081`) and `.env.production` (daily Node → `:27182`). See the `.env*.example` files. Auth is the HttpOnly cookie.
 
 ### Useful commands
 
@@ -33,7 +33,7 @@ Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwi
 - `npm run check` — `svelte-kit sync` + `svelte-check`
 - `npm run lint` / `npm run format` — Prettier + ESLint
 - `npm test` / `npm run test:watch` — Vitest unit tests (domain + HTTP repo with mocked fetch). Husky runs this on commit and push.
-- `npm run test:e2e` — Playwright against a **running** vynno-api (`API_ORIGIN`). Manual / CI; not a git hook. Registers throwaway users.
+- `npm run test:e2e` — Playwright against a **running** playground vynno-api (`API_ORIGIN` from `.env.development`, `:8081`). Manual / CI; not a git hook. Registers throwaway users into `vynno_dev`.
 - `npm run test:all` — unit tests then e2e (opt-in; not hooked)
 
 ### Docs

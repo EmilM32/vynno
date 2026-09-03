@@ -77,13 +77,13 @@ When you want the full product path (login, timer, projects against the live con
 
 ```sh
 # in vynno-api
-./scripts/dev            # playground :8081 → vynno_dev; do not use go run on the daily bind
+./scripts/dev            # playground :8081 → vynno_dev; SMTP to Mailpit; do not use go run on the daily bind
 
 # in this repo
 npm run test:e2e
 ```
 
-`npm run test:e2e` builds the SPA, starts the preview at `E2E_ORIGIN`, and registers throwaway users so it does not leave `alexdev` with a live session. It fails fast if `/healthz` on `API_ORIGIN` (playground, `.env.development`) is down. A missing Chromium install is the usual browser-side failure — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
+`npm run test:e2e` builds the SPA, starts the preview at `E2E_ORIGIN`, and registers throwaway users so it does not leave `alexdev` with a live session. It fails fast if `/healthz` on `API_ORIGIN` (playground, `.env.development`) is down, or if playground mail is `MAIL_MODE=log` (`DEV_MAIL_MODE=log` — codes stay in process logs, not Mailpit). A missing Chromium install is the usual browser-side failure — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
 
 ## Run in production (this machine)
 

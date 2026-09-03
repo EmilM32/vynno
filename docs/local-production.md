@@ -86,7 +86,7 @@ Vite (`npm run dev`) and Playwright load `.env` + `.env.development` and do not 
 - Does not start vynno-api or Docker. Backups stay in that repo (`scripts/backup` / `scripts/restore`). Do not `docker compose down -v`.
 - Does not listen on the LAN (`HOST=127.0.0.1`; Caddy `bind 127.0.0.1`).
 - Does not rebuild on start. After pulling UI changes, run `scripts/build` again.
-- Playwright (`npm run test:e2e`) still uses `vite preview` at `E2E_ORIGIN` (`:4173`), not this server. E2e talks to playground `:8081` (`.env.development`) so it does not register throwaway users into daily `vynno`.
+- Playwright (`npm run test:e2e`) still uses `vite preview` at `E2E_ORIGIN` (`:4173`), not this server. E2e talks to playground `:8081` (`.env.development`) so it does not register throwaway users into daily `vynno`. Playground `scripts/dev` sends OTP mail to Mailpit; `DEV_MAIL_MODE=log` does not, and e2e fails fast.
 - Does not TLS-terminate vynno-api. Swagger stays [http://vynno.local:27182/swagger/](http://vynno.local:27182/swagger/). Avatar `<img>` URLs are rewritten to same-origin `/v1/avatars/…` in the SPA.
 
 Start-on-login (launchd) is a later optional step, not part of this cut.

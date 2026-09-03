@@ -10,7 +10,7 @@
 	const busy = $derived(!!sessionStore.activeSession || sessionStore.busy);
 
 	function restart(item: (typeof items)[number]) {
-		sessionStore.restartFromTask({
+		void sessionStore.restartFromTask({
 			projectId: item.projectId,
 			note: item.note,
 			ticketId: item.ticketId,

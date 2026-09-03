@@ -1,6 +1,7 @@
 import { apiOrigin } from './env';
+import { assertMailpitReachable, assertPlaygroundSendsMail } from './mailpit';
 
-/** Fail fast when vynno-api is not running. Playwright does not start the API. */
+/** Fail fast when vynno-api or Mailpit SMTP is not ready. Playwright does not start the API. */
 export default async function globalSetup() {
 	const url = `${apiOrigin}/healthz`;
 	try {
@@ -15,4 +16,6 @@ export default async function globalSetup() {
 			{ cause: err }
 		);
 	}
+	await assertMailpitReachable();
+	await assertPlaygroundSendsMail();
 }

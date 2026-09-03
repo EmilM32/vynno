@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { login, spaGo, startSession, stopSession, uniqueNote } from './helpers';
+import { login, spaGo, startSession, stopSession, uniqueNote, waitForClient } from './helpers';
 
 test.describe('projects', () => {
 	test.beforeEach(async ({ page }) => {
 		await login(page);
 		await page.goto('/projects');
+		await waitForClient(page);
 	});
 
 	test('shows management heading and seeded projects', async ({ page }) => {

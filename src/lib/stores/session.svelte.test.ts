@@ -208,6 +208,49 @@ describe('SessionStore draft activity', () => {
 		expect(listActivityTypes).not.toHaveBeenCalled();
 	});
 
+	it('adopts a live seed session when the client is idle', () => {
+		const stopped = makeSession({
+			id: 'old',
+			status: 'stopped',
+			note: 'Done',
+			startedAt: '2026-03-11T09:00:00.000Z',
+			endedAt: '2026-03-11T10:00:00.000Z'
+		});
+		store = new SessionStore(new PrefsStore());
+		store.hydrate({ ...sampleAppSeed(), sessions: [stopped] });
+		expect(store.activeSession).toBeNull();
+
+		const live = makeSession({
+			id: 'live',
+			status: 'active',
+			endedAt: undefined,
+			note: 'Still going',
+			startedAt: '2026-03-11T11:00:00.000Z'
+		});
+		store.hydrate({ ...sampleAppSeed(), sessions: [live, stopped] });
+		expect(store.activeSession?.id).toBe('live');
+		expect(store.draftNote).toBe('Still going');
+		expect(store.sessions.some((s) => s.id === 'old')).toBe(true);
+	});
+
+	it('does not resurrect a session the client already stopped', async () => {
+		const live = makeSession({
+			id: 'live',
+			status: 'active',
+			endedAt: undefined,
+			note: 'Going',
+			startedAt: '2026-03-11T11:00:00.000Z'
+		});
+		const { store: s } = hydrateWithRepo({ ...sampleAppSeed(), sessions: [live] });
+		store = s;
+		await store.stop();
+		expect(store.activeSession).toBeNull();
+
+		store.hydrate({ ...sampleAppSeed(), sessions: [live] });
+		expect(store.activeSession).toBeNull();
+		expect(store.sessions.find((s) => s.id === 'live')?.status).toBe('stopped');
+	});
+
 	it('uses the stored default project for the idle draft', () => {
 		const seed = {
 			...sampleAppSeed(),

@@ -52,7 +52,11 @@ test.describe('cross-screen data', () => {
 
 		const older = page.getByTestId('recent-task-restart').filter({ hasText: noteA });
 		await expect(older).toBeEnabled();
+		const started = page.waitForRequest(
+			(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
+		);
 		await older.click();
+		await started;
 
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(noteA);
@@ -67,6 +71,7 @@ test.describe('cross-screen data', () => {
 		await spaGo(page, 'Dashboard', '/dashboard');
 		await expect(page.getByRole('heading', { name: 'Current Focus' })).toBeVisible();
 		await expect(page.getByTestId('page-view').getByText(note, { exact: true })).toBeVisible();
+		await expect(page.getByTestId('shell-session-status')).toHaveText('ACTIVE');
 
 		await spaGo(page, 'Timer', '/timer');
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');

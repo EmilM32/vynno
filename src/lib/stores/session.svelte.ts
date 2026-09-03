@@ -111,7 +111,10 @@ export class SessionStore {
 	 * must not rebuild the repo or the live timer resets.
 	 */
 	hydrate = (seed: AppSeed, opts: HydrateOptions = {}): void => {
-		if (this.#hydrated) return;
+		if (this.#hydrated) {
+			this.#adoptLiveFromSeed(seed);
+			return;
+		}
 		this.#hydrated = true;
 		this.nowMs = opts.nowMs ?? Date.now();
 		this.timeZone = opts.timeZone ?? DEFAULT_TIME_ZONE;
@@ -645,6 +648,20 @@ export class SessionStore {
 		this.draftNote = session.note;
 		this.draftProjectId = session.projectId;
 		this.draftActivityType = session.activityTypeId ?? '';
+	};
+
+	/**
+	 * Later layout loads must not rebuild the store, but a full navigation can
+	 * drop the live timer while the seed still has it. Restore that one row.
+	 */
+	#adoptLiveFromSeed = (seed: AppSeed): void => {
+		if (this.activeSession) return;
+		const live = seed.sessions.find((s) => s.status === 'active' || s.status === 'paused');
+		if (!live) return;
+		const local = this.sessions.find((s) => s.id === live.id);
+		if (local?.status === 'stopped') return;
+		this.#upsertSession(live);
+		this.#applyDraftFromSession(live);
 	};
 
 	#normalizeProjectSelection = (): void => {

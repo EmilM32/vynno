@@ -1,5 +1,6 @@
 import { expect, type APIRequestContext, type Locator, type Page } from '@playwright/test';
-import { apiBase, apiOrigin, e2eOrigin, mailpitUrl } from './env';
+import { apiBase, apiOrigin, e2eOrigin } from './env';
+import { waitForMailpitCode } from './mailpit';
 
 /** Bootstrap account — only for optional overrides. Default e2e login registers a throwaway user. */
 export const E2E_EMAIL = process.env.E2E_EMAIL ?? 'alexdev@vynno.local';
@@ -17,46 +18,6 @@ export type E2EAccount = {
 
 export function uniqueNote(prefix = 'e2e'): string {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-}
-
-const otpPat = /\b(\d{6})\b/;
-
-type MailpitSearch = {
-	messages?: { ID: string }[];
-};
-
-async function waitForMailpitCode(
-	email: string,
-	opts: { subjectIncludes?: string } = {}
-): Promise<string> {
-	const query = encodeURIComponent(`to:${email}`);
-	const deadline = Date.now() + 10_000;
-	let lastStatus = 0;
-	while (Date.now() < deadline) {
-		const res = await fetch(`${mailpitUrl}/api/v1/search?query=${query}`);
-		lastStatus = res.status;
-		if (res.ok) {
-			const data = (await res.json()) as MailpitSearch;
-			for (const item of data.messages ?? []) {
-				const msgRes = await fetch(`${mailpitUrl}/api/v1/message/${item.ID}`);
-				if (!msgRes.ok) continue;
-				const msg = (await msgRes.json()) as { Text?: string; Subject?: string };
-				if (
-					opts.subjectIncludes &&
-					!msg.Subject?.toLowerCase().includes(opts.subjectIncludes.toLowerCase())
-				) {
-					continue;
-				}
-				const match = msg.Text?.match(otpPat);
-				if (match) return match[1];
-			}
-		}
-		await new Promise((r) => setTimeout(r, 200));
-	}
-	throw new Error(
-		`No Mailpit code for ${email} (${mailpitUrl} last HTTP ${lastStatus}). ` +
-			`Start vynno-api with MAIL_MODE=smtp pointing at Mailpit, then re-run npm run test:e2e.`
-	);
 }
 
 export async function registerAccount(_request?: APIRequestContext): Promise<E2EAccount> {
@@ -104,10 +65,15 @@ export async function fillResetCode(page: Page, email: string) {
 	await page.getByLabel('Reset code').fill(code);
 }
 
+/** Kit client mount. Pre-hydrate clicks on SSR buttons are no-ops. */
+export async function waitForClient(page: Page) {
+	await expect(page.locator('#svelte-announcer')).toBeAttached();
+}
+
 /** LoginView is SSR'd; native submit 405s until Kit client mount (`#svelte-announcer`). */
 export async function gotoLogin(page: Page) {
 	await page.goto('/login');
-	await expect(page.locator('#svelte-announcer')).toBeAttached();
+	await waitForClient(page);
 }
 
 export async function loginWith(page: Page, email: string, password: string) {
@@ -208,7 +174,10 @@ export async function startSession(
 	if (!page.url().includes('/timer') && !page.url().includes('/dashboard')) {
 		await login(page);
 	}
-	await page.goto('/timer');
+	if (!page.url().includes('/timer')) {
+		await page.goto('/timer');
+		await waitForClient(page);
+	}
 	await ensureIdle(page);
 	const task = page.getByRole('textbox', { name: 'Task description' });
 	await task.fill(note);

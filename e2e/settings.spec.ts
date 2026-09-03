@@ -17,11 +17,14 @@ test.describe('settings', () => {
 		await expect(profile.getByText(account.email)).toBeVisible();
 	});
 
-	test('daily target is editable in-session', async ({ page }) => {
+	test('daily target persists across reload', async ({ page }) => {
 		const input = page.locator('#daily-target');
 		await expect(input).toBeVisible();
 		await input.fill('6');
 		await expect(input).toHaveValue('6');
+
+		await page.reload();
+		await expect(page.locator('#daily-target')).toHaveValue('6');
 	});
 
 	test('theme select switches and persists', async ({ page }) => {
@@ -72,12 +75,41 @@ test.describe('settings', () => {
 		await expect(about.getByText(`v${pkg.version}`)).toBeVisible();
 	});
 
-	test('default project select is populated', async ({ page }) => {
+	test('default project persists across reload', async ({ page }) => {
+		const created = await page.request.post('/v1/projects', {
+			data: { name: `Default ${Date.now().toString(36)}`, color: '#22c55e' }
+		});
+		if (!created.ok()) {
+			throw new Error(`POST /projects failed (${created.status()} ${await created.text()})`);
+		}
+		const { id: secondId } = (await created.json()) as { id: string };
+
+		await page.reload();
 		const select = page.locator('#default-project');
 		await expect(select).toBeVisible();
-		await expect(select.locator('option').first()).not.toHaveCount(0);
-		const value = await select.inputValue();
-		expect(value.length).toBeGreaterThan(0);
+		const current = await select.inputValue();
+		expect(current.length).toBeGreaterThan(0);
+		const otherId = (
+			await select
+				.locator('option')
+				.evaluateAll((opts) => opts.map((o) => (o as HTMLOptionElement).value))
+		).find((id) => id && id !== current);
+		expect(otherId ?? secondId).toBeTruthy();
+		const nextId = otherId ?? secondId;
+
+		const hydrationErrors: string[] = [];
+		page.on('console', (msg) => {
+			if (msg.type() === 'error' && /hydrat/i.test(msg.text())) {
+				hydrationErrors.push(msg.text());
+			}
+		});
+
+		await select.selectOption(nextId);
+		await expect(select).toHaveValue(nextId);
+
+		await page.reload();
+		await expect(page.locator('#default-project')).toHaveValue(nextId);
+		expect(hydrationErrors).toEqual([]);
 	});
 
 	test('deletes an unused activity type after confirm', async ({ page }) => {

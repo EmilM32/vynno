@@ -18,7 +18,7 @@ Types: `src/lib/types/domain.ts`. Wire JSON (DTOs, `archived` instead of `isArch
 | **Session / Time entry** | A timed interval. While running or paused it is the _active session_; when stopped it becomes a historical log entry.                        |
 | **Activity type**        | User-owned category of work. Used as chips and in Insights.                                                                                  |
 | **Tag / label**          | Secondary labels on a focus card. Distinct from project color.                                                                               |
-| **Daily target**         | Optional hours-per-day goal used in Insights deltas. In-memory until prefs persist.                                                          |
+| **Daily target**         | Optional hours-per-day goal used in Insights deltas. Device cookie `vynno_prefs` (with default project); not an API field.                   |
 
 ---
 

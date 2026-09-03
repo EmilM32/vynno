@@ -3,8 +3,8 @@ import { readStoredThemeId } from './storage';
 import { DEFAULT_THEME_ID, resolveTheme } from './themes';
 
 /**
- * Active color theme. Persisted to localStorage (unlike other mock prefs)
- * so reload does not flash the default palette.
+ * Active color theme. Persisted to localStorage so reload does not flash
+ * the default palette. Daily target / default project use `vynno_prefs`.
  */
 class ThemeStore {
 	themeId = $state(DEFAULT_THEME_ID);

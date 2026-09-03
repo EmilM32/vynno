@@ -94,11 +94,7 @@
 			{m.settings_profile()}
 		</h2>
 		<div class="flex items-center gap-4">
-			<ProfileAvatar
-				name={profileLabel(prefsStore)}
-				src={prefsStore.avatarUrl}
-				size="lg"
-			/>
+			<ProfileAvatar name={profileLabel(prefsStore)} src={prefsStore.avatarUrl} size="lg" />
 			<div class="min-w-0">
 				<p class="text-headline-md text-on-surface">{profileLabel(prefsStore)}</p>
 				<p class="font-mono text-code-label text-on-surface-variant">{prefsStore.email}</p>
@@ -137,11 +133,7 @@
 					class="w-full"
 				/>
 			</Field>
-			<Button
-				variant="tonal"
-				disabled={profileBusy || !nameDirty}
-				onclick={onSaveName}
-			>
+			<Button variant="tonal" disabled={profileBusy || !nameDirty} onclick={onSaveName}>
 				{m.settings_save_profile()}
 			</Button>
 		</div>
@@ -192,12 +184,13 @@
 				layout="split"
 			>
 				<Select
-					bind:value={prefsStore.defaultProjectId}
+					value={prefsStore.defaultProjectId}
 					class="w-full sm:w-56"
-					onchange={() => {
-						// Keep timer draft in sync when idle
+					onchange={(e) => {
+						const id = (e.currentTarget as HTMLSelectElement).value;
+						prefsStore.setDefaultProjectId(id);
 						if (!sessionStore.activeSession) {
-							sessionStore.draftProjectId = prefsStore.defaultProjectId;
+							sessionStore.draftProjectId = id;
 						}
 					}}
 				>

@@ -214,7 +214,7 @@
 	"project_live_active": "Active now",
 	"project_live_paused": "Paused",
 	"settings_title": "Settings",
-	"settings_subtitle": "Theme and daily target stay on this device.",
+	"settings_subtitle": "Theme, daily target, and default project stay on this device.",
 	"settings_profile": "Profile",
 	"settings_logout": "Log out",
 	"settings_display_name": "Display name",

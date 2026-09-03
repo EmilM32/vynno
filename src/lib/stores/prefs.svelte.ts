@@ -1,10 +1,15 @@
 import { browser } from '$app/environment';
 import { createContext } from 'svelte';
 import type { UserProfile } from '$lib/types/domain';
+import { clampDailyTargetHours, persistPrefsCookie, type StoredPrefs } from './prefs-storage';
 
 /**
  * User preferences. Created per server request; cached as a client singleton
  * after hydrate so in-app navigation keeps Settings drafts.
+ *
+ * Daily target + default project are a device cookie (`vynno_prefs`) so SSR
+ * and hydrate share one snapshot from `+layout.server.ts`. Do not read
+ * `document.cookie` / localStorage during `applySeed`.
  */
 export class PrefsStore {
 	displayName = $state('');
@@ -20,18 +25,30 @@ export class PrefsStore {
 	dailyTargetMs = $derived(Math.max(1, this.dailyTargetHours) * 3_600_000);
 
 	hydrateProfile = (profile: UserProfile): void => {
+		if (this.email && this.email !== profile.email) {
+			this.dailyTargetHours = 8;
+			this.defaultProjectId = '';
+		}
 		this.displayName = profile.displayName;
 		this.email = profile.email;
 		this.avatarUrl = profile.avatarUrl;
 	};
 
+	/** Apply the layout-data snapshot. No-op when the cookie was missing/foreign. */
+	applyStored = (stored: StoredPrefs | null | undefined): void => {
+		if (!stored) return;
+		this.dailyTargetHours = stored.dailyTargetHours;
+		this.defaultProjectId = stored.defaultProjectId;
+	};
+
 	setDailyTargetHours = (hours: number): void => {
-		const n = Number.isFinite(hours) ? hours : 8;
-		this.dailyTargetHours = Math.min(16, Math.max(1, Math.round(n * 10) / 10));
+		this.dailyTargetHours = clampDailyTargetHours(hours);
+		this.#persist();
 	};
 
 	setDefaultProjectId = (id: string): void => {
 		this.defaultProjectId = id;
+		this.#persist();
 	};
 
 	reset = (): void => {
@@ -40,6 +57,14 @@ export class PrefsStore {
 		this.avatarUrl = undefined;
 		this.dailyTargetHours = 8;
 		this.defaultProjectId = '';
+	};
+
+	#persist = (): void => {
+		if (!this.email) return;
+		persistPrefsCookie(this.email, {
+			defaultProjectId: this.defaultProjectId,
+			dailyTargetHours: this.dailyTargetHours
+		});
 	};
 }
 

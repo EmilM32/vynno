@@ -283,7 +283,7 @@ Not in this contract. Do not invent them to “complete” the API without a con
 | Area                                  | Client today                                |
 | ------------------------------------- | ------------------------------------------- |
 | Profile edit                          | `GET /me` only                              |
-| Prefs (daily target, default project) | In-memory `prefsStore`                      |
+| Prefs (daily target, default project) | Device cookie `vynno_prefs` (not an API resource) |
 | Theme / locale                        | Device-local                                |
 | Insights / dashboard totals           | Computed on the client from loaded sessions |
 | Session target duration UI            | Field exists on `StartSessionDto`; UI is P2 |

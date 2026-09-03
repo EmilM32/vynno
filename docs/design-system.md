@@ -188,7 +188,7 @@ Composed widgets, store-owned screens, and one-off fields. See [ADR-0018](./adr/
 2. Color utilities via `@theme inline` → `--dt-*`.
 3. Each palette is `[data-theme='<id>']` in its own CSS file. Default first paint is `data-theme="dark"` on `<html>`.
 4. Switcher iterates `THEMES` in `src/lib/theme/themes.ts` (Settings → Appearance). Not a light/dark toggle.
-5. Theme id is persisted to `localStorage` (`vynno-theme`) to avoid FOUC. Other prefs stay in-memory.
+5. Theme id is persisted to `localStorage` (`vynno-theme`) to avoid FOUC. Daily target and default project use the `vynno_prefs` cookie so SSR and hydrate agree.
 6. Do **not** use `dark:` / `light:` variants as the theming mechanism.
 
 ### Adding another theme

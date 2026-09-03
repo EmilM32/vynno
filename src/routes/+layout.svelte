@@ -19,6 +19,7 @@
 	function applySeed() {
 		if (!data.seed) return;
 		prefs.hydrateProfile(data.seed.profile);
+		prefs.applyStored(data.prefs);
 		session.hydrate(data.seed, { nowMs: data.nowMs, timeZone: data.timeZone });
 	}
 

@@ -11,7 +11,6 @@ What is **not** built yet. If it is not on this list, assume it shipped.
 | Richer command palette | ⌘K is route navigation only; no fuzzy recent-task / project switch |
 | Desktop top bar | Search / notifications exist on mobile TopBar only |
 | Task list entity | Sessions carry a free-text `note`; no separate Task table |
-| Persist daily target + default project | Theme is `localStorage`; other prefs are in-memory |
 | Notifications / default activity type | Settings extras still open |
 
 ## Native desktop

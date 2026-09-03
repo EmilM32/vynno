@@ -208,6 +208,42 @@ describe('SessionStore draft activity', () => {
 		expect(listActivityTypes).not.toHaveBeenCalled();
 	});
 
+	it('uses the stored default project for the idle draft', () => {
+		const seed = {
+			...sampleAppSeed(),
+			projects: [
+				makeProject({ id: 'proj-a', name: 'Alpha' }),
+				makeProject({ id: 'proj-b', name: 'Beta' })
+			],
+			sessions: []
+		};
+		const prefs = new PrefsStore();
+		prefs.hydrateProfile(seed.profile);
+		prefs.applyStored({ defaultProjectId: 'proj-b', dailyTargetHours: 6 });
+		store = new SessionStore(prefs);
+		store.hydrate(seed);
+		expect(store.draftProjectId).toBe('proj-b');
+		expect(prefs.defaultProjectId).toBe('proj-b');
+	});
+
+	it('falls back to the first active project when the stored default is gone', () => {
+		const seed = {
+			...sampleAppSeed(),
+			projects: [
+				makeProject({ id: 'proj-a', name: 'Alpha' }),
+				makeProject({ id: 'proj-b', name: 'Beta' })
+			],
+			sessions: []
+		};
+		const prefs = new PrefsStore();
+		prefs.hydrateProfile(seed.profile);
+		prefs.applyStored({ defaultProjectId: 'proj-archived', dailyTargetHours: 8 });
+		store = new SessionStore(prefs);
+		store.hydrate(seed);
+		expect(store.draftProjectId).toBe('proj-a');
+		expect(prefs.defaultProjectId).toBe('proj-a');
+	});
+
 	it('does not start a wall-clock interval on hydrate', () => {
 		vi.useFakeTimers();
 		store = new SessionStore(new PrefsStore());

@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
+
+usage() {
+	cat <<'EOF'
+Show whether the daily stack is up (Caddy, SPA, API, Postgres via /readyz).
+
+  scripts/status
+EOF
+}
+
+for arg in "$@"; do
+	case "$arg" in
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*)
+		die "unknown argument: $arg"
+		;;
+	esac
+done
+
+# Soft load — status should still report process binds if env files are missing.
+if [[ -f "$ROOT/.env" ]]; then
+	set -a
+	# shellcheck disable=SC1091
+	. "$ROOT/.env"
+	set +a
+fi
+if [[ -f "$ROOT/.env.production" ]]; then
+	set -a
+	# shellcheck disable=SC1091
+	. "$ROOT/.env.production"
+	set +a
+fi
+
+FAILED=0
+
+http_code() {
+	local url="$1"
+	curl -sS --ipv4 -m 1 -o /dev/null -w '%{http_code}' "$url" 2>/dev/null || echo 000
+}
+
+report() {
+	local name="$1" state="$2" detail="$3"
+	printf '%-8s %-4s %s\n' "$name" "$state" "$detail"
+	if [[ "$state" != "ok" ]]; then
+		FAILED=1
+	fi
+}
+
+if proxy_admin_up; then
+	report caddy ok "$CADDY_ADMIN"
+else
+	report caddy down "$CADDY_ADMIN"
+fi
+
+port="$(spa_listen_port)"
+if pid="$(spa_pid)"; then
+	code="$(http_code "http://127.0.0.1:${port}/healthz")"
+	if [[ "$code" == "200" ]]; then
+		report spa ok "pid $pid  127.0.0.1:${port}/healthz"
+	else
+		report spa down "pid $pid  healthz HTTP ${code}"
+	fi
+else
+	report spa down "not listening on 127.0.0.1:${port}"
+fi
+
+api_origin="${API_ORIGIN:-http://localhost:27182}"
+probe="$(ipv4_probe_origin "$api_origin")"
+api_code="$(http_code "${probe}/healthz")"
+if [[ "$api_code" == "200" ]]; then
+	report api ok "${api_origin}/healthz"
+else
+	report api down "${api_origin}/healthz HTTP ${api_code}"
+fi
+
+ready_code="$(http_code "${probe}/readyz")"
+if [[ "$ready_code" == "200" ]]; then
+	report readyz ok "postgres"
+else
+	report readyz down "${api_origin}/readyz HTTP ${ready_code}"
+fi
+
+if [[ "$FAILED" -ne 0 ]]; then
+	echo "not ok  see scripts/logs errors" >&2
+	exit 1
+fi
+echo "ok"

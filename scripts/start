@@ -7,7 +7,7 @@ usage() {
 	cat <<'EOF'
 Start the production Node server and the loopback :80/:443 proxy (does not build).
 
-  scripts/start           run in the foreground
+  scripts/start           run in the foreground (mirrors logs/spa.log)
   scripts/start --detach  background; pid in var/spa.pid, logs in logs/spa.log
 
 Run scripts/build first when the output is missing or stale.
@@ -51,19 +51,22 @@ fi
 
 export NODE_ENV=production
 export HOST PORT ORIGIN BODY_SIZE_LIMIT API_ORIGIN
+export LOG_FORMAT=json
+
+mkdir -p "$ROOT/logs" "$ROOT/var"
+rotate_log "$SPA_LOG"
 
 # Node first so Caddy does not 502 on the first request.
 if [[ "$DETACH" -eq 1 ]]; then
-	mkdir -p "$ROOT/logs" "$ROOT/var"
-	nohup node "$ROOT/build" >>"$ROOT/logs/spa.log" 2>&1 &
+	nohup node "$ROOT/build" >>"$SPA_LOG" 2>&1 &
 	pid=$!
 	echo "$pid" >"$PIDFILE"
 	wait_for_spa "$pid"
 	start_proxy
-	echo "started pid $pid  log $ROOT/logs/spa.log  ${ORIGIN}"
+	echo "started pid $pid  log $SPA_LOG  ${ORIGIN}"
 	exit 0
 fi
 
 start_proxy
 trap stop_proxy EXIT
-node "$ROOT/build"
+node "$ROOT/build" 2>&1 | tee -a "$SPA_LOG"

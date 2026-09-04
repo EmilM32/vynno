@@ -29,7 +29,7 @@ Root-layout failures are a special case: an exception in `src/routes/+layout.ser
 
 5. **Missing project id is not a Kit 404.** `/projects/[id]` is a real route; `ProjectView` keeps the dossier empty state. 401 stays a redirect to `/login`. `/v1` handlers stay JSON.
 
-6. **`handleError` logs and returns Kit’s `message`.** No extra fields on `App.Error`. No reporting product in this repo.
+6. **`handleError` logs and returns Kit’s `message`.** No extra fields on `App.Error`. No reporting product in this repo. Production 5xx also emit a JSON line ([0020](./0020-local-operator-logs.md)).
 
 ## Consequences
 

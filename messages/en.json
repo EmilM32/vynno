@@ -93,7 +93,7 @@
 	"dashboard_restart_aria": "Restart {note}",
 	"logs_title": "System Logs",
 	"logs_subtitle": "Detailed chronological execution records.",
-	"logs_search_placeholder": "grep 'project' or 'note'...",
+	"logs_search_placeholder": "search...",
 	"logs_search_aria": "Search logs",
 	"logs_no_match": "No logs match that filter.",
 	"logs_no_completed": "No completed sessions yet.",

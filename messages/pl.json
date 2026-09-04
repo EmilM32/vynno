@@ -93,7 +93,7 @@
 	"dashboard_restart_aria": "Wznów {note}",
 	"logs_title": "Dziennik systemowy",
 	"logs_subtitle": "Szczegółowy chronologiczny zapis sesji.",
-	"logs_search_placeholder": "grep 'projekt' lub 'notatka'...",
+	"logs_search_placeholder": "szukaj...",
 	"logs_search_aria": "Szukaj w dzienniku",
 	"logs_no_match": "Żadne wpisy nie pasują do filtra.",
 	"logs_no_completed": "Brak zakończonych sesji.",

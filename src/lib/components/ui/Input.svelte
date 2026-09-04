@@ -66,9 +66,10 @@
 		aria-invalid={invalid}
 		aria-describedby={describedBy}
 		class={[
-			'rounded border border-outline-variant bg-surface-container-low text-on-surface',
+			'appearance-none rounded border border-outline-variant bg-surface-container-low text-on-surface',
 			'placeholder:text-on-surface-variant',
 			'disabled:cursor-not-allowed disabled:opacity-60',
+			'[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none',
 			TONE[tone],
 			SIZE[size],
 			leading && trailing ? 'pr-11 pl-9' : leading ? 'pr-3 pl-9' : trailing ? 'pr-11 pl-3' : 'px-3',
@@ -81,7 +82,7 @@
 	<div class="group relative {className}">
 		{#if leading}
 			<span
-				class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-on-surface-variant transition-colors group-focus-within:text-primary"
+				class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-on-surface-variant transition-colors group-focus-within:text-primary"
 			>
 				{@render leading()}
 			</span>

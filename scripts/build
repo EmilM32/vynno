@@ -3,5 +3,9 @@ set -euo pipefail
 # shellcheck source=lib.sh
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
+if pid="$(spa_pid)"; then
+	die "SPA is running (pid $pid). scripts/stop first, then scripts/build, then scripts/start. Replacing build/ under a live Node crashes it (ENOENT on hashed assets)."
+fi
+
 (cd "$ROOT" && npm run build)
 echo "$ROOT/build"

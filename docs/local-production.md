@@ -49,8 +49,11 @@ Certificates are Caddy `tls internal` (not Let's Encrypt — `.local` is not pub
 ./scripts/start           # or --detach
 
 # this repo — launches only; does not rebuild
-./scripts/start           # foreground; Ctrl-C stops the SPA and the :80/:443 proxy
+./scripts/start           # foreground; Ctrl-C stops the SPA and the :80/:443 proxy; mirrors logs/spa.log
 ./scripts/start --detach  # pid in var/spa.pid, logs in logs/spa.log
+./scripts/status          # Caddy, SPA /healthz, API /healthz and /readyz
+./scripts/logs            # tail spa + caddy (+ ../vynno-api/logs/api.log)
+./scripts/logs errors     # failures only
 ```
 
 Open [https://vynno.local](https://vynno.local). `.local` is Bonjour; if the first Chrome load hangs a few seconds, wait or flush mDNS again. First request is HTTP/2; Caddy advertises HTTP/3 (`Alt-Svc`). A later navigation (not a hard reload) may use HTTP/3. Chrome may stay on HTTP/2 for a user-installed CA — that is a browser QUIC policy, not a missing listener.
@@ -85,10 +88,35 @@ Vite (`npm run dev`) and Playwright load `.env` + `.env.development` and do not 
 
 - Does not start vynno-api or Docker. Backups stay in that repo (`scripts/backup` / `scripts/restore`). Do not `docker compose down -v`.
 - Does not listen on the LAN (`HOST=127.0.0.1`; Caddy `bind 127.0.0.1`).
-- Does not rebuild on start. After pulling UI changes, run `scripts/build` again.
+- Does not rebuild on start. After pulling UI changes, `scripts/stop` then `scripts/build` then `scripts/start`. Build refuses while the SPA is running.
 - Playwright (`npm run test:e2e`) still uses `vite preview` at `E2E_ORIGIN` (`:4173`), not this server. E2e talks to playground `:8081` (`.env.development`) so it does not register throwaway users into daily `vynno`. Playground `scripts/dev` sends OTP mail to Mailpit; `DEV_MAIL_MODE=log` does not, and e2e fails fast.
 - Does not TLS-terminate vynno-api. Swagger stays [http://vynno.local:27182/swagger/](http://vynno.local:27182/swagger/). Avatar `<img>` URLs are rewritten to same-origin `/v1/avatars/…` in the SPA.
 
 Start-on-login (launchd) is a later optional step, not part of this cut.
+
+## Operator logs
+
+Decision: [ADR-0020](./adr/0020-local-operator-logs.md). These are process logs, not the product `/logs` screen.
+
+| Source             | File                                                                     |
+| ------------------ | ------------------------------------------------------------------------ |
+| SPA Node           | `logs/spa.log` (JSON lines in production)                                |
+| Caddy              | `~/Library/Logs/vynno/caddy.log` (JSON; root cannot write `~/Documents`) |
+| vynno-api          | `../vynno-api/logs/api.log` (already JSON)                               |
+| Postgres / Mailpit | `docker compose logs` in the API repo                                    |
+
+`scripts/start` size-rotates the SPA file at 1 MiB (keep 7). Caddy rolls itself. Correlate a request with SPA/API `request_id` and Caddy `request.id`.
+
+```sh
+./scripts/status
+./scripts/logs errors
+jq -c 'select(.status >= 500)' logs/spa.log
+```
+
+Optional viewer: `brew install lnav`.
+
+**Do not rebuild over a running SPA.** `scripts/build` refuses if Node is still serving `build/` — replacing hashed assets under a live process kills it (`ENOENT` on `*.js.br`). Stop, build, start.
+
+Caddyfile log changes apply only after `scripts/stop` then `scripts/start` (Caddy does not pick up this file in place).
 
 A native macOS `.app` is a **second target** ([tauri.md](./tauri.md), [ADR-0015](./adr/0015-native-desktop-tauri.md)). It does not replace this runbook.

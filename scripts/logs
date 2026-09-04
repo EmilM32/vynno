@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=lib.sh
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
+
+usage() {
+	cat <<'EOF'
+Tail or filter operator logs (not the product /logs screen).
+
+  scripts/logs              tail spa + caddy (+ api if ../vynno-api exists)
+  scripts/logs errors       lines that look like failures
+  scripts/logs spa|api|caddy
+
+JSON lines (spa, api) jq:  jq -c 'select(.status >= 500)' logs/spa.log
+Caddy request id field is request.id; SPA/API use request_id.
+Optional viewer: brew install lnav
+EOF
+}
+
+TARGET=all
+for arg in "$@"; do
+	case "$arg" in
+	-h | --help)
+		usage
+		exit 0
+		;;
+	errors | spa | api | caddy | all)
+		TARGET="$arg"
+		;;
+	*)
+		die "unknown argument: $arg"
+		;;
+	esac
+done
+
+caddy_file="$(caddy_log_file)"
+api_file=""
+if api_file="$(api_log_file)"; then
+	:
+else
+	api_file=""
+fi
+
+files_for() {
+	case "$1" in
+	spa) printf '%s\n' "$SPA_LOG" ;;
+	caddy) printf '%s\n' "$caddy_file" ;;
+	api)
+		if [[ -n "$api_file" ]]; then
+			printf '%s\n' "$api_file"
+		fi
+		;;
+	all | errors)
+		printf '%s\n' "$SPA_LOG"
+		printf '%s\n' "$caddy_file"
+		if [[ -n "$api_file" ]]; then
+			printf '%s\n' "$api_file"
+		fi
+		;;
+	esac
+}
+
+existing=()
+while IFS= read -r f; do
+	[[ -n "$f" ]] || continue
+	if [[ -f "$f" ]]; then
+		existing+=("$f")
+	fi
+done < <(files_for "$TARGET")
+
+if [[ ${#existing[@]} -eq 0 ]]; then
+	die "no log files yet — start with scripts/start (and vynno-api scripts/start)"
+fi
+
+ERROR_RE='"level":"ERROR"|EADDRINUSE|"status":5[0-9][0-9]|throw er|ENOENT|ECONNREFUSED|upstream_unavailable'
+
+if [[ "$TARGET" == "errors" ]]; then
+	grep -E --line-buffered "$ERROR_RE" "${existing[@]}" || true
+	exit 0
+fi
+
+tail -F "${existing[@]}"

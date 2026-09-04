@@ -21,11 +21,11 @@ The product still has to work. Agent output is reviewed and held to the same sta
 
 **Frontend only.** This repo is the UI. The backend lives in **[vynno-api](https://github.com/EmilM32/vynno-api)**.
 
-| In this repo                                           | Companion repo                                                          |
-| ------------------------------------------------------ | ----------------------------------------------------------------------- |
-| SvelteKit + TypeScript + Tailwind UI                   | [vynno-api](https://github.com/EmilM32/vynno-api) — API, database, auth |
-| HTTP client + cookie auth                              | Persistence and multi-device sync                                       |
-| Design system                                          | Business rules that must stay on the server                             |
+| In this repo                         | Companion repo                                                          |
+| ------------------------------------ | ----------------------------------------------------------------------- |
+| SvelteKit + TypeScript + Tailwind UI | [vynno-api](https://github.com/EmilM32/vynno-api) — API, database, auth |
+| HTTP client + cookie auth            | Persistence and multi-device sync                                       |
+| Design system                        | Business rules that must stay on the server                             |
 
 ## Stack
 
@@ -100,7 +100,7 @@ No cloud host. The production UI is a Node process on loopback. Full runbook: **
 # open https://vynno.local
 ```
 
-`./scripts/start --detach` writes `var/spa.pid` and `logs/spa.log`, and starts Caddy on `127.0.0.1:80` (redirect) and `127.0.0.1:443` (TLS, HTTP/2 + HTTP/3). `./scripts/stop` stops Node and Caddy.
+`./scripts/start --detach` writes `var/spa.pid` and `logs/spa.log`, and starts Caddy on `127.0.0.1:80` (redirect) and `127.0.0.1:443` (TLS, HTTP/2 + HTTP/3). `./scripts/stop` stops Node and Caddy. `./scripts/status` and `./scripts/logs` are the operator view (JSON files, not the product `/logs` screen). `scripts/build` refuses while the SPA is running.
 
 The Node process binds `127.0.0.1:27180`. Bookmark `https://vynno.local`, not `:27180` and not `127.0.0.1` — those origins do not share the session cookie. Needs `/etc/hosts` `127.0.0.1 vynno.local` and `caddy` (`brew install caddy`).
 
@@ -133,16 +133,16 @@ Reusable components (primitives, shell chrome, prop-driven widgets) have colocat
 
 Start here: **[docs/README.md](./docs/README.md)**
 
-| Doc                                                    | Description                   |
-| ------------------------------------------------------ | ----------------------------- |
-| [docs/brand.md](./docs/brand.md)                       | Name, pronunciation, voice    |
-| [docs/domain-model.md](./docs/domain-model.md)         | Domain model                  |
-| [docs/screens-and-flows.md](./docs/screens-and-flows.md) | Screens & flows             |
-| [docs/design-system.md](./docs/design-system.md)       | UI rules                      |
-| [docs/motion.md](./docs/motion.md)                     | Animation taste               |
-| [docs/local-production.md](./docs/local-production.md) | Production UI on this machine |
-| [docs/open.md](./docs/open.md)                         | What is not built yet         |
-| [docs/adr/](./docs/adr/)                               | Architecture decisions        |
+| Doc                                                      | Description                   |
+| -------------------------------------------------------- | ----------------------------- |
+| [docs/brand.md](./docs/brand.md)                         | Name, pronunciation, voice    |
+| [docs/domain-model.md](./docs/domain-model.md)           | Domain model                  |
+| [docs/screens-and-flows.md](./docs/screens-and-flows.md) | Screens & flows               |
+| [docs/design-system.md](./docs/design-system.md)         | UI rules                      |
+| [docs/motion.md](./docs/motion.md)                       | Animation taste               |
+| [docs/local-production.md](./docs/local-production.md)   | Production UI on this machine |
+| [docs/open.md](./docs/open.md)                           | What is not built yet         |
+| [docs/adr/](./docs/adr/)                                 | Architecture decisions        |
 
 ## Status
 

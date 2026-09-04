@@ -14,11 +14,28 @@
 
 http://vynno.local {
 	bind 127.0.0.1
+	log {
+		output file {$CADDY_LOG:/tmp/vynno-caddy.log} {
+			roll_size 1MiB
+			roll_keep 7
+		}
+		format json
+	}
 	redir https://{host}{uri} 308
 }
 
 https://vynno.local {
 	bind 127.0.0.1
 	tls internal
-	reverse_proxy 127.0.0.1:{$PORT:27180}
+	log {
+		output file {$CADDY_LOG:/tmp/vynno-caddy.log} {
+			roll_size 1MiB
+			roll_keep 7
+		}
+		format json
+	}
+	reverse_proxy 127.0.0.1:{$PORT:27180} {
+		header_up X-Request-ID {http.request.uuid}
+		header_down X-Request-ID {http.request.uuid}
+	}
 }

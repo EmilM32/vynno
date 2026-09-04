@@ -8,20 +8,20 @@ Agent entry: [AGENTS.md](../AGENTS.md). Open work: [open.md](./open.md).
 
 ## Contents
 
-| Document                                                 | Purpose                                              |
-| -------------------------------------------------------- | ---------------------------------------------------- |
-| [brand.md](./brand.md)                                   | Product name, pronunciation, voice, rename checklist |
-| [domain-model.md](./domain-model.md)                     | Entities, session rules, project lifecycle           |
-| [screens-and-flows.md](./screens-and-flows.md)           | Screen inventory and user flows                      |
-| [design-system.md](./design-system.md)                   | UI rules and primitive inventory (hex lives in CSS)  |
-| [motion.md](./motion.md)                                 | Animation personality, gate, tokens, do/don’t        |
-| [accessibility.md](./accessibility.md)                   | WCAG 2.2 AA target, patterns, how to run axe         |
-| [api-contract.md](./api-contract.md)                     | REST + JSON DTO contract the SPA speaks              |
-| [local-production.md](./local-production.md)             | Run the production UI on this machine                |
-| [devtools-audit.md](./devtools-audit.md)                 | Chrome DevTools MCP audit of the production UI       |
-| [tauri.md](./tauri.md)                                   | Native desktop (Tauri 2) — second target, macOS first |
-| [open.md](./open.md)                                     | What is not built yet                                |
-| [adr/](./adr/)                                           | Architecture Decision Records                        |
+| Document                                       | Purpose                                                                                              |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [brand.md](./brand.md)                         | Product name, pronunciation, voice, rename checklist                                                 |
+| [domain-model.md](./domain-model.md)           | Entities, session rules, project lifecycle                                                           |
+| [screens-and-flows.md](./screens-and-flows.md) | Screen inventory and user flows                                                                      |
+| [design-system.md](./design-system.md)         | UI rules and primitive inventory (hex lives in CSS)                                                  |
+| [motion.md](./motion.md)                       | Animation personality, gate, tokens, do/don’t                                                        |
+| [accessibility.md](./accessibility.md)         | WCAG 2.2 AA target, patterns, how to run axe                                                         |
+| [api-contract.md](./api-contract.md)           | REST + JSON DTO contract the SPA speaks                                                              |
+| [local-production.md](./local-production.md)   | Run the production UI on this machine (operator logs: [ADR-0020](./adr/0020-local-operator-logs.md)) |
+| [devtools-audit.md](./devtools-audit.md)       | Chrome DevTools MCP audit of the production UI                                                       |
+| [tauri.md](./tauri.md)                         | Native desktop (Tauri 2) — second target, macOS first                                                |
+| [open.md](./open.md)                           | What is not built yet                                                                                |
+| [adr/](./adr/)                                 | Architecture Decision Records                                                                        |
 
 Hex tokens and named themes: [design-system.md](./design-system.md) and `src/lib/theme/`. Decision: [adr/0008-named-themes.md](./adr/0008-named-themes.md).
 

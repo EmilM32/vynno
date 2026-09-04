@@ -9,10 +9,54 @@ HTTPS_PROXY_PORT=443
 # Root on macOS cannot read ~/Documents (TCC). sudo starts from these copies.
 RUNTIME_CADDYFILE="/tmp/vynno.Caddyfile"
 PROXY_PIDFILE="/tmp/vynno-caddy.pid"
+# Caddy runs as root; do not write logs into ~/Documents.
+CADDY_LOG_DEFAULT="${HOME}/Library/Logs/vynno/caddy.log"
+SPA_LOG="$ROOT/logs/spa.log"
+API_REPO="${API_REPO:-$ROOT/../vynno-api}"
+LOG_MAX_BYTES="${LOG_MAX_BYTES:-1048576}"
+LOG_KEEP="${LOG_KEEP:-7}"
 
 die() {
 	echo "$*" >&2
 	exit 1
+}
+
+caddy_log_file() {
+	printf '%s\n' "${CADDY_LOG:-$CADDY_LOG_DEFAULT}"
+}
+
+api_log_file() {
+	local repo
+	repo="$(cd "$API_REPO" 2>/dev/null && pwd || true)"
+	if [[ -n "$repo" && -d "$repo/logs" ]]; then
+		printf '%s\n' "$repo/logs/api.log"
+		return 0
+	fi
+	return 1
+}
+
+# Size-rotate a nohup log. Caddy rolls its own file.
+rotate_log() {
+	local file="$1"
+	local max_bytes="${2:-$LOG_MAX_BYTES}"
+	local keep="${3:-$LOG_KEEP}"
+	[[ -f "$file" ]] || return 0
+	local size
+	size="$(wc -c <"$file" | tr -d '[:space:]')"
+	if [[ "$size" -lt "$max_bytes" ]]; then
+		return 0
+	fi
+	mv "$file" "${file}.$(date +%Y%m%d%H%M%S)"
+	local extras
+	extras="$(
+		{ ls -1t "$file".* 2>/dev/null || true; } | tail -n +"$((keep + 1))"
+	)"
+	if [[ -n "$extras" ]]; then
+		while IFS= read -r old; do
+			[[ -n "$old" ]] || continue
+			rm -f "$old"
+		done <<<"$extras"
+	fi
 }
 
 require_env_file() {
@@ -173,7 +217,7 @@ start_proxy() {
 		proxy_tls_note
 		return 0
 	fi
-	local pids bin
+	local pids bin logfile
 	if pids="$(listen_pids_on_port "$HTTP_PROXY_PORT")"; then
 		die "port ${HTTP_PROXY_PORT} is already in use (pid $(echo "$pids" | tr '\n' ' ')); https://vynno.local needs 127.0.0.1:${HTTP_PROXY_PORT} (HTTP redirect)"
 	fi
@@ -185,12 +229,15 @@ start_proxy() {
 	fi
 	cp "$CADDYFILE" "$RUNTIME_CADDYFILE"
 	bin="$(caddy_bin)"
+	logfile="$(caddy_log_file)"
+	mkdir -p "$(dirname "$logfile")"
 	# :80 and :443 need root. Copy the Caddyfile to /tmp first — macOS TCC blocks root from ~/Documents.
-	if sudo env PORT="${PORT:-27180}" "$bin" start --config "$RUNTIME_CADDYFILE" --adapter caddyfile --pidfile "$PROXY_PIDFILE"; then
+	# Pass an absolute CADDY_LOG; sudo would otherwise expand HOME as /var/root.
+	if sudo env PORT="${PORT:-27180}" CADDY_LOG="$logfile" "$bin" start --config "$RUNTIME_CADDYFILE" --adapter caddyfile --pidfile "$PROXY_PIDFILE"; then
 		proxy_tls_note
 		return 0
 	fi
-	die "caddy could not bind 127.0.0.1:${HTTP_PROXY_PORT} and :${HTTPS_PROXY_PORT}. Install caddy (brew install caddy) then: sudo env PORT=${PORT:-27180} ${bin} start --config ${RUNTIME_CADDYFILE} --adapter caddyfile --pidfile ${PROXY_PIDFILE}"
+	die "caddy could not bind 127.0.0.1:${HTTP_PROXY_PORT} and :${HTTPS_PROXY_PORT}. Install caddy (brew install caddy) then: sudo env PORT=${PORT:-27180} CADDY_LOG=${logfile} ${bin} start --config ${RUNTIME_CADDYFILE} --adapter caddyfile --pidfile ${PROXY_PIDFILE}"
 }
 
 # curl localhost prefers ::1; vynno-api binds 127.0.0.1. Probe only — do not change API_ORIGIN.
@@ -206,7 +253,7 @@ require_api() {
 	local probe i
 	# Playground (scripts/dev). Daily Node must talk to the production binary.
 	if [[ "$origin" == *:8081 ]]; then
-		die "API_ORIGIN is playground ${origin} — daily start needs http://localhost:27182 in .env.production (playground belongs in .env.development). Start vynno-api scripts/start, then ./vynno status"
+		die "API_ORIGIN is playground ${origin} — daily start needs http://localhost:27182 in .env.production (playground belongs in .env.development). Start vynno-api scripts/start, then scripts/status"
 	fi
 	probe="$(ipv4_probe_origin "$origin")"
 	for i in $(seq 1 40); do
@@ -215,7 +262,7 @@ require_api() {
 		fi
 		sleep 0.25
 	done
-	die "vynno-api is not up at ${origin} — start it first (vynno-api scripts/start) and then check ./vynno status"
+	die "vynno-api is not up at ${origin} — start it first (vynno-api scripts/start) and then check scripts/status"
 }
 
 # Any HTTP response means Node is listening. 000 = connection refused.
@@ -226,8 +273,8 @@ wait_for_spa() {
 		if [[ -n "$pid" ]] && ! alive_pid "$pid"; then
 			die "SPA process ${pid} exited before listen — see $ROOT/logs/spa.log"
 		fi
-		code="$(curl -sS --ipv4 -m 1 -o /dev/null -w '%{http_code}' "http://127.0.0.1:${port}/" 2>/dev/null || true)"
-		if [[ -n "$code" && "$code" != "000" ]]; then
+		code="$(curl -sS --ipv4 -m 1 -o /dev/null -w '%{http_code}' "http://127.0.0.1:${port}/healthz" 2>/dev/null || true)"
+		if [[ "$code" == "200" ]]; then
 			return 0
 		fi
 		sleep 0.25

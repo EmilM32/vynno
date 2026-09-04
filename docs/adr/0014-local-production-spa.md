@@ -42,7 +42,7 @@ The owner is the only user. Nothing is published to a public host.
 | Option                                  | Why not                                                                                                                                               |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Dockerize the SPA / full-stack Compose  | Diverges from API ADR-0011 (host binary + Postgres in Docker). Extra rebuilds and a compose file that would live in the wrong repo or couple the two. |
-| nginx in front of Node                  | Rejected when there was no hostname to terminate. A loopback Caddy on :443/:80 is now the daily URL (`https://vynno.local`). Still no LAN bind. |
+| nginx in front of Node                  | Rejected when there was no hostname to terminate. A loopback Caddy on :443/:80 is now the daily URL (`https://vynno.local`). Still no LAN bind.       |
 | Keep `vite preview` as the daily driver | Preview is a build check, not a production server.                                                                                                    |
 | Stay on `adapter-auto`                  | Picks cloud adapters; on this machine it is the wrong target.                                                                                         |
 
@@ -64,3 +64,4 @@ Daily Node no longer uses `node --env-file=.env`. Start sources `.env` then `.en
 - [0012-env-origins.md](./0012-env-origins.md)
 - [../local-production.md](../local-production.md)
 - [0015-native-desktop-tauri.md](./0015-native-desktop-tauri.md) — native `.app` is a second target; this ADR stays the browser daily driver
+- [0020-local-operator-logs.md](./0020-local-operator-logs.md) — JSON files + `scripts/status` / `scripts/logs`; Caddy logs outside `~/Documents`

@@ -1,54 +1,48 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import { usePrefs } from '$lib/stores/prefs.svelte';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { periodStats } from '$lib/time/aggregates';
-	import { periodBounds, type PeriodKind } from '$lib/time/duration';
+	import { insightRangeForGrain, type InsightRange } from '$lib/time/duration';
 	import ActivityBars from './ActivityBars.svelte';
 	import BreakdownTable from './BreakdownTable.svelte';
-	import KpiCards from './KpiCards.svelte';
-	import PeriodToggle from './PeriodToggle.svelte';
+	import InsightRangeControl from './InsightRangeControl.svelte';
 	import ProjectDonut from './ProjectDonut.svelte';
 
-	const prefsStore = usePrefs();
 	const sessionStore = useSession();
 
-	let period = $state<PeriodKind>('week');
+	const initialNow = new Date(sessionStore.nowMs || Date.now());
+	let range = $state.raw<InsightRange>(
+		insightRangeForGrain('week', initialNow, initialNow, sessionStore.timeZone)
+	);
 
-	const periodOptions = $derived([
-		{ id: 'week' as const, label: m.insights_period_week() },
-		{ id: 'month' as const, label: m.insights_period_month() }
-	]);
+	const now = $derived(new Date(sessionStore.nowMs || Date.now()));
 
 	const stats = $derived(
 		periodStats(
 			sessionStore.sessions,
 			sessionStore.projects,
 			sessionStore.activityTypes,
-			period,
-			new Date(sessionStore.nowMs),
-			prefsStore.dailyTargetMs,
-			sessionStore.timeZone
+			range,
+			now
 		)
 	);
 
 	$effect(() => {
-		const kind = period;
-		const timeZone = sessionStore.timeZone;
-		const { start } = periodBounds(kind, new Date(), timeZone);
-		void sessionStore.ensureThrough(start.getTime());
+		void sessionStore.ensureThrough(range.start.getTime());
 	});
 </script>
 
 <div class="flex w-full flex-col gap-6" data-testid="page-view">
 	<PageHeader title={m.insights_title()} description={m.insights_subtitle()}>
 		{#snippet actions()}
-			<PeriodToggle bind:value={period} options={periodOptions} />
+			<InsightRangeControl bind:range {now} timeZone={sessionStore.timeZone} />
 		{/snippet}
 	</PageHeader>
 
-	<KpiCards {stats} />
+	{#if sessionStore.loadingMore}
+		<p class="text-body-sm text-on-surface-variant">{m.insights_loading_earlier()}</p>
+	{/if}
 
 	<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 		<ProjectDonut items={stats.byProject} totalMs={stats.totalMs} />

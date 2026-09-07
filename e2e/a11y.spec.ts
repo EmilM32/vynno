@@ -75,6 +75,9 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await page.goto('/insights');
 		await page.getByRole('button', { name: 'Month' }).click();
 		await expectNoViolations(page);
+		await page.getByRole('button', { name: 'Custom' }).click();
+		await expect(page.getByRole('dialog', { name: 'Custom range' })).toBeVisible();
+		await expectNoViolations(page);
 	});
 });
 

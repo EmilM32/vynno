@@ -107,6 +107,28 @@ export function startOfLocalDay(d = new Date(), timeZone?: string): number {
 	return x.getTime();
 }
 
+/** Last moment of local (or zoned) civil day. */
+export function endOfLocalDay(d = new Date(), timeZone?: string): Date {
+	if (timeZone) {
+		const p = partsInTimeZone(d, timeZone);
+		return zonedTimeToUtc(
+			{ year: p.year, month: p.month, day: p.day, hour: 23, minute: 59, second: 59 },
+			timeZone
+		);
+	}
+	const x = new Date(d);
+	x.setHours(23, 59, 59, 999);
+	return x;
+}
+
+/** Add whole civil days, keeping the clock in the zone. */
+export function addLocalDays(d: Date, days: number, timeZone?: string): Date {
+	if (timeZone) return addDaysInTimeZone(d, days, timeZone);
+	const x = new Date(d);
+	x.setDate(x.getDate() + days);
+	return x;
+}
+
 /** Start of previous local (or zoned) day (ms). */
 export function startOfYesterday(d = new Date(), timeZone?: string): number {
 	if (timeZone) return addDaysInTimeZone(startOfDayInTimeZone(d, timeZone), -1, timeZone).getTime();
@@ -248,6 +270,186 @@ export function periodBounds(
 	const monthEnd = endOfMonth(now, timeZone);
 	const end = now.getTime() < monthEnd.getTime() ? new Date(now) : monthEnd;
 	return { start, end };
+}
+
+/** Insights grains. `twoWeeks` is internal; UI copy is “2 weeks”. */
+export type InsightGrain = 'week' | 'twoWeeks' | 'month' | 'custom';
+
+export type InsightRange = {
+	grain: InsightGrain;
+	start: Date;
+	end: Date;
+};
+
+export type CustomRangeError = 'invalid' | 'order' | 'future' | 'span';
+
+export const MAX_INSIGHT_CUSTOM_DAYS = 366;
+
+function clampToNow(end: Date, now: Date): Date {
+	return end.getTime() > now.getTime() ? new Date(now) : end;
+}
+
+/**
+ * Window of `grain` containing `anchor`, with `end` clamped to `now` when the
+ * period is still open. `custom` is not a grain — use `customInsightRange`.
+ */
+export function insightRangeForGrain(
+	grain: Exclude<InsightGrain, 'custom'>,
+	anchor: Date,
+	now = new Date(),
+	timeZone?: string
+): InsightRange {
+	if (grain === 'week') {
+		const start = startOfWeekMonday(anchor, timeZone);
+		return { grain, start, end: clampToNow(endOfWeekSunday(anchor, timeZone), now) };
+	}
+	if (grain === 'twoWeeks') {
+		const weekStart = startOfWeekMonday(anchor, timeZone);
+		const start = addLocalDays(weekStart, -7, timeZone);
+		return { grain, start, end: clampToNow(endOfWeekSunday(anchor, timeZone), now) };
+	}
+	const start = startOfMonth(anchor, timeZone);
+	return { grain: 'month', start, end: clampToNow(endOfMonth(anchor, timeZone), now) };
+}
+
+/** True when Prev/Next would land on a non-future window. Prev is always allowed. */
+export function canShiftInsightRange(
+	range: InsightRange,
+	direction: -1 | 1,
+	now = new Date(),
+	timeZone?: string
+): boolean {
+	if (direction < 0) return true;
+	return localDateKeyFromDate(range.end, timeZone) < localDateKeyFromDate(now, timeZone);
+}
+
+export function shiftInsightRange(
+	range: InsightRange,
+	direction: -1 | 1,
+	now = new Date(),
+	timeZone?: string
+): InsightRange {
+	if (!canShiftInsightRange(range, direction, now, timeZone)) return range;
+
+	if (range.grain === 'custom') {
+		const days = calendarDaysInclusive(range.start, range.end, timeZone);
+		const start = addLocalDays(range.start, direction * days, timeZone);
+		const endDay = addLocalDays(start, days - 1, timeZone);
+		return { grain: 'custom', start, end: clampToNow(endOfLocalDay(endDay, timeZone), now) };
+	}
+	if (range.grain === 'week') {
+		return insightRangeForGrain(
+			'week',
+			addLocalDays(range.start, direction * 7, timeZone),
+			now,
+			timeZone
+		);
+	}
+	if (range.grain === 'twoWeeks') {
+		const newWeekStart = addLocalDays(range.start, 7 + direction * 14, timeZone);
+		return insightRangeForGrain('twoWeeks', newWeekStart, now, timeZone);
+	}
+	return insightRangeForGrain(
+		'month',
+		addCalendarMonths(range.start, direction, timeZone),
+		now,
+		timeZone
+	);
+}
+
+const CIVIL_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** Start of the civil day `YYYY-MM-DD` in `timeZone` (or host-local). */
+export function parseCivilDay(ymd: string, timeZone?: string): Date | null {
+	const m = CIVIL_DAY.exec(ymd);
+	if (!m) return null;
+	const year = Number(m[1]);
+	const month = Number(m[2]);
+	const day = Number(m[3]);
+	if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+	const start = timeZone
+		? zonedTimeToUtc({ year, month, day }, timeZone)
+		: new Date(year, month - 1, day);
+	if (localDateKeyFromDate(start, timeZone) !== ymd) return null;
+	return start;
+}
+
+export function customInsightRange(
+	fromDay: string,
+	toDay: string,
+	now = new Date(),
+	timeZone?: string
+): { ok: true; range: InsightRange } | { ok: false; error: CustomRangeError } {
+	const start = parseCivilDay(fromDay, timeZone);
+	const endStart = parseCivilDay(toDay, timeZone);
+	if (!start || !endStart) return { ok: false, error: 'invalid' };
+
+	const todayKey = localDateKeyFromDate(now, timeZone);
+	if (fromDay > todayKey || toDay > todayKey) return { ok: false, error: 'future' };
+	if (fromDay > toDay) return { ok: false, error: 'order' };
+
+	const end = clampToNow(endOfLocalDay(endStart, timeZone), now);
+	const days = calendarDaysInclusive(start, end, timeZone);
+	if (days > MAX_INSIGHT_CUSTOM_DAYS) return { ok: false, error: 'span' };
+
+	return { ok: true, range: { grain: 'custom', start, end } };
+}
+
+function civilDateParts(
+	d: Date,
+	locale: string,
+	timeZone?: string
+): { day: string; month: string; year: string } {
+	const dtf = new Intl.DateTimeFormat(locale, {
+		timeZone,
+		day: 'numeric',
+		month: 'short',
+		year: 'numeric'
+	});
+	const map: Record<string, string> = {};
+	for (const part of dtf.formatToParts(d)) {
+		if (part.type !== 'literal') map[part.type] = part.value;
+	}
+	return { day: map.day ?? '', month: map.month ?? '', year: map.year ?? '' };
+}
+
+function formatDateSpan(start: Date, end: Date, locale: string, timeZone?: string): string {
+	const a = civilDateParts(start, locale, timeZone);
+	const b = civilDateParts(end, locale, timeZone);
+	const startKey = localDateKeyFromDate(start, timeZone);
+	const endKey = localDateKeyFromDate(end, timeZone);
+	if (startKey === endKey) return `${b.day} ${b.month} ${b.year}`;
+	if (startKey.slice(0, 7) === endKey.slice(0, 7)) {
+		return `${a.day}–${b.day} ${b.month} ${b.year}`;
+	}
+	if (startKey.slice(0, 4) === endKey.slice(0, 4)) {
+		return `${a.day} ${a.month} – ${b.day} ${b.month} ${b.year}`;
+	}
+	return `${a.day} ${a.month} ${a.year} – ${b.day} ${b.month} ${b.year}`;
+}
+
+/**
+ * Visible identity of the window. Week / 2-week / month labels use the full
+ * civil period (Mon–Sun, two Mon–Suns, calendar month), not the now-clamped end.
+ */
+export function formatInsightRangeLabel(
+	range: InsightRange,
+	locale = getLocale(),
+	timeZone?: string
+): string {
+	if (range.grain === 'month') {
+		return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone }).format(
+			range.start
+		);
+	}
+	if (range.grain === 'week') {
+		return formatDateSpan(range.start, endOfWeekSunday(range.start, timeZone), locale, timeZone);
+	}
+	if (range.grain === 'twoWeeks') {
+		const secondWeek = addLocalDays(range.start, 7, timeZone);
+		return formatDateSpan(range.start, endOfWeekSunday(secondWeek, timeZone), locale, timeZone);
+	}
+	return formatDateSpan(range.start, range.end, locale, timeZone);
 }
 
 /** Inclusive calendar day count from start→end (local or zoned). */

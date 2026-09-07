@@ -1,7 +1,7 @@
 # Screens and Flows — Vynno
 
 **Status:** Living  
-**Last updated:** 2026-08-27
+**Last updated:** 2026-09-07
 
 Route inventory, shell, and primary user flows. Named themes (`dark`, `light`, `deep-dark`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md). Unbuilt extras: [open.md](./open.md).
 
@@ -11,16 +11,16 @@ Route inventory, shell, and primary user flows. Named themes (`dark`, `light`, `
 
 Each primary route is one responsive page (mobile + desktop).
 
-| Route            | Purpose                                                                        |
-| ---------------- | ------------------------------------------------------------------------------ |
-| `/timer`         | Active session                                                                 |
-| `/dashboard`     | Home overview                                                                  |
-| `/logs`          | Chronological time entries                                                     |
-| `/insights`      | Analytics                                                                      |
-| `/settings`      | Preferences, profile, language, activity types                                 |
-| `/projects`      | Project management                                                             |
-| `/projects/[id]` | Per-project time dossier                                                       |
-| `/login`         | Sign in / register / forgot password (no app chrome)                           |
+| Route            | Purpose                                                                                   |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| `/timer`         | Active session                                                                            |
+| `/dashboard`     | Home overview                                                                             |
+| `/logs`          | Chronological time entries                                                                |
+| `/insights`      | Analytics                                                                                 |
+| `/settings`      | Preferences, profile, language, activity types                                            |
+| `/projects`      | Project management                                                                        |
+| `/projects/[id]` | Per-project time dossier                                                                  |
+| `/login`         | Sign in / register / forgot password (no app chrome)                                      |
 | _(no route)_     | Chrome-less error card (404 / 5xx) — [adr/0019-error-pages.md](./adr/0019-error-pages.md) |
 
 ---
@@ -87,11 +87,13 @@ Not built on this screen: session target progress, desktop Quick Command panel. 
 
 ### 3.4 Insights (`/insights`)
 
-1. Header + Week / Month toggle
-2. KPI cards: total time, most productive day, daily average
-3. Time by Project donut
+1. Header + range control: prev / civil-date label / next, Week | 2 weeks | Month, Custom
+2. Custom: dialog with From / To dates (native `type="date"`). Prev/next shift the active grain; next is disabled on the current window. Range is view-local (resets to the current week on leave).
+3. Time by Project donut (centre total)
 4. Time by Activity bar
 5. Activity Breakdown table
+
+Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 
 ### 3.5 Settings (`/settings`)
 

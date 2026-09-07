@@ -24,6 +24,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0018](./0018-atomic-ui-layer.md)          | Atomic UI layer beyond buttons                      | Accepted   |
 | [0019](./0019-error-pages.md)              | Error pages (`+error.svelte` / `error.html`)        | Accepted   |
 | [0020](./0020-local-operator-logs.md)      | Local operator logs (JSON files + scripts)          | Accepted   |
+| [0021](./0021-insights-range.md)           | Insights uses an explicit civil range               | Accepted   |
 
 ## Format
 

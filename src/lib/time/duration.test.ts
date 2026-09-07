@@ -2,22 +2,31 @@ import { describe, expect, it } from 'vitest';
 import { FIXED_NOW, localIso, makeSession, ms } from '$lib/test/factories';
 import {
 	addCalendarMonths,
+	addLocalDays,
 	calendarDaysInclusive,
+	canShiftInsightRange,
+	customInsightRange,
+	endOfLocalDay,
 	endOfMonth,
 	endOfWeekSunday,
 	formatClock,
 	formatCompact,
 	formatHoursDecimal,
 	formatHoursMinutes,
+	formatInsightRangeLabel,
 	formatLocalTime,
 	formatRelativePast,
 	formatTimeRange,
+	insightRangeForGrain,
 	localDateKey,
 	localDateKeyFromDate,
 	localMonthKeyFromDate,
+	MAX_INSIGHT_CUSTOM_DAYS,
 	monthShort,
+	parseCivilDay,
 	periodBounds,
 	sessionElapsedMs,
+	shiftInsightRange,
 	startOfLocalDay,
 	startOfMonth,
 	startOfWeekMonday,
@@ -215,6 +224,170 @@ describe('periodBounds', () => {
 		const { start, end } = periodBounds('month', FIXED_NOW);
 		expect(start.getDate()).toBe(1);
 		expect(end.getTime()).toBe(FIXED_NOW.getTime());
+	});
+});
+
+describe('addLocalDays / endOfLocalDay', () => {
+	it('adds whole civil days', () => {
+		const next = addLocalDays(new Date(2026, 2, 11, 15, 30), 2);
+		expect(next.getDate()).toBe(13);
+		expect(next.getHours()).toBe(15);
+	});
+
+	it('endOfLocalDay is the last moment of the day', () => {
+		const end = endOfLocalDay(FIXED_NOW);
+		expect(end.getDate()).toBe(11);
+		expect(end.getHours()).toBe(23);
+		expect(end.getMinutes()).toBe(59);
+	});
+});
+
+describe('insightRangeForGrain', () => {
+	it('week is Monday through now when the week is open', () => {
+		const range = insightRangeForGrain('week', FIXED_NOW, FIXED_NOW);
+		expect(range.start.getDay()).toBe(1);
+		expect(range.start.getDate()).toBe(9);
+		expect(range.end.getTime()).toBe(FIXED_NOW.getTime());
+	});
+
+	it('twoWeeks starts on the previous Monday and stays Monday-aligned', () => {
+		const range = insightRangeForGrain('twoWeeks', FIXED_NOW, FIXED_NOW);
+		expect(range.start.getDay()).toBe(1);
+		expect(range.start.getDate()).toBe(2);
+		expect(range.end.getTime()).toBe(FIXED_NOW.getTime());
+	});
+
+	it('month is the first of the month through now when open', () => {
+		const range = insightRangeForGrain('month', FIXED_NOW, FIXED_NOW);
+		expect(range.start.getDate()).toBe(1);
+		expect(range.start.getMonth()).toBe(2);
+		expect(range.end.getTime()).toBe(FIXED_NOW.getTime());
+	});
+
+	it('historical month uses the true month end', () => {
+		const feb = insightRangeForGrain('month', new Date(2026, 1, 10), FIXED_NOW);
+		expect(feb.start.getMonth()).toBe(1);
+		expect(feb.start.getDate()).toBe(1);
+		expect(feb.end.getMonth()).toBe(1);
+		expect(feb.end.getDate()).toBe(28);
+	});
+
+	it('resolves week bounds in the given time zone', () => {
+		const now = new Date('2026-03-11T15:30:00.000Z');
+		const range = insightRangeForGrain('week', now, now, 'UTC');
+		expect(localDateKeyFromDate(range.start, 'UTC')).toBe('2026-03-09');
+		expect(range.end.getTime()).toBe(now.getTime());
+	});
+});
+
+describe('shiftInsightRange', () => {
+	it('prev on week lands on the previous complete Monday–Sunday', () => {
+		const current = insightRangeForGrain('week', FIXED_NOW, FIXED_NOW);
+		expect(canShiftInsightRange(current, 1, FIXED_NOW)).toBe(false);
+		const prev = shiftInsightRange(current, -1, FIXED_NOW);
+		expect(prev.start.getDate()).toBe(2);
+		expect(prev.start.getDay()).toBe(1);
+		expect(prev.end.getDate()).toBe(8);
+		expect(prev.end.getDay()).toBe(0);
+		expect(canShiftInsightRange(prev, 1, FIXED_NOW)).toBe(true);
+		const back = shiftInsightRange(prev, 1, FIXED_NOW);
+		expect(back.start.getDate()).toBe(9);
+		expect(back.end.getTime()).toBe(FIXED_NOW.getTime());
+	});
+
+	it('prev twice on month is two months back', () => {
+		const current = insightRangeForGrain('month', FIXED_NOW, FIXED_NOW);
+		const jan = shiftInsightRange(shiftInsightRange(current, -1, FIXED_NOW), -1, FIXED_NOW);
+		expect(jan.start.getMonth()).toBe(0);
+		expect(jan.start.getFullYear()).toBe(2026);
+		expect(jan.end.getMonth()).toBe(0);
+		expect(jan.end.getDate()).toBe(31);
+	});
+
+	it('prev on twoWeeks moves 14 days and stays Monday-aligned', () => {
+		const current = insightRangeForGrain('twoWeeks', FIXED_NOW, FIXED_NOW);
+		const prev = shiftInsightRange(current, -1, FIXED_NOW);
+		expect(prev.start.getDay()).toBe(1);
+		expect(prev.start.getDate()).toBe(16);
+		expect(prev.start.getMonth()).toBe(1);
+		expect(prev.end.getDate()).toBe(1);
+		expect(prev.end.getMonth()).toBe(2);
+	});
+
+	it('does not shift next when the window already includes today', () => {
+		const current = insightRangeForGrain('week', FIXED_NOW, FIXED_NOW);
+		const same = shiftInsightRange(current, 1, FIXED_NOW);
+		expect(same.start.getTime()).toBe(current.start.getTime());
+		expect(same.end.getTime()).toBe(current.end.getTime());
+	});
+});
+
+describe('customInsightRange', () => {
+	it('builds an inclusive civil span clamped to now', () => {
+		const result = customInsightRange('2026-03-01', '2026-03-11', FIXED_NOW);
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.range.grain).toBe('custom');
+		expect(result.range.start.getDate()).toBe(1);
+		expect(result.range.end.getTime()).toBe(FIXED_NOW.getTime());
+	});
+
+	it('rejects inverted, future, invalid, and overlong spans', () => {
+		expect(customInsightRange('2026-03-11', '2026-03-01', FIXED_NOW)).toEqual({
+			ok: false,
+			error: 'order'
+		});
+		expect(customInsightRange('2026-03-01', '2026-03-12', FIXED_NOW)).toEqual({
+			ok: false,
+			error: 'future'
+		});
+		expect(customInsightRange('nope', '2026-03-11', FIXED_NOW)).toEqual({
+			ok: false,
+			error: 'invalid'
+		});
+		expect(parseCivilDay('2026-02-31')).toBeNull();
+		const long = customInsightRange('2025-01-01', '2026-03-11', FIXED_NOW);
+		expect(long).toEqual({ ok: false, error: 'span' });
+		expect(MAX_INSIGHT_CUSTOM_DAYS).toBe(366);
+	});
+
+	it('shifts a custom span by its length', () => {
+		const result = customInsightRange('2026-03-01', '2026-03-07', FIXED_NOW);
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		const prev = shiftInsightRange(result.range, -1, FIXED_NOW);
+		expect(localDateKeyFromDate(prev.start)).toBe('2026-02-22');
+		expect(localDateKeyFromDate(prev.end)).toBe('2026-02-28');
+	});
+
+	it('parses civil days in a named time zone', () => {
+		const start = parseCivilDay('2026-03-11', 'America/New_York');
+		expect(start).not.toBeNull();
+		expect(localDateKeyFromDate(start!, 'America/New_York')).toBe('2026-03-11');
+	});
+});
+
+describe('formatInsightRangeLabel', () => {
+	it('labels a week as a day span with year', () => {
+		const range = insightRangeForGrain('week', FIXED_NOW, FIXED_NOW);
+		expect(formatInsightRangeLabel(range, 'en')).toBe('9–15 Mar 2026');
+	});
+
+	it('labels a month as month plus year', () => {
+		const range = insightRangeForGrain('month', FIXED_NOW, FIXED_NOW);
+		expect(formatInsightRangeLabel(range, 'en')).toBe('March 2026');
+	});
+
+	it('labels a two-week span across months', () => {
+		const range = insightRangeForGrain('twoWeeks', FIXED_NOW, FIXED_NOW);
+		expect(formatInsightRangeLabel(range, 'en')).toBe('2–15 Mar 2026');
+	});
+
+	it('labels a custom same-day range', () => {
+		const result = customInsightRange('2026-03-11', '2026-03-11', FIXED_NOW);
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(formatInsightRangeLabel(result.range, 'en')).toBe('11 Mar 2026');
 	});
 });
 

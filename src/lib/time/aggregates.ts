@@ -5,7 +5,6 @@ import type { ActivityType, Project, TimeSession } from '$lib/types/domain';
 import {
 	addCalendarMonths,
 	calendarDaysInclusive,
-	DEFAULT_DAILY_TARGET_MS,
 	endOfMonth,
 	localDateKey,
 	localDateKeyFromDate,
@@ -13,7 +12,6 @@ import {
 	monthShort,
 	monthShortYear,
 	periodBounds,
-	type PeriodKind,
 	type ProjectPeriodKind,
 	sessionElapsedMs,
 	startOfLocalDay,
@@ -348,12 +346,7 @@ export type BreakdownRow = {
 };
 
 export type PeriodStats = {
-	period: PeriodKind;
 	totalMs: number;
-	mostProductiveDay: { label: string; ms: number } | null;
-	dailyAverageMs: number;
-	/** Delta vs target: (avg - target) / target, e.g. -0.04 */
-	vsTargetRatio: number | null;
 	byProject: NamedTotal[];
 	byActivity: NamedTotal[];
 	breakdown: BreakdownRow[];
@@ -363,19 +356,16 @@ export function periodStats(
 	sessions: TimeSession[],
 	projects: Project[],
 	activityTypes: ActivityType[],
-	period: PeriodKind,
-	now = new Date(),
-	dailyTargetMs = DEFAULT_DAILY_TARGET_MS,
-	timeZone?: string
+	range: { start: Date; end: Date },
+	now = new Date()
 ): PeriodStats {
-	const { start, end } = periodBounds(period, now, timeZone);
+	const { start, end } = range;
 	const inRange = sessionsInRange(sessions, start, end);
 	const nowMs = now.getTime();
 	const projectName = new Map(projects.map((p) => [p.id, p]));
 	const activityById = new Map(activityTypes.map((a) => [a.id, a]));
 
 	let totalMs = 0;
-	const dayTotals = new Map<string, number>();
 	const projectTotals = new Map<string, number>();
 	const activityTotals = new Map<string, number>();
 	const pairTotals = new Map<string, { projectId: string; activityTypeId: string; ms: number }>();
@@ -385,8 +375,6 @@ export function periodStats(
 		if (ms <= 0) continue;
 		totalMs += ms;
 
-		const dayKey = localDateKey(s.startedAt, now, timeZone);
-		dayTotals.set(dayKey, (dayTotals.get(dayKey) ?? 0) + ms);
 		projectTotals.set(s.projectId, (projectTotals.get(s.projectId) ?? 0) + ms);
 
 		const actId = s.activityTypeId;
@@ -398,18 +386,6 @@ export function periodStats(
 		if (existing) existing.ms += ms;
 		else pairTotals.set(pairKey, { projectId: s.projectId, activityTypeId: actId, ms });
 	}
-
-	let mostProductiveDay: PeriodStats['mostProductiveDay'] = null;
-	for (const [key, ms] of dayTotals) {
-		if (!mostProductiveDay || ms > mostProductiveDay.ms) {
-			const d = new Date(key + 'T12:00:00');
-			mostProductiveDay = { label: weekdayLong(d, undefined, timeZone), ms };
-		}
-	}
-
-	const days = calendarDaysInclusive(start, end, timeZone);
-	const dailyAverageMs = totalMs / days;
-	const vsTargetRatio = dailyTargetMs > 0 ? (dailyAverageMs - dailyTargetMs) / dailyTargetMs : null;
 
 	const pct = (ms: number) => (totalMs > 0 ? Math.round((ms / totalMs) * 100) : 0);
 
@@ -456,11 +432,7 @@ export function periodStats(
 		.sort((a, b) => b.ms - a.ms);
 
 	return {
-		period,
 		totalMs,
-		mostProductiveDay,
-		dailyAverageMs,
-		vsTargetRatio,
 		byProject,
 		byActivity,
 		breakdown

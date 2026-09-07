@@ -126,7 +126,7 @@ Routes: `/login`, `/dashboard`, `/timer`, `/logs`, `/insights`, `/projects`, `/p
 | `/dashboard`     | Seed + extras                          | Cold + client nav | KPIs, weekly chart          | Default landing                           |
 | `/timer`         | Start / pause / resume / stop          | INP + 250ms tick  | Live status not on clock    | Highest runtime risk                      |
 | `/logs`          | List / cursor; search client vs server | Search INP        | List + form/confirm dialogs | Open add-entry if cheap                   |
-| `/insights`      | Period toggle fetches                  | Chart load        | Table, donut                | Week / Month                              |
+| `/insights`      | Period toggle + `ensureThrough`        | Chart load        | Table, donut, range dialog  | Week / 2 weeks / Month, prev/next, Custom |
 | `/projects`      | List + `includeArchived`               | —                 | Active/Archived tabs        | Open one dossier from a row               |
 | `/projects/[id]` | Project + sessions                     | —                 | Header, charts              | Do not guess ids                          |
 | `/settings`      | Profile / theme                        | —                 | Theme, language             | Switch theme; skip logout unless isolated |
@@ -217,9 +217,9 @@ Probe:
 Complements `e2e/a11y.spec.ts`; does not replace it.
 
 1. Desktop `chrome-devtools__resize_page` ~1280×800. Walk the route matrix. `take_snapshot` (verbose on dense screens). Keyboard: Tab, Escape on dialogs, arrows on tabs (login, projects Active/Archived, insights period).
-2. Dialogs: add log, new project, confirm delete — focus trap, Escape, restore focus.
+2. Dialogs: add log, new project, confirm delete, Insights custom range — focus trap, Escape, restore focus.
 3. Command palette: combobox / listbox / option; no nested buttons.
-4. Insights: semantic table with column headers.
+4. Insights: semantic table with column headers; visible range label; Custom date dialog.
 5. `chrome-devtools__lighthouse_audit` `mode=snapshot` on current dashboard; `mode=navigation` on `/login` and `/dashboard`. `device=desktop`, then one `mobile`. Read **accessibility** and **best practices**. SEO is informational.
 
 Checks vs [accessibility.md](./accessibility.md): one `h1`; skip link on app chrome only; live status not on the clock; title `{page} · Vynno`.
@@ -255,7 +255,7 @@ Fill per run. Email only in the setup row — never paste passwords.
 
 | Field    | Value                                  |
 | -------- | -------------------------------------- |
-| Origin   | `https://vynno.local`                   |
+| Origin   | `https://vynno.local`                  |
 | Build    | date / `scripts/build` freshness       |
 | Account  | email only                             |
 | Viewport | desktop px; mobile px                  |

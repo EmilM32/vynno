@@ -5,11 +5,13 @@
 	let {
 		value = $bindable(),
 		options,
-		ariaLabel
+		ariaLabel,
+		onchange
 	}: {
-		value: T;
+		value: T | null;
 		options: { id: T; label: string }[];
 		ariaLabel?: string;
+		onchange?: (id: T) => void;
 	} = $props();
 
 	const groupLabel = $derived(ariaLabel ?? m.insights_period_aria());
@@ -26,7 +28,10 @@
 			size="sm"
 			selected={value === opt.id}
 			aria-pressed={value === opt.id}
-			onclick={() => (value = opt.id)}
+			onclick={() => {
+				value = opt.id;
+				onchange?.(opt.id);
+			}}
 		>
 			{opt.label}
 		</Button>

@@ -4,8 +4,8 @@
 
 	const options = [
 		{ id: 'week', label: 'Week' },
-		{ id: 'month', label: 'Month' },
-		{ id: 'year', label: 'Year' }
+		{ id: 'twoWeeks', label: '2 weeks' },
+		{ id: 'month', label: 'Month' }
 	];
 
 	const { Story } = defineMeta({

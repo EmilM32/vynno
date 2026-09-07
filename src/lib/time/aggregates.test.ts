@@ -20,7 +20,7 @@ import {
 	weeklyDayTotals,
 	yesterdayTotalMs
 } from './aggregates';
-import { localDateKeyFromDate } from './duration';
+import { localDateKeyFromDate, periodBounds } from './duration';
 
 const projects = [
 	makeProject({ id: 'proj-a', name: 'Alpha', color: '#111' }),
@@ -311,15 +311,16 @@ describe('filterSessions', () => {
 });
 
 describe('periodStats', () => {
-	it('aggregates totals, rankings, and target ratio for the week', () => {
-		const stats = periodStats(daySessions(), projects, activityTypes, 'week', FIXED_NOW, ms.hours(8));
-		expect(stats.period).toBe('week');
+	it('aggregates totals and rankings for an explicit range', () => {
+		const stats = periodStats(
+			daySessions(),
+			projects,
+			activityTypes,
+			periodBounds('week', FIXED_NOW),
+			FIXED_NOW
+		);
 		// Week sessions: Mon 2h + Tue 1h + Wed 2.5h = 5.5h
 		expect(stats.totalMs).toBe(ms.hours(5, 30));
-		expect(stats.mostProductiveDay).not.toBeNull();
-		expect(stats.mostProductiveDay!.ms).toBe(ms.hours(2, 30));
-		expect(stats.dailyAverageMs).toBeGreaterThan(0);
-		expect(stats.vsTargetRatio).not.toBeNull();
 
 		expect(stats.byProject[0]!.ms).toBeGreaterThanOrEqual(stats.byProject.at(-1)!.ms);
 		expect(stats.byActivity.length).toBeGreaterThan(0);
@@ -337,14 +338,22 @@ describe('periodStats', () => {
 			startedAt: localIso(2026, 2, 11, 9, 0),
 			endedAt: localIso(2026, 2, 11, 10, 0)
 		});
-		const stats = periodStats([orphan], projects, activityTypes, 'week', FIXED_NOW);
+		const week = periodBounds('week', FIXED_NOW);
+		const stats = periodStats([orphan], projects, activityTypes, week, FIXED_NOW);
 		expect(stats.byProject[0]!.label).toBe('Unknown');
 		expect(stats.byProject[0]!.color).toBe('#64748b');
 
-		const empty = periodStats([], projects, activityTypes, 'week', FIXED_NOW);
+		const empty = periodStats([], projects, activityTypes, week, FIXED_NOW);
 		expect(empty.totalMs).toBe(0);
-		expect(empty.mostProductiveDay).toBeNull();
 		expect(empty.byProject).toEqual([]);
+	});
+
+	it('respects a historical custom span', () => {
+		const start = new Date(2026, 2, 9, 0, 0, 0);
+		const end = new Date(2026, 2, 10, 23, 59, 59, 999);
+		const stats = periodStats(daySessions(), projects, activityTypes, { start, end }, FIXED_NOW);
+		// Mon 2h + Tue 1h; Wednesday is outside
+		expect(stats.totalMs).toBe(ms.hours(3));
 	});
 });
 

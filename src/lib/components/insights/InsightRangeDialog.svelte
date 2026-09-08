@@ -66,10 +66,10 @@
 				</Field>
 			</div>
 			<div class="flex flex-wrap justify-end gap-2">
-				<Button variant="secondary" size="sm" onclick={() => close()}>
+				<Button variant="secondary" onclick={() => close()}>
 					{m.common_cancel()}
 				</Button>
-				<Button variant="primary" size="sm" type="submit" disabled={!parsed.ok}>
+				<Button variant="primary" type="submit" disabled={!parsed.ok}>
 					{m.insights_range_apply()}
 				</Button>
 			</div>

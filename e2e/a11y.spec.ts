@@ -13,6 +13,13 @@ async function expectNoViolations(page: Page) {
 	expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);
 }
 
+/** `toBeVisible()` is true at the first non-zero opacity; axe needs the enter fade to finish. */
+async function expectDialogReady(page: Page, name: string | RegExp) {
+	const dialog = page.getByRole('dialog', { name });
+	await expect(dialog).toBeVisible();
+	await expect(dialog).toHaveCSS('opacity', '1');
+}
+
 test.describe('WCAG 2.2 AA (axe)', () => {
 	for (const theme of themes) {
 		test.describe(`theme ${theme}`, () => {
@@ -37,7 +44,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await login(page);
 		await page.goto('/dashboard');
 		await page.getByRole('button', { name: 'Open command palette' }).click();
-		await expect(page.getByRole('dialog', { name: 'Command palette' })).toBeVisible();
+		await expectDialogReady(page, 'Command palette');
 		await expectNoViolations(page);
 	});
 
@@ -45,7 +52,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await login(page);
 		await page.goto('/projects');
 		await page.getByTestId('new-project').click();
-		await expect(page.getByRole('dialog', { name: 'New project' })).toBeVisible();
+		await expectDialogReady(page, 'New project');
 		await expectNoViolations(page);
 	});
 
@@ -56,7 +63,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 			.getByRole('region', { name: 'Activity types' })
 			.getByRole('button', { name: 'Add', exact: true })
 			.click();
-		await expect(page.getByRole('dialog', { name: 'New activity type' })).toBeVisible();
+		await expectDialogReady(page, 'New activity type');
 		await expectNoViolations(page);
 	});
 
@@ -76,7 +83,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await page.getByRole('button', { name: 'Month' }).click();
 		await expectNoViolations(page);
 		await page.getByRole('button', { name: 'Custom' }).click();
-		await expect(page.getByRole('dialog', { name: 'Custom range' })).toBeVisible();
+		await expectDialogReady(page, 'Custom range');
 		await expectNoViolations(page);
 	});
 });

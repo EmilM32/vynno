@@ -1,7 +1,7 @@
 # Screens and Flows — Vynno
 
 **Status:** Living  
-**Last updated:** 2026-09-07
+**Last updated:** 2026-09-08
 
 Route inventory, shell, and primary user flows. Named themes (`dark`, `light`, `deep-dark`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md). Unbuilt extras: [open.md](./open.md).
 
@@ -80,10 +80,13 @@ Not built on this screen: session target progress, desktop Quick Command panel. 
 
 ### 3.3 Logs (`/logs`)
 
-1. Title + grep-style search
-2. Date separators (`YYYY-MM-DD`)
-3. Entries: project color + name, `> note`, optional activity chip, time range, duration
-4. Add entry / Edit session: form dialog. Delete: confirm dialog
+1. Title + grep-style search + Add entry
+2. Filter row: date (All / Today / Yesterday / Last 7 days / This week / This month / Custom From–To), multi-select projects, multi-select activities. Empty selection = all. View-local (resets on leave). Custom uses native `type="date"`.
+3. Date separators (`YYYY-MM-DD`)
+4. Entries: project color + name, `> note`, optional activity chip, time range, duration
+5. Add entry / Edit session: form dialog. Delete: confirm dialog
+
+Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md).
 
 ### 3.4 Insights (`/insights`)
 

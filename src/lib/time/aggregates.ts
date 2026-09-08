@@ -308,20 +308,53 @@ export function groupSessionsByDate(sessions: TimeSession[], timeZone?: string):
 		.map(([dateKey, list]) => ({ dateKey, sessions: list }));
 }
 
-/** Case-insensitive filter on note + project name. */
+/** Empty string in `activityTypeIds` matches sessions with no activity type. */
+export const UNASSIGNED_ACTIVITY_ID = '';
+
+export type SessionListFilter = {
+	range?: { start: Date; end: Date } | null;
+	projectIds?: readonly string[];
+	/** Empty array = all activities. `''` = unassigned. */
+	activityTypeIds?: readonly string[];
+};
+
+/** Case-insensitive filter on note + project name, plus optional Logs facets. */
 export function filterSessions(
 	sessions: TimeSession[],
 	query: string,
-	projects: Project[]
+	projects: Project[],
+	filter: SessionListFilter = {}
 ): TimeSession[] {
 	const q = query.trim().toLowerCase();
-	if (!q) return sessions;
+	const range = filter.range ?? null;
+	const projectIds = filter.projectIds;
+	const activityTypeIds = filter.activityTypeIds;
+	const hasQuery = Boolean(q);
+	const hasRange = range != null;
+	const hasProjects = Boolean(projectIds && projectIds.length > 0);
+	const hasActivities = Boolean(activityTypeIds && activityTypeIds.length > 0);
 
-	const nameById = new Map(projects.map((p) => [p.id, p.name.toLowerCase()]));
+	if (!hasQuery && !hasRange && !hasProjects && !hasActivities) return sessions;
+
+	const nameById = hasQuery ? new Map(projects.map((p) => [p.id, p.name.toLowerCase()])) : null;
+	const projectSet = hasProjects ? new Set(projectIds) : null;
+	const activitySet = hasActivities ? new Set(activityTypeIds) : null;
+	const rangeStart = hasRange ? range.start.getTime() : 0;
+	const rangeEnd = hasRange ? range.end.getTime() : 0;
 
 	return sessions.filter((s) => {
+		if (hasRange) {
+			const t = Date.parse(s.startedAt);
+			if (Number.isNaN(t) || t < rangeStart || t > rangeEnd) return false;
+		}
+		if (projectSet && !projectSet.has(s.projectId)) return false;
+		if (activitySet) {
+			const key = s.activityTypeId ?? UNASSIGNED_ACTIVITY_ID;
+			if (!activitySet.has(key)) return false;
+		}
+		if (!hasQuery) return true;
 		const note = s.note.toLowerCase();
-		const project = nameById.get(s.projectId) ?? '';
+		const project = nameById!.get(s.projectId) ?? '';
 		const ticket = s.ticketId?.toLowerCase() ?? '';
 		return note.includes(q) || project.includes(q) || ticket.includes(q);
 	});

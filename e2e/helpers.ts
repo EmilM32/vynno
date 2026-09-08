@@ -118,8 +118,21 @@ export async function ensureIdle(page: Page) {
 	}
 }
 
-/** Create stopped sessions via the API, then full-navigate so the SPA hydrates them. */
-export async function seedStoppedSessions(page: Page, count: number) {
+export function localCivilDay(d: Date): string {
+	const y = d.getFullYear();
+	const m = String(d.getMonth() + 1).padStart(2, '0');
+	const day = String(d.getDate()).padStart(2, '0');
+	return `${y}-${m}-${day}`;
+}
+
+export function localDayAt(daysAgo: number, hour = 10, minute = 0): Date {
+	const d = new Date();
+	d.setDate(d.getDate() - daysAgo);
+	d.setHours(hour, minute, 0, 0);
+	return d;
+}
+
+export async function firstProjectId(page: Page): Promise<string> {
 	const list = await apiFetch(page, '/projects');
 	if (!list.ok()) {
 		throw new Error(`GET /projects failed (${list.status()} ${await list.text()})`);
@@ -127,6 +140,43 @@ export async function seedStoppedSessions(page: Page, count: number) {
 	const body = (await list.json()) as { items: { id: string }[] };
 	const projectId = body.items[0]?.id;
 	if (!projectId) throw new Error('e2e account has no project to seed sessions onto');
+	return projectId;
+}
+
+/** Create a stopped session at an explicit civil time via the API. */
+export async function seedManualSession(
+	page: Page,
+	opts: {
+		note: string;
+		startedAt: string;
+		endedAt: string;
+		projectId?: string;
+		activityTypeId?: string | null;
+	}
+) {
+	const projectId = opts.projectId ?? (await firstProjectId(page));
+	const created = await apiFetch(page, '/sessions/manual', {
+		method: 'POST',
+		data: {
+			projectId,
+			note: opts.note,
+			ticketId: null,
+			activityTypeId: opts.activityTypeId ?? null,
+			tags: [],
+			targetDurationMs: null,
+			startedAt: opts.startedAt,
+			endedAt: opts.endedAt,
+			pausedMs: 0
+		}
+	});
+	if (!created.ok()) {
+		throw new Error(`POST /sessions/manual failed (${created.status()} ${await created.text()})`);
+	}
+}
+
+/** Create stopped sessions via the API, then full-navigate so the SPA hydrates them. */
+export async function seedStoppedSessions(page: Page, count: number) {
+	const projectId = await firstProjectId(page);
 
 	for (let i = 0; i < count; i++) {
 		const started = await apiFetch(page, '/sessions', {

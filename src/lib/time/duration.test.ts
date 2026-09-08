@@ -7,6 +7,8 @@ import {
 	canShiftInsightRange,
 	customInsightRange,
 	endOfLocalDay,
+	formatLogDateRangeLabel,
+	logDateRangeForPreset,
 	endOfMonth,
 	endOfWeekSunday,
 	formatClock,
@@ -364,6 +366,62 @@ describe('customInsightRange', () => {
 		const start = parseCivilDay('2026-03-11', 'America/New_York');
 		expect(start).not.toBeNull();
 		expect(localDateKeyFromDate(start!, 'America/New_York')).toBe('2026-03-11');
+	});
+});
+
+describe('logDateRangeForPreset', () => {
+	it('all is unbounded', () => {
+		expect(logDateRangeForPreset('all', FIXED_NOW)).toBeNull();
+	});
+
+	it('today is start of day through now', () => {
+		const range = logDateRangeForPreset('today', FIXED_NOW);
+		expect(range).not.toBeNull();
+		expect(localDateKeyFromDate(range!.start)).toBe('2026-03-11');
+		expect(range!.start.getHours()).toBe(0);
+		expect(range!.end.getTime()).toBe(FIXED_NOW.getTime());
+	});
+
+	it('yesterday is the previous full civil day', () => {
+		const range = logDateRangeForPreset('yesterday', FIXED_NOW);
+		expect(range).not.toBeNull();
+		expect(localDateKeyFromDate(range!.start)).toBe('2026-03-10');
+		expect(localDateKeyFromDate(range!.end)).toBe('2026-03-10');
+		expect(range!.end.getHours()).toBe(23);
+	});
+
+	it('last7 is six days before today through now', () => {
+		const range = logDateRangeForPreset('last7', FIXED_NOW);
+		expect(range).not.toBeNull();
+		expect(localDateKeyFromDate(range!.start)).toBe('2026-03-05');
+		expect(range!.end.getTime()).toBe(FIXED_NOW.getTime());
+		expect(calendarDaysInclusive(range!.start, range!.end)).toBe(7);
+	});
+
+	it('week and month match insight grains', () => {
+		const week = logDateRangeForPreset('week', FIXED_NOW);
+		const month = logDateRangeForPreset('month', FIXED_NOW);
+		expect(week?.start.getDate()).toBe(9);
+		expect(week?.start.getDay()).toBe(1);
+		expect(week?.end.getTime()).toBe(FIXED_NOW.getTime());
+		expect(month?.start.getDate()).toBe(1);
+		expect(month?.end.getTime()).toBe(FIXED_NOW.getTime());
+	});
+
+	it('resolves today in a named time zone', () => {
+		const now = new Date('2026-03-11T15:30:00.000Z');
+		const range = logDateRangeForPreset('today', now, 'UTC');
+		expect(range).not.toBeNull();
+		expect(localDateKeyFromDate(range!.start, 'UTC')).toBe('2026-03-11');
+		expect(range!.end.getTime()).toBe(now.getTime());
+	});
+});
+
+describe('formatLogDateRangeLabel', () => {
+	it('labels a multi-day span', () => {
+		const range = logDateRangeForPreset('last7', FIXED_NOW);
+		expect(range).not.toBeNull();
+		expect(formatLogDateRangeLabel(range!, 'en')).toBe('5–11 Mar 2026');
 	});
 });
 

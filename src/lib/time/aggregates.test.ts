@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { FIXED_NOW, localIso, makeProject, makeSession, ms } from '$lib/test/factories';
 import {
 	filterSessions,
+	UNASSIGNED_ACTIVITY_ID,
 	groupSessionsByDate,
 	latestStoppedStartedAt,
 	periodStats,
@@ -307,6 +308,61 @@ describe('filterSessions', () => {
 	it('matches ticket id', () => {
 		const hit = filterSessions(sessions, 'a-1', projects);
 		expect(hit.map((s) => s.id)).toEqual(['t1']);
+	});
+
+	it('returns all when the optional filter is empty', () => {
+		expect(filterSessions(sessions, '', projects, {})).toEqual(sessions);
+		expect(filterSessions(sessions, '', projects, { projectIds: [], activityTypeIds: [] })).toEqual(
+			sessions
+		);
+	});
+
+	it('keeps sessions whose start falls in the range', () => {
+		const { start, end } = periodBounds('week', FIXED_NOW);
+		const hit = filterSessions(sessions, '', projects, { range: { start, end } });
+		expect(hit.map((s) => s.id)).toEqual(['t1', 't2', 'y1', 'm1']);
+		const todayStart = new Date(2026, 2, 11);
+		const todayEnd = FIXED_NOW;
+		expect(
+			filterSessions(sessions, '', projects, { range: { start: todayStart, end: todayEnd } }).map(
+				(s) => s.id
+			)
+		).toEqual(['t1', 't2']);
+	});
+
+	it('filters by one or several projects', () => {
+		expect(
+			filterSessions(sessions, '', projects, { projectIds: ['proj-a'] }).map((s) => s.id)
+		).toEqual(['t1', 'y1']);
+		expect(
+			filterSessions(sessions, '', projects, { projectIds: ['proj-a', 'proj-b'] }).map((s) => s.id)
+		).toEqual(['t1', 't2', 'y1', 'm1']);
+	});
+
+	it('filters by activity including unassigned', () => {
+		const bare = makeSession({
+			id: 'bare',
+			projectId: 'proj-a',
+			note: 'No type',
+			activityTypeId: undefined,
+			startedAt: localIso(2026, 2, 11, 13, 0),
+			endedAt: localIso(2026, 2, 11, 13, 30)
+		});
+		const withBare = [...sessions, bare];
+		expect(
+			filterSessions(withBare, '', projects, { activityTypeIds: ['act-coding'] }).map((s) => s.id)
+		).toEqual(['t1', 'y1']);
+		expect(
+			filterSessions(withBare, '', projects, { activityTypeIds: [UNASSIGNED_ACTIVITY_ID] }).map(
+				(s) => s.id
+			)
+		).toEqual(['bare']);
+	});
+
+	it('AND-combines query with facets', () => {
+		const hit = filterSessions(sessions, 'feature', projects, { projectIds: ['proj-a'] });
+		expect(hit.map((s) => s.id)).toEqual(['t1', 'y1']);
+		expect(filterSessions(sessions, 'standup', projects, { projectIds: ['proj-a'] })).toEqual([]);
 	});
 });
 

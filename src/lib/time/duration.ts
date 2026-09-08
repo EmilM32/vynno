@@ -428,6 +428,54 @@ function formatDateSpan(start: Date, end: Date, locale: string, timeZone?: strin
 	return `${a.day} ${a.month} ${a.year} – ${b.day} ${b.month} ${b.year}`;
 }
 
+/** Logs date filter. `custom` is not resolved here — use `customInsightRange`. */
+export type LogDatePreset = 'all' | 'today' | 'yesterday' | 'last7' | 'week' | 'month' | 'custom';
+
+export type LogDateRange = {
+	start: Date;
+	end: Date;
+};
+
+/**
+ * Civil window for a named Logs preset. `all` is unbounded (`null`). Open
+ * periods (today / last 7 / this week / this month) clamp `end` to `now`.
+ */
+export function logDateRangeForPreset(
+	preset: Exclude<LogDatePreset, 'custom'>,
+	now = new Date(),
+	timeZone?: string
+): LogDateRange | null {
+	if (preset === 'all') return null;
+	if (preset === 'today') {
+		const start = new Date(startOfLocalDay(now, timeZone));
+		return { start, end: clampToNow(endOfLocalDay(now, timeZone), now) };
+	}
+	if (preset === 'yesterday') {
+		const start = new Date(startOfYesterday(now, timeZone));
+		return { start, end: endOfLocalDay(start, timeZone) };
+	}
+	if (preset === 'last7') {
+		const todayStart = new Date(startOfLocalDay(now, timeZone));
+		const start = addLocalDays(todayStart, -6, timeZone);
+		return { start, end: clampToNow(endOfLocalDay(now, timeZone), now) };
+	}
+	if (preset === 'week') {
+		const range = insightRangeForGrain('week', now, now, timeZone);
+		return { start: range.start, end: range.end };
+	}
+	const range = insightRangeForGrain('month', now, now, timeZone);
+	return { start: range.start, end: range.end };
+}
+
+/** Inclusive civil span label (`11 Mar 2026`, `5–11 Mar 2026`). */
+export function formatLogDateRangeLabel(
+	range: LogDateRange,
+	locale = getLocale(),
+	timeZone?: string
+): string {
+	return formatDateSpan(range.start, range.end, locale, timeZone);
+}
+
 /**
  * Visible identity of the window. Week / 2-week / month labels use the full
  * civil period (Mon–Sun, two Mon–Suns, calendar month), not the now-clamped end.

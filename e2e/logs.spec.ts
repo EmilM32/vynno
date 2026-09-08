@@ -1,5 +1,16 @@
 import { expect, test } from '@playwright/test';
-import { login, seedStoppedSessions, spaGo, startSession, stopSession, uniqueNote } from './helpers';
+import {
+	firstProjectId,
+	localCivilDay,
+	localDayAt,
+	login,
+	seedManualSession,
+	seedStoppedSessions,
+	spaGo,
+	startSession,
+	stopSession,
+	uniqueNote
+} from './helpers';
 
 test.describe('logs', () => {
 	test.beforeEach(async ({ page }) => {
@@ -81,7 +92,11 @@ test.describe('logs', () => {
 		await seedStoppedSessions(page, 20);
 		const cursorRequests: string[] = [];
 		page.on('request', (req) => {
-			if (req.method() === 'GET' && /\/v1\/sessions\?/.test(req.url()) && req.url().includes('cursor=')) {
+			if (
+				req.method() === 'GET' &&
+				/\/v1\/sessions\?/.test(req.url()) &&
+				req.url().includes('cursor=')
+			) {
 				cursorRequests.push(req.url());
 			}
 		});
@@ -111,5 +126,175 @@ test.describe('logs activity chip', () => {
 		await expect(page.getByRole('region', { name: 'Time by activity', exact: true })).toContainText(
 			/coding/i
 		);
+	});
+});
+
+test.describe('logs filters', () => {
+	test('default chrome is All dates / projects / activities', async ({ page }) => {
+		await login(page);
+		await page.goto('/logs');
+		const filters = page.getByTestId('logs-filters');
+		await expect(filters).toBeVisible();
+		await expect(page.getByTestId('logs-filter-dates')).toHaveText(/All dates/);
+		await expect(page.getByTestId('logs-filter-projects')).toHaveText(/All projects/);
+		await expect(page.getByTestId('logs-filter-activities')).toHaveText(/All activities/);
+		await expect(page.getByTestId('logs-filter-clear')).toHaveCount(0);
+	});
+
+	test('Today hides a yesterday entry and Clear restores it', async ({ page }) => {
+		await login(page);
+		const yesterdayNote = uniqueNote('yest');
+		const todayNote = uniqueNote('today');
+		const yest = localDayAt(1, 10, 0);
+		const yestEnd = localDayAt(1, 11, 0);
+		await seedManualSession(page, {
+			note: yesterdayNote,
+			startedAt: yest.toISOString(),
+			endedAt: yestEnd.toISOString()
+		});
+		await startSession(page, todayNote);
+		await stopSession(page);
+		await page.goto('/logs');
+
+		const rows = page.getByTestId('log-row');
+		await expect(rows.filter({ hasText: yesterdayNote })).toBeVisible();
+		await expect(rows.filter({ hasText: todayNote })).toBeVisible();
+
+		await page.getByTestId('logs-filter-dates').click();
+		await page
+			.getByRole('dialog', { name: 'Date range' })
+			.getByRole('button', { name: 'Today' })
+			.click();
+		await expect(page.getByTestId('logs-filter-dates')).toContainText('Today');
+		await expect(rows.filter({ hasText: todayNote })).toBeVisible();
+		await expect(rows.filter({ hasText: yesterdayNote })).toHaveCount(0);
+
+		await page.getByTestId('logs-filter-clear').click();
+		await expect(page.getByTestId('logs-filter-dates')).toHaveText(/All dates/);
+		await expect(rows.filter({ hasText: yesterdayNote })).toBeVisible();
+	});
+
+	test('custom range includes only days in the span', async ({ page }) => {
+		await login(page);
+		const inNote = uniqueNote('in-span');
+		const outNote = uniqueNote('out-span');
+		const inStart = localDayAt(18, 10, 0);
+		const inEnd = localDayAt(18, 11, 0);
+		const outStart = localDayAt(5, 10, 0);
+		const outEnd = localDayAt(5, 11, 0);
+		await seedManualSession(page, {
+			note: inNote,
+			startedAt: inStart.toISOString(),
+			endedAt: inEnd.toISOString()
+		});
+		await seedManualSession(page, {
+			note: outNote,
+			startedAt: outStart.toISOString(),
+			endedAt: outEnd.toISOString()
+		});
+		await page.goto('/logs');
+
+		await page.getByTestId('logs-filter-dates').click();
+		const dialog = page.getByRole('dialog', { name: 'Date range' });
+		await dialog.getByRole('button', { name: 'Custom' }).click();
+		await dialog.getByLabel('From').fill(localCivilDay(localDayAt(20)));
+		await dialog.getByLabel('To').fill(localCivilDay(localDayAt(17)));
+		await dialog.getByRole('button', { name: 'Apply' }).click();
+
+		const rows = page.getByTestId('log-row');
+		await expect(rows.filter({ hasText: inNote })).toBeVisible();
+		await expect(rows.filter({ hasText: outNote })).toHaveCount(0);
+	});
+
+	test('project multi-select keeps only chosen projects', async ({ page }) => {
+		await login(page);
+		const personalId = await firstProjectId(page);
+		const otherName = `FilterProj ${Date.now().toString(36)}`;
+		const created = await page.request.post('/v1/projects', {
+			data: { name: otherName, color: '#10b981' }
+		});
+		if (!created.ok()) {
+			throw new Error(`POST /projects failed (${created.status()} ${await created.text()})`);
+		}
+		const { id: otherId } = (await created.json()) as { id: string };
+		const personalNote = uniqueNote('personal');
+		const otherNote = uniqueNote('other');
+		const start = localDayAt(0, 9, 0);
+		const end = localDayAt(0, 10, 0);
+		await seedManualSession(page, {
+			note: personalNote,
+			projectId: personalId,
+			startedAt: start.toISOString(),
+			endedAt: end.toISOString()
+		});
+		await seedManualSession(page, {
+			note: otherNote,
+			projectId: otherId,
+			startedAt: start.toISOString(),
+			endedAt: end.toISOString()
+		});
+		await page.goto('/logs');
+
+		const rows = page.getByTestId('log-row');
+		await page.getByTestId('logs-filter-projects').click();
+		const dialog = page.getByRole('dialog', { name: 'Filter by project' });
+		await dialog.getByRole('button', { name: otherName }).click();
+		await dialog.getByRole('button', { name: 'Apply' }).click();
+		await expect(rows.filter({ hasText: otherNote })).toBeVisible();
+		await expect(rows.filter({ hasText: personalNote })).toHaveCount(0);
+
+		await page.getByTestId('logs-filter-projects').click();
+		const again = page.getByRole('dialog', { name: 'Filter by project' });
+		await again.getByRole('button', { name: 'Personal' }).click();
+		await again.getByRole('button', { name: 'Apply' }).click();
+		await expect(rows.filter({ hasText: otherNote })).toBeVisible();
+		await expect(rows.filter({ hasText: personalNote })).toBeVisible();
+	});
+
+	test('activity filter distinguishes a type from None', async ({ page }) => {
+		await login(page);
+		const coded = uniqueNote('coded');
+		const bare = uniqueNote('bare');
+		await startSession(page, coded, undefined, 'coding');
+		await stopSession(page);
+		const start = localDayAt(0, 12, 0);
+		const end = localDayAt(0, 13, 0);
+		await seedManualSession(page, {
+			note: bare,
+			startedAt: start.toISOString(),
+			endedAt: end.toISOString()
+		});
+		await page.goto('/logs');
+
+		const rows = page.getByTestId('log-row');
+		await page.getByTestId('logs-filter-activities').click();
+		const dialog = page.getByRole('dialog', { name: 'Filter by activity' });
+		await dialog.getByRole('button', { name: 'coding' }).click();
+		await dialog.getByRole('button', { name: 'Apply' }).click();
+		await expect(rows.filter({ hasText: coded })).toBeVisible();
+		await expect(rows.filter({ hasText: bare })).toHaveCount(0);
+
+		await page.getByTestId('logs-filter-activities').click();
+		const noneDialog = page.getByRole('dialog', { name: 'Filter by activity' });
+		await noneDialog.getByRole('button', { name: 'Any' }).click();
+		await noneDialog.getByRole('button', { name: 'None', exact: true }).click();
+		await noneDialog.getByRole('button', { name: 'Apply' }).click();
+		await expect(rows.filter({ hasText: bare })).toBeVisible();
+		await expect(rows.filter({ hasText: coded })).toHaveCount(0);
+	});
+
+	test('a date range hides the infinite-scroll sentinel', async ({ page }) => {
+		await login(page);
+		await seedStoppedSessions(page, 20);
+		await page.goto('/logs');
+		await expect(page.getByTestId('logs-sentinel')).toBeVisible();
+
+		await page.getByTestId('logs-filter-dates').click();
+		await page
+			.getByRole('dialog', { name: 'Date range' })
+			.getByRole('button', { name: 'Today' })
+			.click();
+		await expect(page.getByTestId('logs-sentinel')).toHaveCount(0);
+		await expect(page.getByTestId('log-row').first()).toBeVisible();
 	});
 });

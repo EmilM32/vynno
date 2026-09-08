@@ -17,7 +17,7 @@ Local development still needs those values. They belong in env files, not in sou
 3. **`PUBLIC_API_BASE` stays a path** (`/v1` by default). That is a prefix, not a host. It lives in shared `.env`.
 4. **Playwright reads `.env` then `.env.development`.** `E2E_ORIGIN` (shared) is the preview `baseURL` (must include a port). `API_ORIGIN` is the vynno-api origin for `/healthz` and registration (playground by default). `E2E_API_BASE` optionally overrides `${API_ORIGIN}/v1`.
 5. **Unit tests use reserved fixture hosts** (`https://api.example.test`, `https://app.example.test`). They do not read env files and they do not talk to a network.
-6. **Production `ORIGIN`** is documented (SvelteKit CSRF / absolute URLs). Local production uses `ORIGIN=https://vynno.local` in `.env.production` ([0014](./0014-local-production-spa.md)). It is not committed. `ORIGIN` / `HOST` / `PORT` must not live in shared `.env` (Vite would see them).
+6. **Production `ORIGIN`** is documented (SvelteKit CSRF / absolute URLs). Local production uses `ORIGIN=https://vynno.localhost` in `.env.production` ([0014](./0014-local-production-spa.md)). It is not committed. `ORIGIN` / `HOST` / `PORT` must not live in shared `.env` (Vite would see them).
 7. **Layered env files, no overlapping keys.** Shared `.env`; Vite/Playwright overlay `.env.development`; daily Node overlay `.env.production`. Do not edit a file to switch modes. Committed templates are `.env.example`, `.env.development.example`, `.env.production.example`.
 
 ## Consequences
@@ -54,6 +54,10 @@ Local production `ORIGIN` is `https://vynno.local` (loopback Caddy TLS). Decisio
 ## Amendment (2026-08-28)
 
 A single `.env` could not serve Vite and daily Node at once (`API_ORIGIN` is playground `:8081` or production `:27182`). Decision clauses 2, 4, and 6 updated in place; clause 7 added. Mode overlays replace commenting `API_ORIGIN` in one file.
+
+## Amendment (2026-09-08)
+
+Local production `ORIGIN` is `https://vynno.localhost`. `.local` is Bonjour/mDNS and dual-stack lookups stall ~5–10 s in Chromium; `*.localhost` is RFC 6761 loopback and skips DNS. Decision clause 6 updated in place.
 
 ## Related
 

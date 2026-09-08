@@ -10,7 +10,7 @@ Install Caddy’s local CA into the macOS trust store (once).
   scripts/trust-caddy
 
 Must run as sudo so it matches the CA created by sudo Caddy on :443.
-Start the SPA once first so Caddy has issued the vynno.local cert.
+Start the SPA once first so Caddy has issued the vynno.localhost cert.
 Then restart Chrome so it picks up the keychain CA.
 EOF
 }

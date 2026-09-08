@@ -14,7 +14,7 @@ This page is the architecture note and the runbook. Commands for `tauri dev` / `
 
 ```
 Today (web)
-browser  →  https://vynno.local  (Caddy :443 → adapter-node :27180, SSR, /v1 BFF)
+browser  →  https://vynno.localhost  (Caddy :443 → adapter-node :27180, SSR, /v1 BFF)
                 └── cookie first-party ──►  vynno-api :27182
 
 Desktop (target)
@@ -24,7 +24,7 @@ Desktop (target)
 
 Tauri does not run SvelteKit SSR or `+server.ts`. Official guidance: [`adapter-static`](https://v2.tauri.app/start/frontend/sveltekit/) + SPA fallback.
 
-Pointing a Tauri window at `https://vynno.local` works as a **one-hour spike** (the webview is a real HTTP origin). It is not the architecture: the `.app` would still require `scripts/start`.
+Pointing a Tauri window at `https://vynno.localhost` works as a **one-hour spike** (the webview is a real HTTP origin). It is not the architecture: the `.app` would still require `scripts/start`.
 
 ---
 
@@ -36,7 +36,7 @@ Pointing a Tauri window at `https://vynno.local` works as a **one-hour spike** (
 | SSR      | On (`src/routes/+layout.server.ts`) | Off (root `+layout.ts`)                                                         |
 | API base | `PUBLIC_API_BASE=/v1` (BFF)         | Absolute `PUBLIC_API_BASE` = vynno-api `/v1` from `.env`                        |
 | `fetch`  | `globalThis.fetch`                  | `@tauri-apps/plugin-http`                                                       |
-| Cookies  | Browser, first-party on `vynno.local` | Rust jar (plugin `cookies` feature). Not the webview cookie store.            |
+| Cookies  | Browser, first-party on `vynno.localhost` | Rust jar (plugin `cookies` feature). Not the webview cookie store.            |
 | CORS     | vynno-api `SPA_ORIGIN`              | Does not apply (Rust is not a browser). API Origin/CSRF is a spike in Phase 7d. |
 
 Do not overwrite `build/` with the static output. `scripts/build` / `scripts/start` keep using the Node server.

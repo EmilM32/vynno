@@ -4,7 +4,7 @@ import type { UserProfile } from '$lib/types/domain';
 
 /**
  * Same-origin `/v1` BFF: rewrite absolute API avatar URLs to a path so HTTPS
- * pages do not load mixed-content `http://vynno.local:27182/v1/avatars/…`.
+ * pages do not load mixed-content `http://vynno.localhost:27182/v1/avatars/…`.
  * Absolute PUBLIC_API_BASE (desktop) keeps the API origin.
  */
 export function rewriteAvatarUrl(url: string, base = getApiBase()): string {

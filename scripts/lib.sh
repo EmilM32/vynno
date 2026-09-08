@@ -176,6 +176,9 @@ listen_pids_on_udp_port() {
 	fi
 	out="$(lsof -nP -i4UDP@127.0.0.1:"$port" -t 2>/dev/null || true)"
 	if [[ -z "$out" ]]; then
+		out="$(lsof -nP -i6UDP@[::1]:"$port" -t 2>/dev/null || true)"
+	fi
+	if [[ -z "$out" ]]; then
 		return 1
 	fi
 	printf '%s\n' "$out"
@@ -184,7 +187,7 @@ listen_pids_on_udp_port() {
 
 require_caddy() {
 	if ! command -v caddy >/dev/null 2>&1; then
-		die "missing caddy — brew install caddy (loopback :${HTTP_PROXY_PORT}/:${HTTPS_PROXY_PORT} proxy for ${ORIGIN:-https://vynno.local})"
+		die "missing caddy — brew install caddy (loopback :${HTTP_PROXY_PORT}/:${HTTPS_PROXY_PORT} proxy for ${ORIGIN:-https://vynno.localhost})"
 	fi
 	if [[ ! -f "$CADDYFILE" ]]; then
 		die "missing $CADDYFILE"
@@ -208,7 +211,7 @@ stop_proxy() {
 # After Caddy is up. Caddy still logs "HTTP/2 skipped" for :80 unless that server is h1-only;
 # this line is the one that means TLS is on.
 proxy_tls_note() {
-	echo "tls  HTTP/2 + HTTP/3  ${ORIGIN:-https://vynno.local}  (:80 is HTTP redirect only)"
+	echo "tls  HTTP/2 + HTTP/3  ${ORIGIN:-https://vynno.localhost}  (:80 is HTTP redirect only)"
 }
 
 start_proxy() {
@@ -219,10 +222,10 @@ start_proxy() {
 	fi
 	local pids bin logfile
 	if pids="$(listen_pids_on_port "$HTTP_PROXY_PORT")"; then
-		die "port ${HTTP_PROXY_PORT} is already in use (pid $(echo "$pids" | tr '\n' ' ')); https://vynno.local needs 127.0.0.1:${HTTP_PROXY_PORT} (HTTP redirect)"
+		die "port ${HTTP_PROXY_PORT} is already in use (pid $(echo "$pids" | tr '\n' ' ')); https://vynno.localhost needs loopback :${HTTP_PROXY_PORT} (HTTP redirect)"
 	fi
 	if pids="$(listen_pids_on_port "$HTTPS_PROXY_PORT")"; then
-		die "port ${HTTPS_PROXY_PORT}/tcp is already in use (pid $(echo "$pids" | tr '\n' ' ')); https://vynno.local needs 127.0.0.1:${HTTPS_PROXY_PORT}"
+		die "port ${HTTPS_PROXY_PORT}/tcp is already in use (pid $(echo "$pids" | tr '\n' ' ')); https://vynno.localhost needs loopback :${HTTPS_PROXY_PORT}"
 	fi
 	if pids="$(listen_pids_on_udp_port "$HTTPS_PROXY_PORT")"; then
 		die "port ${HTTPS_PROXY_PORT}/udp is already in use (pid $(echo "$pids" | tr '\n' ' ')); HTTP/3 needs 127.0.0.1:${HTTPS_PROXY_PORT}"
@@ -237,7 +240,7 @@ start_proxy() {
 		proxy_tls_note
 		return 0
 	fi
-	die "caddy could not bind 127.0.0.1:${HTTP_PROXY_PORT} and :${HTTPS_PROXY_PORT}. Install caddy (brew install caddy) then: sudo env PORT=${PORT:-27180} CADDY_LOG=${logfile} ${bin} start --config ${RUNTIME_CADDYFILE} --adapter caddyfile --pidfile ${PROXY_PIDFILE}"
+	die "caddy could not bind loopback :${HTTP_PROXY_PORT} and :${HTTPS_PROXY_PORT}. Install caddy (brew install caddy) then: sudo env PORT=${PORT:-27180} CADDY_LOG=${logfile} ${bin} start --config ${RUNTIME_CADDYFILE} --adapter caddyfile --pidfile ${PROXY_PIDFILE}"
 }
 
 # curl localhost prefers ::1; vynno-api binds 127.0.0.1. Probe only — do not change API_ORIGIN.

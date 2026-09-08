@@ -134,24 +134,24 @@ describe('profile mappers', () => {
 	});
 
 	it('rewrites absolute API avatar URLs to the same-origin BFF path', () => {
-		expect(rewriteAvatarUrl('http://vynno.local:27182/v1/avatars/abc', '/v1')).toBe(
+		expect(rewriteAvatarUrl('http://vynno.localhost:27182/v1/avatars/abc', '/v1')).toBe(
 			'/v1/avatars/abc'
 		);
-		expect(rewriteAvatarUrl('https://vynno.local:27182/v1/avatars/abc', '/v1')).toBe(
+		expect(rewriteAvatarUrl('https://vynno.localhost:27182/v1/avatars/abc', '/v1')).toBe(
 			'/v1/avatars/abc'
 		);
 		expect(
 			profileFromDto({
 				displayName: 'Alex',
 				email: 'a@example.com',
-				avatarUrl: 'http://vynno.local:27182/v1/avatars/abc'
+				avatarUrl: 'http://vynno.localhost:27182/v1/avatars/abc'
 			})
 		).toEqual({ displayName: 'Alex', email: 'a@example.com', avatarUrl: '/v1/avatars/abc' });
 	});
 
 	it('leaves avatar URLs alone when PUBLIC_API_BASE is an absolute origin', () => {
 		expect(
-			rewriteAvatarUrl('http://vynno.local:27182/v1/avatars/abc', 'https://api.example.test/v1')
-		).toBe('http://vynno.local:27182/v1/avatars/abc');
+			rewriteAvatarUrl('http://vynno.localhost:27182/v1/avatars/abc', 'https://api.example.test/v1')
+		).toBe('http://vynno.localhost:27182/v1/avatars/abc');
 	});
 });

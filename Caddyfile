@@ -4,16 +4,23 @@
 	local_certs
 	skip_install_trust
 	# :80 is the HTTP redirect. Pin h1 so Caddy does not WARN "HTTP/2 skipped because it requires TLS".
+	# *.localhost dual-stacks (RFC 6761); bind both loopbacks, never the LAN.
 	servers 127.0.0.1:80 {
+		protocols h1
+	}
+	servers [::1]:80 {
 		protocols h1
 	}
 	servers 127.0.0.1:443 {
 		protocols h1 h2 h3
 	}
+	servers [::1]:443 {
+		protocols h1 h2 h3
+	}
 }
 
-http://vynno.local {
-	bind 127.0.0.1
+http://vynno.localhost {
+	bind 127.0.0.1 [::1]
 	log {
 		output file {$CADDY_LOG:/tmp/vynno-caddy.log} {
 			roll_size 1MiB
@@ -24,8 +31,8 @@ http://vynno.local {
 	redir https://{host}{uri} 308
 }
 
-https://vynno.local {
-	bind 127.0.0.1
+https://vynno.localhost {
+	bind 127.0.0.1 [::1]
 	tls internal
 	log {
 		output file {$CADDY_LOG:/tmp/vynno-caddy.log} {

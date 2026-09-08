@@ -19,7 +19,7 @@ describe('proxyToApi', () => {
 			})
 		);
 		const response = await proxyToApi({
-			request: jsonRequest('https://vynno.local/v1/me'),
+			request: jsonRequest('https://vynno.localhost/v1/me'),
 			path: 'me',
 			search: '',
 			apiOrigin: 'http://127.0.0.1:27182',
@@ -42,7 +42,7 @@ describe('proxyToApi', () => {
 		const fetchFn = vi.fn().mockRejectedValue(new TypeError('fetch failed', { cause }));
 		const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
 		const response = await proxyToApi({
-			request: jsonRequest('https://vynno.local/v1/projects'),
+			request: jsonRequest('https://vynno.localhost/v1/projects'),
 			path: 'projects',
 			search: '',
 			apiOrigin: 'http://127.0.0.1:27182',

@@ -3,6 +3,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Chip from '$lib/components/ui/Chip.svelte';
 	import ColorDot from '$lib/components/ui/ColorDot.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { formatCompact, formatTimeRange, sessionElapsedMs } from '$lib/time/duration';
@@ -30,6 +31,22 @@
 	const range = $derived(
 		formatTimeRange(session.startedAt, session.endedAt, sessionStore.timeZone)
 	);
+
+	let noteExpanded = $state(false);
+	let noteOverflows = $state(false);
+
+	function watchOverflow(node: HTMLElement) {
+		void session.note;
+		const measure = () => {
+			if (noteExpanded) return;
+			noteOverflows =
+				node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1;
+		};
+		measure();
+		const ro = new ResizeObserver(measure);
+		ro.observe(node);
+		return () => ro.disconnect();
+	}
 </script>
 
 {#snippet projectIdentity()}
@@ -68,11 +85,27 @@
 	{/if}
 
 	<div class="min-w-0 md:flex-1">
-		<div
-			class="font-mono text-code-data break-words whitespace-normal text-on-surface-variant md:truncate md:whitespace-nowrap"
-			title={session.note}
-		>
-			&gt; {session.note}
+		<div class="flex min-w-0 items-start gap-1">
+			<div
+				class={[
+					'min-w-0 flex-1 font-mono text-code-data text-on-surface-variant',
+					noteExpanded ? 'break-words whitespace-normal' : 'truncate'
+				]}
+				title={session.note}
+				{@attach watchOverflow}
+			>
+				&gt; {session.note}
+			</div>
+			{#if noteExpanded || noteOverflows}
+				<IconButton
+					icon={noteExpanded ? 'expand_less' : 'expand_more'}
+					label={noteExpanded ? m.logs_note_collapse() : m.logs_note_expand()}
+					size="sm"
+					aria-expanded={noteExpanded}
+					data-testid="log-note-expand"
+					onclick={() => (noteExpanded = !noteExpanded)}
+				/>
+			{/if}
 		</div>
 		{#if session.ticketId}
 			<div class="mt-1.5 flex flex-wrap items-center gap-1.5">

@@ -152,6 +152,7 @@ export async function seedManualSession(
 		endedAt: string;
 		projectId?: string;
 		activityTypeId?: string | null;
+		ticketId?: string | null;
 	}
 ) {
 	const projectId = opts.projectId ?? (await firstProjectId(page));
@@ -160,7 +161,7 @@ export async function seedManualSession(
 		data: {
 			projectId,
 			note: opts.note,
-			ticketId: null,
+			ticketId: opts.ticketId ?? null,
 			activityTypeId: opts.activityTypeId ?? null,
 			targetDurationMs: null,
 			startedAt: opts.startedAt,

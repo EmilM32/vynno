@@ -1,5 +1,15 @@
 import { expect, test } from '@playwright/test';
-import { login, spaGo, startSession, stopSession, uniqueNote, waitForClient } from './helpers';
+import {
+	firstProjectId,
+	localDayAt,
+	login,
+	seedManualSession,
+	spaGo,
+	startSession,
+	stopSession,
+	uniqueNote,
+	waitForClient
+} from './helpers';
 
 test.describe('projects', () => {
 	test.beforeEach(async ({ page }) => {
@@ -134,5 +144,92 @@ test.describe('projects', () => {
 		await expect(page.locator('#project-select').locator('option', { hasText: name })).toHaveCount(
 			1
 		);
+	});
+});
+
+test.describe('project entries filters', () => {
+	test('default chrome is All dates / activities, no project picker', async ({ page }) => {
+		await login(page);
+		await page.goto(`/projects/${await firstProjectId(page)}`);
+		const entries = page.getByTestId('project-entries');
+		await expect(entries.getByTestId('logs-filter-dates')).toHaveText(/All dates/);
+		await expect(entries.getByTestId('logs-filter-activities')).toHaveText(/All activities/);
+		await expect(entries.getByTestId('logs-filter-projects')).toHaveCount(0);
+		await expect(entries.getByRole('button', { name: 'Entries' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+	});
+
+	test('Today hides a yesterday entry and Clear restores it', async ({ page }) => {
+		await login(page);
+		const yesterdayNote = uniqueNote('proj-yest');
+		const todayNote = uniqueNote('proj-today');
+		await seedManualSession(page, {
+			note: yesterdayNote,
+			startedAt: localDayAt(1, 10, 0).toISOString(),
+			endedAt: localDayAt(1, 11, 0).toISOString()
+		});
+		await seedManualSession(page, {
+			note: todayNote,
+			startedAt: localDayAt(0, 9, 0).toISOString(),
+			endedAt: localDayAt(0, 10, 0).toISOString()
+		});
+		await page.goto(`/projects/${await firstProjectId(page)}`);
+		await page.getByRole('button', { name: 'All', exact: true }).click();
+		const entries = page.getByTestId('project-entries');
+		const rows = entries.getByTestId('log-row');
+		await expect(rows.filter({ hasText: yesterdayNote })).toBeVisible();
+		await expect(rows.filter({ hasText: todayNote })).toBeVisible();
+
+		await entries.getByTestId('logs-filter-dates').click();
+		await page
+			.getByRole('dialog', { name: 'Date range' })
+			.getByRole('button', { name: 'Today' })
+			.click();
+		await expect(entries.getByTestId('logs-filter-dates')).toContainText('Today');
+		await expect(rows.filter({ hasText: todayNote })).toBeVisible();
+		await expect(rows.filter({ hasText: yesterdayNote })).toHaveCount(0);
+
+		await entries.getByTestId('logs-filter-clear').click();
+		await expect(entries.getByTestId('logs-filter-dates')).toHaveText(/All dates/);
+		await expect(rows.filter({ hasText: yesterdayNote })).toBeVisible();
+	});
+
+	test('grouped layout rolls up same-ticket sessions', async ({ page }) => {
+		await login(page);
+		const ticket = `DEV-${Date.now().toString(36)}`;
+		const notes = [uniqueNote('pgrp-a'), uniqueNote('pgrp-b'), uniqueNote('pgrp-c')];
+		const spans: [number, number][] = [
+			[9, 10],
+			[11, 12],
+			[14, 15]
+		];
+		for (let i = 0; i < notes.length; i++) {
+			const [startHour, endHour] = spans[i]!;
+			await seedManualSession(page, {
+				note: notes[i]!,
+				ticketId: ticket,
+				startedAt: localDayAt(0, startHour, 0).toISOString(),
+				endedAt: localDayAt(0, endHour, 0).toISOString()
+			});
+		}
+		await page.goto(`/projects/${await firstProjectId(page)}`);
+		const entries = page.getByTestId('project-entries');
+		for (const note of notes) {
+			await expect(entries.getByTestId('log-row').filter({ hasText: note })).toBeVisible();
+		}
+
+		await entries.getByRole('button', { name: 'Grouped' }).click();
+		const group = entries.getByTestId('log-group').filter({ hasText: ticket });
+		await expect(group).toBeVisible();
+		await expect(group.getByText('3×')).toBeVisible();
+		await expect(group.getByText('3h', { exact: true })).toBeVisible();
+		for (const note of notes) {
+			await expect(entries.getByTestId('log-row').filter({ hasText: note })).toHaveCount(0);
+		}
+
+		await group.getByTestId('log-group-expand').click();
+		await expect(entries.getByTestId('log-group-sessions').getByTestId('log-row')).toHaveCount(3);
 	});
 });

@@ -43,3 +43,22 @@
 		</StoryProviders>
 	{/snippet}
 </Story>
+
+<Story
+	name="LongNote"
+	args={{
+		session: makeSession({
+			note: 'Rewrite the session hydrate path so a long task description still fits the log row and can be expanded in place instead of vanishing behind truncate.',
+			ticketId: 'DEV-842',
+			activityTypeId: 'act-deep'
+		})
+	}}
+>
+	{#snippet template(args)}
+		<StoryProviders>
+			<div class="max-w-xl">
+				<LogRow {...args} />
+			</div>
+		</StoryProviders>
+	{/snippet}
+</Story>

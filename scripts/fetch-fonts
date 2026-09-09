@@ -6,7 +6,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="$ROOT/src/lib/theme/fonts"
 UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
-ICON_NAMES='analytics,arrow_back,arrow_downward,arrow_forward,arrow_upward,dashboard,fiber_manual_record,folder_managed,list_alt,more_horiz,open_in_new,pause,pause_circle,play_arrow,play_circle,prompt_suggestion,search,settings,stop,terminal,timer,visibility,visibility_off'
+ICON_NAMES='analytics,arrow_back,arrow_downward,arrow_forward,arrow_upward,dashboard,expand_less,expand_more,fiber_manual_record,folder_managed,list_alt,more_horiz,open_in_new,pause,pause_circle,play_arrow,play_circle,prompt_suggestion,search,settings,stop,terminal,timer,visibility,visibility_off'
 
 mkdir -p "$OUT"
 

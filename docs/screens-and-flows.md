@@ -1,7 +1,7 @@
 # Screens and Flows — Vynno
 
 **Status:** Living  
-**Last updated:** 2026-09-08
+**Last updated:** 2026-09-09
 
 Route inventory, shell, and primary user flows. Named themes (`dark`, `light`, `deep-dark`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md). Unbuilt extras: [open.md](./open.md).
 
@@ -82,11 +82,12 @@ Not built on this screen: session target progress, desktop Quick Command panel. 
 
 1. Title + grep-style search + Add entry
 2. Filter row: date (All / Today / Yesterday / Last 7 days / This week / This month / Custom From–To), multi-select projects, multi-select activities. Empty selection = all. View-local (resets on leave). Custom uses native `type="date"`.
-3. Date separators (`YYYY-MM-DD`)
-4. Entries: project color + name, `> note`, optional ticket / activity chip, time range, duration
-5. Add entry / Edit session: form dialog (note, project, activity, ticket, times). Delete: confirm dialog
+3. Layout toggle: **Entries** (default) | **Grouped**. View-local; not cleared with filters. Grouped merges same-ticket (else same project + note) sessions inside each day, with count + total duration. Multi-session summaries expand to the constituent rows.
+4. Date separators (`YYYY-MM-DD`)
+5. Entries: project color + name, `> note` (one line; expand when truncated), optional ticket / activity chip, time range, duration
+6. Add entry / Edit session: form dialog (note, project, activity, ticket, times). Delete: confirm dialog
 
-Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md).
+Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs-grouped-view.md](./adr/0023-logs-grouped-view.md).
 
 ### 3.4 Insights (`/insights`)
 
@@ -131,7 +132,7 @@ Time dossier for one project. Not a seventh nav item — Projects stays highligh
 2. Actions: Week / Month / All, Start session (or Open timer), Edit, Archive / Restore
 3. KPI cards: period total, daily average, share of period hours
 4. Period hours bar + time-by-activity bars
-5. Recent logs with restart; date-grouped entries + search
+5. Entries: search, date + activity filters (same chips as `/logs`, no project picker), Entries | Grouped layout. Date-grouped rows; Grouped merges same-ticket sessions. Independent of the KPI Week / Month / All toggle.
 
 | State                           | UI                                                         |
 | ------------------------------- | ---------------------------------------------------------- |

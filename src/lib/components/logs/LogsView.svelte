@@ -1,20 +1,24 @@
 <script lang="ts">
+	import PeriodToggle from '$lib/components/insights/PeriodToggle.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { filterSessions, groupSessionsByDate } from '$lib/time/aggregates';
+	import { filterSessions, groupSessionsByDate, groupSessionsByTask } from '$lib/time/aggregates';
 	import {
 		localDateKeyFromDate,
 		logDateRangeForPreset,
 		type LogDatePreset,
 		type LogDateRange
 	} from '$lib/time/duration';
+	import LogGroupRow from './LogGroupRow.svelte';
 	import LogRow from './LogRow.svelte';
 	import LogsFilterBar from './LogsFilterBar.svelte';
 	import SessionMutations from './SessionMutations.svelte';
+
+	type LogsLayout = 'entries' | 'grouped';
 
 	const sessionStore = useSession();
 
@@ -35,6 +39,12 @@
 	let customRange = $state.raw<LogDateRange | null>(null);
 	let projectIds = $state.raw<string[]>([]);
 	let activityTypeIds = $state.raw<string[]>([]);
+	let layout = $state<LogsLayout>('entries');
+
+	const layoutOptions = $derived([
+		{ id: 'entries' as const, label: m.logs_view_entries() },
+		{ id: 'grouped' as const, label: m.logs_view_grouped() }
+	]);
 
 	const now = $derived(new Date(sessionStore.nowMs));
 	const range = $derived(
@@ -91,16 +101,25 @@
 				{/snippet}
 			</PageHeader>
 
-			<LogsFilterBar
-				bind:datePreset
-				bind:customRange
-				bind:projectIds
-				bind:activityTypeIds
-				projects={sessionStore.allProjects}
-				activityTypes={sessionStore.activityTypes}
-				{now}
-				timeZone={sessionStore.timeZone}
-			/>
+			<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+				<LogsFilterBar
+					bind:datePreset
+					bind:customRange
+					bind:projectIds
+					bind:activityTypeIds
+					projects={sessionStore.allProjects}
+					activityTypes={sessionStore.activityTypes}
+					{now}
+					timeZone={sessionStore.timeZone}
+				/>
+				<div class="self-start">
+					<PeriodToggle
+						bind:value={layout}
+						options={layoutOptions}
+						ariaLabel={m.logs_view_aria()}
+					/>
+				</div>
+			</div>
 
 			{#if sessionStore.loadingMore && range}
 				<p class="text-body-sm text-on-surface-variant">{m.logs_loading_earlier()}</p>
@@ -120,6 +139,7 @@
 				</p>
 			{:else}
 				{#each groups as group, i (group.dateKey)}
+					{const tasks = $derived(layout === 'grouped' ? groupSessionsByTask(group.sessions) : [])}
 					<div class="flex items-center gap-4 py-2 {i > 0 ? 'mt-6' : ''}">
 						<div
 							class="font-mono text-code-label {group.dateKey === todayKey
@@ -131,13 +151,27 @@
 						<div class="flex-1 border-t border-dashed border-outline-variant"></div>
 					</div>
 					<div class="space-y-2">
-						{#each group.sessions as session (session.id)}
-							<LogRow
-								{session}
-								onedit={() => openEdit(session)}
-								ondelete={() => openDelete(session)}
-							/>
-						{/each}
+						{#if layout === 'grouped'}
+							{#each tasks as task (task.key)}
+								{#if task.sessions.length === 1}
+									<LogRow
+										session={task.sessions[0]!}
+										onedit={() => openEdit(task.sessions[0]!)}
+										ondelete={() => openDelete(task.sessions[0]!)}
+									/>
+								{:else}
+									<LogGroupRow group={task} onedit={openEdit} ondelete={openDelete} />
+								{/if}
+							{/each}
+						{:else}
+							{#each group.sessions as session (session.id)}
+								<LogRow
+									{session}
+									onedit={() => openEdit(session)}
+									ondelete={() => openDelete(session)}
+								/>
+							{/each}
+						{/if}
 					</div>
 				{/each}
 			{/if}

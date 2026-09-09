@@ -306,6 +306,60 @@ export function groupSessionsByDate(sessions: TimeSession[], timeZone?: string):
 		.map(([dateKey, list]) => ({ dateKey, sessions: list }));
 }
 
+export type TaskGroup = {
+	key: string;
+	ticketId?: string;
+	projectId: string;
+	note: string;
+	sessions: TimeSession[];
+	totalMs: number;
+};
+
+function taskGroupKey(session: TimeSession): string {
+	const ticket = session.ticketId?.trim();
+	if (ticket) return `t:${ticket.toLowerCase()}`;
+	return `n:${session.projectId}::${session.note}`;
+}
+
+/**
+ * Collapse stopped sessions by ticket (case-insensitive) or, when there is no
+ * ticket, by project + note. Newest session in each group supplies identity.
+ * Sorted by total duration desc, then latest start.
+ */
+export function groupSessionsByTask(sessions: TimeSession[], nowMs = Date.now()): TaskGroup[] {
+	const map = new Map<string, TimeSession[]>();
+	const stopped = sessions
+		.filter((s) => s.status === 'stopped')
+		.sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
+
+	for (const s of stopped) {
+		const key = taskGroupKey(s);
+		const list = map.get(key);
+		if (list) list.push(s);
+		else map.set(key, [s]);
+	}
+
+	const groups: TaskGroup[] = [...map.entries()].map(([key, list]) => {
+		const newest = list[0]!;
+		const ticket = newest.ticketId?.trim();
+		return {
+			key,
+			ticketId: ticket || undefined,
+			projectId: newest.projectId,
+			note: newest.note,
+			sessions: list,
+			totalMs: list.reduce((sum, s) => sum + sessionElapsedMs(s, nowMs), 0)
+		};
+	});
+
+	groups.sort((a, b) => {
+		if (b.totalMs !== a.totalMs) return b.totalMs - a.totalMs;
+		return Date.parse(b.sessions[0]!.startedAt) - Date.parse(a.sessions[0]!.startedAt);
+	});
+
+	return groups;
+}
+
 /** Empty string in `activityTypeIds` matches sessions with no activity type. */
 export const UNASSIGNED_ACTIVITY_ID = '';
 

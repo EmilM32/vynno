@@ -22,7 +22,8 @@
 		projects,
 		activityTypes,
 		now,
-		timeZone
+		timeZone,
+		showProjects = true
 	}: {
 		datePreset: LogDatePreset;
 		customRange: LogDateRange | null;
@@ -32,12 +33,16 @@
 		activityTypes: ActivityType[];
 		now: Date;
 		timeZone?: string;
+		/** False on the project dossier — the page is already one project. */
+		showProjects?: boolean;
 	} = $props();
 
 	const dateConstrained = $derived(datePreset !== 'all');
 	const projectsConstrained = $derived(projectIds.length > 0);
 	const activitiesConstrained = $derived(activityTypeIds.length > 0);
-	const constrained = $derived(dateConstrained || projectsConstrained || activitiesConstrained);
+	const constrained = $derived(
+		dateConstrained || (showProjects && projectsConstrained) || activitiesConstrained
+	);
 
 	const dateLabel = $derived.by(() => {
 		if (datePreset === 'all') return m.logs_filter_dates_all();
@@ -114,7 +119,7 @@
 	function clearFilters() {
 		datePreset = 'all';
 		customRange = null;
-		projectIds = [];
+		if (showProjects) projectIds = [];
 		activityTypeIds = [];
 	}
 </script>
@@ -130,16 +135,18 @@
 	>
 		{dateLabel}
 	</Button>
-	<Button
-		variant={projectsConstrained ? 'tonal' : 'secondary'}
-		size="sm"
-		aria-pressed={projectsConstrained}
-		aria-haspopup="dialog"
-		data-testid="logs-filter-projects"
-		onclick={openProjects}
-	>
-		{projectLabel}
-	</Button>
+	{#if showProjects}
+		<Button
+			variant={projectsConstrained ? 'tonal' : 'secondary'}
+			size="sm"
+			aria-pressed={projectsConstrained}
+			aria-haspopup="dialog"
+			data-testid="logs-filter-projects"
+			onclick={openProjects}
+		>
+			{projectLabel}
+		</Button>
+	{/if}
 	<Button
 		variant={activitiesConstrained ? 'tonal' : 'secondary'}
 		size="sm"
@@ -172,17 +179,19 @@
 	}}
 />
 
-<LogsPickDialog
-	open={projectsOpen}
-	title={m.logs_filter_projects_dialog()}
-	items={projectItems}
-	bind:selected={projectDraft}
-	onclose={() => (projectsOpen = false)}
-	onapply={(ids) => {
-		projectIds = ids;
-		projectsOpen = false;
-	}}
-/>
+{#if showProjects}
+	<LogsPickDialog
+		open={projectsOpen}
+		title={m.logs_filter_projects_dialog()}
+		items={projectItems}
+		bind:selected={projectDraft}
+		onclose={() => (projectsOpen = false)}
+		onapply={(ids) => {
+			projectIds = ids;
+			projectsOpen = false;
+		}}
+	/>
+{/if}
 
 <LogsPickDialog
 	open={activitiesOpen}

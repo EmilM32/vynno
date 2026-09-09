@@ -34,3 +34,5 @@
 		activityTypeIds: ['act-deep']
 	}}
 />
+
+<Story name="NoProjects" args={{ showProjects: false }} />

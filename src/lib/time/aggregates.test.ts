@@ -4,6 +4,7 @@ import {
 	filterSessions,
 	UNASSIGNED_ACTIVITY_ID,
 	groupSessionsByDate,
+	groupSessionsByTask,
 	latestStoppedStartedAt,
 	periodStats,
 	projectPeriodStats,
@@ -285,6 +286,115 @@ describe('groupSessionsByDate', () => {
 		];
 		const allIds = groupSessionsByDate(withActive).flatMap((g) => g.sessions.map((s) => s.id));
 		expect(allIds).not.toContain('act');
+	});
+});
+
+describe('groupSessionsByTask', () => {
+	it('merges the same ticket case-insensitively and sums duration', () => {
+		const a = makeSession({
+			id: 'a',
+			ticketId: 'DEV-9',
+			note: 'First pass',
+			startedAt: localIso(2026, 2, 11, 9, 0),
+			endedAt: localIso(2026, 2, 11, 10, 0)
+		});
+		const b = makeSession({
+			id: 'b',
+			ticketId: 'dev-9',
+			note: 'Second pass',
+			startedAt: localIso(2026, 2, 11, 14, 0),
+			endedAt: localIso(2026, 2, 11, 15, 30)
+		});
+		const groups = groupSessionsByTask([a, b]);
+		expect(groups).toHaveLength(1);
+		expect(groups[0]!.ticketId).toBe('dev-9');
+		expect(groups[0]!.note).toBe('Second pass');
+		expect(groups[0]!.sessions.map((s) => s.id)).toEqual(['b', 'a']);
+		expect(groups[0]!.totalMs).toBe(ms.hours(2, 30));
+	});
+
+	it('groups unticketed sessions by project and note', () => {
+		const a = makeSession({
+			id: 'a',
+			projectId: 'proj-a',
+			note: 'Standup',
+			startedAt: localIso(2026, 2, 11, 9, 0),
+			endedAt: localIso(2026, 2, 11, 9, 30)
+		});
+		const b = makeSession({
+			id: 'b',
+			projectId: 'proj-a',
+			note: 'Standup',
+			startedAt: localIso(2026, 2, 11, 11, 0),
+			endedAt: localIso(2026, 2, 11, 11, 15)
+		});
+		const other = makeSession({
+			id: 'c',
+			projectId: 'proj-a',
+			note: 'Review',
+			startedAt: localIso(2026, 2, 11, 12, 0),
+			endedAt: localIso(2026, 2, 11, 13, 0)
+		});
+		const groups = groupSessionsByTask([a, b, other]);
+		expect(groups.map((g) => g.sessions.map((s) => s.id))).toEqual([['c'], ['b', 'a']]);
+	});
+
+	it('does not treat a blank ticket as a key', () => {
+		const a = makeSession({
+			id: 'a',
+			ticketId: '   ',
+			note: 'Notes',
+			startedAt: localIso(2026, 2, 11, 9, 0),
+			endedAt: localIso(2026, 2, 11, 10, 0)
+		});
+		const b = makeSession({
+			id: 'b',
+			note: 'Notes',
+			startedAt: localIso(2026, 2, 11, 11, 0),
+			endedAt: localIso(2026, 2, 11, 12, 0)
+		});
+		expect(groupSessionsByTask([a, b])).toHaveLength(1);
+	});
+
+	it('sorts by total duration then latest start', () => {
+		const short = makeSession({
+			id: 'short',
+			ticketId: 'A',
+			startedAt: localIso(2026, 2, 11, 15, 0),
+			endedAt: localIso(2026, 2, 11, 15, 30)
+		});
+		const longA = makeSession({
+			id: 'long-a',
+			ticketId: 'B',
+			startedAt: localIso(2026, 2, 11, 9, 0),
+			endedAt: localIso(2026, 2, 11, 10, 0)
+		});
+		const longB = makeSession({
+			id: 'long-b',
+			ticketId: 'B',
+			startedAt: localIso(2026, 2, 11, 11, 0),
+			endedAt: localIso(2026, 2, 11, 12, 0)
+		});
+		expect(groupSessionsByTask([short, longA, longB]).map((g) => g.key)).toEqual(['t:b', 't:a']);
+	});
+
+	it('drops active sessions', () => {
+		const live = makeSession({
+			id: 'live',
+			status: 'active',
+			ticketId: 'DEV-1',
+			startedAt: localIso(2026, 2, 11, 14, 0),
+			endedAt: undefined
+		});
+		const stopped = makeSession({
+			id: 'done',
+			ticketId: 'DEV-1',
+			startedAt: localIso(2026, 2, 11, 9, 0),
+			endedAt: localIso(2026, 2, 11, 10, 0)
+		});
+		expect(groupSessionsByTask([live, stopped]).map((g) => g.sessions.map((s) => s.id))).toEqual([
+			['done']
+		]);
 	});
 });
 

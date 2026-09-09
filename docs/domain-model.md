@@ -126,6 +126,7 @@ User-owned dictionary row. `name` is a display label stored as typed; `color` is
 | Period totals & averages    | Insights KPIs                     |
 | Hours by project / activity | Insights charts + table           |
 | Most productive day         | Insights                          |
+| Logs grouped-by-task (day)  | `/logs` Grouped layout            |
 
 ---
 

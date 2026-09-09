@@ -300,3 +300,79 @@ test.describe('logs filters', () => {
 		await expect(page.getByTestId('log-row').first()).toBeVisible();
 	});
 });
+
+test.describe('logs layout', () => {
+	test('grouped layout rolls up same-ticket sessions on a day', async ({ page }) => {
+		await login(page);
+		const ticket = `DEV-${Date.now().toString(36)}`;
+		const notes = [uniqueNote('grp-a'), uniqueNote('grp-b'), uniqueNote('grp-c')];
+		const spans: [number, number][] = [
+			[9, 10],
+			[11, 12],
+			[14, 15]
+		];
+		for (let i = 0; i < notes.length; i++) {
+			const [startHour, endHour] = spans[i]!;
+			await seedManualSession(page, {
+				note: notes[i]!,
+				ticketId: ticket,
+				startedAt: localDayAt(0, startHour, 0).toISOString(),
+				endedAt: localDayAt(0, endHour, 0).toISOString()
+			});
+		}
+		await page.goto('/logs');
+
+		const layout = page.getByRole('group', { name: 'Log list layout' });
+		await expect(layout.getByRole('button', { name: 'Entries' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		for (const note of notes) {
+			await expect(page.getByTestId('log-row').filter({ hasText: note })).toBeVisible();
+		}
+		await expect(page.getByTestId('log-group')).toHaveCount(0);
+
+		await layout.getByRole('button', { name: 'Grouped' }).click();
+		await expect(layout.getByRole('button', { name: 'Grouped' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		const group = page.getByTestId('log-group').filter({ hasText: ticket });
+		await expect(group).toBeVisible();
+		await expect(group.getByText('3×')).toBeVisible();
+		await expect(group.getByText('3h', { exact: true })).toBeVisible();
+		for (const note of notes) {
+			await expect(page.getByTestId('log-row').filter({ hasText: note })).toHaveCount(0);
+		}
+
+		await group.getByTestId('log-group-expand').click();
+		const nested = page.getByTestId('log-group-sessions');
+		await expect(nested.getByTestId('log-row')).toHaveCount(3);
+		await expect(nested.getByRole('button', { name: 'Edit' }).first()).toBeVisible();
+		await expect(nested.getByTestId('log-row').filter({ hasText: notes[0]! })).toBeVisible();
+	});
+
+	test('expands a truncated log description', async ({ page }) => {
+		await login(page);
+		const note = uniqueNote(
+			'long-note ' +
+				'hydrate the session store from the seed payload and keep the description visible '
+					.repeat(4)
+					.trim()
+		);
+		await seedManualSession(page, {
+			note,
+			startedAt: localDayAt(0, 8, 0).toISOString(),
+			endedAt: localDayAt(0, 8, 30).toISOString()
+		});
+		await page.setViewportSize({ width: 1280, height: 720 });
+		await page.goto('/logs');
+		const row = page.getByTestId('log-row').filter({ hasText: note.slice(0, 24) });
+		const toggle = row.getByTestId('log-note-expand');
+		await expect(toggle).toBeVisible();
+		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+		await toggle.click();
+		await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+		await expect(row.getByText(note)).toBeVisible();
+	});
+});

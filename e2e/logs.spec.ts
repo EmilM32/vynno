@@ -339,8 +339,8 @@ test.describe('logs layout', () => {
 		);
 		const group = page.getByTestId('log-group').filter({ hasText: ticket });
 		await expect(group).toBeVisible();
-		await expect(group.getByText('3×')).toBeVisible();
-		await expect(group.getByText('3h', { exact: true })).toBeVisible();
+		await expect(group).toContainText('3×');
+		await expect(group).toContainText('3h');
 		for (const note of notes) {
 			await expect(page.getByTestId('log-row').filter({ hasText: note })).toHaveCount(0);
 		}

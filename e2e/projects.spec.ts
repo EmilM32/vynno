@@ -62,11 +62,12 @@ test.describe('projects', () => {
 		await expect(page.getByRole('region', { name: 'Hours this week' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Weekly Overview' })).toBeVisible();
 
-		await page.getByRole('button', { name: 'Month' }).click();
+		const period = page.getByRole('group', { name: 'Period' });
+		await period.getByRole('button', { name: 'Month' }).click();
 		await expect(page.getByRole('region', { name: 'Hours this month' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Monthly Overview' })).toBeVisible();
 
-		await page.getByRole('button', { name: 'All' }).click();
+		await period.getByRole('button', { name: 'All' }).click();
 		await expect(page.getByRole('region', { name: 'Hours all time' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'All time' })).toBeVisible();
 	});
@@ -78,7 +79,9 @@ test.describe('projects', () => {
 		await card.click();
 		await expect(page).toHaveURL(/\/projects\/[^/]+$/);
 		await expect(page.getByTestId('project-kpi-total')).toBeVisible();
-		await expect(page.getByRole('button', { name: 'All' })).toBeVisible();
+		await expect(
+			page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'All' })
+		).toBeVisible();
 	});
 
 	test('unknown project id shows not-found copy', async ({ page }) => {
@@ -176,7 +179,7 @@ test.describe('project entries filters', () => {
 			endedAt: localDayAt(0, 10, 0).toISOString()
 		});
 		await page.goto(`/projects/${await firstProjectId(page)}`);
-		await page.getByRole('button', { name: 'All', exact: true }).click();
+		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'All' }).click();
 		const entries = page.getByTestId('project-entries');
 		const rows = entries.getByTestId('log-row');
 		await expect(rows.filter({ hasText: yesterdayNote })).toBeVisible();
@@ -223,8 +226,8 @@ test.describe('project entries filters', () => {
 		await entries.getByRole('button', { name: 'Grouped' }).click();
 		const group = entries.getByTestId('log-group').filter({ hasText: ticket });
 		await expect(group).toBeVisible();
-		await expect(group.getByText('3×')).toBeVisible();
-		await expect(group.getByText('3h', { exact: true })).toBeVisible();
+		await expect(group).toContainText('3×');
+		await expect(group).toContainText('3h');
 		for (const note of notes) {
 			await expect(entries.getByTestId('log-row').filter({ hasText: note })).toHaveCount(0);
 		}

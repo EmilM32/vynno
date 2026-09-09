@@ -162,7 +162,6 @@ export async function seedManualSession(
 			note: opts.note,
 			ticketId: null,
 			activityTypeId: opts.activityTypeId ?? null,
-			tags: [],
 			targetDurationMs: null,
 			startedAt: opts.startedAt,
 			endedAt: opts.endedAt,

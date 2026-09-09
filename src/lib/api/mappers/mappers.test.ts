@@ -62,14 +62,13 @@ describe('project mappers', () => {
 });
 
 describe('session mappers', () => {
-	it('omits empty tags and null ticket from domain', () => {
+	it('omits null ticket from domain', () => {
 		const session = sessionFromDto({
 			id: 'sess-1',
 			projectId: 'proj-auth',
 			note: 'Work',
 			ticketId: null,
 			activityTypeId: 'act-coding',
-			tags: [],
 			status: 'stopped',
 			startedAt: '2026-03-10T08:00:00.000Z',
 			endedAt: '2026-03-10T09:00:00.000Z',
@@ -77,25 +76,23 @@ describe('session mappers', () => {
 			pausedAt: null,
 			targetDurationMs: null
 		});
-		expect(session.tags).toBeUndefined();
 		expect(session.ticketId).toBeUndefined();
 		expect(session.pausedAt).toBeUndefined();
 		expect(session.targetDurationMs).toBeUndefined();
 		expect(session.activityTypeId).toBe('act-coding');
 	});
 
-	it('round-trips tags and ticket', () => {
+	it('round-trips ticket', () => {
 		const original = makeSession({
 			ticketId: 'DEV-1',
 			activityTypeId: 'act-debugging',
-			tags: ['Backend'],
 			endedAt: '2026-03-10T10:00:00.000Z'
 		});
 		const back = sessionFromDto(sessionToDto(original));
 		expect(back).toEqual(original);
 	});
 
-	it('start DTO always sends arrays and nulls', () => {
+	it('start DTO always sends nulls', () => {
 		expect(
 			startSessionToDto({
 				projectId: 'proj-auth',
@@ -106,7 +103,6 @@ describe('session mappers', () => {
 			note: 'Work',
 			ticketId: null,
 			activityTypeId: null,
-			tags: [],
 			targetDurationMs: null
 		});
 		expect(
@@ -115,7 +111,6 @@ describe('session mappers', () => {
 				note: 'Work',
 				ticketId: null,
 				activityTypeId: null,
-				tags: [],
 				targetDurationMs: null
 			})
 		).toEqual({

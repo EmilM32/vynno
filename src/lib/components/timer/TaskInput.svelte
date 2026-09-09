@@ -4,7 +4,6 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { parseTags, tagsEqual } from '$lib/time/tags';
 
 	const sessionStore = useSession();
 
@@ -45,13 +44,6 @@
 		const next = sessionStore.draftTicket.trim() || null;
 		if ((live.ticketId ?? null) === next) return;
 		void sessionStore.updateSession(live.id, { ticketId: next });
-	}
-
-	function onTagsBlur() {
-		if (!live || locked) return;
-		const next = parseTags(sessionStore.draftTags);
-		if (tagsEqual(live.tags, next)) return;
-		void sessionStore.updateSession(live.id, { tags: next });
 	}
 </script>
 
@@ -125,20 +117,6 @@
 			bind:value={sessionStore.draftTicket}
 			disabled={locked}
 			onblur={onTicketBlur}
-			autocomplete="off"
-		/>
-		<label class="font-mono text-code-label text-on-surface-variant lg:sr-only" for="task-tags"
-			>{m.timer_tags_label()}</label
-		>
-		<Input
-			id="task-tags"
-			tone="data"
-			size="sm"
-			class="min-w-[10rem] flex-1 sm:flex-none lg:w-44"
-			placeholder={m.timer_tags_placeholder()}
-			bind:value={sessionStore.draftTags}
-			disabled={locked}
-			onblur={onTagsBlur}
 			autocomplete="off"
 		/>
 	</div>

@@ -16,7 +16,6 @@ import {
 	weeklyDayTotals
 } from '$lib/time/aggregates';
 import { formatClock, sessionElapsedMs } from '$lib/time/duration';
-import { formatTags, parseTags } from '$lib/time/tags';
 import { DEFAULT_TIME_ZONE } from '$lib/time/timezone';
 import type {
 	ActivityType,
@@ -86,8 +85,6 @@ export class SessionStore {
 	/** Empty string = unset; posted as null. */
 	draftActivityType = $state('');
 	draftTicket = $state('');
-	/** Comma-separated; parsed on start / live patch. */
-	draftTags = $state('');
 
 	error = $state<string | null>(null);
 
@@ -138,7 +135,6 @@ export class SessionStore {
 				this.draftNote = recent.note;
 				this.draftActivityType = recent.activityTypeId ?? '';
 				this.draftTicket = recent.ticketId ?? '';
-				this.draftTags = formatTags(recent.tags);
 			}
 		}
 		this.#normalizeProjectSelection();
@@ -429,18 +425,15 @@ export class SessionStore {
 					: this.draftActivityType || undefined;
 			const ticketId =
 				input && 'ticketId' in input ? input.ticketId : this.draftTicket.trim() || undefined;
-			const tags = input && 'tags' in input ? input.tags : parseTags(this.draftTags);
 			this.draftProjectId = projectId;
 			this.draftNote = note;
 			this.draftActivityType = activityTypeId ?? '';
 			this.draftTicket = ticketId ?? '';
-			this.draftTags = formatTags(tags);
 			const started = await this.#requireRepo().startSession({
 				projectId,
 				note,
 				ticketId,
-				activityTypeId,
-				tags
+				activityTypeId
 			});
 			this.#upsertSession(started);
 			this.#adjustSessionCount(started.projectId, started.activityTypeId, 1);
@@ -477,8 +470,7 @@ export class SessionStore {
 			projectId: s.projectId,
 			note: s.note,
 			ticketId: s.ticketId,
-			activityTypeId: s.activityTypeId,
-			tags: s.tags
+			activityTypeId: s.activityTypeId
 		});
 	};
 
@@ -660,7 +652,6 @@ export class SessionStore {
 		this.draftProjectId = session.projectId;
 		this.draftActivityType = session.activityTypeId ?? '';
 		this.draftTicket = session.ticketId ?? '';
-		this.draftTags = formatTags(session.tags);
 	};
 
 	/**
@@ -806,7 +797,6 @@ export class SessionStore {
 		this.draftProjectId = '';
 		this.draftActivityType = '';
 		this.draftTicket = '';
-		this.draftTags = '';
 		this.error = null;
 		this.pendingAction = null;
 	};

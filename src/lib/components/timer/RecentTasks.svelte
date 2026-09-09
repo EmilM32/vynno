@@ -14,8 +14,7 @@
 			projectId: item.projectId,
 			note: item.note,
 			ticketId: item.ticketId,
-			activityTypeId: item.activityTypeId,
-			tags: item.tags
+			activityTypeId: item.activityTypeId
 		});
 	}
 </script>

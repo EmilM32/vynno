@@ -69,13 +69,10 @@ test.describe('logs', () => {
 		await expect(form).toBeVisible();
 		await form.getByLabel('Task').fill(note);
 		await form.getByLabel('Ticket').fill('DEV-1');
-		await form.getByLabel('Tags').fill('focus, backend');
 		await form.getByRole('button', { name: 'Add', exact: true }).click();
 		const row = page.getByTestId('log-row').filter({ hasText: note });
 		await expect(row).toBeVisible();
 		await expect(row.getByText('DEV-1')).toBeVisible();
-		await expect(row.getByText('focus')).toBeVisible();
-		await expect(row.getByText('backend')).toBeVisible();
 
 		await row.getByRole('button', { name: 'Edit' }).click();
 		const edited = `${note}-renamed`;

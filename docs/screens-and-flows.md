@@ -57,7 +57,7 @@ Default landing: `/login` when signed out; `/dashboard` when signed in. Feature 
 
 ### 3.1 Timer (`/timer`)
 
-1. Task input: “What are you working on?” + project picker + optional ticket and tags
+1. Task input: “What are you working on?” + project picker + optional ticket
 2. Timer card: status, project chip, large `HH:MM:SS`, Start / Pause / Resume / Stop
 3. Today’s Summary mini stats
 4. Recent Tasks list with restart
@@ -73,7 +73,7 @@ Not built on this screen: session target progress, desktop Quick Command panel. 
 ### 3.2 Dashboard (`/dashboard`)
 
 1. **Today’s Total** — monospaced duration + delta vs yesterday
-2. **Current Focus** — title, live timer, tags
+2. **Current Focus** — title, live timer, optional ticket
 3. **Active Projects** — horizontal cards: color, name, optional progress %, week hours → `/projects/[id]`
 4. **Weekly Overview** — bar chart Mon–Sun
 5. **Recent Logs** — compact list + restart
@@ -83,8 +83,8 @@ Not built on this screen: session target progress, desktop Quick Command panel. 
 1. Title + grep-style search + Add entry
 2. Filter row: date (All / Today / Yesterday / Last 7 days / This week / This month / Custom From–To), multi-select projects, multi-select activities. Empty selection = all. View-local (resets on leave). Custom uses native `type="date"`.
 3. Date separators (`YYYY-MM-DD`)
-4. Entries: project color + name, `> note`, optional ticket / tags / activity chip, time range, duration
-5. Add entry / Edit session: form dialog (note, project, activity, ticket, tags, times). Delete: confirm dialog
+4. Entries: project color + name, `> note`, optional ticket / activity chip, time range, duration
+5. Add entry / Edit session: form dialog (note, project, activity, ticket, times). Delete: confirm dialog
 
 Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md).
 

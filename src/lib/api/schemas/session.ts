@@ -7,7 +7,6 @@ export const sessionDtoSchema = v.object({
 	note: v.string(),
 	ticketId: v.nullable(v.string()),
 	activityTypeId: v.nullable(idSchema),
-	tags: v.array(v.string()),
 	status: sessionStatusSchema,
 	startedAt: isoDateTimeSchema,
 	endedAt: v.nullable(isoDateTimeSchema),
@@ -26,7 +25,6 @@ export const startSessionDtoSchema = v.object({
 	note: v.string(),
 	ticketId: v.optional(v.nullable(v.string())),
 	activityTypeId: v.optional(v.nullable(idSchema)),
-	tags: v.optional(v.array(v.string())),
 	targetDurationMs: v.optional(v.nullable(v.pipe(v.number(), v.minValue(0))))
 });
 
@@ -35,7 +33,6 @@ export const updateSessionDtoSchema = v.object({
 	note: v.optional(v.string()),
 	ticketId: v.optional(v.nullable(v.string())),
 	activityTypeId: v.optional(v.nullable(idSchema)),
-	tags: v.optional(v.nullable(v.array(v.string()))),
 	startedAt: v.optional(isoDateTimeSchema),
 	endedAt: v.optional(v.nullable(isoDateTimeSchema)),
 	pausedMs: v.optional(v.pipe(v.number(), v.minValue(0))),
@@ -47,7 +44,6 @@ export const createManualSessionDtoSchema = v.object({
 	note: v.string(),
 	ticketId: v.optional(v.nullable(v.string())),
 	activityTypeId: v.optional(v.nullable(idSchema)),
-	tags: v.optional(v.array(v.string())),
 	targetDurationMs: v.optional(v.nullable(v.pipe(v.number(), v.minValue(0)))),
 	startedAt: isoDateTimeSchema,
 	endedAt: isoDateTimeSchema,
@@ -66,7 +62,6 @@ export const sessionSeedItemSchema = v.object({
 	note: v.string(),
 	ticketId: v.nullable(v.string()),
 	activityTypeId: v.nullable(idSchema),
-	tags: v.array(v.string()),
 	status: sessionStatusSchema,
 	started: sessionSeedStartedSchema,
 	durationMs: v.pipe(v.number(), v.minValue(0)),

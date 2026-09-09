@@ -41,7 +41,6 @@ export interface TimeSession {
 	note: string;
 	ticketId?: string;
 	activityTypeId?: string;
-	tags?: string[];
 	status: SessionStatus;
 	/** ISO datetime */
 	startedAt: string;
@@ -69,7 +68,6 @@ export interface StartSessionInput {
 	note: string;
 	ticketId?: string;
 	activityTypeId?: string;
-	tags?: string[];
 	targetDurationMs?: number;
 }
 
@@ -78,7 +76,6 @@ export interface UpdateSessionInput {
 	note?: string;
 	ticketId?: string | null;
 	activityTypeId?: string | null;
-	tags?: string[];
 	startedAt?: string;
 	endedAt?: string | null;
 	pausedMs?: number;
@@ -90,7 +87,6 @@ export interface CreateManualSessionInput {
 	note: string;
 	ticketId?: string;
 	activityTypeId?: string;
-	tags?: string[];
 	targetDurationMs?: number;
 	startedAt: string;
 	endedAt: string;

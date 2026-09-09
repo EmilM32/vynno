@@ -70,14 +70,6 @@
 					{m.timer_stop()}
 				</Button>
 			</div>
-			{#if session.tags?.length}
-				<div class="h-4 w-px bg-outline-variant" aria-hidden="true"></div>
-				<div class="flex flex-wrap gap-2">
-					{#each session.tags as tag (tag)}
-						<Chip variant="tag">{tag}</Chip>
-					{/each}
-				</div>
-			{/if}
 		</div>
 	{:else}
 		<div class="mb-4 flex items-center justify-between">

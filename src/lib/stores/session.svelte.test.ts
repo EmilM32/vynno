@@ -43,10 +43,9 @@ describe('SessionStore draft activity', () => {
 		expect(store.draftNote).toBe('Live work');
 		expect(store.draftActivityType).toBe('act-coding');
 		expect(store.draftTicket).toBe('');
-		expect(store.draftTags).toBe('');
 	});
 
-	it('hydrates ticket and tags from the live session', () => {
+	it('hydrates ticket from the live session', () => {
 		store = new SessionStore(new PrefsStore());
 		store.hydrate({
 			...sampleAppSeed(),
@@ -55,13 +54,11 @@ describe('SessionStore draft activity', () => {
 					status: 'active',
 					endedAt: undefined,
 					ticketId: 'DEV-1',
-					tags: ['focus', 'backend'],
 					note: 'Live work'
 				})
 			]
 		});
 		expect(store.draftTicket).toBe('DEV-1');
-		expect(store.draftTags).toBe('focus, backend');
 	});
 
 	it('hydrates draft activity from the most recent stopped session when idle', () => {

@@ -6,7 +6,6 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { datetimeLocalToIso, isoToDatetimeLocal } from '$lib/time/duration';
-	import { formatTags, parseTags } from '$lib/time/tags';
 	import type {
 		CreateManualSessionInput,
 		TimeSession,
@@ -41,8 +40,6 @@
 	// svelte-ignore state_referenced_locally
 	let ticketId = $state(session?.ticketId ?? '');
 	// svelte-ignore state_referenced_locally
-	let tags = $state(formatTags(session?.tags));
-	// svelte-ignore state_referenced_locally
 	let startedLocal = $state(
 		isoToDatetimeLocal(session?.startedAt ?? new Date(Date.now() - 60 * 60_000).toISOString())
 	);
@@ -70,7 +67,6 @@
 				note,
 				activityTypeId: activityTypeId || undefined,
 				ticketId: ticketId.trim() || undefined,
-				tags: parseTags(tags),
 				startedAt,
 				endedAt: endedAt!
 			});
@@ -81,7 +77,6 @@
 			note,
 			activityTypeId: activityTypeId || null,
 			ticketId: ticketId.trim() || null,
-			tags: parseTags(tags),
 			startedAt
 		};
 		if (!live && endedAt) patch.endedAt = endedAt;
@@ -112,28 +107,16 @@
 		</Field>
 	</div>
 
-	<div class="grid gap-4 sm:grid-cols-2">
-		<Field id="session-ticket" label={m.logs_field_ticket()}>
-			<Input
-				tone="code"
-				type="text"
-				bind:value={ticketId}
-				autocomplete="off"
-				placeholder={m.timer_ticket_placeholder()}
-				class="w-full"
-			/>
-		</Field>
-		<Field id="session-tags" label={m.logs_field_tags()} hint={m.logs_tags_hint()}>
-			<Input
-				tone="data"
-				type="text"
-				bind:value={tags}
-				autocomplete="off"
-				placeholder={m.timer_tags_placeholder()}
-				class="w-full"
-			/>
-		</Field>
-	</div>
+	<Field id="session-ticket" label={m.logs_field_ticket()}>
+		<Input
+			tone="code"
+			type="text"
+			bind:value={ticketId}
+			autocomplete="off"
+			placeholder={m.timer_ticket_placeholder()}
+			class="w-full"
+		/>
+	</Field>
 
 	<div class="grid gap-4 sm:grid-cols-2">
 		<Field id="session-started" label={m.logs_field_started()}>

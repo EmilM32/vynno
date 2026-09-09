@@ -30,11 +30,10 @@ test.describe('timer lifecycle', () => {
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	});
 
-	test('start posts ticket and tags', async ({ page }) => {
-		const note = uniqueNote('ticket-tags');
+	test('start posts ticket', async ({ page }) => {
+		const note = uniqueNote('ticket');
 		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
 		await page.getByLabel('Ticket').fill('DEV-9');
-		await page.getByLabel('Tags').fill('focus, api');
 		const [request] = await Promise.all([
 			page.waitForRequest(
 				(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
@@ -43,13 +42,11 @@ test.describe('timer lifecycle', () => {
 		]);
 		expect(request.postDataJSON()).toMatchObject({
 			note,
-			ticketId: 'DEV-9',
-			tags: ['focus', 'api']
+			ticketId: 'DEV-9'
 		});
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		await page.goto('/dashboard');
 		await expect(page.getByText('DEV-9')).toBeVisible();
-		await expect(page.getByText('focus', { exact: true })).toBeVisible();
 	});
 
 	test('start posts selected activity type', async ({ page }) => {

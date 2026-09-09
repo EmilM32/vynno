@@ -22,7 +22,6 @@ export function sessionFromDto(dto: SessionDto): TimeSession {
 	};
 	if (dto.ticketId) session.ticketId = dto.ticketId;
 	if (dto.activityTypeId) session.activityTypeId = dto.activityTypeId;
-	if (dto.tags.length) session.tags = [...dto.tags];
 	if (dto.endedAt) session.endedAt = dto.endedAt;
 	if (dto.pausedAt) session.pausedAt = dto.pausedAt;
 	if (dto.targetDurationMs != null) session.targetDurationMs = dto.targetDurationMs;
@@ -36,7 +35,6 @@ export function sessionToDto(session: TimeSession): SessionDto {
 		note: session.note,
 		ticketId: session.ticketId ?? null,
 		activityTypeId: session.activityTypeId ?? null,
-		tags: session.tags ? [...session.tags] : [],
 		status: session.status,
 		startedAt: session.startedAt,
 		endedAt: session.endedAt ?? null,
@@ -52,7 +50,6 @@ export function startSessionToDto(input: StartSessionInput): StartSessionDto {
 		note: input.note,
 		ticketId: input.ticketId ?? null,
 		activityTypeId: input.activityTypeId ?? null,
-		tags: input.tags ?? [],
 		targetDurationMs: input.targetDurationMs ?? null
 	};
 }
@@ -63,7 +60,6 @@ export function startSessionFromDto(dto: StartSessionDto): StartSessionInput {
 		note: dto.note,
 		...(dto.ticketId ? { ticketId: dto.ticketId } : {}),
 		...(dto.activityTypeId ? { activityTypeId: dto.activityTypeId } : {}),
-		...(dto.tags?.length ? { tags: dto.tags } : {}),
 		...(dto.targetDurationMs != null ? { targetDurationMs: dto.targetDurationMs } : {})
 	};
 }
@@ -74,7 +70,6 @@ export function updateSessionToDto(input: UpdateSessionInput): UpdateSessionDto 
 	if (input.note !== undefined) dto.note = input.note;
 	if ('ticketId' in input) dto.ticketId = input.ticketId ?? null;
 	if ('activityTypeId' in input) dto.activityTypeId = input.activityTypeId ?? null;
-	if (input.tags !== undefined) dto.tags = input.tags;
 	if (input.startedAt !== undefined) dto.startedAt = input.startedAt;
 	if ('endedAt' in input) dto.endedAt = input.endedAt ?? null;
 	if (input.pausedMs !== undefined) dto.pausedMs = input.pausedMs;
@@ -88,7 +83,6 @@ export function createManualSessionToDto(input: CreateManualSessionInput): Creat
 		note: input.note,
 		ticketId: input.ticketId ?? null,
 		activityTypeId: input.activityTypeId ?? null,
-		tags: input.tags ?? [],
 		targetDurationMs: input.targetDurationMs ?? null,
 		startedAt: input.startedAt,
 		endedAt: input.endedAt,

@@ -35,10 +35,7 @@ function cloneProject(p: Project): Project {
 }
 
 function cloneSession(s: TimeSession): TimeSession {
-	return {
-		...s,
-		tags: s.tags ? [...s.tags] : undefined
-	};
+	return { ...s };
 }
 
 function cloneActivityType(a: ActivityType): ActivityType {
@@ -406,7 +403,6 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			note: input.note.trim() || 'Untitled session',
 			ticketId: input.ticketId,
 			activityTypeId: input.activityTypeId,
-			tags: input.tags,
 			status: 'active',
 			startedAt: new Date().toISOString(),
 			pausedMs: 0,
@@ -488,7 +484,6 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 				delete session.activityTypeId;
 			}
 		}
-		if (input.tags !== undefined) session.tags = [...input.tags];
 		if (input.startedAt !== undefined) session.startedAt = input.startedAt;
 		if ('endedAt' in input) {
 			if (input.endedAt) session.endedAt = input.endedAt;
@@ -525,7 +520,6 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			note: input.note.trim() || 'Untitled session',
 			ticketId: input.ticketId,
 			activityTypeId: input.activityTypeId,
-			tags: input.tags,
 			status: 'stopped',
 			startedAt: input.startedAt,
 			endedAt: input.endedAt,

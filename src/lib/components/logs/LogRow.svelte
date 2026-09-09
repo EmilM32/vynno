@@ -74,14 +74,9 @@
 		>
 			&gt; {session.note}
 		</div>
-		{#if session.ticketId || session.tags?.length}
+		{#if session.ticketId}
 			<div class="mt-1.5 flex flex-wrap items-center gap-1.5">
-				{#if session.ticketId}
-					<Chip variant="ticket">{session.ticketId}</Chip>
-				{/if}
-				{#each session.tags ?? [] as tag (tag)}
-					<Chip variant="tag">{tag}</Chip>
-				{/each}
+				<Chip variant="ticket">{session.ticketId}</Chip>
 			</div>
 		{/if}
 	</div>

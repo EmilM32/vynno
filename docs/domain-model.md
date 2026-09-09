@@ -34,7 +34,7 @@ User
  │    ├── id, name, color
  │
  └── TimeSession*
-      ├── id, projectId, note, ticketId?, activityTypeId?, tags[]?
+      ├── id, projectId, note, ticketId?, activityTypeId?
       ├── status: active | paused | stopped
       ├── startedAt, endedAt?, pausedAt?, pausedMs
       └── targetDurationMs?   // domain field; Timer UI not built
@@ -101,7 +101,6 @@ Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`)
 | `note`             | string                            | Task description / log line    |
 | `ticketId`         | string?                           | e.g. `DEV-842`; Timer / Logs form |
 | `activityTypeId`   | string?                           |                                |
-| `tags`             | string[]?                         | Comma-separated on Timer / Logs |
 | `status`           | `active` \| `paused` \| `stopped` |                                |
 | `startedAt`        | ISO datetime                      |                                |
 | `endedAt`          | ISO datetime?                     | Set on stop                    |

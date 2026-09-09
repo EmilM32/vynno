@@ -75,7 +75,6 @@ export type RecentTask = {
 	durationMs: number;
 	sessionId: string;
 	ticketId?: string;
-	tags?: string[];
 	activityTypeId?: string;
 };
 
@@ -97,7 +96,6 @@ export function recentTasks(sessions: TimeSession[], limit = 5): RecentTask[] {
 			durationMs: sessionElapsedMs(s),
 			sessionId: s.id,
 			ticketId: s.ticketId,
-			tags: s.tags,
 			activityTypeId: s.activityTypeId
 		});
 		if (out.length >= limit) break;

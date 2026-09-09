@@ -158,7 +158,7 @@ Live in `src/lib/components/ui/`. Browse them in Storybook under `UI/*`. These o
 
 **`Select`** — owns `<select>` plus the inset chevron (`.native-select`). Same surface as `Input tone="code"`.
 
-**`KpiCard`** — label + large mono metric + optional caption. **`ProgressBar`** — thin track; `label` is the accessible name. **`Banner`** — error strip; optional dismiss action. **`Chip`** — `code` (project code), `tag` (session tag), `ticket`. **`ColorDot`** — project identity (`sm` 8px circle, `md` 14px square). **`StatusDot`** — 8px live mark (`live` / `paused` / `idle`). **`SwatchPicker`** — colour radiogroup; domain wrappers stay in Projects / Settings.
+**`KpiCard`** — label + large mono metric + optional caption. **`ProgressBar`** — thin track; `label` is the accessible name. **`Banner`** — error strip; optional dismiss action. **`Chip`** — `code` (project code), `ticket`. **`ColorDot`** — project identity (`sm` 8px circle, `md` 14px square). **`StatusDot`** — 8px live mark (`live` / `paused` / `idle`). **`SwatchPicker`** — colour radiogroup; domain wrappers stay in Projects / Settings.
 
 **Rules.** The `class` prop takes layout and colour only; padding, radius, border, background and type scale come from `variant` and `size`. `primitives.guard.test.ts` fails the build on a raw `<button>`, a raw `<input>`/`<select>`, or a visual utility in `class`.
 

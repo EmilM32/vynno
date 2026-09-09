@@ -14,16 +14,20 @@ export const projectDtoSchema = v.object({
 
 export const projectListDtoSchema = listSchema(projectDtoSchema);
 
+const progressPercentSchema = v.pipe(v.number(), v.minValue(0), v.maxValue(100));
+
 export const createProjectDtoSchema = v.object({
 	name: v.string(),
 	color: hexColorSchema,
-	code: v.optional(v.nullable(v.string()))
+	code: v.optional(v.nullable(v.string())),
+	progressPercent: v.optional(v.nullable(progressPercentSchema))
 });
 
 export const updateProjectDtoSchema = v.object({
 	name: v.optional(v.string()),
 	color: v.optional(hexColorSchema),
-	code: v.optional(v.nullable(v.string()))
+	code: v.optional(v.nullable(v.string())),
+	progressPercent: v.optional(v.nullable(progressPercentSchema))
 });
 
 export type ProjectDto = v.InferOutput<typeof projectDtoSchema>;

@@ -267,6 +267,20 @@ describe('MemoryTimeTrackingRepository', () => {
 			expect(updated.code).toBeUndefined();
 		});
 
+		it('create and update progressPercent', async () => {
+			const created = await repo.createProject({
+				name: 'Gated',
+				color,
+				code: 'GAT',
+				progressPercent: 60
+			});
+			expect(created.progressPercent).toBe(60);
+			const raised = await repo.updateProject(created.id, { progressPercent: 80 });
+			expect(raised.progressPercent).toBe(80);
+			const cleared = await repo.updateProject(created.id, { progressPercent: null });
+			expect(cleared.progressPercent).toBeUndefined();
+		});
+
 		it('listProjects includeArchived returns both; archive hides from default list', async () => {
 			const created = await repo.createProject({ name: 'Ephemeral', color, code: 'EPH' });
 			await repo.archiveProject(created.id);

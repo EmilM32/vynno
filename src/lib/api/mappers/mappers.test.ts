@@ -45,15 +45,19 @@ describe('project mappers', () => {
 		expect(createProjectToDto({ name: 'X', color: '#3b82f6' })).toEqual({
 			name: 'X',
 			color: '#3b82f6',
-			code: null
+			code: null,
+			progressPercent: null
 		});
 		expect(updateProjectToDto({ code: null })).toEqual({ code: null });
 		expect(updateProjectToDto({ name: 'Y' })).toEqual({ name: 'Y' });
+		expect(updateProjectToDto({ progressPercent: null })).toEqual({ progressPercent: null });
+		expect(updateProjectToDto({ progressPercent: 60 })).toEqual({ progressPercent: 60 });
 		expect(createProjectFromDto({ name: 'X', color: '#3b82f6', code: null })).toEqual({
 			name: 'X',
 			color: '#3b82f6'
 		});
 		expect(updateProjectFromDto({ code: null })).toEqual({ code: null });
+		expect(updateProjectFromDto({ progressPercent: null })).toEqual({ progressPercent: null });
 	});
 });
 

@@ -20,16 +20,22 @@ test.describe('projects', () => {
 		await expect(page.getByRole('dialog', { name: 'New project' })).toBeVisible();
 		await page.getByLabel('Name').fill(name);
 		await page.locator('#project-code').fill('');
+		await page.locator('#project-progress').fill('60');
 		const [request] = await Promise.all([
 			page.waitForRequest(
 				(r) => r.method() === 'POST' && /\/v1\/projects$/.test(new URL(r.url()).pathname)
 			),
 			page.getByRole('button', { name: 'Create project' }).click()
 		]);
-		expect(request.postDataJSON()).toMatchObject({ name });
+		expect(request.postDataJSON()).toMatchObject({ name, progressPercent: 60 });
 
 		await expect(page.getByTestId('project-list').getByText(name)).toBeVisible();
 		await expect(page.getByRole('alert')).toHaveCount(0); // no validation / store errors
+
+		await page.goto('/dashboard');
+		const card = page.getByTestId('active-project-card').filter({ hasText: name });
+		await expect(card).toBeVisible();
+		await expect(card.getByText('60%')).toBeVisible();
 	});
 
 	test('opens the project dossier from the list', async ({ page }) => {

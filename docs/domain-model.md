@@ -82,7 +82,7 @@ Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`)
 | `name`            | string  | Display name (required, trimmed, 1–80 chars)                                    |
 | `color`           | string  | Hex from fixed UI palette                                                       |
 | `code`            | string? | Short code for chips (`AUTH`); max 8; unique when set (case-insensitive)        |
-| `progressPercent` | number? | Shown on Dashboard project cards; not user-edited in project CRUD               |
+| `progressPercent` | number? | Optional 0–100; set in project create/edit; shown on Dashboard cards            |
 | `isArchived`      | boolean | Hide from pickers; still resolvable via `getProject` for log history            |
 
 **Lifecycle** (full rules: [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md)):
@@ -99,9 +99,9 @@ Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`)
 | `id`               | string                            |                                |
 | `projectId`        | string                            | Required                       |
 | `note`             | string                            | Task description / log line    |
-| `ticketId`         | string?                           | e.g. `DEV-842`                 |
+| `ticketId`         | string?                           | e.g. `DEV-842`; Timer / Logs form |
 | `activityTypeId`   | string?                           |                                |
-| `tags`             | string[]?                         |                                |
+| `tags`             | string[]?                         | Comma-separated on Timer / Logs |
 | `status`           | `active` \| `paused` \| `stopped` |                                |
 | `startedAt`        | ISO datetime                      |                                |
 | `endedAt`          | ISO datetime?                     | Set on stop                    |

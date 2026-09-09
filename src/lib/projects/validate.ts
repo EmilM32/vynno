@@ -38,10 +38,19 @@ export function normalizeProjectFields(input: ProjectFieldValues): NormalizedPro
  * Validate create/update field values (not uniqueness — that needs the repository).
  * Returns localized error message or null if valid.
  */
-export type ProjectFieldErrorKey = 'name' | 'code' | 'color';
+export type ProjectFieldErrorKey = 'name' | 'code' | 'color' | 'progress';
+
+export function parseProgressPercent(raw: string): number | null | 'invalid' {
+	const t = raw.trim();
+	if (!t) return null;
+	if (!/^\d+$/.test(t)) return 'invalid';
+	const n = Number(t);
+	if (n < 0 || n > 100) return 'invalid';
+	return n;
+}
 
 export function validateProjectFieldErrors(
-	input: ProjectFieldValues
+	input: ProjectFieldValues & { progress?: string }
 ): Partial<Record<ProjectFieldErrorKey, string>> {
 	const errors: Partial<Record<ProjectFieldErrorKey, string>> = {};
 	const name = input.name.trim();
@@ -59,6 +68,10 @@ export function validateProjectFieldErrors(
 		} else if (!PROJECT_CODE_PATTERN.test(code)) {
 			errors.code = m.validation_code_chars();
 		}
+	}
+
+	if (input.progress != null && parseProgressPercent(input.progress) === 'invalid') {
+		errors.progress = m.validation_progress_range();
 	}
 
 	return errors;

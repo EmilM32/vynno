@@ -171,15 +171,15 @@ Password reset is two steps. `POST /auth/password/forgot` always `204` for a wel
 `CreateProjectDto`:
 
 ```json
-{ "name": "New tool", "color": "#3b82f6", "code": "TOOL" }
+{ "name": "New tool", "color": "#3b82f6", "code": "TOOL", "progressPercent": 60 }
 ```
 
-`code` may be `null` or omitted. `color` is a `#rrggbb` palette hex.
+`code` may be `null` or omitted. `color` is a `#rrggbb` palette hex. `progressPercent` is optional 0–100; `null` or omit leaves it unset.
 
-`UpdateProjectDto` — all fields optional; `code: null` clears the chip:
+`UpdateProjectDto` — all fields optional; `code: null` clears the chip; `progressPercent: null` clears the dashboard bar:
 
 ```json
-{ "name": "Renamed", "code": null }
+{ "name": "Renamed", "code": null, "progressPercent": 80 }
 ```
 
 ### Activity types
@@ -282,7 +282,6 @@ Not in this contract. Do not invent them to “complete” the API without a con
 
 | Area                                  | Client today                                |
 | ------------------------------------- | ------------------------------------------- |
-| Profile edit                          | `GET /me` only                              |
 | Prefs (daily target, default project) | Device cookie `vynno_prefs` (not an API resource) |
 | Theme / locale                        | Device-local                                |
 | Insights / dashboard totals           | Computed on the client from loaded sessions |

@@ -120,6 +120,7 @@ export interface CreateProjectInput {
 	name: string;
 	color: string;
 	code?: string;
+	progressPercent?: number;
 }
 
 export interface UpdateProjectInput {
@@ -127,4 +128,6 @@ export interface UpdateProjectInput {
 	color?: string;
 	/** Set to null to clear optional code. */
 	code?: string | null;
+	/** Set to null to clear the dashboard bar. */
+	progressPercent?: number | null;
 }

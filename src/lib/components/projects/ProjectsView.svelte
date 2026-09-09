@@ -39,12 +39,18 @@
 		formMode = null;
 	}
 
-	async function onFormSubmit(values: { name: string; color: string; code: string }) {
+	async function onFormSubmit(values: {
+		name: string;
+		color: string;
+		code: string;
+		progressPercent: number | null;
+	}) {
 		if (formMode?.kind === 'create') {
 			const created = await sessionStore.createProject({
 				name: values.name,
 				color: values.color,
-				code: values.code || undefined
+				code: values.code || undefined,
+				...(values.progressPercent != null ? { progressPercent: values.progressPercent } : {})
 			});
 			if (created) {
 				formMode = null;
@@ -56,7 +62,8 @@
 			const updated = await sessionStore.updateProject(formMode.project.id, {
 				name: values.name,
 				color: values.color,
-				code: values.code.trim() ? values.code : null
+				code: values.code.trim() ? values.code : null,
+				progressPercent: values.progressPercent
 			});
 			if (updated) formMode = null;
 		}

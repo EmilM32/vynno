@@ -117,11 +117,21 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 		if (err) throw new DomainError('invalid_body', err);
 		this.#assertCodeUnique(fields.code);
 
+		if (
+			input.progressPercent != null &&
+			(!Number.isInteger(input.progressPercent) ||
+				input.progressPercent < 0 ||
+				input.progressPercent > 100)
+		) {
+			throw new DomainError('invalid_body', 'progressPercent must be 0–100.');
+		}
+
 		const project: Project = {
 			id: newId('proj'),
 			name: fields.name,
 			color: fields.color,
 			...(fields.code ? { code: fields.code } : {}),
+			...(input.progressPercent != null ? { progressPercent: input.progressPercent } : {}),
 			isArchived: false
 		};
 		this.#projects.push(project);
@@ -146,10 +156,23 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 		if (err) throw new DomainError('invalid_body', err);
 		this.#assertCodeUnique(nextCode, id);
 
+		if (
+			input.progressPercent != null &&
+			(!Number.isInteger(input.progressPercent) ||
+				input.progressPercent < 0 ||
+				input.progressPercent > 100)
+		) {
+			throw new DomainError('invalid_body', 'progressPercent must be 0–100.');
+		}
+
 		project.name = nextName;
 		project.color = nextColor;
 		if (nextCode) project.code = nextCode;
 		else delete project.code;
+		if ('progressPercent' in input) {
+			if (input.progressPercent == null) delete project.progressPercent;
+			else project.progressPercent = input.progressPercent;
+		}
 
 		return cloneProject(project);
 	}

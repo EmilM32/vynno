@@ -1,8 +1,10 @@
 <script lang="ts">
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
+	import { parseTags, tagsEqual } from '$lib/time/tags';
 
 	const sessionStore = useSession();
 
@@ -36,6 +38,20 @@
 		const next = sessionStore.draftActivityType || null;
 		if ((live.activityTypeId ?? null) === next) return;
 		void sessionStore.updateSession(live.id, { activityTypeId: next });
+	}
+
+	function onTicketBlur() {
+		if (!live || locked) return;
+		const next = sessionStore.draftTicket.trim() || null;
+		if ((live.ticketId ?? null) === next) return;
+		void sessionStore.updateSession(live.id, { ticketId: next });
+	}
+
+	function onTagsBlur() {
+		if (!live || locked) return;
+		const next = parseTags(sessionStore.draftTags);
+		if (tagsEqual(live.tags, next)) return;
+		void sessionStore.updateSession(live.id, { tags: next });
 	}
 </script>
 
@@ -97,5 +113,33 @@
 				<option value={type.id}>{type.name}</option>
 			{/each}
 		</Select>
+		<label class="font-mono text-code-label text-on-surface-variant lg:sr-only" for="task-ticket"
+			>{m.timer_ticket_label()}</label
+		>
+		<Input
+			id="task-ticket"
+			tone="code"
+			size="sm"
+			class="min-w-[7rem] flex-1 sm:flex-none lg:w-28"
+			placeholder={m.timer_ticket_placeholder()}
+			bind:value={sessionStore.draftTicket}
+			disabled={locked}
+			onblur={onTicketBlur}
+			autocomplete="off"
+		/>
+		<label class="font-mono text-code-label text-on-surface-variant lg:sr-only" for="task-tags"
+			>{m.timer_tags_label()}</label
+		>
+		<Input
+			id="task-tags"
+			tone="data"
+			size="sm"
+			class="min-w-[10rem] flex-1 sm:flex-none lg:w-44"
+			placeholder={m.timer_tags_placeholder()}
+			bind:value={sessionStore.draftTags}
+			disabled={locked}
+			onblur={onTagsBlur}
+			autocomplete="off"
+		/>
 	</div>
 </div>

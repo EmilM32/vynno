@@ -57,7 +57,7 @@ Default landing: `/login` when signed out; `/dashboard` when signed in. Feature 
 
 ### 3.1 Timer (`/timer`)
 
-1. Task input: “What are you working on?” + project picker
+1. Task input: “What are you working on?” + project picker + optional ticket and tags
 2. Timer card: status, project chip, large `HH:MM:SS`, Start / Pause / Resume / Stop
 3. Today’s Summary mini stats
 4. Recent Tasks list with restart
@@ -83,8 +83,8 @@ Not built on this screen: session target progress, desktop Quick Command panel. 
 1. Title + grep-style search + Add entry
 2. Filter row: date (All / Today / Yesterday / Last 7 days / This week / This month / Custom From–To), multi-select projects, multi-select activities. Empty selection = all. View-local (resets on leave). Custom uses native `type="date"`.
 3. Date separators (`YYYY-MM-DD`)
-4. Entries: project color + name, `> note`, optional activity chip, time range, duration
-5. Add entry / Edit session: form dialog. Delete: confirm dialog
+4. Entries: project color + name, `> note`, optional ticket / tags / activity chip, time range, duration
+5. Add entry / Edit session: form dialog (note, project, activity, ticket, tags, times). Delete: confirm dialog
 
 Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md).
 
@@ -103,7 +103,7 @@ Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 - Profile (display name, avatar)
 - Appearance (named theme list)
 - Language (Paraglide, no URL prefixes)
-- Daily hour target (in-memory)
+- Daily hour target (device cookie `vynno_prefs`)
 - Default project
 - Activity types: compact list; Add / Edit form dialog; Delete confirm
 - About + Log out
@@ -113,7 +113,7 @@ Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 1. Header + **New project** CTA
 2. Tabs: **Active** | **Archived**
 3. List rows: color swatch, name, code chip, session count, actions. Name/code links to `/projects/[id]`
-4. New / Edit: form dialog (name, code, color palette)
+4. New / Edit: form dialog (name, code, optional progress 0–100, color palette)
 5. Hard-delete confirm dialog
 
 | State        | Actions                                                      |

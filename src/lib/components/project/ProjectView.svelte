@@ -107,12 +107,18 @@
 		void goto(resolve('/timer'));
 	}
 
-	async function onFormSubmit(values: { name: string; color: string; code: string }) {
+	async function onFormSubmit(values: {
+		name: string;
+		color: string;
+		code: string;
+		progressPercent: number | null;
+	}) {
 		if (!project) return;
 		const updated = await sessionStore.updateProject(project.id, {
 			name: values.name,
 			color: values.color,
-			code: values.code.trim() ? values.code : null
+			code: values.code.trim() ? values.code : null,
+			progressPercent: values.progressPercent
 		});
 		if (updated) editing = false;
 	}

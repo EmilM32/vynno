@@ -4,7 +4,11 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { defaultProjectColor, suggestCode } from '$lib/projects/palette';
-	import { validateProjectFieldErrors, type ProjectFieldErrorKey } from '$lib/projects/validate';
+	import {
+		parseProgressPercent,
+		validateProjectFieldErrors,
+		type ProjectFieldErrorKey
+	} from '$lib/projects/validate';
 	import type { Project } from '$lib/types/domain';
 	import ProjectColorPicker from './ProjectColorPicker.svelte';
 
@@ -12,7 +16,12 @@
 		mode: 'create' | 'edit';
 		project?: Project;
 		pending?: boolean;
-		onsubmit: (values: { name: string; color: string; code: string }) => void;
+		onsubmit: (values: {
+			name: string;
+			color: string;
+			code: string;
+			progressPercent: number | null;
+		}) => void;
 		oncancel: () => void;
 	}
 
@@ -27,6 +36,10 @@
 	let color = $state(project?.color ?? defaultProjectColor());
 	// svelte-ignore state_referenced_locally
 	let codeTouched = $state(mode === 'edit');
+	// svelte-ignore state_referenced_locally
+	let progress = $state(
+		project?.progressPercent != null ? String(project.progressPercent) : ''
+	);
 	let fieldErrors = $state<Partial<Record<ProjectFieldErrorKey, string>>>({});
 
 	function onNameInput(e: Event) {
@@ -44,10 +57,16 @@
 	function handleSubmit(e: Event) {
 		e.preventDefault();
 		if (pending) return;
-		const errors = validateProjectFieldErrors({ name, color, code });
+		const errors = validateProjectFieldErrors({ name, color, code, progress });
 		fieldErrors = errors;
-		if (errors.name || errors.code || errors.color) return;
-		onsubmit({ name, color, code });
+		if (errors.name || errors.code || errors.color || errors.progress) return;
+		const parsed = parseProgressPercent(progress);
+		onsubmit({
+			name,
+			color,
+			code,
+			progressPercent: parsed === 'invalid' ? null : parsed
+		});
 	}
 </script>
 
@@ -79,6 +98,29 @@
 			placeholder={m.projects_code_placeholder()}
 			autocomplete="off"
 			spellcheck="false"
+		/>
+	</Field>
+
+	<Field
+		id="project-progress"
+		label={m.projects_field_progress()}
+		hint={m.projects_progress_hint()}
+		error={fieldErrors.progress}
+	>
+		{#snippet extra()}
+			<span class="text-on-surface-variant">{m.projects_field_progress_optional()}</span>
+		{/snippet}
+		<Input
+			tone="data"
+			type="number"
+			min="0"
+			max="100"
+			step="1"
+			value={progress}
+			oninput={(e) => {
+				progress = (e.currentTarget as HTMLInputElement).value;
+			}}
+			class="w-full sm:max-w-xs"
 		/>
 	</Field>
 

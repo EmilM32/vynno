@@ -28,7 +28,8 @@ export function createProjectToDto(input: CreateProjectInput): CreateProjectDto 
 	return {
 		name: input.name,
 		color: input.color,
-		code: input.code ?? null
+		code: input.code ?? null,
+		progressPercent: input.progressPercent ?? null
 	};
 }
 
@@ -37,6 +38,7 @@ export function updateProjectToDto(input: UpdateProjectInput): UpdateProjectDto 
 	if (input.name !== undefined) dto.name = input.name;
 	if (input.color !== undefined) dto.color = input.color;
 	if (input.code !== undefined) dto.code = input.code;
+	if ('progressPercent' in input) dto.progressPercent = input.progressPercent ?? null;
 	return dto;
 }
 
@@ -44,7 +46,8 @@ export function createProjectFromDto(dto: CreateProjectDto): CreateProjectInput 
 	return {
 		name: dto.name,
 		color: dto.color,
-		...(dto.code ? { code: dto.code } : {})
+		...(dto.code ? { code: dto.code } : {}),
+		...(dto.progressPercent != null ? { progressPercent: dto.progressPercent } : {})
 	};
 }
 
@@ -53,5 +56,6 @@ export function updateProjectFromDto(dto: UpdateProjectDto): UpdateProjectInput 
 	if (dto.name !== undefined) input.name = dto.name;
 	if (dto.color !== undefined) input.color = dto.color;
 	if (dto.code !== undefined) input.code = dto.code;
+	if ('progressPercent' in dto) input.progressPercent = dto.progressPercent ?? null;
 	return input;
 }

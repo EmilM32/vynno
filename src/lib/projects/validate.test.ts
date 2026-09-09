@@ -45,6 +45,16 @@ describe('validateProjectFields', () => {
 			/palette/i
 		);
 		expect(validateProjectFieldErrors({ name: 'X', color, code: 'A_B' }).code).toMatch(/code/i);
+		expect(
+			validateProjectFieldErrors({ name: 'X', color, code: '', progress: '101' }).progress
+		).toMatch(/0 to 100/i);
+	});
+
+	it('accepts empty or in-range progress', () => {
+		expect(validateProjectFieldErrors({ name: 'X', color, code: '', progress: '' }).progress).toBeUndefined();
+		expect(
+			validateProjectFieldErrors({ name: 'X', color, code: '', progress: '0' }).progress
+		).toBeUndefined();
 	});
 });
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ActivityChip from '$lib/components/ui/ActivityChip.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Chip from '$lib/components/ui/Chip.svelte';
 	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
@@ -66,11 +67,23 @@
 		</div>
 	{/if}
 
-	<div
-		class="min-w-0 font-mono text-code-data break-words whitespace-normal text-on-surface-variant md:flex-1 md:truncate md:whitespace-nowrap"
-		title={session.note}
-	>
-		&gt; {session.note}
+	<div class="min-w-0 md:flex-1">
+		<div
+			class="font-mono text-code-data break-words whitespace-normal text-on-surface-variant md:truncate md:whitespace-nowrap"
+			title={session.note}
+		>
+			&gt; {session.note}
+		</div>
+		{#if session.ticketId || session.tags?.length}
+			<div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+				{#if session.ticketId}
+					<Chip variant="ticket">{session.ticketId}</Chip>
+				{/if}
+				{#each session.tags ?? [] as tag (tag)}
+					<Chip variant="tag">{tag}</Chip>
+				{/each}
+			</div>
+		{/if}
 	</div>
 
 	<div class="hidden items-center gap-4 md:flex">

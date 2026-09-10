@@ -72,12 +72,9 @@ describe('session mappers', () => {
 			status: 'stopped',
 			startedAt: '2026-03-10T08:00:00.000Z',
 			endedAt: '2026-03-10T09:00:00.000Z',
-			pausedMs: 0,
-			pausedAt: null,
 			targetDurationMs: null
 		});
 		expect(session.ticketId).toBeUndefined();
-		expect(session.pausedAt).toBeUndefined();
 		expect(session.targetDurationMs).toBeUndefined();
 		expect(session.activityTypeId).toBe('act-coding');
 	});

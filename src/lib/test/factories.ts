@@ -45,7 +45,6 @@ export function makeSession(overrides: Partial<TimeSession> = {}): TimeSession {
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 10, 9, 0),
 		endedAt: localIso(2026, 2, 10, 10, 0),
-		pausedMs: 0,
 		...overrides
 	};
 }

@@ -203,16 +203,6 @@ export class HttpTimeTrackingRepository implements TimeTrackingRepository {
 		return sessionFromDto(dto);
 	}
 
-	async pauseSession(id: string): Promise<TimeSession> {
-		const dto = await this.#client.post(apiPaths.sessionPause(id), {}, sessionDtoSchema);
-		return sessionFromDto(dto);
-	}
-
-	async resumeSession(id: string): Promise<TimeSession> {
-		const dto = await this.#client.post(apiPaths.sessionResume(id), {}, sessionDtoSchema);
-		return sessionFromDto(dto);
-	}
-
 	async stopSession(id: string): Promise<TimeSession> {
 		const dto = await this.#client.post(apiPaths.sessionStop(id), {}, sessionDtoSchema);
 		return sessionFromDto(dto);

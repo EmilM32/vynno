@@ -47,21 +47,21 @@ test.describe('desktop session chip', () => {
 		await expect(page.getByRole('status', { name: 'No active session' })).toBeVisible();
 	});
 
-	test('paused chip freezes elapsed and still opens the timer', async ({ page }) => {
-		const note = uniqueNote('chip-pause');
+	test('active chip ticks elapsed and still opens the timer', async ({ page }) => {
+		const note = uniqueNote('chip-active');
 		await startSession(page, note);
-		await page.getByRole('button', { name: 'Pause' }).click();
-		await expect(page.getByTestId('timer-status')).toHaveText('PAUSED');
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 
 		await spaGo(page, 'Insights', '/insights');
-		await expect(page.getByTestId('shell-session-status')).toHaveText('PAUSED');
-		const frozen = await page.getByTestId('shell-session-elapsed').textContent();
-		await page.waitForTimeout(600);
-		await expect(page.getByTestId('shell-session-elapsed')).toHaveText(frozen!);
+		await expect(page.getByTestId('shell-session-status')).toHaveText('ACTIVE');
+		const first = await page.getByTestId('shell-session-elapsed').textContent();
+		await expect
+			.poll(async () => page.getByTestId('shell-session-elapsed').textContent(), { timeout: 3000 })
+			.not.toBe(first);
 
 		await desktopNav(page).getByTestId('shell-session-chip').click();
 		await expect(page).toHaveURL(/\/timer$/);
-		await expect(page.getByTestId('timer-status')).toHaveText('PAUSED');
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(note);
 	});
 });

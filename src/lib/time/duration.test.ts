@@ -38,36 +38,23 @@ import {
 } from './duration';
 
 describe('sessionElapsedMs', () => {
-	it('uses endedAt for stopped sessions and subtracts pausedMs', () => {
+	it('uses endedAt for stopped sessions', () => {
 		const s = makeSession({
 			status: 'stopped',
 			startedAt: '2026-03-11T10:00:00.000Z',
-			endedAt: '2026-03-11T11:00:00.000Z',
-			pausedMs: ms.min(5)
+			endedAt: '2026-03-11T11:00:00.000Z'
 		});
-		expect(sessionElapsedMs(s)).toBe(ms.min(55));
+		expect(sessionElapsedMs(s)).toBe(ms.hours(1));
 	});
 
 	it('uses nowMs for active sessions', () => {
 		const s = makeSession({
 			status: 'active',
 			startedAt: '2026-03-11T10:00:00.000Z',
-			endedAt: undefined,
-			pausedMs: 0
+			endedAt: undefined
 		});
 		const nowMs = Date.parse('2026-03-11T10:20:00.000Z');
 		expect(sessionElapsedMs(s, nowMs)).toBe(ms.min(20));
-	});
-
-	it('freezes at pausedAt when paused', () => {
-		const s = makeSession({
-			status: 'paused',
-			startedAt: '2026-03-11T10:00:00.000Z',
-			pausedAt: '2026-03-11T10:30:00.000Z',
-			pausedMs: 0,
-			endedAt: undefined
-		});
-		expect(sessionElapsedMs(s, Date.parse('2026-03-11T12:00:00.000Z'))).toBe(ms.min(30));
 	});
 
 	it('returns 0 for invalid startedAt', () => {
@@ -79,8 +66,7 @@ describe('sessionElapsedMs', () => {
 		const s = makeSession({
 			status: 'stopped',
 			startedAt: '2026-03-11T12:00:00.000Z',
-			endedAt: '2026-03-11T11:00:00.000Z',
-			pausedMs: 0
+			endedAt: '2026-03-11T11:00:00.000Z'
 		});
 		expect(sessionElapsedMs(s)).toBe(0);
 	});

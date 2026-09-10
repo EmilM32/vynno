@@ -58,15 +58,14 @@ Default landing: `/login` when signed out; `/dashboard` when signed in. Feature 
 ### 3.1 Timer (`/timer`)
 
 1. Task input: “What are you working on?” + project picker + optional ticket
-2. Timer card: status, project chip, large `HH:MM:SS`, Start / Pause / Resume / Stop
+2. Timer card: status, project chip, large `HH:MM:SS`, Start / Stop
 3. Today’s Summary mini stats
 4. Recent Tasks list with restart
 
 | State  | UI                                                        |
 | ------ | --------------------------------------------------------- |
 | Idle   | Empty or last note; Start (or Start New Session from nav) |
-| Active | Pulsing border/status; live clock; Pause + Stop           |
-| Paused | Amber/paused indicator; frozen clock; Resume + Stop       |
+| Active | Pulsing border/status; live clock; Stop                   |
 
 Not built on this screen: session target progress, desktop Quick Command panel. See [open.md](./open.md).
 
@@ -138,7 +137,7 @@ Time dossier for one project. Not a seventh nav item — Projects stays highligh
 | ------------------------------- | ---------------------------------------------------------- |
 | Unknown id                      | Not-found copy + link back to `/projects`                  |
 | Archived                        | History stays; Start session hidden; Restore available     |
-| Live session on this project    | ACTIVE / PAUSED chip → `/timer`; primary CTA is Open timer |
+| Live session on this project    | ACTIVE chip → `/timer`; primary CTA is Open timer          |
 | Live session on another project | Start disabled (`error_stop_before_start`)                 |
 | No sessions                     | Empty notes + entries; KPIs at zero                        |
 
@@ -160,22 +159,17 @@ Chrome-less card. Login is `POST /v1/auth/login`. Register is `POST /v1/auth/reg
        → status Active, clock ticks
 ```
 
-### B — Pause and resume
+### B — Stop and log
 
 ```
-[Active] → Pause → frozen elapsed, status Paused
-        → Resume → Active again
+[Active] → Stop → session becomes stopped entry
+         → appears in Logs + feeds Dashboard/Insights
+         → Timer returns to Idle (draft keeps last note/project)
 ```
 
-### C — Stop and log
+A break is stop, then start again (new session). There is no pause. Grouped logs sum same-ticket repeats in a day.
 
-```
-[Active|Paused] → Stop → session becomes stopped entry
-                → appears in Logs + feeds Dashboard/Insights
-                → Timer returns to Idle
-```
-
-### D — Restart from recent
+### C — Restart from recent
 
 ```
 [Timer Recent Tasks | Dashboard Recent Logs] → Play
@@ -183,32 +177,32 @@ Chrome-less card. Login is `POST /v1/auth/login`. Register is `POST /v1/auth/reg
   → if another session active: block until stop
 ```
 
-### E — Review the day / week
+### D — Review the day / week
 
 ```
 [Dashboard] → scan Today Total + Current Focus
             → scan Weekly Overview + Recent Logs
 ```
 
-### F — Analyze period
+### E — Analyze period
 
 ```
 [Insights] → select Week or Month → read KPIs + charts + table
 ```
 
-### G — Search logs
+### F — Search logs
 
 ```
 [Logs] → type in search → filter by project name / note text
 ```
 
-### H — Manage projects
+### G — Manage projects
 
 ```
 [Projects] → New / Edit / Archive / Restore / Delete (unused only)
 ```
 
-### I — Open a project dossier
+### H — Open a project dossier
 
 ```
 [Dashboard cards | Projects row | Insights legend | ⌘K]
@@ -222,7 +216,7 @@ Chrome-less card. Login is `POST /v1/auth/login`. Register is `POST /v1/auth/reg
 
 | Screen       | Reads                                                  | Writes                                             |
 | ------------ | ------------------------------------------------------ | -------------------------------------------------- |
-| Timer        | Active session, recent sessions, **active** projects   | Start/pause/resume/stop                            |
+| Timer        | Active session, recent sessions, **active** projects   | Start/stop                                         |
 | Dashboard    | Aggregates + active session + recent                   | Restart (creates session)                          |
 | Logs         | Stopped sessions, projects (incl. archived for labels) | Search; edit/delete; manual entry                  |
 | Insights     | Aggregates for period                                  | Period toggle only                                 |

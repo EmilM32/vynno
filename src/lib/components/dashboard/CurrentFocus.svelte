@@ -10,19 +10,8 @@
 	const sessionStore = useSession();
 
 	const session = $derived(sessionStore.activeSession);
-	const isActive = $derived(session?.status === 'active');
-	const isPaused = $derived(session?.status === 'paused');
-	const cardBorder = $derived(
-		!session ? 'border-outline-variant' : isActive ? 'border-primary' : 'border-tertiary'
-	);
-	const toggleLabel = $derived(isActive ? m.timer_pause() : m.timer_resume());
+	const cardBorder = $derived(session ? 'border-primary' : 'border-outline-variant');
 	const pending = $derived(sessionStore.busy);
-
-	function togglePause() {
-		if (pending) return;
-		if (isActive) sessionStore.pause();
-		else if (isPaused) sessionStore.resume();
-	}
 </script>
 
 <div
@@ -36,9 +25,6 @@
 				</h2>
 				{#if session.ticketId}
 					<Chip variant="ticket">{session.ticketId}</Chip>
-				{/if}
-				{#if isPaused}
-					<span class="font-mono text-code-label text-tertiary">{m.timer_status_paused()}</span>
 				{/if}
 			</div>
 			<IconButton
@@ -54,17 +40,9 @@
 
 		<div class="mt-auto flex flex-wrap items-center gap-3 border-t border-outline-variant/50 pt-4">
 			<div class="flex items-center gap-2">
-				<Button
-					variant="quiet"
-					class={isActive ? 'text-primary' : 'text-tertiary'}
-					aria-label={toggleLabel}
-					title={toggleLabel}
-					onclick={togglePause}
-					disabled={pending}
+				<span class="font-mono text-code-data text-primary tabular-nums"
+					>{sessionStore.elapsedLabel}</span
 				>
-					<Icon name={isActive ? 'pause_circle' : 'play_circle'} />
-					<span class="font-mono text-code-data tabular-nums">{sessionStore.elapsedLabel}</span>
-				</Button>
 				<Button variant="primary" size="sm" onclick={() => sessionStore.stop()} disabled={pending}>
 					<Icon name="stop" fill />
 					{m.timer_stop()}

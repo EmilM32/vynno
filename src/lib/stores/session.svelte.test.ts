@@ -98,7 +98,7 @@ describe('SessionStore draft activity', () => {
 		store = new SessionStore(new PrefsStore());
 		store.hydrate({
 			...sampleAppSeed(),
-			sessions: [makeSession({ status: 'paused', endedAt: undefined, activityTypeId: 'act-docs' })]
+			sessions: [makeSession({ status: 'active', endedAt: undefined, activityTypeId: 'act-docs' })]
 		});
 		expect(store.draftActivityType).toBe('act-docs');
 		store.reset();
@@ -171,18 +171,6 @@ describe('SessionStore draft activity', () => {
 		expect(listSessions).not.toHaveBeenCalled();
 		expect(listProjects).not.toHaveBeenCalled();
 		expect(listActivityTypes).not.toHaveBeenCalled();
-
-		await store.pause();
-		expect(store.activeSession?.status).toBe('paused');
-		expect(store.activeSession?.pausedAt).toBeTruthy();
-		expect(listSessions).not.toHaveBeenCalled();
-		expect(listProjects).not.toHaveBeenCalled();
-		expect(listActivityTypes).not.toHaveBeenCalled();
-
-		await store.resume();
-		expect(store.activeSession?.status).toBe('active');
-		expect(store.activeSession?.pausedAt).toBeUndefined();
-		expect(listSessions).not.toHaveBeenCalled();
 
 		const liveId = store.activeSession?.id;
 		await store.stop();
@@ -314,30 +302,13 @@ describe('SessionStore draft activity', () => {
 		expect(store.nowMs).toBe(1_000);
 	});
 
-	it('freezes elapsed while paused and uses Date.now() while active', () => {
-		const paused = makeSession({
-			id: 'live',
-			status: 'paused',
-			endedAt: undefined,
-			startedAt: '2026-03-11T10:00:00.000Z',
-			pausedAt: '2026-03-11T10:05:00.000Z',
-			pausedMs: 0
-		});
-		store = new SessionStore(new PrefsStore());
-		store.hydrate(
-			{ ...sampleAppSeed(), sessions: [paused] },
-			{ nowMs: Date.parse('2026-03-11T12:00:00.000Z') }
-		);
-		expect(store.elapsedMs).toBe(sessionElapsedMs(paused, store.nowMs));
-
+	it('uses Date.now() for elapsed while active', () => {
 		const active = makeSession({
 			id: 'live',
 			status: 'active',
 			endedAt: undefined,
-			startedAt: '2026-03-11T10:00:00.000Z',
-			pausedMs: 0
+			startedAt: '2026-03-11T10:00:00.000Z'
 		});
-		store.reset();
 		store = new SessionStore(new PrefsStore());
 		store.hydrate({ ...sampleAppSeed(), sessions: [active] }, { nowMs: Date.now() });
 		expect(store.elapsedMs).toBe(sessionElapsedMs(active, Date.now()));

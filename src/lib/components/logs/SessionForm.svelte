@@ -28,7 +28,7 @@
 
 	const sessionStore = useSession();
 	const live = $derived(
-		session != null && (session.status === 'active' || session.status === 'paused')
+		session != null && session.status === 'active'
 	);
 
 	// svelte-ignore state_referenced_locally

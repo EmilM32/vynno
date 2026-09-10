@@ -10,13 +10,12 @@
 
 	const session = $derived(sessionStore.activeSession);
 	const project = $derived(sessionStore.activeProject);
-	const isActive = $derived(session?.status === 'active');
 
-	const statusLabel = $derived(isActive ? m.timer_status_active() : m.timer_status_paused());
-	const statusSpoken = $derived(isActive ? m.shell_session_recording() : m.shell_session_paused());
-	const statusColor = $derived(isActive ? 'text-secondary' : 'text-tertiary');
-	const statusDot: StatusDotTone = $derived(isActive ? 'live' : 'paused');
-	const cardBorder = $derived(isActive ? 'border-primary' : 'border-tertiary');
+	const statusLabel = $derived(m.timer_status_active());
+	const statusSpoken = $derived(m.shell_session_recording());
+	const statusColor = 'text-secondary';
+	const statusDot: StatusDotTone = 'live';
+	const cardBorder = 'border-primary';
 
 	const projectCode = $derived(project?.code ?? project?.name?.slice(0, 4).toUpperCase() ?? '—');
 	const detail = $derived.by(() => {

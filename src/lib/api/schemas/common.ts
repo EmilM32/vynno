@@ -1,11 +1,7 @@
 import * as v from 'valibot';
 import { ACTIVITY_COLOR_TOKENS, type SessionStatus } from '$lib/types/domain';
 
-export const SESSION_STATUSES = [
-	'active',
-	'paused',
-	'stopped'
-] as const satisfies readonly SessionStatus[];
+export const SESSION_STATUSES = ['active', 'stopped'] as const satisfies readonly SessionStatus[];
 
 export const activityColorSchema = v.picklist(ACTIVITY_COLOR_TOKENS);
 export const sessionStatusSchema = v.picklist(SESSION_STATUSES);

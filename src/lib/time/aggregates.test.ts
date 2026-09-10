@@ -47,7 +47,7 @@ function daySessions() {
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 11, 9, 0),
 		endedAt: localIso(2026, 2, 11, 11, 0),
-		pausedMs: 0
+
 	});
 	const todayB = makeSession({
 		id: 't2',
@@ -57,7 +57,7 @@ function daySessions() {
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 11, 11, 30),
 		endedAt: localIso(2026, 2, 11, 12, 0),
-		pausedMs: 0
+
 	});
 	// Yesterday (Mar 10): 1h
 	const yest = makeSession({
@@ -68,7 +68,7 @@ function daySessions() {
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 10, 10, 0),
 		endedAt: localIso(2026, 2, 10, 11, 0),
-		pausedMs: 0
+
 	});
 	// Older stopped (Mon Mar 9)
 	const mon = makeSession({
@@ -79,7 +79,7 @@ function daySessions() {
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 9, 14, 0),
 		endedAt: localIso(2026, 2, 9, 16, 0),
-		pausedMs: 0
+
 	});
 	return [todayA, todayB, yest, mon];
 }
@@ -103,7 +103,7 @@ describe('totalForLocalDay / today / yesterday / delta', () => {
 			status: 'active',
 			startedAt: localIso(2026, 2, 11, 15, 0),
 			endedAt: undefined,
-			pausedMs: 0
+	
 		});
 		const key = localDateKeyFromDate(FIXED_NOW);
 		// FIXED_NOW is 15:30 → 30m live
@@ -234,7 +234,7 @@ describe('periodBucketTotals', () => {
 			status: 'stopped',
 			startedAt: localIso(2026, 0, 15, 10, 0),
 			endedAt: localIso(2026, 0, 15, 12, 0),
-			pausedMs: 0
+	
 		});
 		const months = periodBucketTotals([...daySessions(), older], { kind: 'all' }, FIXED_NOW);
 		expect(months.map((d) => d.key)).toEqual(['2026-01', '2026-02', '2026-03']);
@@ -275,7 +275,7 @@ describe('periodBucketTotals', () => {
 			status: 'stopped',
 			startedAt: localIso(2026, 1, 1, 10, 0),
 			endedAt: localIso(2026, 1, 1, 12, 0),
-			pausedMs: 0
+	
 		});
 		const parsed = customInsightRange('2026-02-01', '2026-03-11', FIXED_NOW);
 		expect(parsed.ok).toBe(true);

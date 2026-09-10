@@ -1,7 +1,7 @@
 # Domain Model — Vynno (Frontend-facing)
 
 **Status:** Living  
-**Last updated:** 2026-08-27
+**Last updated:** 2026-09-10
 
 Conceptual model the UI implements. It is not a database schema and it is **not** the HTTP wire format.
 
@@ -15,7 +15,7 @@ Types: `src/lib/types/domain.ts`. Wire JSON (DTOs, `archived` instead of `isArch
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Project**              | Named container for work. Has a color used in lists and charts.                                                                              |
 | **Task / note**          | Free-text description on a session (“Refactoring Auth Service”). There is no separate Task entity (see [open.md](./open.md)).                |
-| **Session / Time entry** | A timed interval. While running or paused it is the _active session_; when stopped it becomes a historical log entry.                        |
+| **Session / Time entry** | A continuous timed interval. While running it is the _active session_; when stopped it becomes a historical log entry.                        |
 | **Activity type**        | User-owned category of work. Used as chips and in Insights.                                                                                  |
 | **Tag / label**          | Secondary labels on a focus card. Distinct from project color.                                                                               |
 | **Daily target**         | Optional hours-per-day goal used in Insights deltas. Device cookie `vynno_prefs` (with default project); not an API field.                   |
@@ -35,8 +35,8 @@ User
  │
  └── TimeSession*
       ├── id, projectId, note, ticketId?, activityTypeId?
-      ├── status: active | paused | stopped
-      ├── startedAt, endedAt?, pausedAt?, pausedMs
+      ├── status: active | stopped
+      ├── startedAt, endedAt?
       └── targetDurationMs?   // domain field; Timer UI not built
 ```
 
@@ -47,28 +47,18 @@ Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`)
 ## 3. Session lifecycle
 
 ```
-                    start
-     ┌──────────────────────────────────┐
-     │                                  ▼
-  [idle] ──start──► [active] ◄──resume── [paused]
-                       │                    ▲
-                       │ pause              │
-                       └────────────────────┘
-                       │
-                       │ stop
-                       ▼
-                   [stopped]
-                 (log entry)
+  [idle] ──start──► [active] ──stop──► [stopped]
+                                         (log entry)
 ```
 
 | Rule                      | Description                                                                                                                                                          |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Single active session** | At most one session with status `active` or `paused`. Starting a second session is forbidden until the current one is stopped (`409 session_already_active`).        |
-| **Elapsed display**       | For `active`: `now - startedAt - totalPausedDuration`. For `paused`: frozen elapsed.                                                                                 |
-| **Stop**                  | Sets `endedAt`, status `stopped`; entry appears in Logs and feeds Dashboard/Insights aggregates.                                                                     |
+| **Single active session** | At most one session with status `active`. Starting a second session is forbidden until the current one is stopped (`409 session_already_active`).                    |
+| **Elapsed display**       | For `active`: `now - startedAt`. For `stopped`: `endedAt - startedAt`.                                                                                               |
+| **Stop**                  | Sets `endedAt`, status `stopped`; entry appears in Logs and feeds Dashboard/Insights aggregates. A break is stop, then start a new session.                          |
 | **Restart**               | From recent task/log: creates a **new** session prefilled with same project + note (not resume of a historical entry).                                               |
-| **Idle**                  | No `active`/`paused` session; Timer shows empty or last description ready to start.                                                                                  |
-| **Mutability**            | PATCH and DELETE apply to any stopped row. Status still changes only via pause / resume / stop.                                                                      |
+| **Idle**                  | No `active` session; Timer shows empty or last description ready to start.                                                                                           |
+| **Mutability**            | PATCH and DELETE apply to any stopped row. Status still changes only via stop.                                                                                       |
 
 ---
 
@@ -101,11 +91,9 @@ Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`)
 | `note`             | string                            | Task description / log line    |
 | `ticketId`         | string?                           | e.g. `DEV-842`; Timer / Logs form |
 | `activityTypeId`   | string?                           |                                |
-| `status`           | `active` \| `paused` \| `stopped` |                                |
+| `status`           | `active` \| `stopped`             |                                |
 | `startedAt`        | ISO datetime                      |                                |
 | `endedAt`          | ISO datetime?                     | Set on stop                    |
-| `pausedMs`         | number                            | Accumulated completed pauses   |
-| `pausedAt`         | ISO datetime?                     | Set while currently paused     |
 | `targetDurationMs` | number?                           | Session goal; UI not built     |
 
 **Derived (UI only):** `durationMs`, `timeRangeLabel` (`09:30 - 11:45`), `durationLabel` (`2h 15m` / `01:42:15`).
@@ -134,10 +122,9 @@ User-owned dictionary row. `name` is a display label stored as typed; `color` is
 
 | UI element                  | Domain fields                                   |
 | --------------------------- | ----------------------------------------------- |
-| Timer big clock             | Live duration of active/paused session          |
+| Timer big clock             | Live duration of the active session             |
 | `PROJ: AUTH` chip           | `Project.code` or abbreviated name              |
 | `ACTIVE` / live glow        | `status === 'active'`                           |
-| Amber pause affordance      | `status === 'paused'`                           |
 | Log row `> note`            | `note`                                          |
 | Log date groups             | Local calendar date of `startedAt` or `endedAt` |
 | Activity chip               | `activityTypeId` → ActivityType                 |
@@ -151,6 +138,6 @@ User-owned dictionary row. `name` is a display label stored as typed; `color` is
 ## 6. Consistency decisions
 
 1. **One active session** — enforced by the API (`409 session_already_active`); the client requires an explicit stop.
-2. **Sessions are mutable.** PATCH and DELETE apply to any row. Status still changes only via pause/resume/stop.
+2. **Sessions are mutable.** PATCH and DELETE apply to any row. Status still changes only via stop. Decision: [adr/0024-session-continuous-interval.md](./adr/0024-session-continuous-interval.md).
 3. **Duration precision** — track milliseconds; display as `HH:MM:SS` on Timer and compact `Xh Ym` on lists.
 4. **Single-user.** Identity is the HttpOnly session cookie. No multi-user ownership fields in the UI model.

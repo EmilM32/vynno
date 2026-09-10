@@ -34,8 +34,6 @@ export const apiPaths = {
 	sessionsActive: () => '/sessions/active',
 	sessionsManual: () => '/sessions/manual',
 	session: (id: string) => `/sessions/${id}`,
-	sessionPause: (id: string) => `/sessions/${id}/pause`,
-	sessionResume: (id: string) => `/sessions/${id}/resume`,
 	sessionStop: (id: string) => `/sessions/${id}/stop`
 } as const;
 

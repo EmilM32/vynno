@@ -370,7 +370,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	}
 
 	async getActiveSession(): Promise<TimeSession | null> {
-		const s = this.#sessions.find((x) => x.status === 'active' || x.status === 'paused');
+		const s = this.#sessions.find((x) => x.status === 'active');
 		return s ? cloneSession(s) : null;
 	}
 
@@ -405,7 +405,6 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			activityTypeId: input.activityTypeId,
 			status: 'active',
 			startedAt: new Date().toISOString(),
-			pausedMs: 0,
 			targetDurationMs: input.targetDurationMs
 		};
 
@@ -413,49 +412,13 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 		return cloneSession(session);
 	}
 
-	async pauseSession(id: string): Promise<TimeSession> {
-		const session = this.#require(id);
-		if (session.status !== 'active') {
-			throw new DomainError(
-				'invalid_transition',
-				`Cannot pause session in status "${session.status}"`
-			);
-		}
-		session.status = 'paused';
-		session.pausedAt = new Date().toISOString();
-		return cloneSession(session);
-	}
-
-	async resumeSession(id: string): Promise<TimeSession> {
-		const session = this.#require(id);
-		if (session.status !== 'paused') {
-			throw new DomainError(
-				'invalid_transition',
-				`Cannot resume session in status "${session.status}"`
-			);
-		}
-		if (session.pausedAt) {
-			const pausedFor = Date.now() - Date.parse(session.pausedAt);
-			if (pausedFor > 0) session.pausedMs += pausedFor;
-		}
-		session.status = 'active';
-		delete session.pausedAt;
-		return cloneSession(session);
-	}
-
 	async stopSession(id: string): Promise<TimeSession> {
 		const session = this.#require(id);
-		if (session.status === 'stopped') {
+		if (session.status !== 'active') {
 			throw new DomainError('invalid_transition', 'Session is already stopped');
 		}
-		const now = new Date();
-		if (session.status === 'paused' && session.pausedAt) {
-			const pausedFor = now.getTime() - Date.parse(session.pausedAt);
-			if (pausedFor > 0) session.pausedMs += pausedFor;
-			delete session.pausedAt;
-		}
 		session.status = 'stopped';
-		session.endedAt = now.toISOString();
+		session.endedAt = new Date().toISOString();
 		return cloneSession(session);
 	}
 
@@ -489,7 +452,6 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			if (input.endedAt) session.endedAt = input.endedAt;
 			else delete session.endedAt;
 		}
-		if (input.pausedMs !== undefined) session.pausedMs = input.pausedMs;
 		if ('targetDurationMs' in input) {
 			if (input.targetDurationMs != null) session.targetDurationMs = input.targetDurationMs;
 			else delete session.targetDurationMs;
@@ -523,7 +485,6 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			status: 'stopped',
 			startedAt: input.startedAt,
 			endedAt: input.endedAt,
-			pausedMs: input.pausedMs ?? 0,
 			targetDurationMs: input.targetDurationMs
 		};
 		assertSessionTimes(session, Date.now());
@@ -573,13 +534,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	}
 }
 
-function assertSessionTimes(session: TimeSession, nowMs: number): void {
-	if (session.pausedMs < 0) {
-		throw new DomainError(
-			'invalid_body',
-			'pausedMs must be >= 0 and must not exceed the interval.'
-		);
-	}
+function assertSessionTimes(session: TimeSession, _nowMs: number): void {
 	const started = Date.parse(session.startedAt);
 	if (Number.isNaN(started)) {
 		throw new DomainError('invalid_body', 'must be an ISO-8601 timestamp.');
@@ -592,41 +547,12 @@ function assertSessionTimes(session: TimeSession, nowMs: number): void {
 		if (Number.isNaN(ended) || ended <= started) {
 			throw new DomainError('invalid_body', 'endedAt must be after startedAt.');
 		}
-		if (session.pausedMs > ended - started) {
-			throw new DomainError(
-				'invalid_body',
-				'pausedMs must be >= 0 and must not exceed the interval.'
-			);
-		}
 		return;
 	}
 	if (session.endedAt) {
 		throw new DomainError(
 			'invalid_body',
 			'endedAt is only set on stopped sessions; use POST .../stop.'
-		);
-	}
-	if (session.status === 'paused') {
-		if (!session.pausedAt) {
-			throw new DomainError('invalid_body', 'pausedAt is required while paused.');
-		}
-		const pausedAt = Date.parse(session.pausedAt);
-		if (pausedAt < started) {
-			throw new DomainError('invalid_body', 'startedAt must be at or before pausedAt.');
-		}
-		if (session.pausedMs > pausedAt - started) {
-			throw new DomainError(
-				'invalid_body',
-				'pausedMs must be >= 0 and must not exceed the interval.'
-			);
-		}
-		return;
-	}
-	const dur = Math.max(0, nowMs - started);
-	if (session.pausedMs > dur) {
-		throw new DomainError(
-			'invalid_body',
-			'pausedMs must be >= 0 and must not exceed the interval.'
 		);
 	}
 }

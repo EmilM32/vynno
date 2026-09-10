@@ -79,7 +79,6 @@ describe('MemoryTimeTrackingRepository', () => {
 			});
 			expect(s.status).toBe('active');
 			expect(s.note).toBe('New work');
-			expect(s.pausedMs).toBe(0);
 			expect(s.ticketId).toBe('DEV-1');
 			expect(s.activityTypeId).toBe(type.id);
 			expect((await repo.getActiveSession())?.id).toBe(s.id);
@@ -103,37 +102,7 @@ describe('MemoryTimeTrackingRepository', () => {
 		});
 	});
 
-	describe('pause / resume / stop', () => {
-		it('pause freezes an active session', async () => {
-			const started = await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'Work' });
-			vi.advanceTimersByTime(10 * 60_000);
-			const paused = await repo.pauseSession(started.id);
-			expect(paused.status).toBe('paused');
-			expect(paused.pausedAt).toBeDefined();
-			expect((await repo.getActiveSession())?.status).toBe('paused');
-		});
-
-		it('cannot pause non-active session', async () => {
-			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 })).items[0]!;
-			await expectCode(repo.pauseSession(stopped.id), 'invalid_transition');
-		});
-
-		it('resume accumulates pausedMs and clears pausedAt', async () => {
-			const started = await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'Work' });
-			vi.advanceTimersByTime(5 * 60_000);
-			await repo.pauseSession(started.id);
-			vi.advanceTimersByTime(2 * 60_000);
-			const resumed = await repo.resumeSession(started.id);
-			expect(resumed.status).toBe('active');
-			expect(resumed.pausedAt).toBeUndefined();
-			expect(resumed.pausedMs).toBeGreaterThanOrEqual(2 * 60_000);
-		});
-
-		it('cannot resume non-paused session', async () => {
-			const started = await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'Work' });
-			await expectCode(repo.resumeSession(started.id), 'invalid_transition');
-		});
-
+	describe('stop', () => {
 		it('stop from active sets endedAt and clears active', async () => {
 			const started = await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'Work' });
 			vi.advanceTimersByTime(15 * 60_000);
@@ -143,25 +112,13 @@ describe('MemoryTimeTrackingRepository', () => {
 			expect(await repo.getActiveSession()).toBeNull();
 		});
 
-		it('stop from paused folds current pause into pausedMs', async () => {
-			const started = await repo.startSession({ projectId: PROJECT_IDS.auth, note: 'Work' });
-			vi.advanceTimersByTime(10 * 60_000);
-			await repo.pauseSession(started.id);
-			vi.advanceTimersByTime(3 * 60_000);
-			const stopped = await repo.stopSession(started.id);
-			expect(stopped.status).toBe('stopped');
-			expect(stopped.pausedAt).toBeUndefined();
-			expect(stopped.pausedMs).toBeGreaterThanOrEqual(3 * 60_000);
-			expect(stopped.endedAt).toBeDefined();
-		});
-
 		it('cannot stop an already stopped session', async () => {
 			const stopped = (await repo.listSessions({ status: ['stopped'], limit: 1 })).items[0]!;
 			await expectCode(repo.stopSession(stopped.id), 'invalid_transition');
 		});
 
 		it('throws when session id is missing', async () => {
-			await expectCode(repo.pauseSession('missing-id'), 'not_found');
+			await expectCode(repo.stopSession('missing-id'), 'not_found');
 		});
 
 		it('updates a stopped session note and times', async () => {

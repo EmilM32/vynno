@@ -9,22 +9,16 @@ import {
 	zonedTimeToUtc
 } from './timezone';
 
-/** Elapsed working time in ms (excludes completed pause intervals and current pause). */
+/** Elapsed working time in ms (continuous interval). */
 export function sessionElapsedMs(session: TimeSession, nowMs: number = Date.now()): number {
 	const start = Date.parse(session.startedAt);
 	if (Number.isNaN(start)) return 0;
 
-	const end =
-		session.status === 'stopped' && session.endedAt
-			? Date.parse(session.endedAt)
-			: session.status === 'paused' && session.pausedAt
-				? Date.parse(session.pausedAt)
-				: nowMs;
+	const end = session.status === 'stopped' && session.endedAt ? Date.parse(session.endedAt) : nowMs;
 
 	if (Number.isNaN(end)) return 0;
 
-	const raw = Math.max(0, end - start - session.pausedMs);
-	return raw;
+	return Math.max(0, end - start);
 }
 
 /** Format as HH:MM:SS for the live timer display. */

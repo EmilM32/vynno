@@ -2,7 +2,7 @@
 
 import { ACTIVITY_COLOR_TOKENS, type ActivityColorToken } from '$lib/time/activity-styles';
 
-export type SessionStatus = 'active' | 'paused' | 'stopped';
+export type SessionStatus = 'active' | 'stopped';
 
 export { ACTIVITY_COLOR_TOKENS, type ActivityColorToken };
 
@@ -46,10 +46,6 @@ export interface TimeSession {
 	startedAt: string;
 	/** ISO datetime — set on stop */
 	endedAt?: string;
-	/** Total ms spent in completed pause intervals */
-	pausedMs: number;
-	/** When currently paused, ISO timestamp of pause start */
-	pausedAt?: string;
 	targetDurationMs?: number;
 }
 
@@ -78,7 +74,6 @@ export interface UpdateSessionInput {
 	activityTypeId?: string | null;
 	startedAt?: string;
 	endedAt?: string | null;
-	pausedMs?: number;
 	targetDurationMs?: number | null;
 }
 
@@ -90,7 +85,6 @@ export interface CreateManualSessionInput {
 	targetDurationMs?: number;
 	startedAt: string;
 	endedAt: string;
-	pausedMs?: number;
 }
 
 export interface SessionPage {

@@ -38,15 +38,7 @@
 	{/snippet}
 </Story>
 
-<Story name="Paused">
-	{#snippet template()}
-		<StoryProviders seed={liveStorySeed('paused')} nowMs={Date.now()}>
-			<div class="sb-shell-desktop relative min-h-screen bg-surface">
-				<SideNav />
-			</div>
-		</StoryProviders>
-	{/snippet}
-</Story>
+
 
 <style>
 	.sb-shell-desktop :global(nav) {

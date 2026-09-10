@@ -13,23 +13,16 @@
 	const project = $derived(sessionStore.activeProject);
 	const status = $derived(session?.status ?? 'idle');
 	const isActive = $derived(status === 'active');
-	const isPaused = $derived(status === 'paused');
 	const isIdle = $derived(!session);
 
-	const statusLabel = $derived(
-		isActive ? m.timer_status_active() : isPaused ? m.timer_status_paused() : m.timer_status_idle()
-	);
-	const statusColor = $derived(
-		isActive ? 'text-secondary' : isPaused ? 'text-tertiary' : 'text-on-surface-variant'
-	);
-	const statusDot: StatusDotTone = $derived(isActive ? 'live' : isPaused ? 'paused' : 'idle');
+	const statusLabel = $derived(isActive ? m.timer_status_active() : m.timer_status_idle());
+	const statusColor = $derived(isActive ? 'text-secondary' : 'text-on-surface-variant');
+	const statusDot: StatusDotTone = $derived(isActive ? 'live' : 'idle');
 
 	const cardBorder = $derived(
 		isActive
 			? 'border-outline-variant max-lg:border-primary max-lg:pulse-border lg:border-transparent'
-			: isPaused
-				? 'border-outline-variant max-lg:border-tertiary/60 lg:border-transparent'
-				: 'border-outline-variant lg:border-transparent'
+			: 'border-outline-variant lg:border-transparent'
 	);
 
 	const clockLabel = $derived(isIdle ? '00:00:00' : sessionStore.elapsedLabel);
@@ -95,38 +88,7 @@
 				<Icon name="play_arrow" size="xl" fill />
 				{m.timer_start()}
 			</Button>
-		{:else if isActive}
-			<Button
-				variant="neutral"
-				size="lg"
-				class="flex-1"
-				onclick={() => sessionStore.pause()}
-				disabled={pending}
-			>
-				<Icon name="pause" size="2xl" class="text-tertiary-fixed" />
-				{m.timer_pause()}
-			</Button>
-			<Button
-				variant="primary"
-				size="lg"
-				class="flex-1"
-				onclick={() => sessionStore.stop()}
-				disabled={pending}
-			>
-				<Icon name="stop" size="lg" fill />
-				{m.timer_stop()}
-			</Button>
 		{:else}
-			<Button
-				variant="neutral"
-				size="lg"
-				class="flex-1"
-				onclick={() => sessionStore.resume()}
-				disabled={pending}
-			>
-				<Icon name="play_arrow" size="2xl" class="text-secondary" />
-				{m.timer_resume()}
-			</Button>
 			<Button
 				variant="primary"
 				size="lg"

@@ -165,8 +165,7 @@ export async function seedManualSession(
 			activityTypeId: opts.activityTypeId ?? null,
 			targetDurationMs: null,
 			startedAt: opts.startedAt,
-			endedAt: opts.endedAt,
-			pausedMs: 0
+			endedAt: opts.endedAt
 		}
 	});
 	if (!created.ok()) {

@@ -27,6 +27,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0021](./0021-insights-range.md)           | Insights uses an explicit civil range               | Accepted   |
 | [0022](./0022-logs-filters.md)             | Logs list filters (date, project, activity)         | Accepted   |
 | [0023](./0023-logs-grouped-view.md)        | Logs grouped-by-task layout + expandable notes      | Accepted   |
+| [0024](./0024-session-continuous-interval.md) | Session is a continuous interval (start/stop only) | Accepted   |
 
 ## Format
 

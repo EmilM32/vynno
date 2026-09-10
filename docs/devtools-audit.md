@@ -106,7 +106,7 @@ Do not rediscover these; use them while judging traces and `/v1`.
 | Seed         | Four parallel `/v1` GETs on logged-in layout: `/me`, `/projects?includeArchived=true`, `/activity-types`, `/sessions?limit=15` (`src/lib/api/load-seed.ts`)             |
 | Client nav   | After seed, SPA navigations should not replay the full four-GET seed unless the code does                                                                               |
 | Timer clock  | Live elapsed uses `createSubscriber` every **250ms** only while a session is `active` and a reader is mounted. `nowMs` is a snapshot (hydrate / mutation / tab visible) |
-| Live region  | `announce()` on start/pause/resume/stop only. **Never** put `aria-live` on the ticking clock                                                                            |
+| Live region  | `announce()` on start/stop only. **Never** put `aria-live` on the ticking clock                                                                                         |
 | Auth storage | HttpOnly session cookie. No access token in `localStorage` / `sessionStorage`                                                                                           |
 | Theme        | Named theme in `localStorage` is expected                                                                                                                               |
 | Fonts        | Self-hosted Inter, JetBrains Mono, Material Symbols subset (`src/lib/theme/fonts.css`). Google CSS is a regression                                                      |
@@ -124,7 +124,7 @@ Routes: `/login`, `/dashboard`, `/timer`, `/logs`, `/insights`, `/projects`, `/p
 | ---------------- | -------------------------------------- | ----------------- | --------------------------- | ----------------------------------------- |
 | `/login`         | Auth POSTs, hashed assets, fonts       | Cold load         | Tabs, fields, live region   | Unauthed baseline                         |
 | `/dashboard`     | Seed + extras                          | Cold + client nav | KPIs, weekly chart          | Default landing                           |
-| `/timer`         | Start / pause / resume / stop          | INP + 250ms tick  | Live status not on clock    | Highest runtime risk                      |
+| `/timer`         | Start / stop                           | INP + 250ms tick  | Live status not on clock    | Highest runtime risk                      |
 | `/logs`          | List / cursor; search client vs server | Search INP        | List + form/confirm dialogs | Open add-entry if cheap                   |
 | `/insights`      | Period toggle + `ensureThrough`        | Chart load        | Table, donut, range dialog  | Week / 2 weeks / Month, prev/next, Custom |
 | `/projects`      | List + `includeArchived`               | —                 | Active/Archived tabs        | Open one dossier from a row               |
@@ -132,7 +132,7 @@ Routes: `/login`, `/dashboard`, `/timer`, `/logs`, `/insights`, `/projects`, `/p
 | `/settings`      | Profile / theme                        | —                 | Theme, language             | Switch theme; skip logout unless isolated |
 | 404              | —                                      | —                 | Error card, title           | `/this-route-does-not-exist`              |
 
-Primary flow: login → dashboard → start session on timer → pause → resume → stop → logs → insights period toggle → projects → dossier → settings theme.
+Primary flow: login → dashboard → start session on timer → stop → logs → insights period toggle → projects → dossier → settings theme.
 
 ---
 
@@ -171,7 +171,7 @@ Record:
 - Fonts: same-origin hashed woff2 from `layout.css`. `fonts.googleapis.com` is a regression.
 - Seed: four parallel `/v1` GETs on first dashboard load; extra serial calls; duplicates.
 - Client nav `/dashboard` → `/timer` → `/logs` → `/insights` → `/projects` → `/settings`: few `/v1` calls, not a full seed replay unless the app does that.
-- Writes: start / pause / resume / stop (`POST` verbs on `/v1/sessions…`).
+- Writes: start / stop (`POST` verbs on `/v1/sessions…`).
 - 4xx/5xx, missing cookie, `invalid_response`.
 - WebSockets: none expected on production (Vite HMR only).
 

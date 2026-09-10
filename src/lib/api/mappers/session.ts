@@ -17,13 +17,11 @@ export function sessionFromDto(dto: SessionDto): TimeSession {
 		projectId: dto.projectId,
 		note: dto.note,
 		status: dto.status,
-		startedAt: dto.startedAt,
-		pausedMs: dto.pausedMs
+		startedAt: dto.startedAt
 	};
 	if (dto.ticketId) session.ticketId = dto.ticketId;
 	if (dto.activityTypeId) session.activityTypeId = dto.activityTypeId;
 	if (dto.endedAt) session.endedAt = dto.endedAt;
-	if (dto.pausedAt) session.pausedAt = dto.pausedAt;
 	if (dto.targetDurationMs != null) session.targetDurationMs = dto.targetDurationMs;
 	return session;
 }
@@ -38,8 +36,6 @@ export function sessionToDto(session: TimeSession): SessionDto {
 		status: session.status,
 		startedAt: session.startedAt,
 		endedAt: session.endedAt ?? null,
-		pausedMs: session.pausedMs,
-		pausedAt: session.pausedAt ?? null,
 		targetDurationMs: session.targetDurationMs ?? null
 	};
 }
@@ -72,7 +68,6 @@ export function updateSessionToDto(input: UpdateSessionInput): UpdateSessionDto 
 	if ('activityTypeId' in input) dto.activityTypeId = input.activityTypeId ?? null;
 	if (input.startedAt !== undefined) dto.startedAt = input.startedAt;
 	if ('endedAt' in input) dto.endedAt = input.endedAt ?? null;
-	if (input.pausedMs !== undefined) dto.pausedMs = input.pausedMs;
 	if ('targetDurationMs' in input) dto.targetDurationMs = input.targetDurationMs ?? null;
 	return dto;
 }
@@ -85,7 +80,6 @@ export function createManualSessionToDto(input: CreateManualSessionInput): Creat
 		activityTypeId: input.activityTypeId ?? null,
 		targetDurationMs: input.targetDurationMs ?? null,
 		startedAt: input.startedAt,
-		endedAt: input.endedAt,
-		pausedMs: input.pausedMs ?? 0
+		endedAt: input.endedAt
 	};
 }

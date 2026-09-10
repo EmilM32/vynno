@@ -22,7 +22,7 @@ export function storySeed(): AppSeed {
 }
 
 /** Live session on top of the default seed. `nowMs` should be `Date.now()` so the clock is current. */
-export function liveStorySeed(status: Extract<SessionStatus, 'active' | 'paused'>): AppSeed {
+export function liveStorySeed(status: Extract<SessionStatus, 'active'> = 'active'): AppSeed {
 	const seed = storySeed();
 	const now = Date.now();
 	const live = makeSession({
@@ -30,8 +30,7 @@ export function liveStorySeed(status: Extract<SessionStatus, 'active' | 'paused'
 		note: 'Refactoring auth service',
 		status,
 		startedAt: new Date(now - 12 * 60_000).toISOString(),
-		endedAt: undefined,
-		pausedAt: status === 'paused' ? new Date(now).toISOString() : undefined
+		endedAt: undefined
 	});
 	return { ...seed, sessions: [live, ...seed.sessions] };
 }

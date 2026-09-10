@@ -10,8 +10,6 @@ export const sessionDtoSchema = v.object({
 	status: sessionStatusSchema,
 	startedAt: isoDateTimeSchema,
 	endedAt: v.nullable(isoDateTimeSchema),
-	pausedMs: v.pipe(v.number(), v.minValue(0)),
-	pausedAt: v.nullable(isoDateTimeSchema),
 	targetDurationMs: v.nullable(v.pipe(v.number(), v.minValue(0)))
 });
 
@@ -35,7 +33,6 @@ export const updateSessionDtoSchema = v.object({
 	activityTypeId: v.optional(v.nullable(idSchema)),
 	startedAt: v.optional(isoDateTimeSchema),
 	endedAt: v.optional(v.nullable(isoDateTimeSchema)),
-	pausedMs: v.optional(v.pipe(v.number(), v.minValue(0))),
 	targetDurationMs: v.optional(v.nullable(v.pipe(v.number(), v.minValue(0))))
 });
 
@@ -46,8 +43,7 @@ export const createManualSessionDtoSchema = v.object({
 	activityTypeId: v.optional(v.nullable(idSchema)),
 	targetDurationMs: v.optional(v.nullable(v.pipe(v.number(), v.minValue(0)))),
 	startedAt: isoDateTimeSchema,
-	endedAt: isoDateTimeSchema,
-	pausedMs: v.optional(v.pipe(v.number(), v.minValue(0)))
+	endedAt: isoDateTimeSchema
 });
 
 export const sessionSeedStartedSchema = v.object({
@@ -65,8 +61,6 @@ export const sessionSeedItemSchema = v.object({
 	status: sessionStatusSchema,
 	started: sessionSeedStartedSchema,
 	durationMs: v.pipe(v.number(), v.minValue(0)),
-	pausedMs: v.pipe(v.number(), v.minValue(0)),
-	pausedAt: v.optional(v.nullable(v.string())),
 	targetDurationMs: v.optional(v.nullable(v.pipe(v.number(), v.minValue(0))))
 });
 

@@ -55,7 +55,7 @@ export class SessionStore {
 	#prefs: PrefsStore;
 
 	/**
-	 * Snapshot wall-clock for day keys and paused elapsed.
+	 * Snapshot wall-clock for day keys.
 	 * Live ticking does not write this — see `#liveNowMs`.
 	 */
 	nowMs = $state(0);
@@ -90,7 +90,7 @@ export class SessionStore {
 
 	/** In-flight mutation; blocks double-submit. */
 	pendingAction = $state<
-		'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile' | 'activity' | 'session' | null
+		'start' | 'stop' | 'project' | 'profile' | 'activity' | 'session' | null
 	>(null);
 
 	busy = $derived(this.pendingAction != null);
@@ -125,7 +125,7 @@ export class SessionStore {
 		this.sessions = seed.sessions;
 		this.nextCursor = seed.nextCursor ?? null;
 
-		const live = this.sessions.find((s) => s.status === 'active' || s.status === 'paused');
+		const live = this.sessions.find((s) => s.status === 'active');
 		if (live) {
 			this.#applyDraftFromSession(live);
 		} else {
@@ -153,14 +153,13 @@ export class SessionStore {
 	}
 
 	activeSession = $derived.by(() => {
-		return this.sessions.find((s) => s.status === 'active' || s.status === 'paused') ?? null;
+		return this.sessions.find((s) => s.status === 'active') ?? null;
 	});
 
 	elapsedMs = $derived.by(() => {
 		const s = this.activeSession;
 		if (!s) return 0;
-		if (s.status === 'active') return sessionElapsedMs(s, this.#liveNowMs());
-		return sessionElapsedMs(s, this.nowMs);
+		return sessionElapsedMs(s, this.#liveNowMs());
 	});
 
 	elapsedLabel = $derived(formatClock(this.elapsedMs));
@@ -447,7 +446,7 @@ export class SessionStore {
 
 	/**
 	 * Start a new session from a recent task/log (Flow D).
-	 * Blocks if another session is already active or paused.
+	 * Blocks if another session is already active.
 	 */
 	restartFromTask = async (input: StartSessionInput): Promise<boolean> => {
 		if (this.activeSession) {
@@ -480,7 +479,7 @@ export class SessionStore {
 		try {
 			const updated = await this.#requireRepo().updateSession(id, input);
 			this.#upsertSession(updated);
-			if (updated.status === 'active' || updated.status === 'paused') {
+			if (updated.status === 'active') {
 				this.#applyDraftFromSession(updated);
 			}
 			announce(m.announce_session_updated());
@@ -525,38 +524,6 @@ export class SessionStore {
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_create_session);
 			return null;
-		} finally {
-			this.#end();
-		}
-	};
-
-	pause = async (): Promise<void> => {
-		const s = this.activeSession;
-		if (!s || s.status !== 'active') return;
-		if (!this.#begin('pause')) return;
-		this.error = null;
-		try {
-			const paused = await this.#requireRepo().pauseSession(s.id);
-			this.#upsertSession(paused);
-			announce(m.announce_session_paused());
-		} catch (e) {
-			this.error = userMessageForError(e, m.error_failed_pause);
-		} finally {
-			this.#end();
-		}
-	};
-
-	resume = async (): Promise<void> => {
-		const s = this.activeSession;
-		if (!s || s.status !== 'paused') return;
-		if (!this.#begin('resume')) return;
-		this.error = null;
-		try {
-			const resumed = await this.#requireRepo().resumeSession(s.id);
-			this.#upsertSession(resumed);
-			announce(m.announce_session_resumed());
-		} catch (e) {
-			this.error = userMessageForError(e, m.error_failed_resume);
 		} finally {
 			this.#end();
 		}
@@ -629,7 +596,7 @@ export class SessionStore {
 	};
 
 	#begin = (
-		action: 'start' | 'pause' | 'resume' | 'stop' | 'project' | 'profile' | 'activity' | 'session'
+		action: 'start' | 'stop' | 'project' | 'profile' | 'activity' | 'session'
 	): boolean => {
 		if (this.pendingAction) return false;
 		this.pendingAction = action;
@@ -660,7 +627,7 @@ export class SessionStore {
 	 */
 	#adoptLiveFromSeed = (seed: AppSeed): void => {
 		if (this.activeSession) return;
-		const live = seed.sessions.find((s) => s.status === 'active' || s.status === 'paused');
+		const live = seed.sessions.find((s) => s.status === 'active');
 		if (!live) return;
 		const local = this.sessions.find((s) => s.id === live.id);
 		if (local?.status === 'stopped') return;

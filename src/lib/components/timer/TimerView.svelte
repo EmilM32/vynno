@@ -13,11 +13,7 @@
 
 	const status = $derived(sessionStore.activeSession?.status);
 	const sessionChrome = $derived(
-		status === 'active'
-			? 'lg:border-primary lg:pulse-border'
-			: status === 'paused'
-				? 'lg:border-tertiary/60'
-				: 'lg:border-outline-variant'
+		status === 'active' ? 'lg:border-primary lg:pulse-border' : 'lg:border-outline-variant'
 	);
 </script>
 

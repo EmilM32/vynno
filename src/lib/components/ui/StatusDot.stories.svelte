@@ -10,13 +10,13 @@
 		}
 	});
 
-	const TONES: StatusDotTone[] = ['live', 'paused', 'idle'];
+	const TONES: StatusDotTone[] = ['live', 'idle'];
 </script>
 
 <Story name="Default" />
 
 <!--
-	`live` glows (`today-glow`). `paused` and `idle` are static fills.
+	`live` glows (`today-glow`). `idle` is a static fill.
 -->
 <Story name="Tones">
 	{#snippet template()}

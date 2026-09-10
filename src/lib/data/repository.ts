@@ -46,16 +46,14 @@ export interface TimeTrackingRepository {
 	/** Sessions newest-first. One page; follow nextCursor for more. */
 	listSessions(filters?: SessionFilters): Promise<SessionPage>;
 	getSession(id: string): Promise<TimeSession | undefined>;
-	/** Active or paused session, if any. */
+	/** Active session, if any. */
 	getActiveSession(): Promise<TimeSession | null>;
 
 	/**
-	 * Start a new session. Fails if one is already active/paused
+	 * Start a new session. Fails if one is already active
 	 * (product default: require explicit stop).
 	 */
 	startSession(input: StartSessionInput): Promise<TimeSession>;
-	pauseSession(id: string): Promise<TimeSession>;
-	resumeSession(id: string): Promise<TimeSession>;
 	stopSession(id: string): Promise<TimeSession>;
 	updateSession(id: string, input: UpdateSessionInput): Promise<TimeSession>;
 	deleteSession(id: string): Promise<void>;

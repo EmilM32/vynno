@@ -21,11 +21,7 @@
 		};
 	}
 
-	const live = $derived(
-		sessionStore.activeSession?.status === 'active' ||
-			sessionStore.activeSession?.status === 'paused'
-	);
-	const isActive = $derived(sessionStore.activeSession?.status === 'active');
+	const live = $derived(sessionStore.activeSession?.status === 'active');
 	const settingsActive = $derived(isNavActive(page.url.pathname, '/settings'));
 </script>
 
@@ -56,20 +52,12 @@
 			/>
 			<span
 				role="status"
-				aria-label={live
-					? isActive
-						? m.shell_session_recording()
-						: m.shell_session_paused()
-					: m.shell_no_active_session()}
+				aria-label={live ? m.shell_session_recording() : m.shell_no_active_session()}
 			>
 				<Icon
 					name="fiber_manual_record"
 					fill={live}
-					class="px-1 {live
-						? isActive
-							? 'text-secondary'
-							: 'text-tertiary'
-						: 'text-on-surface-variant'}"
+					class="px-1 {live ? 'text-secondary' : 'text-on-surface-variant'}"
 				/>
 			</span>
 		</div>

@@ -158,7 +158,7 @@ Live in `src/lib/components/ui/`. Browse them in Storybook under `UI/*`. These o
 
 **`Select`** — owns `<select>` plus the inset chevron (`.native-select`). Same surface as `Input tone="code"`.
 
-**`KpiCard`** — label + large mono metric + optional caption. **`ProgressBar`** — thin track; `label` is the accessible name. **`Banner`** — error strip; optional dismiss action. **`Chip`** — `code` (project code), `ticket`. **`ColorDot`** — project identity (`sm` 8px circle, `md` 14px square). **`StatusDot`** — 8px live mark (`live` / `paused` / `idle`). **`SwatchPicker`** — colour radiogroup; domain wrappers stay in Projects / Settings.
+**`KpiCard`** — label + large mono metric + optional caption. **`ProgressBar`** — thin track; `label` is the accessible name. **`Banner`** — error strip; optional dismiss action. **`Chip`** — `code` (project code), `ticket`. **`ColorDot`** — project identity (`sm` 8px circle, `md` 14px square). **`StatusDot`** — 8px live mark (`live` / `idle`). **`SwatchPicker`** — colour radiogroup; domain wrappers stay in Projects / Settings.
 
 **Rules.** The `class` prop takes layout and colour only; padding, radius, border, background and type scale come from `variant` and `size`. `primitives.guard.test.ts` fails the build on a raw `<button>`, a raw `<input>`/`<select>`, or a visual utility in `class`.
 
@@ -209,6 +209,6 @@ Conformance target: **WCAG 2.2 AA**. Full statement: [accessibility.md](./access
 - Status / recording / today-glow ink is `secondary` (not `secondary-fixed`).
 - Do not rely on color alone for project identity (include name). Color swatches have named accessible labels.
 - Ensure Pause/Stop and other primary mobile actions ≥ 40px where possible; other controls ≥ 24×24 (WCAG 2.5.8).
-- Timer updates: **never** put `aria-live` on the ticking clock. Announce start / pause / resume / stop via `announce()`.
+- Timer updates: **never** put `aria-live` on the ticking clock. Announce start / stop via `announce()`.
 - Focus is global and two-tier (`:focus-visible`). Do not use `outline-none` without a replacement (`.focus-flush` is only valid when a parent `:focus-within` indicator exists).
 - Dialogs use `trapFocus()`; destructive confirms focus Cancel first.

@@ -79,7 +79,7 @@ test.describe('timer lifecycle', () => {
 
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		await expect(page.getByTestId('timer-project')).toContainText('PERS');
-		await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Pause' })).toHaveCount(0);
 		await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible();
 		await expect(page.getByTestId('timer-elapsed')).toHaveText(/\d{2}:\d{2}:\d{2}/);
 
@@ -95,24 +95,6 @@ test.describe('timer lifecycle', () => {
 		const input = page.getByRole('textbox', { name: 'Task description' });
 		await input.fill(note);
 		await input.press('Enter');
-		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-	});
-
-	test('pause and resume (Flow B)', async ({ page }) => {
-		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('pause'));
-		await page.getByRole('button', { name: 'Start', exact: true }).click();
-		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-
-		await page.getByRole('button', { name: 'Pause' }).click();
-		await expect(page.getByTestId('timer-status')).toHaveText('PAUSED');
-		await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
-		await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible();
-
-		const frozen = await page.getByTestId('timer-elapsed').textContent();
-		await page.waitForTimeout(600);
-		await expect(page.getByTestId('timer-elapsed')).toHaveText(frozen!);
-
-		await page.getByRole('button', { name: 'Resume' }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	});
 

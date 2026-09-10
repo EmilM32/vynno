@@ -1,9 +1,8 @@
 <script lang="ts" module>
-	export type StatusDotTone = 'live' | 'paused' | 'idle';
+	export type StatusDotTone = 'live' | 'idle';
 
 	const TONE: Record<StatusDotTone, string> = {
 		live: 'today-glow bg-secondary',
-		paused: 'bg-tertiary',
 		idle: 'bg-outline-variant'
 	};
 </script>

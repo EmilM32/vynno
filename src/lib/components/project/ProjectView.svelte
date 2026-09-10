@@ -228,13 +228,9 @@
 						href={resolve('/timer')}
 						class="focus-ring inline-flex items-center gap-1.5 rounded px-1 py-0.5"
 					>
-						<StatusDot tone={liveHere.status === 'active' ? 'live' : 'paused'} />
-						<span
-							class="font-mono text-[10px] tracking-wide uppercase {liveHere.status === 'active'
-								? 'text-secondary'
-								: 'text-tertiary'}"
-						>
-							{liveHere.status === 'active' ? m.project_live_active() : m.project_live_paused()}
+						<StatusDot tone="live" />
+						<span class="font-mono text-[10px] tracking-wide text-secondary uppercase">
+							{m.project_live_active()}
 						</span>
 					</a>
 				{/if}

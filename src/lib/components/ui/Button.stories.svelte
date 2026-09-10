@@ -99,14 +99,10 @@
 	{/snippet}
 </Story>
 
-<!-- Timer transport: `lg` pairs a filled primary with a filled neutral. -->
+<!-- Timer transport: `lg` primary Start / Stop. -->
 <Story name="Transport">
 	{#snippet template()}
 		<div class="flex max-w-[280px] gap-3">
-			<Button variant="neutral" size="lg" class="flex-1">
-				<Icon name="pause" size="2xl" class="text-tertiary-fixed" />
-				Pause
-			</Button>
 			<Button variant="primary" size="lg" class="flex-1">
 				<Icon name="stop" size="lg" fill />
 				Stop

@@ -52,8 +52,7 @@ describe('HttpTimeTrackingRepository', () => {
 			note: 'Edited',
 			status: 'stopped',
 			startedAt: FIXED_NOW.toISOString(),
-			endedAt: new Date(FIXED_NOW.getTime() + 60_000).toISOString(),
-			pausedMs: 0
+			endedAt: new Date(FIXED_NOW.getTime() + 60_000).toISOString()
 		});
 		const fetchFn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
 			const url = String(input);
@@ -89,8 +88,7 @@ describe('HttpTimeTrackingRepository', () => {
 				projectId: PROJECT_IDS.auth,
 				note: 'New work',
 				status: 'active',
-				startedAt: FIXED_NOW.toISOString(),
-				pausedMs: 0
+				startedAt: FIXED_NOW.toISOString()
 			})
 		};
 		const fetchFn = vi.fn().mockResolvedValue(jsonResponse(created, 201));

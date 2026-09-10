@@ -2,7 +2,6 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import ActivityBars from '$lib/components/insights/ActivityBars.svelte';
-	import PeriodToggle from '$lib/components/insights/PeriodToggle.svelte';
 	import ProjectForm from '$lib/components/projects/ProjectForm.svelte';
 	import WeeklyOverview from '$lib/components/dashboard/WeeklyOverview.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
@@ -15,6 +14,7 @@
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import StatusDot from '$lib/components/ui/StatusDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
+	import { getLocale } from '$lib/paraglide/runtime.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import {
 		projectPeriodStats,
@@ -22,20 +22,27 @@
 		latestStoppedStartedAt,
 		periodBucketTotals
 	} from '$lib/time/aggregates';
-	import { formatRelativePast, periodBounds, type ProjectPeriodKind } from '$lib/time/duration';
+	import {
+		formatInsightRangeLabel,
+		formatRelativePast,
+		periodBounds,
+		type ProjectPeriodSpec
+	} from '$lib/time/duration';
 	import { SvelteDate } from 'svelte/reactivity';
 	import ProjectEntries from './ProjectEntries.svelte';
 	import ProjectKpis from './ProjectKpis.svelte';
+	import ProjectPeriodControl from './ProjectPeriodControl.svelte';
 
 	let { projectId }: { projectId: string } = $props();
 
 	const sessionStore = useSession();
 
-	let period = $state<ProjectPeriodKind>('week');
+	let period = $state.raw<ProjectPeriodSpec>({ kind: 'week' });
 	let editing = $state(false);
 	let moreOpen = $state(false);
 
 	const project = $derived(sessionStore.getProject(projectId));
+	const now = $derived(new Date(sessionStore.nowMs));
 	const mine = $derived(project ? sessionsForProject(sessionStore.sessions, project.id) : []);
 	const stats = $derived(
 		project
@@ -53,18 +60,27 @@
 		periodBucketTotals(mine, period, new SvelteDate(sessionStore.nowMs), sessionStore.timeZone)
 	);
 	const chartHeading = $derived(
-		period === 'week'
+		period.kind === 'week'
 			? m.dashboard_weekly_overview()
-			: period === 'month'
+			: period.kind === 'month'
 				? m.project_month_overview()
-				: m.project_all_overview()
+				: period.kind === 'all'
+					? m.project_all_overview()
+					: m.project_custom_overview()
 	);
 	const chartAria = $derived(
-		period === 'week'
+		period.kind === 'week'
 			? m.project_week_aria()
-			: period === 'month'
+			: period.kind === 'month'
 				? m.project_month_aria()
-				: m.project_all_aria()
+				: period.kind === 'all'
+					? m.project_all_aria()
+					: m.project_custom_aria()
+	);
+	const customPeriodLabel = $derived(
+		period.kind === 'custom'
+			? formatInsightRangeLabel(period.range, getLocale(), sessionStore.timeZone)
+			: undefined
 	);
 	const lastLogged = $derived(latestStoppedStartedAt(mine));
 	const lastLoggedLabel = $derived(
@@ -84,20 +100,19 @@
 	);
 	const canArchive = $derived(project ? sessionStore.canArchiveOrDeleteActive(project.id) : false);
 	const startDisabled = $derived(otherLive || sessionStore.busy);
-	const periodOptions = $derived([
-		{ id: 'week' as const, label: m.insights_period_week() },
-		{ id: 'month' as const, label: m.insights_period_month() },
-		{ id: 'all' as const, label: m.insights_period_all() }
-	]);
 
 	$effect(() => {
-		const kind = period;
+		const spec = period;
 		const timeZone = sessionStore.timeZone;
-		if (kind === 'all') {
+		if (spec.kind === 'all') {
 			void sessionStore.ensureThrough(null);
 			return;
 		}
-		const { start } = periodBounds(kind, new Date(), timeZone);
+		if (spec.kind === 'custom') {
+			void sessionStore.ensureThrough(spec.range.start.getTime());
+			return;
+		}
+		const { start } = periodBounds(spec.kind, new Date(), timeZone);
 		void sessionStore.ensureThrough(start.getTime());
 	});
 
@@ -276,8 +291,11 @@
 
 		{#if stats}
 			<div class="flex flex-col gap-3">
-				<PeriodToggle bind:value={period} options={periodOptions} />
-				<ProjectKpis {stats} />
+				<ProjectPeriodControl bind:period {now} timeZone={sessionStore.timeZone} />
+				{#if sessionStore.loadingMore}
+					<p class="text-body-sm text-on-surface-variant">{m.insights_loading_earlier()}</p>
+				{/if}
+				<ProjectKpis {stats} periodLabel={customPeriodLabel} />
 			</div>
 		{/if}
 

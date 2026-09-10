@@ -247,6 +247,8 @@
 	"project_month_aria": "Godziny w tym miesiącu",
 	"project_all_overview": "Cały czas",
 	"project_all_aria": "Godziny łącznie",
+	"project_custom_overview": "Własny okres",
+	"project_custom_aria": "Godziny w wybranym okresie",
 	"project_recent_logs": "Ostatnie wpisy",
 	"project_recent_logs_aria": "Ostatnie wpisy w tym projekcie",
 	"project_recent_logs_empty": "Brak zakończonych sesji w tym projekcie.",

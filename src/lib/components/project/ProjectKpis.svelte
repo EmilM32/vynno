@@ -4,7 +4,13 @@
 	import type { ProjectPeriodStats } from '$lib/time/aggregates';
 	import { formatHoursMinutes } from '$lib/time/duration';
 
-	let { stats }: { stats: ProjectPeriodStats } = $props();
+	let {
+		stats,
+		periodLabel
+	}: {
+		stats: ProjectPeriodStats;
+		periodLabel?: string;
+	} = $props();
 
 	const totalLabel = $derived(formatHoursMinutes(stats.totalMs));
 	const avgLabel = $derived(formatHoursMinutes(stats.dailyAverageMs));
@@ -13,7 +19,9 @@
 			? m.insights_kpi_this_week()
 			: stats.period === 'month'
 				? m.insights_kpi_this_month()
-				: m.project_kpi_all_time()
+				: stats.period === 'all'
+					? m.project_kpi_all_time()
+					: (periodLabel ?? '')
 	);
 	const shareOf = $derived(
 		m.project_kpi_share_of({

@@ -247,6 +247,8 @@
 	"project_month_aria": "Hours this month",
 	"project_all_overview": "All time",
 	"project_all_aria": "Hours all time",
+	"project_custom_overview": "Custom period",
+	"project_custom_aria": "Hours in selected period",
 	"project_recent_logs": "Recent logs",
 	"project_recent_logs_aria": "Recent logs on this project",
 	"project_recent_logs_empty": "No completed sessions on this project yet.",

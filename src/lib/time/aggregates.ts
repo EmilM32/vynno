@@ -12,7 +12,7 @@ import {
 	monthShort,
 	monthShortYear,
 	periodBounds,
-	type ProjectPeriodKind,
+	type ProjectPeriodSpec,
 	sessionElapsedMs,
 	startOfLocalDay,
 	startOfMonth,
@@ -177,24 +177,33 @@ export function weeklyDayTotals(
 	now = new Date(),
 	timeZone?: string
 ): WeekDayTotal[] {
-	return periodBucketTotals(sessions, 'week', now, timeZone);
+	return periodBucketTotals(sessions, { kind: 'week' }, now, timeZone);
 }
+
+/** Custom ranges longer than a month switch from daily bars to Monday-aligned weeks. */
+const CUSTOM_DAILY_BUCKET_MAX = 31;
 
 /**
  * Hours histogram buckets for the project-view period toggle.
  * Week: 7 local days. Month: every day of the current month. All: months
- * from the first session through the current month.
+ * from the first session through the current month. Custom: one bar per day
+ * when the span is ≤ 31 days, otherwise one bar per overlapping week
+ * (hours outside the range are not counted).
  */
 export function periodBucketTotals(
 	sessions: TimeSession[],
-	period: ProjectPeriodKind,
+	period: ProjectPeriodSpec,
 	now = new Date(),
 	timeZone?: string
 ): WeekDayTotal[] {
 	const nowMs = now.getTime();
 	const todayKey = localDateKeyFromDate(now, timeZone);
 
-	if (period === 'week') {
+	if (period.kind === 'custom') {
+		return customRangeBucketTotals(sessions, period.range.start, period.range.end, now, timeZone);
+	}
+
+	if (period.kind === 'week') {
 		const weekStart = startOfWeekMonday(now, timeZone);
 		const days: Omit<WeekDayTotal, 'ratio'>[] = [];
 		for (let i = 0; i < 7; i++) {
@@ -210,7 +219,7 @@ export function periodBucketTotals(
 		return withRatios(days);
 	}
 
-	if (period === 'month') {
+	if (period.kind === 'month') {
 		const start = startOfMonth(now, timeZone);
 		const count = calendarDaysInclusive(start, endOfMonth(now, timeZone), timeZone);
 		const days: Omit<WeekDayTotal, 'ratio'>[] = [];
@@ -248,6 +257,65 @@ export function periodBucketTotals(
 	}
 
 	return withRatios(months);
+}
+
+function customRangeBucketTotals(
+	sessions: TimeSession[],
+	start: Date,
+	end: Date,
+	now: Date,
+	timeZone?: string
+): WeekDayTotal[] {
+	const nowMs = now.getTime();
+	const todayKey = localDateKeyFromDate(now, timeZone);
+	const startKey = localDateKeyFromDate(start, timeZone);
+	const endKey = localDateKeyFromDate(end, timeZone);
+	const days = calendarDaysInclusive(start, end, timeZone);
+	const origin = new Date(startOfLocalDay(start, timeZone));
+
+	if (days <= CUSTOM_DAILY_BUCKET_MAX) {
+		const buckets: Omit<WeekDayTotal, 'ratio'>[] = [];
+		for (let i = 0; i < days; i++) {
+			const d = addLocalDays(origin, i, timeZone);
+			const key = localDateKeyFromDate(d, timeZone);
+			buckets.push({
+				key,
+				label: String(Number(key.slice(-2))),
+				ms: totalForLocalDay(sessions, key, nowMs, timeZone),
+				isToday: key === todayKey
+			});
+		}
+		return withRatios(buckets);
+	}
+
+	const firstMonday = startOfWeekMonday(start, timeZone);
+	const lastMondayKey = localDateKeyFromDate(startOfWeekMonday(end, timeZone), timeZone);
+	const buckets: Omit<WeekDayTotal, 'ratio'>[] = [];
+
+	for (let i = 0; i < 60; i++) {
+		const weekStart = addLocalDays(firstMonday, i * 7, timeZone);
+		const weekStartKey = localDateKeyFromDate(weekStart, timeZone);
+		if (weekStartKey > lastMondayKey) break;
+
+		let ms = 0;
+		let containsToday = false;
+		for (let d = 0; d < 7; d++) {
+			const day = addLocalDays(weekStart, d, timeZone);
+			const key = localDateKeyFromDate(day, timeZone);
+			if (key < startKey || key > endKey) continue;
+			ms += totalForLocalDay(sessions, key, nowMs, timeZone);
+			if (key === todayKey) containsToday = true;
+		}
+
+		buckets.push({
+			key: weekStartKey,
+			label: `${Number(weekStartKey.slice(-2))} ${monthShort(weekStart, undefined, timeZone)}`,
+			ms,
+			isToday: containsToday
+		});
+	}
+
+	return withRatios(buckets);
 }
 
 export type ProjectWeekSummary = {
@@ -553,7 +621,7 @@ function earliestStartedAt(sessions: TimeSession[], fallback: Date): Date {
 }
 
 export type ProjectPeriodStats = {
-	period: ProjectPeriodKind;
+	period: ProjectPeriodSpec['kind'];
 	totalMs: number;
 	allMs: number;
 	sharePercent: number;
@@ -563,24 +631,33 @@ export type ProjectPeriodStats = {
 	sessionCount: number;
 };
 
+function boundsForProjectPeriod(
+	period: ProjectPeriodSpec,
+	now: Date,
+	timeZone: string | undefined,
+	sessions: TimeSession[]
+): { start: Date; end: Date } {
+	if (period.kind === 'custom') return { start: period.range.start, end: period.range.end };
+	if (period.kind === 'all') return { start: earliestStartedAt(sessions, now), end: now };
+	return periodBounds(period.kind, now, timeZone);
+}
+
 /**
  * Period stats scoped to one project. Week/month use the same bounds as Insights.
  * All-time starts at this project's first session so daily average is not diluted
- * by years of empty calendar before the project existed.
+ * by years of empty calendar before the project existed. Custom uses the given
+ * civil window.
  */
 export function projectPeriodStats(
 	sessions: TimeSession[],
 	projectId: string,
 	activityTypes: ActivityType[],
-	period: ProjectPeriodKind,
+	period: ProjectPeriodSpec,
 	now = new Date(),
 	timeZone?: string
 ): ProjectPeriodStats {
 	const mineAll = sessionsForProject(sessions, projectId);
-	const { start, end } =
-		period === 'all'
-			? { start: earliestStartedAt(mineAll, now), end: now }
-			: periodBounds(period, now, timeZone);
+	const { start, end } = boundsForProjectPeriod(period, now, timeZone, mineAll);
 
 	const nowMs = now.getTime();
 	const inRange = sessionsInRange(sessions, start, end);
@@ -632,7 +709,7 @@ export function projectPeriodStats(
 		.sort((a, b) => b.ms - a.ms);
 
 	return {
-		period,
+		period: period.kind,
 		totalMs,
 		allMs,
 		sharePercent,

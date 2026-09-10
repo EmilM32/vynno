@@ -22,7 +22,7 @@ import {
 	weeklyDayTotals,
 	yesterdayTotalMs
 } from './aggregates';
-import { localDateKeyFromDate, periodBounds } from './duration';
+import { customInsightRange, localDateKeyFromDate, periodBounds } from './duration';
 
 const projects = [
 	makeProject({ id: 'proj-a', name: 'Alpha', color: '#111' }),
@@ -209,13 +209,13 @@ describe('hoursScale', () => {
 describe('periodBucketTotals', () => {
 	it('week matches weeklyDayTotals', () => {
 		const sessions = daySessions();
-		expect(periodBucketTotals(sessions, 'week', FIXED_NOW)).toEqual(
+		expect(periodBucketTotals(sessions, { kind: 'week' }, FIXED_NOW)).toEqual(
 			weeklyDayTotals(sessions, FIXED_NOW)
 		);
 	});
 
 	it('month returns every local day including future days at 0', () => {
-		const days = periodBucketTotals(daySessions(), 'month', FIXED_NOW);
+		const days = periodBucketTotals(daySessions(), { kind: 'month' }, FIXED_NOW);
 		expect(days).toHaveLength(31);
 		expect(days[0]!.key).toBe('2026-03-01');
 		expect(days[0]!.label).toBe('1');
@@ -236,7 +236,7 @@ describe('periodBucketTotals', () => {
 			endedAt: localIso(2026, 0, 15, 12, 0),
 			pausedMs: 0
 		});
-		const months = periodBucketTotals([...daySessions(), older], 'all', FIXED_NOW);
+		const months = periodBucketTotals([...daySessions(), older], { kind: 'all' }, FIXED_NOW);
 		expect(months.map((d) => d.key)).toEqual(['2026-01', '2026-02', '2026-03']);
 		expect(months[0]!.ms).toBe(ms.hours(2));
 		expect(months[1]!.ms).toBe(0);
@@ -245,11 +245,58 @@ describe('periodBucketTotals', () => {
 	});
 
 	it('all-time with no sessions is the current month at zero', () => {
-		const months = periodBucketTotals([], 'all', FIXED_NOW);
+		const months = periodBucketTotals([], { kind: 'all' }, FIXED_NOW);
 		expect(months).toHaveLength(1);
 		expect(months[0]!.key).toBe('2026-03');
 		expect(months[0]!.ms).toBe(0);
 		expect(months[0]!.isToday).toBe(true);
+	});
+
+	it('custom span of 31 days or fewer is one bar per civil day', () => {
+		const parsed = customInsightRange('2026-03-09', '2026-03-11', FIXED_NOW);
+		expect(parsed.ok).toBe(true);
+		if (!parsed.ok) return;
+		const days = periodBucketTotals(
+			daySessions(),
+			{ kind: 'custom', range: parsed.range },
+			FIXED_NOW
+		);
+		expect(days.map((d) => d.key)).toEqual(['2026-03-09', '2026-03-10', '2026-03-11']);
+		expect(days[0]!.ms).toBe(ms.hours(2));
+		expect(days[1]!.ms).toBe(ms.hours(1));
+		expect(days[2]!.ms).toBe(ms.hours(2, 30));
+		expect(days[2]!.isToday).toBe(true);
+	});
+
+	it('custom span longer than 31 days is Monday-aligned weeks clipped to the range', () => {
+		const feb = makeSession({
+			id: 'feb',
+			projectId: 'proj-a',
+			status: 'stopped',
+			startedAt: localIso(2026, 1, 1, 10, 0),
+			endedAt: localIso(2026, 1, 1, 12, 0),
+			pausedMs: 0
+		});
+		const parsed = customInsightRange('2026-02-01', '2026-03-11', FIXED_NOW);
+		expect(parsed.ok).toBe(true);
+		if (!parsed.ok) return;
+		const weeks = periodBucketTotals(
+			[...daySessions(), feb],
+			{ kind: 'custom', range: parsed.range },
+			FIXED_NOW
+		);
+		expect(weeks.map((d) => d.key)).toEqual([
+			'2026-01-26',
+			'2026-02-02',
+			'2026-02-09',
+			'2026-02-16',
+			'2026-02-23',
+			'2026-03-02',
+			'2026-03-09'
+		]);
+		expect(weeks[0]!.ms).toBe(ms.hours(2));
+		expect(weeks[6]!.ms).toBe(ms.hours(5, 30));
+		expect(weeks[6]!.isToday).toBe(true);
 	});
 });
 
@@ -538,7 +585,13 @@ describe('sessionsForProject / latestStoppedStartedAt', () => {
 
 describe('projectPeriodStats', () => {
 	it('scopes week totals and share to one project', () => {
-		const stats = projectPeriodStats(daySessions(), 'proj-a', activityTypes, 'week', FIXED_NOW);
+		const stats = projectPeriodStats(
+			daySessions(),
+			'proj-a',
+			activityTypes,
+			{ kind: 'week' },
+			FIXED_NOW
+		);
 		expect(stats.period).toBe('week');
 		// Today 2h + yesterday 1h
 		expect(stats.totalMs).toBe(ms.hours(3));
@@ -550,7 +603,13 @@ describe('projectPeriodStats', () => {
 	});
 
 	it('uses first project session as all-time start so share is of the overlapping window', () => {
-		const stats = projectPeriodStats(daySessions(), 'proj-a', activityTypes, 'all', FIXED_NOW);
+		const stats = projectPeriodStats(
+			daySessions(),
+			'proj-a',
+			activityTypes,
+			{ kind: 'all' },
+			FIXED_NOW
+		);
 		expect(stats.totalMs).toBe(ms.hours(3));
 		expect(stats.allMs).toBeGreaterThanOrEqual(stats.totalMs);
 		expect(stats.sharePercent).toBeGreaterThan(0);
@@ -558,11 +617,34 @@ describe('projectPeriodStats', () => {
 	});
 
 	it('returns zeros when the project has no sessions', () => {
-		const stats = projectPeriodStats(daySessions(), 'missing', activityTypes, 'week', FIXED_NOW);
+		const stats = projectPeriodStats(
+			daySessions(),
+			'missing',
+			activityTypes,
+			{ kind: 'week' },
+			FIXED_NOW
+		);
 		expect(stats.totalMs).toBe(0);
 		expect(stats.sessionCount).toBe(0);
 		expect(stats.byActivity).toEqual([]);
 		expect(stats.mostProductiveDay).toBeNull();
 		expect(stats.sharePercent).toBe(0);
+	});
+
+	it('custom window uses the given civil bounds', () => {
+		const parsed = customInsightRange('2026-03-11', '2026-03-11', FIXED_NOW);
+		expect(parsed.ok).toBe(true);
+		if (!parsed.ok) return;
+		const stats = projectPeriodStats(
+			daySessions(),
+			'proj-a',
+			activityTypes,
+			{ kind: 'custom', range: parsed.range },
+			FIXED_NOW
+		);
+		expect(stats.period).toBe('custom');
+		expect(stats.totalMs).toBe(ms.hours(2));
+		expect(stats.sessionCount).toBe(1);
+		expect(stats.allMs).toBe(ms.hours(2, 30));
 	});
 });

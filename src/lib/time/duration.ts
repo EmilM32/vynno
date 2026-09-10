@@ -281,6 +281,10 @@ export type InsightRange = {
 	end: Date;
 };
 
+/** Project-view period: current week/month, all-time, or an Insights custom range. */
+export type ProjectPeriodSpec =
+	{ kind: ProjectPeriodKind } | { kind: 'custom'; range: InsightRange };
+
 export type CustomRangeError = 'invalid' | 'order' | 'future' | 'span';
 
 export const MAX_INSIGHT_CUSTOM_DAYS = 366;

@@ -72,6 +72,49 @@ test.describe('projects', () => {
 		await expect(page.getByRole('heading', { name: 'All time' })).toBeVisible();
 	});
 
+	test('custom range dialog and chart follow a selected span', async ({ page }) => {
+		await page.getByTestId('project-open').first().click();
+		const control = page.getByTestId('project-period-control');
+		await control.getByRole('button', { name: 'Custom' }).click();
+
+		const dialog = page.getByRole('dialog', { name: 'Custom range' });
+		await expect(dialog).toBeVisible();
+
+		const from = dialog.getByLabel('From');
+		const to = dialog.getByLabel('To');
+		await from.fill('2026-03-11');
+		await to.fill('2026-03-01');
+		await expect(dialog.getByText('From must be on or before To.')).toBeVisible();
+		await expect(dialog.getByRole('button', { name: 'Apply' })).toBeDisabled();
+
+		const today = localDayAt(0);
+		const fromDay = localDayAt(3);
+		const ymd = (d: Date) =>
+			`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+		await from.fill(ymd(fromDay));
+		await to.fill(ymd(today));
+		await dialog.getByRole('button', { name: 'Apply' }).click();
+		await expect(dialog).toBeHidden();
+
+		await expect(page.getByRole('heading', { name: 'Custom period' })).toBeVisible();
+		await expect(page.getByRole('region', { name: 'Hours in selected period' })).toBeVisible();
+		const custom = page.getByTestId('project-range-label');
+		await expect(custom).toHaveAttribute('aria-pressed', 'true');
+		await expect(custom).not.toHaveText('Custom');
+		await expect(custom).not.toHaveText('');
+		await expect(control.getByRole('button', { name: 'Week', exact: true })).toHaveAttribute(
+			'aria-pressed',
+			'false'
+		);
+
+		await control.getByRole('button', { name: 'Week', exact: true }).click();
+		await expect(page.getByRole('heading', { name: 'Weekly Overview' })).toBeVisible();
+		await expect(control.getByRole('button', { name: 'Custom' })).toHaveAttribute(
+			'aria-pressed',
+			'false'
+		);
+	});
+
 	test('dashboard active project card opens the dossier', async ({ page }) => {
 		await page.goto('/dashboard');
 		const card = page.getByTestId('active-project-card').first();

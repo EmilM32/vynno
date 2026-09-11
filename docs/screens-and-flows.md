@@ -1,7 +1,7 @@
 # Screens and Flows — Vynno
 
 **Status:** Living  
-**Last updated:** 2026-09-10
+**Last updated:** 2026-09-11
 
 Route inventory, shell, and primary user flows. Named themes (`dark`, `light`, `deep-dark`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md). Unbuilt extras: [open.md](./open.md).
 
@@ -131,7 +131,7 @@ Time dossier for one project. Not a seventh nav item — Projects stays highligh
 2. Actions: Week / Month / All / Custom, Start session (or Open timer), Edit, Archive / Restore
 3. KPI cards: period total, daily average, share of period hours
 4. Period hours bar + time-by-activity bars
-5. Entries: search, date + activity filters (same chips as `/logs`, no project picker), Entries | Grouped layout. Date-grouped rows; Grouped merges same-ticket sessions. Independent of the KPI Week / Month / All / Custom toggle. Custom uses the same From / To dialog as Insights (span ≤ 366 days).
+5. Entries: search, activity filter (same chip as `/logs`, no project picker, no date chip), Entries | Grouped layout. Date-grouped rows; Grouped merges same-ticket sessions. The list uses the same Week / Month / All / Custom window as the KPIs and charts. Custom uses the same From / To dialog as Insights (span ≤ 366 days).
 
 | State                           | UI                                                         |
 | ------------------------------- | ---------------------------------------------------------- |

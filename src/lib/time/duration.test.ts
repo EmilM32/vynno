@@ -9,6 +9,7 @@ import {
 	endOfLocalDay,
 	formatLogDateRangeLabel,
 	logDateRangeForPreset,
+	logDateRangeForProjectPeriod,
 	endOfMonth,
 	endOfWeekSunday,
 	formatClock,
@@ -400,6 +401,27 @@ describe('logDateRangeForPreset', () => {
 		expect(range).not.toBeNull();
 		expect(localDateKeyFromDate(range!.start, 'UTC')).toBe('2026-03-11');
 		expect(range!.end.getTime()).toBe(now.getTime());
+	});
+});
+
+describe('logDateRangeForProjectPeriod', () => {
+	it('all is unbounded', () => {
+		expect(logDateRangeForProjectPeriod({ kind: 'all' }, FIXED_NOW)).toBeNull();
+	});
+
+	it('week and month match periodBounds', () => {
+		const week = logDateRangeForProjectPeriod({ kind: 'week' }, FIXED_NOW);
+		const month = logDateRangeForProjectPeriod({ kind: 'month' }, FIXED_NOW);
+		expect(week).toEqual(periodBounds('week', FIXED_NOW));
+		expect(month).toEqual(periodBounds('month', FIXED_NOW));
+	});
+
+	it('custom passes the selected range through', () => {
+		const result = customInsightRange('2026-03-01', '2026-03-11', FIXED_NOW);
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		const range = logDateRangeForProjectPeriod({ kind: 'custom', range: result.range }, FIXED_NOW);
+		expect(range).toEqual({ start: result.range.start, end: result.range.end });
 	});
 });
 

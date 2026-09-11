@@ -250,6 +250,7 @@
 	"project_entries_aria": "Wpisy tego projektu",
 	"project_entries_search_aria": "Szukaj we wpisach",
 	"project_entries_empty": "Brak zakończonych sesji w tym projekcie.",
+	"project_entries_empty_period": "Brak zakończonych sesji w tym okresie.",
 	"project_entries_no_match": "Żadne wpisy nie pasują do filtra.",
 	"project_start_session": "Rozpocznij sesję",
 	"project_more_actions": "Więcej",

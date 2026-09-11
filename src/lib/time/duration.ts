@@ -465,6 +465,21 @@ export function logDateRangeForPreset(
 	return { start: range.start, end: range.end };
 }
 
+/**
+ * Civil window for the project-view period toggle. `all` is unbounded (`null`)
+ * so the entries list matches Logs “All dates”; week/month share `periodBounds`
+ * with the KPIs; custom uses the selected Insights range.
+ */
+export function logDateRangeForProjectPeriod(
+	period: ProjectPeriodSpec,
+	now = new Date(),
+	timeZone?: string
+): LogDateRange | null {
+	if (period.kind === 'all') return null;
+	if (period.kind === 'custom') return { start: period.range.start, end: period.range.end };
+	return periodBounds(period.kind, now, timeZone);
+}
+
 /** Inclusive civil span label (`11 Mar 2026`, `5–11 Mar 2026`). */
 export function formatLogDateRangeLabel(
 	range: LogDateRange,

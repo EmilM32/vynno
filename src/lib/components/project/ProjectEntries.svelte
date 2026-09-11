@@ -11,20 +11,17 @@
 	import { filterSessions, groupSessionsByDate, groupSessionsByTask } from '$lib/time/aggregates';
 	import {
 		localDateKeyFromDate,
-		logDateRangeForPreset,
-		type LogDatePreset,
-		type LogDateRange
+		logDateRangeForProjectPeriod,
+		type ProjectPeriodSpec
 	} from '$lib/time/duration';
 	import type { TimeSession } from '$lib/types/domain';
 
 	type LogsLayout = 'entries' | 'grouped';
 
-	let { sessions }: { sessions: TimeSession[] } = $props();
+	let { sessions, period }: { sessions: TimeSession[]; period: ProjectPeriodSpec } = $props();
 
 	const sessionStore = useSession();
 	let query = $state('');
-	let datePreset = $state<LogDatePreset>('all');
-	let customRange = $state.raw<LogDateRange | null>(null);
 	let projectIds = $state.raw<string[]>([]);
 	let activityTypeIds = $state.raw<string[]>([]);
 	let layout = $state<LogsLayout>('entries');
@@ -35,22 +32,21 @@
 	]);
 
 	const now = $derived(new Date(sessionStore.nowMs));
-	const range = $derived(
-		datePreset === 'custom'
-			? customRange
-			: logDateRangeForPreset(datePreset, now, sessionStore.timeZone)
-	);
+	const range = $derived(logDateRangeForProjectPeriod(period, now, sessionStore.timeZone));
 	const listFilter = $derived({ range, activityTypeIds });
-
-	$effect(() => {
-		if (range) void sessionStore.ensureThrough(range.start.getTime());
-	});
 
 	const stopped = $derived(sessions.filter((s) => s.status === 'stopped'));
 	const filtered = $derived(filterSessions(stopped, query, sessionStore.allProjects, listFilter));
 	const groups = $derived(groupSessionsByDate(filtered, sessionStore.timeZone));
 	const todayKey = $derived(localDateKeyFromDate(now, sessionStore.timeZone));
-	const hasConstraint = $derived(Boolean(query.trim() || range || activityTypeIds.length));
+	const facetConstrained = $derived(Boolean(query.trim() || activityTypeIds.length));
+	const emptyMessage = $derived(
+		facetConstrained
+			? m.project_entries_no_match()
+			: period.kind !== 'all'
+				? m.project_entries_empty_period()
+				: m.project_entries_empty()
+	);
 </script>
 
 <SessionMutations>
@@ -81,8 +77,6 @@
 
 			<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
 				<LogsFilterBar
-					bind:datePreset
-					bind:customRange
 					bind:projectIds
 					bind:activityTypeIds
 					projects={sessionStore.allProjects}
@@ -90,6 +84,7 @@
 					{now}
 					timeZone={sessionStore.timeZone}
 					showProjects={false}
+					showDates={false}
 				/>
 				<div class="self-start">
 					<PeriodToggle
@@ -100,13 +95,9 @@
 				</div>
 			</div>
 
-			{#if sessionStore.loadingMore && range}
-				<p class="text-body-sm text-on-surface-variant">{m.logs_loading_earlier()}</p>
-			{/if}
-
 			{#if groups.length === 0}
 				<p class="py-8 text-center text-body-md text-on-surface-variant">
-					{hasConstraint ? m.project_entries_no_match() : m.project_entries_empty()}
+					{emptyMessage}
 				</p>
 			{:else}
 				{#each groups as group, i (group.dateKey)}

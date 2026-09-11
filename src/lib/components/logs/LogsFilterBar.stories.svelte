@@ -36,3 +36,5 @@
 />
 
 <Story name="NoProjects" args={{ showProjects: false }} />
+
+<Story name="NoDates" args={{ showProjects: false, showDates: false }} />

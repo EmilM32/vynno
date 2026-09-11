@@ -1,8 +1,10 @@
 import { expect, test } from '@playwright/test';
 import {
 	firstProjectId,
+	localCivilDay,
 	localDayAt,
 	login,
+	pastSpansOnCurrentDay,
 	seedManualSession,
 	spaGo,
 	startSession,
@@ -194,11 +196,11 @@ test.describe('projects', () => {
 });
 
 test.describe('project entries filters', () => {
-	test('default chrome is All dates / activities, no project picker', async ({ page }) => {
+	test('default chrome is activity filter only, no project or date picker', async ({ page }) => {
 		await login(page);
 		await page.goto(`/projects/${await firstProjectId(page)}`);
 		const entries = page.getByTestId('project-entries');
-		await expect(entries.getByTestId('logs-filter-dates')).toHaveText(/All dates/);
+		await expect(entries.getByTestId('logs-filter-dates')).toHaveCount(0);
 		await expect(entries.getByTestId('logs-filter-activities')).toHaveText(/All activities/);
 		await expect(entries.getByTestId('logs-filter-projects')).toHaveCount(0);
 		await expect(entries.getByRole('button', { name: 'Entries' })).toHaveAttribute(
@@ -207,57 +209,58 @@ test.describe('project entries filters', () => {
 		);
 	});
 
-	test('Today hides a yesterday entry and Clear restores it', async ({ page }) => {
+	test('page period hides older entries; All restores them', async ({ page }) => {
 		await login(page);
-		const yesterdayNote = uniqueNote('proj-yest');
+		const olderNote = uniqueNote('proj-old');
 		const todayNote = uniqueNote('proj-today');
 		await seedManualSession(page, {
-			note: yesterdayNote,
-			startedAt: localDayAt(1, 10, 0).toISOString(),
-			endedAt: localDayAt(1, 11, 0).toISOString()
+			note: olderNote,
+			startedAt: localDayAt(40, 10, 0).toISOString(),
+			endedAt: localDayAt(40, 11, 0).toISOString()
 		});
+		const [todaySpan] = pastSpansOnCurrentDay(1);
 		await seedManualSession(page, {
 			note: todayNote,
-			startedAt: localDayAt(0, 9, 0).toISOString(),
-			endedAt: localDayAt(0, 10, 0).toISOString()
+			startedAt: todaySpan!.startedAt.toISOString(),
+			endedAt: todaySpan!.endedAt.toISOString()
 		});
 		await page.goto(`/projects/${await firstProjectId(page)}`);
-		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'All' }).click();
+		const period = page.getByRole('group', { name: 'Period' });
 		const entries = page.getByTestId('project-entries');
 		const rows = entries.getByTestId('log-row');
-		await expect(rows.filter({ hasText: yesterdayNote })).toBeVisible();
 		await expect(rows.filter({ hasText: todayNote })).toBeVisible();
+		await expect(rows.filter({ hasText: olderNote })).toHaveCount(0);
 
-		await entries.getByTestId('logs-filter-dates').click();
-		await page
-			.getByRole('dialog', { name: 'Date range' })
-			.getByRole('button', { name: 'Today' })
-			.click();
-		await expect(entries.getByTestId('logs-filter-dates')).toContainText('Today');
+		await period.getByRole('button', { name: 'Month' }).click();
 		await expect(rows.filter({ hasText: todayNote })).toBeVisible();
-		await expect(rows.filter({ hasText: yesterdayNote })).toHaveCount(0);
+		await expect(rows.filter({ hasText: olderNote })).toHaveCount(0);
 
-		await entries.getByTestId('logs-filter-clear').click();
-		await expect(entries.getByTestId('logs-filter-dates')).toHaveText(/All dates/);
-		await expect(rows.filter({ hasText: yesterdayNote })).toBeVisible();
+		await period.getByRole('button', { name: 'All' }).click();
+		await expect(rows.filter({ hasText: todayNote })).toBeVisible();
+		await expect(rows.filter({ hasText: olderNote })).toBeVisible();
+
+		await page.getByTestId('project-range-label').click();
+		const dialog = page.getByRole('dialog', { name: 'Custom range' });
+		await dialog.getByLabel('From').fill(localCivilDay(localDayAt(40)));
+		await dialog.getByLabel('To').fill(localCivilDay(localDayAt(40)));
+		await dialog.getByRole('button', { name: 'Apply' }).click();
+		await expect(dialog).toBeHidden();
+		await expect(rows.filter({ hasText: olderNote })).toBeVisible();
+		await expect(rows.filter({ hasText: todayNote })).toHaveCount(0);
 	});
 
 	test('grouped layout rolls up same-ticket sessions', async ({ page }) => {
 		await login(page);
 		const ticket = `DEV-${Date.now().toString(36)}`;
 		const notes = [uniqueNote('pgrp-a'), uniqueNote('pgrp-b'), uniqueNote('pgrp-c')];
-		const spans: [number, number][] = [
-			[9, 10],
-			[11, 12],
-			[14, 15]
-		];
+		const spans = pastSpansOnCurrentDay(3);
 		for (let i = 0; i < notes.length; i++) {
-			const [startHour, endHour] = spans[i]!;
+			const span = spans[i]!;
 			await seedManualSession(page, {
 				note: notes[i]!,
 				ticketId: ticket,
-				startedAt: localDayAt(0, startHour, 0).toISOString(),
-				endedAt: localDayAt(0, endHour, 0).toISOString()
+				startedAt: span.startedAt.toISOString(),
+				endedAt: span.endedAt.toISOString()
 			});
 		}
 		await page.goto(`/projects/${await firstProjectId(page)}`);
@@ -268,9 +271,17 @@ test.describe('project entries filters', () => {
 
 		await entries.getByRole('button', { name: 'Grouped' }).click();
 		const group = entries.getByTestId('log-group').filter({ hasText: ticket });
+		const totalMs = spans.reduce((n, s) => n + (s.endedAt.getTime() - s.startedAt.getTime()), 0);
+		const totalMin = Math.floor(totalMs / 60_000);
+		const compact =
+			totalMin >= 60 && totalMin % 60 === 0
+				? `${totalMin / 60}h`
+				: totalMin >= 60
+					? `${Math.floor(totalMin / 60)}h ${totalMin % 60}m`
+					: `${totalMin}m`;
 		await expect(group).toBeVisible();
 		await expect(group).toContainText('3×');
-		await expect(group).toContainText('3h');
+		await expect(group).toContainText(compact);
 		for (const note of notes) {
 			await expect(entries.getByTestId('log-row').filter({ hasText: note })).toHaveCount(0);
 		}

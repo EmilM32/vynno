@@ -17,7 +17,7 @@
 3. **A session matches a date range by `startedAt`.** Same rule as `sessionsInRange` and the `YYYY-MM-DD` group headers.
 4. **Range is view-local `$state`.** Not URL, not `vynno_prefs`. Leaving the screen resets to All / all projects / all activities.
 5. **No API date or facet filter.** Bounded dates call `ensureThrough(range.start)`. Unbounded keeps the infinite-scroll sentinel. A `from`/`to` (or project/activity query) on `GET /sessions` would be a vynno-api contract amendment.
-6. **Logs and the project dossier entries list.** Insights keeps grain + prev/next. `/projects/[id]` reuses date + activity facets (no project picker — the page is already one project). The KPI Week / Month / All toggle stays independent of the entries date filter.
+6. **Logs and the project dossier entries list.** Insights keeps grain + prev/next. `/logs` owns date + project + activity facets. `/projects/[id]` entries reuse the activity facet (no project picker — the page is already one project; no date chip — the list consumes the page `ProjectPeriodSpec` so KPIs, charts, and entries share one window).
 
 ## Consequences
 

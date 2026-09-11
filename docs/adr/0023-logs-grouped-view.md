@@ -25,7 +25,7 @@
 
 - A day’s repeats of `DEV-842` become one total.
 - Long descriptions are readable in the row.
-- Project dossier entries get note expand, grouping, and date/activity filters.
+- Project dossier entries get note expand, grouping, and an activity filter.
 
 ### Negative / tradeoffs
 

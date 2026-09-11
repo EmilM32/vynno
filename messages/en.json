@@ -250,6 +250,7 @@
 	"project_entries_aria": "Entries for this project",
 	"project_entries_search_aria": "Search entries",
 	"project_entries_empty": "No completed sessions on this project yet.",
+	"project_entries_empty_period": "No completed sessions in this period.",
 	"project_entries_no_match": "No entries match that filter.",
 	"project_start_session": "Start session",
 	"project_more_actions": "More actions",

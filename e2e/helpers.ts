@@ -132,6 +132,32 @@ export function localDayAt(daysAgo: number, hour = 10, minute = 0): Date {
 	return d;
 }
 
+/**
+ * Consecutive stopped spans that already started today.
+ * Week / month windows clamp `end` to now, so a 09:00 seed is invisible
+ * before 9am; packing backward from now keeps them inside the default week.
+ */
+export function pastSpansOnCurrentDay(
+	count: number,
+	durationMs = 60 * 60 * 1000
+): { startedAt: Date; endedAt: Date }[] {
+	const now = Date.now() - 2_000;
+	const dayStart = localDayAt(0, 0, 0).getTime();
+	const available = Math.max(count * 5_000, now - dayStart);
+	const slot = Math.min(durationMs, Math.floor(available / count));
+	const origin = now - slot * count;
+	const start0 = Math.max(dayStart, origin);
+	const spans: { startedAt: Date; endedAt: Date }[] = [];
+	for (let i = 0; i < count; i++) {
+		const startedAt = start0 + i * slot;
+		spans.push({
+			startedAt: new Date(startedAt),
+			endedAt: new Date(Math.min(startedAt + slot, now))
+		});
+	}
+	return spans;
+}
+
 export async function firstProjectId(page: Page): Promise<string> {
 	const list = await apiFetch(page, '/projects');
 	if (!list.ok()) {

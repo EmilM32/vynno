@@ -306,7 +306,7 @@
 			<ActivityBars class="h-full" items={stats?.byActivity ?? []} />
 		</div>
 
-		<ProjectEntries sessions={mine} />
+		<ProjectEntries sessions={mine} {period} />
 	</div>
 
 	<Dialog open={editing} title={m.projects_form_edit()} onclose={() => (editing = false)} size="lg">

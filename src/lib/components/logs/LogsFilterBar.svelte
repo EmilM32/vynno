@@ -15,18 +15,19 @@
 	import LogsPickDialog from './LogsPickDialog.svelte';
 
 	let {
-		datePreset = $bindable(),
-		customRange = $bindable(),
+		datePreset = $bindable('all'),
+		customRange = $bindable(null),
 		projectIds = $bindable(),
 		activityTypeIds = $bindable(),
 		projects,
 		activityTypes,
 		now,
 		timeZone,
-		showProjects = true
+		showProjects = true,
+		showDates = true
 	}: {
-		datePreset: LogDatePreset;
-		customRange: LogDateRange | null;
+		datePreset?: LogDatePreset;
+		customRange?: LogDateRange | null;
 		projectIds: string[];
 		activityTypeIds: string[];
 		projects: Project[];
@@ -35,9 +36,11 @@
 		timeZone?: string;
 		/** False on the project dossier — the page is already one project. */
 		showProjects?: boolean;
+		/** False on the project dossier — the page period toggle owns the range. */
+		showDates?: boolean;
 	} = $props();
 
-	const dateConstrained = $derived(datePreset !== 'all');
+	const dateConstrained = $derived(showDates && datePreset !== 'all');
 	const projectsConstrained = $derived(projectIds.length > 0);
 	const activitiesConstrained = $derived(activityTypeIds.length > 0);
 	const constrained = $derived(
@@ -117,24 +120,28 @@
 	}
 
 	function clearFilters() {
-		datePreset = 'all';
-		customRange = null;
+		if (showDates) {
+			datePreset = 'all';
+			customRange = null;
+		}
 		if (showProjects) projectIds = [];
 		activityTypeIds = [];
 	}
 </script>
 
 <div class="flex flex-wrap items-center gap-2" data-testid="logs-filters">
-	<Button
-		variant={dateConstrained ? 'tonal' : 'secondary'}
-		size="sm"
-		aria-pressed={dateConstrained}
-		aria-haspopup="dialog"
-		data-testid="logs-filter-dates"
-		onclick={openDates}
-	>
-		{dateLabel}
-	</Button>
+	{#if showDates}
+		<Button
+			variant={dateConstrained ? 'tonal' : 'secondary'}
+			size="sm"
+			aria-pressed={dateConstrained}
+			aria-haspopup="dialog"
+			data-testid="logs-filter-dates"
+			onclick={openDates}
+		>
+			{dateLabel}
+		</Button>
+	{/if}
 	{#if showProjects}
 		<Button
 			variant={projectsConstrained ? 'tonal' : 'secondary'}
@@ -164,20 +171,22 @@
 	{/if}
 </div>
 
-<LogsDateDialog
-	open={dateOpen}
-	bind:preset={dateDraft}
-	bind:fromDay={draftFrom}
-	bind:toDay={draftTo}
-	{now}
-	{timeZone}
-	onclose={() => (dateOpen = false)}
-	onapply={(next) => {
-		datePreset = next.preset;
-		customRange = next.customRange;
-		dateOpen = false;
-	}}
-/>
+{#if showDates}
+	<LogsDateDialog
+		open={dateOpen}
+		bind:preset={dateDraft}
+		bind:fromDay={draftFrom}
+		bind:toDay={draftTo}
+		{now}
+		{timeZone}
+		onclose={() => (dateOpen = false)}
+		onapply={(next) => {
+			datePreset = next.preset;
+			customRange = next.customRange;
+			dateOpen = false;
+		}}
+	/>
+{/if}
 
 {#if showProjects}
 	<LogsPickDialog

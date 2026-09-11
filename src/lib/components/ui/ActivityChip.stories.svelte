@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import { defineMeta } from '@storybook/addon-svelte-csf';
-	import { ACTIVITY_COLOR_TOKENS } from '$lib/time/activity-styles';
+	import { ACTIVITY_COLOR_TOKENS, activityColorLabel } from '$lib/time/activity-styles';
 	import ActivityChip from './ActivityChip.svelte';
 
 	const { Story } = defineMeta({
@@ -18,7 +18,7 @@
 	{#snippet template()}
 		<div class="flex flex-wrap gap-2">
 			{#each ACTIVITY_COLOR_TOKENS as color (color)}
-				<ActivityChip type={{ id: color, name: color, color }} />
+				<ActivityChip type={{ id: color, name: activityColorLabel(color), color }} />
 			{/each}
 		</div>
 	{/snippet}

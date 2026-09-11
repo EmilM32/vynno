@@ -1,7 +1,7 @@
 # Design System — Vynno
 
 **Status:** Living  
-**Last updated:** 2026-08-27  
+**Last updated:** 2026-09-11  
 **Hex values live in CSS:** `src/lib/theme/dark.css`, `light.css`, `deep-dark.css`. When this doc and the CSS diverge, prefer the CSS unless the change was an intentional product decision. Named themes: [adr/0008-named-themes.md](./adr/0008-named-themes.md).
 
 ---
@@ -27,6 +27,7 @@ Material-style names are **shared** across themes. Hex lives in the palette CSS 
 | Paused / warning           | Soft amber (`dark`, `light`) or lavender (`deep-dark`) — `tertiary`                                                                 |
 | Stopped / neutral status   | Slate / outline                                                                                                                     |
 | Destructive                | `error` / `error-container`                                                                                                         |
+| Activity extras            | Indigo / coral (`--dt-indigo`, `--dt-coral`). Stored on activity types as `primary-container` / `secondary-container`               |
 
 **Do not** use `outline`, `outline-variant`, or `*-fixed` tints as small text (they fail 4.5:1 on light). Status ink is `secondary` / `tertiary` / `error`, not `secondary-fixed`.
 
@@ -150,7 +151,7 @@ Live in `src/lib/components/ui/`. Browse them in Storybook under `UI/*`. These o
 
 **`Icon`** — the only place `material-symbols-outlined` appears. Sizes `xs`–`2xl` (14/16/18/20/22/24px); `fill` drives the FILL axis for active nav items and transport glyphs.
 
-**`Dialog`** / **`ConfirmDialog`** — centered overlay, focus-trapped. **`ActivityChip`** — near-square pill with type colour.
+**`Dialog`** / **`ConfirmDialog`** — centered overlay, focus-trapped. **`ActivityChip`** — near-square pill; washed type colour (`bg-*/10` + chromatic ink). `primary-container` / `secondary-container` render as indigo / coral.
 
 **`Field`** — label + optional hint/error. Layouts `stack` (dialogs) and `split` (Settings rows). Sets context so nested `Input` / `Select` inherit `id`, `aria-invalid`, and `aria-describedby`.
 

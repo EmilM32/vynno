@@ -13,6 +13,8 @@ export type ThemeSwatch = {
 	secondary: string;
 	tertiary: string;
 	error: string;
+	indigo: string;
+	coral: string;
 };
 
 /** Body / UI text tokens actually used in components (not decorative chrome). */
@@ -27,7 +29,9 @@ export const THEME_SWATCHES: Record<ThemeId, ThemeSwatch> = {
 		onPrimary: '#00354a',
 		secondary: '#4de082',
 		tertiary: '#ffc42f',
-		error: '#ffb4ab'
+		error: '#ffb4ab',
+		indigo: '#a5b4fc',
+		coral: '#fb923c'
 	},
 	light: {
 		surface: '#f8f9ff',
@@ -39,7 +43,9 @@ export const THEME_SWATCHES: Record<ThemeId, ThemeSwatch> = {
 		onPrimary: '#ffffff',
 		secondary: '#006e2d',
 		tertiary: '#8d4b00',
-		error: '#ba1a1a'
+		error: '#ba1a1a',
+		indigo: '#4338ca',
+		coral: '#c2410c'
 	},
 	'deep-dark': {
 		surface: '#131313',
@@ -51,7 +57,9 @@ export const THEME_SWATCHES: Record<ThemeId, ThemeSwatch> = {
 		onPrimary: '#00363d',
 		secondary: '#34ff8d',
 		tertiary: '#dfc6ff',
-		error: '#ffb4ab'
+		error: '#ffb4ab',
+		indigo: '#a5b4fc',
+		coral: '#fb923c'
 	}
 };
 
@@ -73,7 +81,11 @@ export const TEXT_PAIRS: readonly TextPair[] = [
 	{ fg: 'secondary', bg: 'container', min: 4.5 },
 	{ fg: 'tertiary', bg: 'surface', min: 4.5 },
 	{ fg: 'error', bg: 'surface', min: 4.5 },
-	{ fg: 'error', bg: 'container', min: 4.5 }
+	{ fg: 'error', bg: 'container', min: 4.5 },
+	{ fg: 'indigo', bg: 'surface', min: 4.5 },
+	{ fg: 'indigo', bg: 'containerLow', min: 4.5 },
+	{ fg: 'coral', bg: 'surface', min: 4.5 },
+	{ fg: 'coral', bg: 'containerLow', min: 4.5 }
 ];
 
 export function relativeLuminance(hex: string): number {

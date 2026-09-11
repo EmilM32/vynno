@@ -197,7 +197,7 @@ Per-user dictionary. Empty until the user creates rows.
 
 `name` is a display label (trim, 1–80 characters, stored as typed), unique per user case-insensitively. The SPA shows this string; chips render it uppercase.
 
-`color` is a theme token: `primary` \| `secondary` \| `tertiary` \| `error` \| `on-surface-variant` \| `outline` \| `primary-container` \| `secondary-container`.
+`color` is a theme token: `primary` \| `secondary` \| `tertiary` \| `error` \| `on-surface-variant` \| `outline` \| `primary-container` \| `secondary-container`. The last two are stored ids; the SPA paints them as indigo and coral activity accents, not Material container fills.
 
 ### Sessions
 

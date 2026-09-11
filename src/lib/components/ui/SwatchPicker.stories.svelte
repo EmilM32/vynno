@@ -2,7 +2,11 @@
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import { fn } from 'storybook/test';
 	import { PROJECT_COLOR_PALETTE } from '$lib/projects/palette';
-	import { ACTIVITY_COLOR_TOKENS, activitySwatchClass } from '$lib/time/activity-styles';
+	import {
+		ACTIVITY_COLOR_TOKENS,
+		activityColorLabel,
+		activitySwatchClass
+	} from '$lib/time/activity-styles';
 	import SwatchPicker from './SwatchPicker.svelte';
 
 	const hexOptions = PROJECT_COLOR_PALETTE.map((color) => ({
@@ -13,7 +17,7 @@
 
 	const tokenOptions = ACTIVITY_COLOR_TOKENS.map((token) => ({
 		value: token,
-		label: token,
+		label: activityColorLabel(token),
 		className: activitySwatchClass(token)
 	}));
 

@@ -59,4 +59,9 @@
 
 	--dt-inverse-surface: #e5e2e1;
 	--dt-inverse-on-surface: #313030;
+
+	/* Activity-type extras — not Material containers. Stored ids stay
+	   primary-container / secondary-container. */
+	--dt-indigo: #a5b4fc;
+	--dt-coral: #fb923c;
 }

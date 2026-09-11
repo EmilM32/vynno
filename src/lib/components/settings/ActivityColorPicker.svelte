@@ -3,6 +3,7 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import {
 		ACTIVITY_COLOR_TOKENS,
+		activityColorLabel,
 		activitySwatchClass,
 		type ActivityColorToken
 	} from '$lib/time/activity-styles';
@@ -17,7 +18,7 @@
 
 	const options = ACTIVITY_COLOR_TOKENS.map((color) => ({
 		value: color,
-		label: color,
+		label: activityColorLabel(color),
 		className: activitySwatchClass(color)
 	}));
 

@@ -57,4 +57,9 @@
 
 	--dt-inverse-surface: #213145;
 	--dt-inverse-on-surface: #eaf1ff;
+
+	/* Activity-type extras — not Material containers. Stored ids stay
+	   primary-container / secondary-container. Darker inks so 10px chips pass AA. */
+	--dt-indigo: #4338ca;
+	--dt-coral: #c2410c;
 }

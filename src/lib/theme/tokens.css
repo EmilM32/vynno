@@ -55,6 +55,9 @@
 
 	--color-inverse-surface: var(--dt-inverse-surface);
 	--color-inverse-on-surface: var(--dt-inverse-on-surface);
+
+	--color-indigo: var(--dt-indigo);
+	--color-coral: var(--dt-coral);
 }
 
 /* Shared type, radius, and spacing — not forked per theme. */

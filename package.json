@@ -1,8 +1,12 @@
 {
 	"name": "vynno",
 	"private": true,
-	"version": "0.9.6",
+	"version": "0.9.7",
 	"type": "module",
+	"author": {
+		"name": "Emil Majer",
+		"email": "emil.majer@proton.me"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",

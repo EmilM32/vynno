@@ -83,8 +83,9 @@ Not built on this screen: session target progress, desktop Quick Command panel. 
 2. Filter row: date (All / Today / Yesterday / Last 7 days / This week / This month / Custom From–To), multi-select projects, multi-select activities. Empty selection = all. View-local (resets on leave). Custom uses native `type="date"`.
 3. Layout toggle: **Entries** (default) | **Grouped**. View-local; not cleared with filters. Grouped merges same-ticket (else same project + note) sessions inside each day, with count + total duration. Multi-session summaries expand to the constituent rows.
 4. Date separators (`YYYY-MM-DD`)
-5. Entries: project color + name, `> note` (one line; expand when truncated), optional ticket / activity chip, time range, duration
-6. Add entry / Edit session: form dialog (note, project, activity, ticket, times). Delete: confirm dialog
+5. Entries: project color + name, `> note` (one line; expand when truncated), optional ticket / activity chip, time range, duration. Completed rows have Play (hover-reveal on desktop, always visible on mobile) — starts a **new** session now with the same note / project / ticket / activity and goes to Timer. The in-progress row has no Play. Disabled while another session is live (`timer_stop_first`) or the project is archived.
+6. Grouped multi-session headers have the same Play (identity from the newest session in the group). Nested constituent rows keep their own Play.
+7. Add entry / Edit session: form dialog (note, project, activity, ticket, times). Delete: confirm dialog
 
 Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs-grouped-view.md](./adr/0023-logs-grouped-view.md).
 

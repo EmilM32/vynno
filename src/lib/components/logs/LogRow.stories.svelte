@@ -45,6 +45,23 @@
 </Story>
 
 <Story
+	name="Live"
+	args={{
+		session: makeSession({
+			status: 'active',
+			endedAt: undefined,
+			note: 'Live hydrate'
+		})
+	}}
+>
+	{#snippet template(args)}
+		<StoryProviders>
+			<LogRow {...args} />
+		</StoryProviders>
+	{/snippet}
+</Story>
+
+<Story
 	name="LongNote"
 	args={{
 		session: makeSession({

@@ -52,6 +52,37 @@ test.describe('logs', () => {
 		await expect(rows.first()).toContainText(/Personal|>/i);
 	});
 
+	test('restart from a completed row starts a new session', async ({ page }) => {
+		const note = uniqueNote('restart-log');
+		await spaGo(page, 'Timer', '/timer');
+		await startSession(page, note);
+		await stopSession(page);
+		await spaGo(page, 'Logs', '/logs');
+
+		const row = page.getByTestId('log-row').filter({ hasText: note });
+		await expect(row).toBeVisible();
+		const started = page.waitForRequest(
+			(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
+		);
+		await row.getByTestId('log-row-restart').click({ force: true });
+		await started;
+
+		await expect(page).toHaveURL(/\/timer$/);
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(note);
+	});
+
+	test('restart is disabled while a session is live', async ({ page }) => {
+		await spaGo(page, 'Timer', '/timer');
+		await startSession(page, uniqueNote('busy-log'));
+		await spaGo(page, 'Logs', '/logs');
+
+		await expect(page.getByText('In progress')).toBeVisible();
+		const live = page.getByTestId('log-row').first();
+		await expect(live.getByTestId('log-row-restart')).toHaveCount(0);
+		await expect(page.getByTestId('log-row-restart').first()).toBeDisabled();
+	});
+
 	test('row shows project, note, and duration shape', async ({ page }) => {
 		const row = page.getByTestId('log-row').first();
 		await expect(row).toBeVisible();
@@ -350,6 +381,10 @@ test.describe('logs layout', () => {
 		await expect(nested.getByTestId('log-row')).toHaveCount(3);
 		await expect(nested.getByRole('button', { name: 'Edit' }).first()).toBeVisible();
 		await expect(nested.getByTestId('log-row').filter({ hasText: notes[0]! })).toBeVisible();
+
+		await group.getByTestId('log-group-restart').click({ force: true });
+		await expect(page).toHaveURL(/\/timer$/);
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	});
 
 	test('expands a truncated log description', async ({ page }) => {

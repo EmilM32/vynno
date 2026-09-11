@@ -97,6 +97,8 @@
 	"logs_add_entry": "Dodaj wpis",
 	"logs_edit": "Edytuj",
 	"logs_delete": "Usuń",
+	"logs_restart_task": "Rozpocznij to zadanie ponownie",
+	"logs_restart_aria": "Rozpocznij {note} ponownie",
 	"logs_in_progress": "W toku",
 	"logs_form_new": "Ręczny wpis czasu",
 	"logs_form_edit": "Edytuj sesję",

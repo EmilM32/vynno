@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import ActivityChip from '$lib/components/ui/ActivityChip.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Chip from '$lib/components/ui/Chip.svelte';
@@ -31,6 +33,15 @@
 	const range = $derived(
 		formatTimeRange(session.startedAt, session.endedAt, sessionStore.timeZone)
 	);
+	const canRestart = $derived(session.status === 'stopped');
+	const busy = $derived(!!sessionStore.activeSession || sessionStore.busy);
+	const archived = $derived(Boolean(project?.isArchived));
+	const restartDisabled = $derived(busy || archived);
+
+	async function restart() {
+		const ok = await sessionStore.restartFromSession(session.id);
+		if (ok) void goto(resolve('/timer'));
+	}
 
 	let noteExpanded = $state(false);
 	let noteOverflows = $state(false);
@@ -121,8 +132,24 @@
 		{@render timeCluster('', 'min-w-[80px] text-right text-code-display')}
 	</div>
 
-	{#if onedit || ondelete}
+	{#if canRestart || onedit || ondelete}
 		<div class="flex shrink-0 items-center justify-end gap-1.5">
+			{#if canRestart}
+				<IconButton
+					icon="play_arrow"
+					label={m.logs_restart_aria({ note: session.note })}
+					size="sm"
+					class="opacity-100 transition-opacity group-focus-within:opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+					disabled={restartDisabled}
+					onclick={() => void restart()}
+					title={busy
+						? m.timer_stop_first()
+						: archived
+							? m.error_project_archived()
+							: m.logs_restart_task()}
+					data-testid="log-row-restart"
+				/>
+			{/if}
 			{#if onedit}
 				<Button variant="secondary" size="xs" onclick={onedit}>
 					{m.logs_edit()}

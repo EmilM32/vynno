@@ -314,3 +314,59 @@ describe('SessionStore draft activity', () => {
 		expect(store.elapsedMs).toBe(sessionElapsedMs(active, Date.now()));
 	});
 });
+
+describe('SessionStore restart', () => {
+	let store: SessionStore;
+
+	afterEach(() => {
+		store?.reset();
+		vi.restoreAllMocks();
+	});
+
+	it('restartFromSession copies identity fields into a new active session', async () => {
+		const stopped = makeSession({
+			id: 'old',
+			note: 'Wire hydrate',
+			ticketId: 'DEV-842',
+			projectId: 'proj-auth',
+			status: 'stopped'
+		});
+		const { store: s } = hydrateWithRepo({ ...sampleAppSeed(), sessions: [stopped] });
+		store = s;
+
+		const ok = await store.restartFromSession('old');
+		expect(ok).toBe(true);
+		expect(store.activeSession).not.toBeNull();
+		expect(store.activeSession?.id).not.toBe('old');
+		expect(store.activeSession?.note).toBe('Wire hydrate');
+		expect(store.activeSession?.ticketId).toBe('DEV-842');
+		expect(store.activeSession?.projectId).toBe('proj-auth');
+		expect(store.activeSession?.status).toBe('active');
+		expect(store.sessions.find((x) => x.id === 'old')?.status).toBe('stopped');
+	});
+
+	it('restartFromSession refuses when a session is already active', async () => {
+		const stopped = makeSession({
+			id: 'old',
+			note: 'Done',
+			status: 'stopped'
+		});
+		const { store: s } = hydrateWithRepo({ ...sampleAppSeed(), sessions: [stopped] });
+		store = s;
+		await store.start({ projectId: 'proj-auth', note: 'Live' });
+
+		const ok = await store.restartFromSession('old');
+		expect(ok).toBe(false);
+		expect(store.activeSession?.note).toBe('Live');
+		expect(store.sessions.find((x) => x.id === 'old')?.status).toBe('stopped');
+	});
+
+	it('restartFromSession refuses an unknown id', async () => {
+		const { store: s } = hydrateWithRepo();
+		store = s;
+
+		const ok = await store.restartFromSession('missing');
+		expect(ok).toBe(false);
+		expect(store.activeSession).toBeNull();
+	});
+});

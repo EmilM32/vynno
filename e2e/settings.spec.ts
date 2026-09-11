@@ -1,6 +1,11 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import pkg from '../package.json' with { type: 'json' };
-import { login, uniqueNote, type E2EAccount } from './helpers';
+import { login, uniqueNote, waitForClient, type E2EAccount } from './helpers';
+
+async function expectTheme(page: Page, id: string) {
+	await expect(page.locator('#ui-theme')).toHaveValue(id);
+	await expect(page.locator('html')).toHaveAttribute('data-theme', id);
+}
 
 test.describe('settings', () => {
 	let account: E2EAccount;
@@ -8,6 +13,7 @@ test.describe('settings', () => {
 	test.beforeEach(async ({ page }) => {
 		account = await login(page);
 		await page.goto('/settings');
+		await waitForClient(page);
 	});
 
 	test('shows profile', async ({ page }) => {
@@ -30,25 +36,25 @@ test.describe('settings', () => {
 	test('theme select switches and persists', async ({ page }) => {
 		const select = page.locator('#ui-theme');
 		await expect(select).toBeVisible();
-		await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+		await expectTheme(page, 'dark');
 		await expect(select.locator('option')).toHaveText(['Dark', 'Light', 'Deep Dark']);
 
 		await select.selectOption('light');
-		await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+		await expectTheme(page, 'light');
 
 		await page.reload();
-		await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-		await expect(page.locator('#ui-theme')).toHaveValue('light');
+		await waitForClient(page);
+		await expectTheme(page, 'light');
 
-		await page.locator('#ui-theme').selectOption('deep-dark');
-		await expect(page.locator('html')).toHaveAttribute('data-theme', 'deep-dark');
+		await select.selectOption('deep-dark');
+		await expectTheme(page, 'deep-dark');
 
 		await page.reload();
-		await expect(page.locator('html')).toHaveAttribute('data-theme', 'deep-dark');
-		await expect(page.locator('#ui-theme')).toHaveValue('deep-dark');
+		await waitForClient(page);
+		await expectTheme(page, 'deep-dark');
 
-		await page.locator('#ui-theme').selectOption('dark');
-		await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+		await select.selectOption('dark');
+		await expectTheme(page, 'dark');
 	});
 
 	test('language switch reloads into Polish and back', async ({ page }) => {

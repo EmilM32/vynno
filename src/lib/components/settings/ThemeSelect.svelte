@@ -11,7 +11,7 @@
 		return typeof fn === 'function' ? (fn as () => string)() : theme.id;
 	}
 
-	function onChange(e: Event) {
+	function applyFromSelect(e: Event) {
 		themeStore.setTheme((e.currentTarget as HTMLSelectElement).value);
 	}
 </script>
@@ -22,7 +22,12 @@
 	hint={m.settings_appearance_hint()}
 	layout="split"
 >
-	<Select value={themeStore.themeId} onchange={onChange} class="w-full sm:w-56">
+	<Select
+		value={themeStore.themeId}
+		onchange={applyFromSelect}
+		oninput={applyFromSelect}
+		class="w-full sm:w-56"
+	>
 		{#each THEMES as theme (theme.id)}
 			<option value={theme.id}>{themeLabel(theme)}</option>
 		{/each}

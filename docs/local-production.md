@@ -85,7 +85,7 @@ Vite (`npm run dev`) and Playwright load `.env` + `.env.development` and do not 
 - Does not start vynno-api or Docker. Backups stay in that repo (`scripts/backup` / `scripts/restore`). Do not `docker compose down -v`.
 - Does not listen on the LAN (`HOST=127.0.0.1`; Caddy `bind 127.0.0.1 [::1]`).
 - Does not rebuild on start. After pulling UI changes, `scripts/stop` then `scripts/build` then `scripts/start`. Build refuses while the SPA is running.
-- Playwright (`npm run test:e2e`) still uses `vite preview` at `E2E_ORIGIN` (`:4173`), not this server. E2e talks to playground `:8081` (`.env.development`) so it does not register throwaway users into daily `vynno`. Playground `scripts/dev` sends OTP mail to Mailpit; `DEV_MAIL_MODE=log` does not, and e2e fails fast.
+- Playwright (`npm run test:e2e`) still uses `vite preview` at `E2E_ORIGIN` (`:4173`), not this server. E2e talks to playground `:8081` (`.env.development`) so it does not register throwaway users into daily `vynno`. Playground `scripts/dev` sends OTP mail to Mailpit; `DEV_MAIL_MODE=log` does not, and e2e fails fast. It also builds into `.svelte-kit/e2e-build` (`BUILD_DIR`), not `build/`, so running e2e while this server is up no longer replaces the build under the live Node — that produced `ERR_MODULE_NOT_FOUND` 500s before 2026-09-11 ([ADR-0014](./adr/0014-local-production-spa.md)).
 - Does not TLS-terminate vynno-api. Swagger stays [http://vynno.localhost:27182/swagger/](http://vynno.localhost:27182/swagger/). Avatar `<img>` URLs are rewritten to same-origin `/v1/avatars/…` in the SPA.
 
 Start-on-login (launchd) is a later optional step, not part of this cut.
@@ -113,4 +113,12 @@ Optional viewer: `brew install lnav`.
 
 **Do not rebuild over a running SPA.** `scripts/build` refuses if Node is still serving `build/` — replacing hashed assets under a live process kills it (`ENOENT` on `*.js.br`). Stop, build, start.
 
-Caddyfile log changes apply only after `scripts/stop` then `scripts/start` (Caddy does not pick up this file in place).
+Caddyfile changes — logging, and the `header` block that stamps `Referrer-Policy` / `X-Content-Type-Options` / `X-Frame-Options` on static assets ([ADR-0025](./adr/0025-security-headers.md)) — apply only after `scripts/stop` then `scripts/start` (Caddy does not pick up this file in place). `scripts/start` copies it to `/tmp/vynno.Caddyfile`, which is what the running Caddy reads.
+
+Check the headers after a restart:
+
+```sh
+curl -sSI -k https://vynno.localhost/login | grep -iE 'content-security-policy|referrer-policy|x-content-type-options|x-frame-options'
+```
+
+The `Content-Security-Policy` is generated per render by SvelteKit (`kit.csp`) and carries a fresh `nonce-…` each time; it is deliberately absent from Caddy so `error.html` keeps working.

@@ -224,6 +224,17 @@ Complements `e2e/a11y.spec.ts`; does not replace it.
 
 Checks vs [accessibility.md](./accessibility.md): one `h1`; skip link on app chrome only; live status not on the clock; title `{page} · Vynno`.
 
+**Security headers** (best practices flags a missing CSP). Since 2026-09-11 ([ADR-0025](./adr/0025-security-headers.md)) a document response must carry all four:
+
+| Header                    | Expect                                                                           | Set by                          |
+| ------------------------- | -------------------------------------------------------------------------------- | ------------------------------- |
+| `Content-Security-Policy` | `default-src 'self'`, a fresh `script-src … 'nonce-…'`, `frame-ancestors 'none'` | SvelteKit `kit.csp`, per render |
+| `Referrer-Policy`         | `strict-origin-when-cross-origin`                                                | `hooks.server.ts` + Caddy       |
+| `X-Content-Type-Options`  | `nosniff`                                                                        | `hooks.server.ts` + Caddy       |
+| `X-Frame-Options`         | `DENY`                                                                           | `hooks.server.ts` + Caddy       |
+
+Check a static asset too (`/_app/immutable/...`): it gets the three constants from Caddy only — adapter-node serves it through `sirv`, which bypasses hooks — and no CSP. `error.html` carries no CSP by design. Never audit these on `npm run dev`: Kit relaxes the policy to `'unsafe-inline'` there.
+
 ### 7. Layout
 
 Same two viewports. Snapshot + one screenshot per key route (login, dashboard, timer idle, timer active, logs, insights, projects, settings) — not a visual QA dump.
@@ -255,7 +266,7 @@ Fill per run. Email only in the setup row — never paste passwords.
 
 | Field    | Value                                  |
 | -------- | -------------------------------------- |
-| Origin   | `https://vynno.localhost`                  |
+| Origin   | `https://vynno.localhost`              |
 | Build    | date / `scripts/build` freshness       |
 | Account  | email only                             |
 | Viewport | desktop px; mobile px                  |

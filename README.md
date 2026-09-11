@@ -83,7 +83,7 @@ When you want the full product path (login, timer, projects against the live con
 npm run test:e2e
 ```
 
-`npm run test:e2e` builds the SPA, starts the preview at `E2E_ORIGIN`, and registers throwaway users so it does not leave `alexdev` with a live session. It fails fast if `/healthz` on `API_ORIGIN` (playground, `.env.development`) is down, or if playground mail is `MAIL_MODE=log` (`DEV_MAIL_MODE=log` — codes stay in process logs, not Mailpit). A missing Chromium install is the usual browser-side failure — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
+`npm run test:e2e` builds the SPA, starts the preview at `E2E_ORIGIN`, and registers throwaway users so it does not leave `alexdev` with a live session. It builds into `.svelte-kit/e2e-build` (`BUILD_DIR`), **not** `build/`, so it is safe to run while `scripts/start` is serving the daily URL ([ADR-0014](./docs/adr/0014-local-production-spa.md) amendment 2026-09-11). It fails fast if `/healthz` on `API_ORIGIN` (playground, `.env.development`) is down, or if playground mail is `MAIL_MODE=log` (`DEV_MAIL_MODE=log` — codes stay in process logs, not Mailpit). A missing Chromium install is the usual browser-side failure — `npx playwright install chromium`. Skip a hook with `--no-verify` or `HUSKY=0`.
 
 ## Run in production (this machine)
 

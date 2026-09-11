@@ -41,6 +41,17 @@ https://vynno.localhost {
 		}
 		format json
 	}
+	# adapter-node serves /_app/immutable/* through sirv, which never reaches
+	# src/hooks.server.ts, so Node stamps these on documents but not on assets. Setting them
+	# here covers both (Caddy replaces the identical value Node already sent).
+	# The CSP is deliberately NOT here: it is per-render and nonce-bearing (kit.csp), and a
+	# blanket edge CSP would break src/error.html's inline script and style. See ADR-0025.
+	header {
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+	}
+
 	reverse_proxy 127.0.0.1:{$PORT:27180} {
 		header_up X-Request-ID {http.request.uuid}
 		header_down X-Request-ID {http.request.uuid}

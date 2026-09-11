@@ -34,7 +34,7 @@ Vynno is a **frontend-only** focus-time tracker (SvelteKit + TypeScript + Tailwi
 - `npm run check` — `svelte-kit sync` + `svelte-check`
 - `npm run lint` / `npm run format` — Prettier + ESLint
 - `npm test` / `npm run test:watch` — Vitest unit tests (domain + HTTP repo with mocked fetch). Husky runs this on commit and push.
-- `npm run test:e2e` — Playwright against a **running** playground vynno-api (`API_ORIGIN` from `.env.development`, `:8081`, `./scripts/dev` — SMTP to Mailpit). Manual / CI; not a git hook. Registers throwaway users into `vynno_dev`.
+- `npm run test:e2e` — Playwright against a **running** playground vynno-api (`API_ORIGIN` from `.env.development`, `:8081`, `./scripts/dev` — SMTP to Mailpit). Manual / CI; not a git hook. Registers throwaway users into `vynno_dev`. Builds into `.svelte-kit/e2e-build` via `BUILD_DIR`, so it does not disturb a live `scripts/start` — never point it at `build/`.
 - `npm run test:all` — unit tests then e2e (opt-in; not hooked)
 
 ### Docs

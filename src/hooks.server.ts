@@ -5,12 +5,17 @@ import { getApiBase, isVynnoApiUrl } from '$lib/api/config';
 import { getTextDirection } from '$lib/paraglide/runtime';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 import { logger } from '$lib/server/log';
+import { applySecurityHeaders } from '$lib/server/security-headers';
 import {
 	REQUEST_ID_HEADER,
 	requestLoggingEnabled,
 	resolveRequestId,
 	shouldLogRequest
 } from '$lib/server/request-log';
+
+const handleSecurityHeaders: Handle = async ({ event, resolve }) => {
+	return applySecurityHeaders(await resolve(event));
+};
 
 const handleRequestId: Handle = async ({ event, resolve }) => {
 	event.locals.requestId = resolveRequestId(event.request.headers.get(REQUEST_ID_HEADER));
@@ -62,7 +67,13 @@ const handleRequestLog: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
-export const handle: Handle = sequence(handleRequestId, handleParaglide, handleRequestLog);
+// handleSecurityHeaders is outermost so it stamps the response every other hook produced.
+export const handle: Handle = sequence(
+	handleSecurityHeaders,
+	handleRequestId,
+	handleParaglide,
+	handleRequestLog
+);
 
 export const handleError: HandleServerError = ({ error, event, status, message }) => {
 	if (dev) {

@@ -39,6 +39,11 @@ export default defineConfig({
 	],
 	webServer: {
 		command: `npm run build && npm run preview -- --host ${e2ePreview.host} --port ${e2ePreview.port}`,
+		// Build somewhere other than `build/`. That directory is served by the daily Node
+		// (`scripts/start`); replacing it mid-run makes the live SPA 500 on lazily-imported route
+		// chunks. `vite preview` reads `.svelte-kit/output`, never the adapter output, so e2e and
+		// the daily stack can run at the same time. See ADR-0014.
+		env: { BUILD_DIR: '.svelte-kit/e2e-build' },
 		url: e2eOrigin,
 		reuseExistingServer: !process.env.CI,
 		timeout: 120_000

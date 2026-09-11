@@ -62,6 +62,14 @@ Daily Node no longer uses `node --env-file=.env`. Start sources `.env` then `.en
 
 Daily origin is **`https://vynno.localhost`**. `.local` is reserved for mDNS (RFC 6762); Chromium dual-stack lookups stall 5–10 s. `*.localhost` is RFC 6761 loopback and needs no `/etc/hosts`. Caddy binds `127.0.0.1` and `::1`. Decision clauses 3, 5, and 9 updated in place.
 
+## Amendment (2026-09-11)
+
+The adapter output directory is **`process.env.BUILD_DIR || 'build'`**. Daily production keeps `build/`; nothing about `scripts/build` / `scripts/start` changes.
+
+`BUILD_DIR` exists because Playwright's `webServer` runs `npm run build`, which bypasses the live-SPA guard in `scripts/build` and rewrote the very `build/` the daily Node was serving. New content hashes landed under the running process, so lazily-imported route chunks failed with `ERR_MODULE_NOT_FOUND` and the daily SPA 500'd mid-run (QA 2026-09-11, Z-3). `playwright.config.ts` now sets `BUILD_DIR=.svelte-kit/e2e-build`; `vite preview` serves `.svelte-kit/output` and never reads the adapter output, so e2e and the daily stack can run at the same time. `precompress` is skipped when `BUILD_DIR` is set, since that build is never served.
+
+Decision clause 3 is updated in place.
+
 ## Related
 
 - [0011-ssr-session-state.md](./0011-ssr-session-state.md)

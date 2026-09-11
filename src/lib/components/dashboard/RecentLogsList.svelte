@@ -52,15 +52,18 @@
 						<span class="font-mono text-code-data text-on-surface tabular-nums">
 							{formatClock(duration)}
 						</span>
-						<IconButton
-							icon="play_arrow"
-							label={m.dashboard_restart_aria({ note: log.note })}
-							size="sm"
-							class="opacity-100 transition-opacity group-focus-within:opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
-							disabled={busy}
-							onclick={() => restart(log.id)}
-							title={busy ? m.timer_stop_first() : m.dashboard_restart_task()}
-						/>
+						<span
+							class="inline-flex opacity-100 transition-opacity group-focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+						>
+							<IconButton
+								icon="play_arrow"
+								label={m.dashboard_restart_aria({ note: log.note })}
+								size="sm"
+								disabled={busy}
+								onclick={() => restart(log.id)}
+								title={busy ? m.timer_stop_first() : m.dashboard_restart_task()}
+							/>
+						</span>
 					</div>
 				</div>
 			{/each}

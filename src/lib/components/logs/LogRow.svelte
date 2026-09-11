@@ -135,20 +135,23 @@
 	{#if canRestart || onedit || ondelete}
 		<div class="flex shrink-0 items-center justify-end gap-1.5">
 			{#if canRestart}
-				<IconButton
-					icon="play_arrow"
-					label={m.logs_restart_aria({ note: session.note })}
-					size="sm"
-					class="opacity-100 transition-opacity group-focus-within:opacity-100 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
-					disabled={restartDisabled}
-					onclick={() => void restart()}
-					title={busy
-						? m.timer_stop_first()
-						: archived
-							? m.error_project_archived()
-							: m.logs_restart_task()}
-					data-testid="log-row-restart"
-				/>
+				<span
+					class="inline-flex opacity-100 transition-opacity group-focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+				>
+					<IconButton
+						icon="play_arrow"
+						label={m.logs_restart_aria({ note: session.note })}
+						size="sm"
+						disabled={restartDisabled}
+						onclick={() => void restart()}
+						title={busy
+							? m.timer_stop_first()
+							: archived
+								? m.error_project_archived()
+								: m.logs_restart_task()}
+						data-testid="log-row-restart"
+					/>
+				</span>
 			{/if}
 			{#if onedit}
 				<Button variant="secondary" size="xs" onclick={onedit}>

@@ -114,5 +114,3 @@ Optional viewer: `brew install lnav`.
 **Do not rebuild over a running SPA.** `scripts/build` refuses if Node is still serving `build/` — replacing hashed assets under a live process kills it (`ENOENT` on `*.js.br`). Stop, build, start.
 
 Caddyfile log changes apply only after `scripts/stop` then `scripts/start` (Caddy does not pick up this file in place).
-
-A native macOS `.app` is a **second target** ([tauri.md](./tauri.md), [ADR-0015](./adr/0015-native-desktop-tauri.md)). It does not replace this runbook.

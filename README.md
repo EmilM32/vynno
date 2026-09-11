@@ -51,7 +51,7 @@ App opens at the Vite URL (printed in the terminal). `/` redirects to `/login` w
 
 Local UI development talks to [vynno-api](https://github.com/EmilM32/vynno-api) through a same-origin `/v1` proxy. Vite reads `API_ORIGIN` from `.env.development` (playground `:8081`). Daily Node reads `.env.production` (`:27182`). You do **not** need the API running to commit or push. Production (`https://vynno.localhost`) can stay up while `npm run dev` runs.
 
-Daily production UI on this machine is [https://vynno.localhost](https://vynno.localhost) ([docs/local-production.md](./docs/local-production.md)). A native macOS app (Tauri 2) is a **second target**, not the daily driver yet — [docs/tauri.md](./docs/tauri.md), [ADR-0015](./docs/adr/0015-native-desktop-tauri.md).
+Daily production UI on this machine is [https://vynno.localhost](https://vynno.localhost) ([docs/local-production.md](./docs/local-production.md)).
 
 | Script                    | Purpose                                                            |
 | ------------------------- | ------------------------------------------------------------------ |
@@ -146,4 +146,4 @@ Start here: **[docs/README.md](./docs/README.md)**
 
 ## Status
 
-Live API + cookie auth. Local production is `adapter-node` on this machine (`scripts/start`). Native desktop is a second target — [docs/tauri.md](./docs/tauri.md). Remaining work: [docs/open.md](./docs/open.md).
+Live API + cookie auth. Local production is `adapter-node` on this machine (`scripts/start`). Remaining work: [docs/open.md](./docs/open.md).

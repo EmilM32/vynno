@@ -18,7 +18,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0012](./0012-env-origins.md)              | Hosts and ports come from the environment           | Accepted   |
 | [0013](./0013-charts-layerchart.md)        | Charts use LayerChart                               | Accepted   |
 | [0014](./0014-local-production-spa.md)     | Local production SPA (adapter-node on this machine) | Accepted   |
-| [0015](./0015-native-desktop-tauri.md)     | Native desktop via Tauri 2                          | Accepted   |
+| [0015](./0015-native-desktop-tauri.md)     | Native desktop via Tauri 2                          | Superseded |
 | [0016](./0016-storybook-workshop.md)       | Storybook as the component workshop                 | Accepted   |
 | [0017](./0017-ui-primitives.md)            | UI primitives own their chrome classes              | Accepted   |
 | [0018](./0018-atomic-ui-layer.md)          | Atomic UI layer beyond buttons                      | Accepted   |

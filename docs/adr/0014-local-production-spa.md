@@ -67,5 +67,4 @@ Daily origin is **`https://vynno.localhost`**. `.local` is reserved for mDNS (RF
 - [0011-ssr-session-state.md](./0011-ssr-session-state.md)
 - [0012-env-origins.md](./0012-env-origins.md)
 - [../local-production.md](../local-production.md)
-- [0015-native-desktop-tauri.md](./0015-native-desktop-tauri.md) — native `.app` is a second target; this ADR stays the browser daily driver
 - [0020-local-operator-logs.md](./0020-local-operator-logs.md) — JSON files + `scripts/status` / `scripts/logs`; Caddy logs outside `~/Documents`

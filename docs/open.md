@@ -13,10 +13,6 @@ What is **not** built yet. If it is not on this list, assume it shipped.
 | Task list entity                      | Sessions carry a free-text `note`; no separate Task table          |
 | Notifications / default activity type | Settings extras still open                                         |
 
-## Native desktop
-
-Packaged macOS `.app` (Tauri 2) as a **second target**. Browser local production stays. Architecture and sequence: [tauri.md](./tauri.md), [ADR-0015](./adr/0015-native-desktop-tauri.md).
-
 ## Not open
 
 Live API, cookie auth, SSR, log edit/delete, manual entry, Storybook, local production (`scripts/start`), named themes including light, project CRUD, per-project view, Insights range (grain + custom).

@@ -299,5 +299,5 @@ Rules:
 - Product-code edits (unless a later turn names the finding).
 - Coverage, HAR files, Lighthouse Performance category.
 - Register / Mailpit unless the operator asked and the gate login `401`’d.
-- Tauri / Storybook / `vite preview` `:4173`.
+- Storybook / `vite preview` `:4173`.
 - Saving a findings file into `docs/` unless asked.

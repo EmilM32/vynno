@@ -15,7 +15,7 @@ Reusable UI lives under `src/lib/components/` (primitives in `ui/`, shell chrome
 3. **Named themes** switch with `@storybook/addon-themes` via `html[data-theme]` — the same attribute the app uses ([0008](./0008-named-themes.md)). The toolbar is the workshop switcher; `ThemeSelect` is documented as the Settings control.
 4. **Tailwind, Paraglide, and fonts** come from the app: `src/routes/layout.css` (which imports `src/lib/theme/fonts.css`) and the existing Vite Paraglide plugin.
 5. **`svelte.config.js` stays in the repo** so `@storybook/sveltekit` can resolve Svelte compiler options. Adapter and runes config live there (not only inline on the Vite plugin). Preview also seeds `globalThis.__sveltekit_dev.env.PUBLIC_API_BASE` because Kit’s `$env/dynamic/public` module is not fully wired in the Storybook iframe.
-6. **Dev-only.** `npm run storybook` / `npm run build-storybook`. Output is gitignored `storybook-static/`. Not part of `scripts/start`, Tauri, Husky, or Playwright.
+6. **Dev-only.** `npm run storybook` / `npm run build-storybook`. Output is gitignored `storybook-static/`. Not part of `scripts/start`, Husky, or Playwright.
 7. **No `@storybook/addon-vitest`.** Vitest unit tests stay as they are. The Storybook Vitest addon currently fails on Vite 8 + Svelte 5.
 
 ## Consequences

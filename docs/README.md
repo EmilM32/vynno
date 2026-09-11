@@ -19,7 +19,6 @@ Agent entry: [AGENTS.md](../AGENTS.md). Open work: [open.md](./open.md).
 | [api-contract.md](./api-contract.md)           | REST + JSON DTO contract the SPA speaks                                                              |
 | [local-production.md](./local-production.md)   | Run the production UI on this machine (operator logs: [ADR-0020](./adr/0020-local-operator-logs.md)) |
 | [devtools-audit.md](./devtools-audit.md)       | Chrome DevTools MCP audit of the production UI                                                       |
-| [tauri.md](./tauri.md)                         | Native desktop (Tauri 2) — second target, macOS first                                                |
 | [open.md](./open.md)                           | What is not built yet                                                                                |
 | [adr/](./adr/)                                 | Architecture Decision Records                                                                        |
 
@@ -36,4 +35,4 @@ See [ADR-0001](./adr/0001-frontend-stack.md) and [ADR-0002](./adr/0002-frontend-
 
 ## Status
 
-UI talks to vynno-api at `PUBLIC_API_BASE` with cookie auth. Local production is `adapter-node` on this machine ([local-production.md](./local-production.md), [ADR-0014](./adr/0014-local-production-spa.md)). Native desktop is a second target, not a replacement ([tauri.md](./tauri.md), [ADR-0015](./adr/0015-native-desktop-tauri.md)). Remaining work: [open.md](./open.md).
+UI talks to vynno-api at `PUBLIC_API_BASE` with cookie auth. Local production is `adapter-node` on this machine ([local-production.md](./local-production.md), [ADR-0014](./adr/0014-local-production-spa.md)). Remaining work: [open.md](./open.md).

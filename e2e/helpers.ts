@@ -22,6 +22,12 @@ export type E2EAccount = {
 	displayName: string;
 };
 
+/** Smallest valid PNG. `PUT /v1/me/avatar` sniffs magic bytes and caps the file at 1 MiB. */
+export const PNG_1X1 = Buffer.from(
+	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+	'base64'
+);
+
 export function uniqueNote(prefix = 'e2e'): string {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }

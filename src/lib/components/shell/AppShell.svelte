@@ -34,7 +34,7 @@
 		<TopBar />
 		<main
 			id="main-content"
-			class="min-h-0 flex-1 scroll-pt-16 overflow-y-auto px-margin-mobile py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:scroll-pt-0 md:px-margin-desktop md:pt-0 md:pb-6"
+			class="relative min-h-0 flex-1 scroll-pt-16 overflow-y-auto px-margin-mobile py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:scroll-pt-0 md:px-margin-desktop md:pt-0 md:pb-6"
 			tabindex="-1"
 		>
 			<div class="w-full">

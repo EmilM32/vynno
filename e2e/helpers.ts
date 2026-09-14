@@ -1,4 +1,10 @@
-import { expect, type APIRequestContext, type Locator, type Page } from '@playwright/test';
+import {
+	expect,
+	type APIRequestContext,
+	type APIResponse,
+	type Locator,
+	type Page
+} from '@playwright/test';
 import { apiBase, apiOrigin, e2eOrigin } from './env';
 import { waitForMailpitCode } from './mailpit';
 
@@ -18,6 +24,15 @@ export type E2EAccount = {
 
 export function uniqueNote(prefix = 'e2e'): string {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/**
+ * Assert a contract error envelope: `{ error: { code, message } }` (docs/api-contract.md).
+ * Pass `failOnStatusCode: false` on the request, or Playwright throws before this runs.
+ */
+export async function expectApiError(res: APIResponse, status: number, code: string) {
+	expect(res.status()).toBe(status);
+	expect(await res.json()).toMatchObject({ error: { code } });
 }
 
 export async function registerAccount(_request?: APIRequestContext): Promise<E2EAccount> {
@@ -89,6 +104,16 @@ export async function login(page: Page, account?: E2EAccount): Promise<E2EAccoun
 	const creds = account ?? (await registerAccount(page.request));
 	await loginWith(page, creds.email, creds.password);
 	return creds;
+}
+
+/** Log out from Settings -- the only logout control in the app. Lands back on /login. */
+export async function logout(page: Page) {
+	if (!/\/settings$/.test(page.url())) {
+		await page.goto('/settings');
+		await waitForClient(page);
+	}
+	await page.getByRole('button', { name: 'Log out' }).click();
+	await expect(page).toHaveURL(/\/login$/);
 }
 
 async function apiFetch(page: Page, path: string, init: { method?: string; data?: unknown } = {}) {

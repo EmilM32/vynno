@@ -133,9 +133,14 @@ test.describe('logout', () => {
 		// An expired cookie either drops out of the jar or stays with an empty value.
 		const session = (await page.context().cookies()).find((c) => c.name === 'vynno_session');
 		expect(session?.value ?? '').toBe('');
-		// localStorage `vynno-auth` is deliberately not asserted: it caches the last email for the
-		// login form, and the root layout re-applies it from the stale seed while invalidateAll is
-		// still in flight. The cookie and the 401 below are the actual session boundary.
+		// Logout must not leave the previous account's address cached on a shared device. The root
+		// layout used to re-apply it from the pre-logout seed the moment clearSession() ran.
+		const cached = await page.evaluate(() => ({
+			local: localStorage.getItem('vynno-auth'),
+			remember: localStorage.getItem('vynno-auth-remember'),
+			session: sessionStorage.getItem('vynno-auth')
+		}));
+		expect(cached).toEqual({ local: null, remember: null, session: null });
 
 		await page.goto('/dashboard');
 		await expect(page).toHaveURL(/\/login$/);

@@ -186,9 +186,9 @@ const CUSTOM_DAILY_BUCKET_MAX = 31;
 /**
  * Hours histogram buckets for the project-view period toggle.
  * Week: 7 local days. Month: every day of the current month. All: months
- * from the first session through the current month. Custom: one bar per day
- * when the span is ≤ 31 days, otherwise one bar per overlapping week
- * (hours outside the range are not counted).
+ * from the first session through the current month (keys are `YYYY-MM-01`).
+ * Custom: one bar per day when the span is ≤ 31 days, otherwise one bar
+ * per overlapping week (hours outside the range are not counted).
  */
 export function periodBucketTotals(
 	sessions: TimeSession[],
@@ -244,16 +244,19 @@ export function periodBucketTotals(
 
 	for (let i = 0; i < 240; i++) {
 		const d = addCalendarMonths(first, i, timeZone);
-		const key = localMonthKeyFromDate(d, timeZone);
+		const monthKey = localMonthKeyFromDate(d, timeZone);
+		// First of the month (`YYYY-MM-01`), same ISO-date shape as week/month bars.
+		// `YYYY-MM` is not a valid date string and LayerChart then emits NaN x positions.
+		const key = localDateKeyFromDate(d, timeZone);
 		months.push({
 			key,
 			label: includeYear
 				? monthShortYear(d, undefined, timeZone)
 				: monthShort(d, undefined, timeZone),
-			ms: totalForYearMonth(sessions, key, nowMs, timeZone),
-			isToday: key === currentKey
+			ms: totalForYearMonth(sessions, monthKey, nowMs, timeZone),
+			isToday: monthKey === currentKey
 		});
-		if (d.getTime() >= currentMonth.getTime() || key === currentKey) break;
+		if (d.getTime() >= currentMonth.getTime() || monthKey === currentKey) break;
 	}
 
 	return withRatios(months);

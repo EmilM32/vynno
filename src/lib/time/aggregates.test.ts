@@ -237,7 +237,7 @@ describe('periodBucketTotals', () => {
 	
 		});
 		const months = periodBucketTotals([...daySessions(), older], { kind: 'all' }, FIXED_NOW);
-		expect(months.map((d) => d.key)).toEqual(['2026-01', '2026-02', '2026-03']);
+		expect(months.map((d) => d.key)).toEqual(['2026-01-01', '2026-02-01', '2026-03-01']);
 		expect(months[0]!.ms).toBe(ms.hours(2));
 		expect(months[1]!.ms).toBe(0);
 		expect(months[2]!.isToday).toBe(true);
@@ -247,7 +247,7 @@ describe('periodBucketTotals', () => {
 	it('all-time with no sessions is the current month at zero', () => {
 		const months = periodBucketTotals([], { kind: 'all' }, FIXED_NOW);
 		expect(months).toHaveLength(1);
-		expect(months[0]!.key).toBe('2026-03');
+		expect(months[0]!.key).toBe('2026-03-01');
 		expect(months[0]!.ms).toBe(0);
 		expect(months[0]!.isToday).toBe(true);
 	});

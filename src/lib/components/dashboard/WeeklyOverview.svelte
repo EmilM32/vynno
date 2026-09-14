@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { thinHistogramTicks } from '$lib/components/charts/histogramTicks';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { hoursScale, type WeekDayTotal } from '$lib/time/aggregates';
@@ -47,6 +48,7 @@
 		barColor ? `${barColor}33` : 'color-mix(in oklab, var(--color-primary) 20%, transparent)'
 	);
 	const labelByKey = $derived(new Map(days.map((d) => [d.key, d.label])));
+	const xTicks = $derived(thinHistogramTicks(days.map((d) => d.key)));
 
 	function xTick(key: string): string {
 		return labelByKey.get(key) ?? key;
@@ -86,8 +88,8 @@
 
 	<div class="min-h-0 flex-1">
 		{#if lc}
-			{@const BarChart = lc.BarChart}
-			{@const Tooltip = lc.Tooltip}
+			{const BarChart = $derived(lc.BarChart)}
+			{const Tooltip = $derived(lc.Tooltip)}
 			<BarChart
 				class="h-full min-h-0 w-full text-on-surface-variant"
 				data={chartData}
@@ -106,7 +108,7 @@
 				series={[{ key: 'hours', label: m.dashboard_hours(), value: 'hours' }]}
 				props={{
 					bars: { radius: 2, strokeWidth: 0, stroke: 'transparent' },
-					xAxis: { format: xTick, tickMarks: false, tickLength: 0 },
+					xAxis: { format: xTick, ticks: xTicks, tickMarks: false, tickLength: 0 },
 					yAxis: { format: yTick, tickMarks: false, tickLength: 0 },
 					grid: { x: false, y: { stroke: 'var(--color-outline-variant)', opacity: 0.7 } }
 				}}

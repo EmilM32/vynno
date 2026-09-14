@@ -27,7 +27,7 @@ Motion is off (`motion="none"`) per [motion.md](../motion.md). Axis / tooltip / 
 ### Positive
 
 - Y-axis is a real hours scale.
-- Month and all-time histograms get tick thinning and tooltips for free.
+- Tooltips come from LayerChart. Band-scale X ticks are **not** thinned by default; `WeeklyOverview` passes an explicit `xAxis.ticks` list (first, last, and evenly spaced keys, cap 8).
 - Svelte 5 native; no Chart.js canvas wrapper.
 
 ### Negative / tradeoffs

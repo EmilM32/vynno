@@ -72,6 +72,21 @@ test.describe('projects', () => {
 		await period.getByRole('button', { name: 'All' }).click();
 		await expect(page.getByRole('region', { name: 'Hours all time' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'All time' })).toBeVisible();
+
+		const allChart = page.getByRole('region', { name: 'Hours all time' });
+		// LayerChart nests an svg per tick label; the plot itself is `svg.lc-layout-svg`.
+		await expect(allChart.locator('svg.lc-layout-svg').first()).toBeVisible();
+		const nanAttrs = await allChart
+			.locator('rect, path')
+			.evaluateAll((els) =>
+				els
+					.filter((el) => [...el.attributes].some((a) => a.value.includes('NaN')))
+					.map((el) => el.outerHTML.slice(0, 180))
+			);
+		expect(nanAttrs).toEqual([]);
+		const tickCount = await allChart.locator('.lc-axis-tick-label').count();
+		expect(tickCount).toBeGreaterThan(0);
+		expect(tickCount).toBeLessThanOrEqual(16);
 	});
 
 	test('custom range dialog and chart follow a selected span', async ({ page }) => {

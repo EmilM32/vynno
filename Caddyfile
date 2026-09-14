@@ -52,6 +52,12 @@ https://vynno.localhost {
 		X-Frame-Options "DENY"
 	}
 
+	# adapter-node precompresses `/_app/immutable/*` at build time and sirv serves those with
+	# Content-Encoding already set, so `encode` skips them. The SSR HTML is rendered per request
+	# and Node never compresses it -- ~41 KiB of uncompressed text/html at the head of the critical
+	# path. Caddy is the only layer that can squeeze it. Standard build ships gzip and zstd; no br.
+	encode zstd gzip
+
 	reverse_proxy 127.0.0.1:{$PORT:27180} {
 		header_up X-Request-ID {http.request.uuid}
 		header_down X-Request-ID {http.request.uuid}

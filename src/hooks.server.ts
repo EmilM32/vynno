@@ -43,6 +43,11 @@ const handleParaglide: Handle = ({ event, resolve }) =>
 				html
 					.replace('%paraglide.lang%', locale)
 					.replace('%paraglide.dir%', getTextDirection(locale)),
+			// Keep `font` here. Dropping the `-ext` subsets looks like free bandwidth -- they carry
+			// Polish glyphs and a preload ignores `unicode-range` -- but measurement says the app
+			// renders latin-ext glyphs on an `en` page too, so the browser fetches inter-latin-ext
+			// either way. Without the preload it starts late and its `font-display: swap` block
+			// period lands on the first paint: FCP 1.22s -> 1.81s on /dashboard (LH 13, mobile).
 			preload: ({ type }) => type === 'js' || type === 'css' || type === 'font'
 		});
 	});

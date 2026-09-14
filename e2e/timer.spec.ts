@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, uniqueNote } from './helpers';
+import { firstProjectId, login, uniqueNote, waitForClient } from './helpers';
 
 test.describe('timer lifecycle', () => {
 	test.beforeEach(async ({ page }) => {
@@ -127,6 +127,54 @@ test.describe('timer lifecycle', () => {
 		await expect(page.locator('#project-select')).toBeEnabled();
 		await expect(page.locator('#activity-select')).toBeEnabled();
 		await expect(page.getByTestId('timer-started-at')).toBeVisible();
+	});
+
+	// The UI swaps Start for Stop, so a second Start is only reachable when the store is stale.
+	// Seeding the live session out of band reproduces exactly that race.
+	test('a second start while a session is live surfaces the 409 conflict', async ({ page }) => {
+		await waitForClient(page);
+		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
+
+		const projectId = await firstProjectId(page);
+		const seeded = await page.request.post('/v1/sessions', {
+			data: { projectId, note: uniqueNote('out-of-band') }
+		});
+		expect(seeded.status()).toBe(201);
+
+		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('second'));
+		const [res] = await Promise.all([
+			page.waitForResponse(
+				(r) => r.request().method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
+			),
+			page.getByRole('button', { name: 'Start', exact: true }).click()
+		]);
+		expect(res.status()).toBe(409);
+		expect(await res.json()).toMatchObject({ error: { code: 'session_already_active' } });
+		// The banner also carries its dismiss control, so match on the message, not the whole node.
+		await expect(page.getByRole('alert')).toContainText(
+			'Stop the current session before starting a new one.'
+		);
+	});
+
+	// Contract: UpdateSessionDto must not carry `status` or `id` — stopping is the /stop verb.
+	test('editing a field while live patches the session without status', async ({ page }) => {
+		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('live-patch'));
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+
+		const patched = uniqueNote('live-patched');
+		const note = page.getByRole('textbox', { name: 'Task description' });
+		const patchReq = page.waitForRequest(
+			(r) => r.method() === 'PATCH' && /\/v1\/sessions\/[^/]+$/.test(new URL(r.url()).pathname)
+		);
+		await note.fill(patched);
+		await note.blur();
+		const body = (await patchReq).postDataJSON();
+
+		expect(body).toMatchObject({ note: patched });
+		expect(body).not.toHaveProperty('status');
+		expect(body).not.toHaveProperty('id');
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	});
 
 	test('restart from recent task blocked while busy', async ({ page }) => {

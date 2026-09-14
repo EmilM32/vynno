@@ -132,6 +132,76 @@ async function apiFetch(page: Page, path: string, init: { method?: string; data?
 	});
 }
 
+/** ProjectDto as it comes off the wire (`archived`, not the UI's `isArchived`). */
+export type E2EProject = {
+	id: string;
+	name: string;
+	color: string;
+	code: string | null;
+	progressPercent: number | null;
+	archived: boolean;
+};
+
+/**
+ * Project setup through the SPA `/v1` proxy -- same wire the app speaks, and `page.request`
+ * shares the browser cookie jar, so the freshly registered account owns the rows.
+ */
+export async function createProject(
+	page: Page,
+	opts: { name: string; code?: string | null; color?: string; progressPercent?: number | null }
+): Promise<E2EProject> {
+	const res = await page.request.post('/v1/projects', {
+		data: {
+			name: opts.name,
+			color: opts.color ?? '#3b82f6',
+			code: opts.code ?? null,
+			progressPercent: opts.progressPercent ?? null
+		}
+	});
+	if (!res.ok()) {
+		throw new Error(`POST /projects failed (${res.status()} ${await res.text()})`);
+	}
+	return (await res.json()) as E2EProject;
+}
+
+export async function listProjects(
+	page: Page,
+	opts: { includeArchived?: boolean } = {}
+): Promise<E2EProject[]> {
+	const query = opts.includeArchived ? '?includeArchived=true' : '';
+	const res = await page.request.get(`/v1/projects${query}`);
+	if (!res.ok()) {
+		throw new Error(`GET /projects failed (${res.status()} ${await res.text()})`);
+	}
+	return ((await res.json()) as { items: E2EProject[] }).items;
+}
+
+export async function archiveProject(page: Page, id: string): Promise<E2EProject> {
+	const res = await page.request.post(`/v1/projects/${id}/archive`);
+	if (!res.ok()) {
+		throw new Error(`POST /projects/${id}/archive failed (${res.status()} ${await res.text()})`);
+	}
+	return (await res.json()) as E2EProject;
+}
+
+export async function restoreProject(page: Page, id: string): Promise<E2EProject> {
+	const res = await page.request.post(`/v1/projects/${id}/restore`);
+	if (!res.ok()) {
+		throw new Error(`POST /projects/${id}/restore failed (${res.status()} ${await res.text()})`);
+	}
+	return (await res.json()) as E2EProject;
+}
+
+/**
+ * Archive every other active project so `keepId` is the last one standing -- the deterministic
+ * setup for `last_active_project`. A fresh account has only "Personal", so this is usually a no-op.
+ */
+export async function keepOnlyActiveProject(page: Page, keepId: string) {
+	for (const project of await listProjects(page)) {
+		if (project.id !== keepId) await archiveProject(page, project.id);
+	}
+}
+
 export async function ensureIdle(page: Page) {
 	if (!/\/(timer|dashboard|logs|insights|projects|settings)/.test(page.url())) {
 		return;

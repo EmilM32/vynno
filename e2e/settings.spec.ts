@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import pkg from '../package.json' with { type: 'json' };
-import { login, uniqueNote, waitForClient, type E2EAccount } from './helpers';
+import { PNG_1X1, login, uniqueNote, waitForClient, type E2EAccount } from './helpers';
 
 async function expectTheme(page: Page, id: string) {
 	await expect(page.locator('#ui-theme')).toHaveValue(id);
@@ -21,6 +21,62 @@ test.describe('settings', () => {
 		const profile = page.getByRole('region', { name: 'Profile' });
 		await expect(profile.getByText(account.displayName)).toBeVisible();
 		await expect(profile.getByText(account.email)).toBeVisible();
+	});
+
+	test('display name saves and persists across reload', async ({ page }) => {
+		const name = `E2E Name ${Date.now().toString(36)}`;
+		await page.getByLabel('Display name').fill(name);
+
+		const save = page.getByRole('button', { name: 'Save name' });
+		const [req] = await Promise.all([
+			page.waitForRequest(
+				(r) => r.method() === 'PATCH' && /\/v1\/me$/.test(new URL(r.url()).pathname)
+			),
+			save.click()
+		]);
+		expect(req.postDataJSON()).toMatchObject({ displayName: name });
+		// The button re-disables once the draft matches the stored name again.
+		await expect(save).toBeDisabled();
+
+		await page.reload();
+		await waitForClient(page);
+		await expect(page.getByLabel('Display name')).toHaveValue(name);
+		await expect(page.getByRole('region', { name: 'Profile' })).toContainText(name);
+	});
+
+	test('avatar uploads, serves publicly, and is removed', async ({ page, request }) => {
+		// The file input is sr-only and unlabelled; drive it directly rather than the visible button.
+		const [putRes] = await Promise.all([
+			page.waitForResponse(
+				(r) => r.request().method() === 'PUT' && /\/v1\/me\/avatar$/.test(new URL(r.url()).pathname)
+			),
+			page
+				.locator('input[type="file"]')
+				.setInputFiles({ name: 'avatar.png', mimeType: 'image/png', buffer: PNG_1X1 })
+		]);
+		expect(putRes.status()).toBe(200);
+		const { avatarUrl } = (await putRes.json()) as { avatarUrl: string | null };
+		expect(avatarUrl).toBeTruthy();
+
+		// GET /v1/avatars/:id is public — the `request` fixture carries no session cookie.
+		const assetId = new URL(avatarUrl!).pathname.split('/').pop();
+		const publicRes = await request.get(`/v1/avatars/${assetId}`);
+		expect(publicRes.status()).toBe(200);
+		expect(publicRes.headers()['content-type']).toMatch(/^image\//);
+
+		// Remove photo only renders while an avatar is set.
+		const remove = page.getByRole('button', { name: 'Remove photo' });
+		await expect(remove).toBeVisible();
+		const [delRes] = await Promise.all([
+			page.waitForResponse(
+				(r) =>
+					r.request().method() === 'DELETE' && /\/v1\/me\/avatar$/.test(new URL(r.url()).pathname)
+			),
+			remove.click()
+		]);
+		expect(delRes.status()).toBe(200);
+		expect(await delRes.json()).toMatchObject({ avatarUrl: null });
+		await expect(remove).toHaveCount(0);
 	});
 
 	test('daily target persists across reload', async ({ page }) => {

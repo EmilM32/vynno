@@ -121,6 +121,46 @@ test.describe('logs', () => {
 		await expect(page.getByTestId('log-row').filter({ hasText: edited })).toHaveCount(0);
 	});
 
+	// Contract: CreateManualSessionDto is "Allowed while a live session exists" and always
+	// inserts status=stopped. The live session must come through untouched.
+	test('manual entry during a live session leaves the live session running', async ({ page }) => {
+		const liveNote = uniqueNote('live-manual');
+		const manualNote = uniqueNote('manual-during-live');
+
+		await spaGo(page, 'Timer', '/timer');
+		await startSession(page, liveNote);
+		const liveId = (await (await page.request.get('/v1/sessions/active')).json()).id;
+
+		await spaGo(page, 'Logs', '/logs');
+		await page.getByRole('button', { name: 'Add entry' }).click();
+		const form = page
+			.getByRole('dialog', { name: 'Manual time entry' })
+			.getByTestId('session-form');
+		await expect(form).toBeVisible();
+		await form.getByLabel('Task').fill(manualNote);
+
+		const [res] = await Promise.all([
+			page.waitForResponse(
+				(r) =>
+					r.request().method() === 'POST' &&
+					/\/v1\/sessions\/manual$/.test(new URL(r.url()).pathname)
+			),
+			form.getByRole('button', { name: 'Add', exact: true }).click()
+		]);
+		expect(res.status()).toBe(201);
+		expect(await res.json()).toMatchObject({ status: 'stopped', note: manualNote });
+		await expect(page.getByTestId('log-row').filter({ hasText: manualNote })).toBeVisible();
+
+		// Same session id, still active — the manual insert did not stop or replace it.
+		const active = await page.request.get('/v1/sessions/active');
+		expect(active.status()).toBe(200);
+		expect(await active.json()).toMatchObject({ id: liveId, status: 'active' });
+
+		await spaGo(page, 'Timer', '/timer');
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(liveNote);
+	});
+
 	test('loads the next page when the list is scrolled', async ({ page }) => {
 		await seedStoppedSessions(page, 20);
 		const cursorRequests: string[] = [];

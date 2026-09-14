@@ -1,5 +1,6 @@
 <script lang="ts">
 	import './layout.css';
+	import { untrack } from 'svelte';
 	import favicon from '$lib/assets/favicon.svg';
 	import { m } from '$lib/paraglide/messages.js';
 	import { authStore } from '$lib/stores/auth.svelte';
@@ -37,7 +38,10 @@
 		persistTimeZoneCookie();
 		if (data.seed) {
 			const email = data.seed.profile.email;
-			if (email && !authStore.loggedIn) {
+			// `loggedIn` is a de-dupe check here, not a trigger. Tracked, `clearSession()` flipping
+			// it to false re-runs this effect while `data` is still the pre-logout seed, which
+			// restores the cached email that logout had just removed.
+			if (email && !untrack(() => authStore.loggedIn)) {
 				authStore.applySession(email);
 			}
 		}

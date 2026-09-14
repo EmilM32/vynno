@@ -2,11 +2,14 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import {
 	desktopNav,
+	expectApiError,
 	fillRegisterCode,
 	fillResetCode,
 	gotoLogin,
+	login,
 	loginWith,
-	registerAccount
+	registerAccount,
+	waitForClient
 } from './helpers';
 
 const themes = ['dark', 'light', 'deep-dark'] as const;
@@ -87,6 +90,64 @@ test.describe('login', () => {
 
 		await page.goto('/');
 		await expect(page).toHaveURL(/\/dashboard$/);
+	});
+
+	// The envelope, not just the rendered string: `invalid_credentials` is what keeps the SPA on
+	// /login. `unauthorized` would trip the client's unauthorizedHandler and navigate instead.
+	test('wrong password surfaces the invalid_credentials envelope', async ({ page }) => {
+		const account = await registerAccount(page.request);
+		await gotoLogin(page);
+		await page.getByLabel('Email').fill(account.email);
+		await page.getByRole('textbox', { name: 'Password', exact: true }).fill('definitely-wrong');
+
+		const [res] = await Promise.all([
+			page.waitForResponse((r) => /\/v1\/auth\/login$/.test(new URL(r.url()).pathname)),
+			page.getByRole('button', { name: 'Log in' }).click()
+		]);
+		expect(res.status()).toBe(401);
+		expect(await res.json()).toMatchObject({ error: { code: 'invalid_credentials' } });
+
+		await expect(page).toHaveURL(/\/login$/);
+		// Scoped to the form: field-level validation errors are role="alert" too.
+		await expect(page.getByTestId('login-form').getByRole('alert')).toHaveText(
+			'Email or password is incorrect.'
+		);
+	});
+});
+
+test.describe('logout', () => {
+	test('clears the session cookie and locks protected routes', async ({ page }) => {
+		await login(page);
+		await page.goto('/settings');
+		await waitForClient(page);
+
+		const [req] = await Promise.all([
+			page.waitForRequest(
+				(r) => r.method() === 'POST' && /\/v1\/auth\/logout$/.test(new URL(r.url()).pathname)
+			),
+			page.getByRole('button', { name: 'Log out' }).click()
+		]);
+		expect(req.method()).toBe('POST');
+		await expect(page).toHaveURL(/\/login$/);
+
+		// An expired cookie either drops out of the jar or stays with an empty value.
+		const session = (await page.context().cookies()).find((c) => c.name === 'vynno_session');
+		expect(session?.value ?? '').toBe('');
+		// Logout must not leave the previous account's address cached on a shared device. The root
+		// layout used to re-apply it from the pre-logout seed the moment clearSession() ran.
+		const cached = await page.evaluate(() => ({
+			local: localStorage.getItem('vynno-auth'),
+			remember: localStorage.getItem('vynno-auth-remember'),
+			session: sessionStorage.getItem('vynno-auth')
+		}));
+		expect(cached).toEqual({ local: null, remember: null, session: null });
+
+		await page.goto('/dashboard');
+		await expect(page).toHaveURL(/\/login$/);
+		await expect(page.getByTestId('login-form')).toBeVisible();
+
+		const me = await page.request.get('/v1/me', { failOnStatusCode: false });
+		await expectApiError(me, 401, 'unauthorized');
 	});
 });
 

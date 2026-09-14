@@ -1,4 +1,10 @@
-import { expect, type APIRequestContext, type Locator, type Page } from '@playwright/test';
+import {
+	expect,
+	type APIRequestContext,
+	type APIResponse,
+	type Locator,
+	type Page
+} from '@playwright/test';
 import { apiBase, apiOrigin, e2eOrigin } from './env';
 import { waitForMailpitCode } from './mailpit';
 
@@ -16,8 +22,23 @@ export type E2EAccount = {
 	displayName: string;
 };
 
+/** Smallest valid PNG. `PUT /v1/me/avatar` sniffs magic bytes and caps the file at 1 MiB. */
+export const PNG_1X1 = Buffer.from(
+	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+	'base64'
+);
+
 export function uniqueNote(prefix = 'e2e'): string {
 	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/**
+ * Assert a contract error envelope: `{ error: { code, message } }` (docs/api-contract.md).
+ * Pass `failOnStatusCode: false` on the request, or Playwright throws before this runs.
+ */
+export async function expectApiError(res: APIResponse, status: number, code: string) {
+	expect(res.status()).toBe(status);
+	expect(await res.json()).toMatchObject({ error: { code } });
 }
 
 export async function registerAccount(_request?: APIRequestContext): Promise<E2EAccount> {
@@ -91,6 +112,16 @@ export async function login(page: Page, account?: E2EAccount): Promise<E2EAccoun
 	return creds;
 }
 
+/** Log out from Settings -- the only logout control in the app. Lands back on /login. */
+export async function logout(page: Page) {
+	if (!/\/settings$/.test(page.url())) {
+		await page.goto('/settings');
+		await waitForClient(page);
+	}
+	await page.getByRole('button', { name: 'Log out' }).click();
+	await expect(page).toHaveURL(/\/login$/);
+}
+
 async function apiFetch(page: Page, path: string, init: { method?: string; data?: unknown } = {}) {
 	const cookies = await page.context().cookies();
 	const cookie = cookies.map((c) => `${c.name}=${c.value}`).join('; ');
@@ -105,6 +136,76 @@ async function apiFetch(page: Page, path: string, init: { method?: string; data?
 		data: init.data,
 		failOnStatusCode: false
 	});
+}
+
+/** ProjectDto as it comes off the wire (`archived`, not the UI's `isArchived`). */
+export type E2EProject = {
+	id: string;
+	name: string;
+	color: string;
+	code: string | null;
+	progressPercent: number | null;
+	archived: boolean;
+};
+
+/**
+ * Project setup through the SPA `/v1` proxy -- same wire the app speaks, and `page.request`
+ * shares the browser cookie jar, so the freshly registered account owns the rows.
+ */
+export async function createProject(
+	page: Page,
+	opts: { name: string; code?: string | null; color?: string; progressPercent?: number | null }
+): Promise<E2EProject> {
+	const res = await page.request.post('/v1/projects', {
+		data: {
+			name: opts.name,
+			color: opts.color ?? '#3b82f6',
+			code: opts.code ?? null,
+			progressPercent: opts.progressPercent ?? null
+		}
+	});
+	if (!res.ok()) {
+		throw new Error(`POST /projects failed (${res.status()} ${await res.text()})`);
+	}
+	return (await res.json()) as E2EProject;
+}
+
+export async function listProjects(
+	page: Page,
+	opts: { includeArchived?: boolean } = {}
+): Promise<E2EProject[]> {
+	const query = opts.includeArchived ? '?includeArchived=true' : '';
+	const res = await page.request.get(`/v1/projects${query}`);
+	if (!res.ok()) {
+		throw new Error(`GET /projects failed (${res.status()} ${await res.text()})`);
+	}
+	return ((await res.json()) as { items: E2EProject[] }).items;
+}
+
+export async function archiveProject(page: Page, id: string): Promise<E2EProject> {
+	const res = await page.request.post(`/v1/projects/${id}/archive`);
+	if (!res.ok()) {
+		throw new Error(`POST /projects/${id}/archive failed (${res.status()} ${await res.text()})`);
+	}
+	return (await res.json()) as E2EProject;
+}
+
+export async function restoreProject(page: Page, id: string): Promise<E2EProject> {
+	const res = await page.request.post(`/v1/projects/${id}/restore`);
+	if (!res.ok()) {
+		throw new Error(`POST /projects/${id}/restore failed (${res.status()} ${await res.text()})`);
+	}
+	return (await res.json()) as E2EProject;
+}
+
+/**
+ * Archive every other active project so `keepId` is the last one standing -- the deterministic
+ * setup for `last_active_project`. A fresh account has only "Personal", so this is usually a no-op.
+ */
+export async function keepOnlyActiveProject(page: Page, keepId: string) {
+	for (const project of await listProjects(page)) {
+		if (project.id !== keepId) await archiveProject(page, project.id);
+	}
 }
 
 export async function ensureIdle(page: Page) {

@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { login, waitForClient } from './helpers';
+import {
+	login,
+	pastSpansOnCurrentDay,
+	seedManualSession,
+	uniqueNote,
+	waitForClient
+} from './helpers';
 
 test.describe('insights', () => {
 	test.beforeEach(async ({ page }) => {
@@ -68,5 +74,36 @@ test.describe('insights', () => {
 
 		await dialog.getByRole('button', { name: 'Cancel' }).click();
 		await expect(dialog).toBeHidden();
+	});
+});
+
+test.describe('insights SSR seed', () => {
+	test('renders from the SSR seed without refetching the first page', async ({ page }) => {
+		await login(page);
+		const span = pastSpansOnCurrentDay(1)[0]!;
+		await seedManualSession(page, {
+			note: uniqueNote('insights-seed'),
+			startedAt: span.startedAt.toISOString(),
+			endedAt: span.endedAt.toISOString()
+		});
+
+		// The seed page is fetched server-side in +layout.server.ts, so the browser should never
+		// ask for it again. Paging backwards through `ensureThrough` carries a cursor and is fine.
+		const seedRefetches: string[] = [];
+		page.on('request', (r) => {
+			if (r.method() !== 'GET') return;
+			const url = new URL(r.url());
+			if (url.pathname === '/v1/sessions' && !url.searchParams.has('cursor')) {
+				seedRefetches.push(r.url());
+			}
+		});
+
+		const response = await page.goto('/insights');
+		expect(await response!.text()).toContain('Time by project');
+
+		await waitForClient(page);
+		await expect(page.getByRole('region', { name: 'Time by project' })).toBeVisible();
+		await expect(page.getByTestId('insight-range-label')).not.toHaveText('');
+		expect(seedRefetches).toEqual([]);
 	});
 });

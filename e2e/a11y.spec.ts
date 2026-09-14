@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { login } from './helpers';
+import { login, waitForClient } from './helpers';
 
 const routes = ['/timer', '/dashboard', '/logs', '/insights', '/projects', '/settings'] as const;
 
@@ -43,6 +43,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await page.setViewportSize({ width: 390, height: 844 });
 		await login(page);
 		await page.goto('/dashboard');
+		await waitForClient(page);
 		await page.getByRole('button', { name: 'Open command palette' }).click();
 		await expectDialogReady(page, 'Command palette');
 		await expectNoViolations(page);
@@ -51,6 +52,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 	test('projects form open', async ({ page }) => {
 		await login(page);
 		await page.goto('/projects');
+		await waitForClient(page);
 		await page.getByTestId('new-project').click();
 		await expectDialogReady(page, 'New project');
 		await expectNoViolations(page);
@@ -59,6 +61,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 	test('activity type form open', async ({ page }) => {
 		await login(page);
 		await page.goto('/settings');
+		await waitForClient(page);
 		await page
 			.getByRole('region', { name: 'Activity types' })
 			.getByRole('button', { name: 'Add', exact: true })
@@ -80,6 +83,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 	test('insights month period', async ({ page }) => {
 		await login(page);
 		await page.goto('/insights');
+		await waitForClient(page);
 		await page.getByRole('button', { name: 'Month' }).click();
 		await expectNoViolations(page);
 		await page.getByRole('button', { name: 'Custom' }).click();
@@ -118,6 +122,7 @@ test.describe('keyboard', () => {
 		await page.setViewportSize({ width: 390, height: 844 });
 		await login(page);
 		await page.goto('/dashboard');
+		await waitForClient(page);
 		const opener = page.getByRole('button', { name: 'Open command palette' });
 		await opener.click();
 		const filter = page.getByRole('combobox', { name: 'Filter commands' });

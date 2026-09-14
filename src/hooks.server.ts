@@ -43,13 +43,12 @@ const handleParaglide: Handle = ({ event, resolve }) =>
 				html
 					.replace('%paraglide.lang%', locale)
 					.replace('%paraglide.dir%', getTextDirection(locale)),
-			// A font preload is fetched at top priority and ignores the `unicode-range` on the
-			// `@font-face` it belongs to. The `-ext` subsets in $lib/theme/fonts.css exist only for
-			// Polish glyphs, so on an `en` page they would never be fetched at all -- preloading them
-			// puts ~142 KB of never-rendered bytes on the critical path. Keep the latin subsets and the
-			// icon font (`font-display: block`, so a late fetch means missing icons).
-			preload: ({ type, path }) =>
-				type === 'js' || type === 'css' || (type === 'font' && !path.includes('-ext.'))
+			// Keep `font` here. Dropping the `-ext` subsets looks like free bandwidth -- they carry
+			// Polish glyphs and a preload ignores `unicode-range` -- but measurement says the app
+			// renders latin-ext glyphs on an `en` page too, so the browser fetches inter-latin-ext
+			// either way. Without the preload it starts late and its `font-display: swap` block
+			// period lands on the first paint: FCP 1.22s -> 1.81s on /dashboard (LH 13, mobile).
+			preload: ({ type }) => type === 'js' || type === 'css' || type === 'font'
 		});
 	});
 

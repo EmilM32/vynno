@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { BarChart, Tooltip } from 'layerchart';
+	import { onMount } from 'svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { hoursScale, type WeekDayTotal } from '$lib/time/aggregates';
@@ -23,6 +23,18 @@
 	} = $props();
 
 	const sessionStore = useSession();
+
+	/**
+	 * LayerChart pulls ~12 render-blocking CSS chunks and most of this route's hydration work.
+	 * Importing it after mount keeps it off the critical path. Everything outside the chart box
+	 * below stays server-rendered on purpose: the `<h2>` is the LCP element on /projects/{id},
+	 * and the `sr-only` list is what screen readers read instead of the bars.
+	 */
+	let lc = $state.raw<typeof import('$lib/components/charts/lazy-bar') | null>(null);
+
+	onMount(async () => {
+		lc = await import('$lib/components/charts/lazy-bar');
+	});
 
 	const days = $derived(daysProp ?? sessionStore.weekDayTotals);
 	const title = $derived(heading ?? m.dashboard_weekly_overview());
@@ -73,39 +85,43 @@
 	</ul>
 
 	<div class="min-h-0 flex-1">
-		<BarChart
-			class="h-full min-h-0 w-full text-on-surface-variant"
-			data={chartData}
-			x="key"
-			y="hours"
-			yDomain={[0, scaleHours]}
-			c={(d: ChartPoint) => (d.isToday ? 'today' : 'other')}
-			cDomain={['today', 'other']}
-			cRange={[fillToday, fillOther]}
-			motion="none"
-			legend={false}
-			rule={true}
-			grid={{ x: false, y: true }}
-			bandPadding={days.length > 14 ? 0.18 : 0.32}
-			padding={{ top: 8, right: 4, bottom: 0, left: 28 }}
-			series={[{ key: 'hours', label: m.dashboard_hours(), value: 'hours' }]}
-			props={{
-				bars: { radius: 2, strokeWidth: 0, stroke: 'transparent' },
-				xAxis: { format: xTick, tickMarks: false, tickLength: 0 },
-				yAxis: { format: yTick, tickMarks: false, tickLength: 0 },
-				grid: { x: false, y: { stroke: 'var(--color-outline-variant)', opacity: 0.7 } }
-			}}
-		>
-			{#snippet tooltip({ context })}
-				<Tooltip.Root {context}>
-					{#snippet children({ data }: { data: ChartPoint })}
-						<Tooltip.Header value="{data.label}{data.isToday ? m.dashboard_today_paren() : ''}" />
-						<Tooltip.List>
-							<Tooltip.Item label={m.dashboard_hours()} value={formatHoursDecimal(data.ms)} />
-						</Tooltip.List>
-					{/snippet}
-				</Tooltip.Root>
-			{/snippet}
-		</BarChart>
+		{#if lc}
+			{@const BarChart = lc.BarChart}
+			{@const Tooltip = lc.Tooltip}
+			<BarChart
+				class="h-full min-h-0 w-full text-on-surface-variant"
+				data={chartData}
+				x="key"
+				y="hours"
+				yDomain={[0, scaleHours]}
+				c={(d: ChartPoint) => (d.isToday ? 'today' : 'other')}
+				cDomain={['today', 'other']}
+				cRange={[fillToday, fillOther]}
+				motion="none"
+				legend={false}
+				rule={true}
+				grid={{ x: false, y: true }}
+				bandPadding={days.length > 14 ? 0.18 : 0.32}
+				padding={{ top: 8, right: 4, bottom: 0, left: 28 }}
+				series={[{ key: 'hours', label: m.dashboard_hours(), value: 'hours' }]}
+				props={{
+					bars: { radius: 2, strokeWidth: 0, stroke: 'transparent' },
+					xAxis: { format: xTick, tickMarks: false, tickLength: 0 },
+					yAxis: { format: yTick, tickMarks: false, tickLength: 0 },
+					grid: { x: false, y: { stroke: 'var(--color-outline-variant)', opacity: 0.7 } }
+				}}
+			>
+				{#snippet tooltip({ context })}
+					<Tooltip.Root {context}>
+						{#snippet children({ data }: { data: ChartPoint })}
+							<Tooltip.Header value="{data.label}{data.isToday ? m.dashboard_today_paren() : ''}" />
+							<Tooltip.List>
+								<Tooltip.Item label={m.dashboard_hours()} value={formatHoursDecimal(data.ms)} />
+							</Tooltip.List>
+						{/snippet}
+					</Tooltip.Root>
+				{/snippet}
+			</BarChart>
+		{/if}
 	</div>
 </section>

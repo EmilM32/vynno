@@ -43,7 +43,13 @@ const handleParaglide: Handle = ({ event, resolve }) =>
 				html
 					.replace('%paraglide.lang%', locale)
 					.replace('%paraglide.dir%', getTextDirection(locale)),
-			preload: ({ type }) => type === 'js' || type === 'css' || type === 'font'
+			// A font preload is fetched at top priority and ignores the `unicode-range` on the
+			// `@font-face` it belongs to. The `-ext` subsets in $lib/theme/fonts.css exist only for
+			// Polish glyphs, so on an `en` page they would never be fetched at all -- preloading them
+			// puts ~142 KB of never-rendered bytes on the critical path. Keep the latin subsets and the
+			// icon font (`font-display: block`, so a late fetch means missing icons).
+			preload: ({ type, path }) =>
+				type === 'js' || type === 'css' || (type === 'font' && !path.includes('-ext.'))
 		});
 	});
 

@@ -1,10 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { login } from './helpers';
+import { login, waitForClient } from './helpers';
 
 test.describe('insights', () => {
 	test.beforeEach(async ({ page }) => {
 		await login(page);
 		await page.goto('/insights');
+		// The period buttons are SSR'd; clicking one before Kit mounts drops the event.
+		await waitForClient(page);
 	});
 
 	test('renders range chrome and chart regions (Flow F)', async ({ page }) => {

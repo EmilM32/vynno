@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { PieChart, Tooltip } from 'layerchart';
+	import { onMount } from 'svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { formatHoursMinutes } from '$lib/time/duration';
 	import type { NamedTotal } from '$lib/time/aggregates';
@@ -14,6 +14,17 @@
 	} = $props();
 
 	type Slice = NamedTotal;
+
+	/**
+	 * Same reasoning as WeeklyOverview: layerchart is ~12 render-blocking CSS chunks and the bulk
+	 * of this route's hydration work, so it loads after mount. The heading and the centre total
+	 * stay server-rendered.
+	 */
+	let lc = $state.raw<typeof import('$lib/components/charts/lazy-pie') | null>(null);
+
+	onMount(async () => {
+		lc = await import('$lib/components/charts/lazy-pie');
+	});
 </script>
 
 {#snippet centerTotal()}
@@ -44,7 +55,9 @@
 	>
 		{#if items.length === 0 || totalMs <= 0}
 			<div class="h-48 w-48 rounded-full bg-surface-variant" aria-hidden="true"></div>
-		{:else}
+		{:else if lc}
+			{@const PieChart = lc.PieChart}
+			{@const Tooltip = lc.Tooltip}
 			<PieChart
 				class="h-full w-full"
 				data={items}

@@ -8,6 +8,8 @@
 		id: string;
 		label: string;
 		color?: string;
+		/** Extra classes on the dot — lets a colorless row keep the mark's width. */
+		dotClass?: string;
 	};
 
 	let {
@@ -62,8 +64,8 @@
 						data-testid="logs-filter-option"
 						onclick={() => toggle(item.id)}
 					>
-						{#if item.color}
-							<ColorDot color={item.color} />
+						{#if item.color || item.dotClass}
+							<ColorDot color={item.color ?? 'transparent'} class={item.dotClass ?? ''} />
 						{/if}
 						<span class="min-w-0 truncate">{item.label}</span>
 					</Button>

@@ -3,6 +3,7 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { getLocale } from '$lib/paraglide/runtime.js';
 	import { UNASSIGNED_ACTIVITY_ID } from '$lib/time/aggregates';
+	import { activityChartColor } from '$lib/time/activity-styles';
 	import {
 		formatLogDateRangeLabel,
 		localDateKeyFromDate,
@@ -80,8 +81,13 @@
 
 	const projectItems = $derived(projects.map((p) => ({ id: p.id, label: p.name, color: p.color })));
 	const activityItems = $derived([
-		{ id: UNASSIGNED_ACTIVITY_ID, label: m.logs_activity_none() },
-		...activityTypes.map((a) => ({ id: a.id, label: a.name }))
+		{
+			id: UNASSIGNED_ACTIVITY_ID,
+			label: m.logs_activity_none(),
+			// Hollow mark: keeps the rows aligned and stays distinct from a real `outline` activity.
+			dotClass: 'border border-outline'
+		},
+		...activityTypes.map((a) => ({ id: a.id, label: a.name, color: activityChartColor(a.color) }))
 	]);
 
 	let dateOpen = $state(false);

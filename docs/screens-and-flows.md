@@ -102,13 +102,15 @@ Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 
 ### 3.5 Settings (`/settings`)
 
-- Profile (display name, avatar)
+Profile and activity types sync to the account. Theme, daily target, and default project stay on this device (`vynno_prefs`).
+
+- Profile (display name, avatar). Save name appears only while the field is dirty. Log out is a separated danger action at the card foot.
 - Appearance (named theme list)
 - Language (Paraglide, no URL prefixes)
-- Daily hour target (device cookie `vynno_prefs`)
+- Daily hour target (device cookie `vynno_prefs`; unit shown in the field)
 - Default project
-- Activity types: compact list; Add / Edit form dialog; Delete confirm
-- About + Log out
+- Activity types: chip is the row label (compact, not full-bleed); Edit/Delete on the same row; Add / Edit form dialog; Delete confirm
+- About (version as a muted chip) + Log out
 
 ### 3.6 Projects (`/projects`)
 

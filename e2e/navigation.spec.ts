@@ -43,9 +43,14 @@ test.describe('navigation', () => {
 
 		if (mobile) {
 			await expect(nav.getByRole('link', { name: 'Settings', exact: true })).toHaveCount(0);
-			await page.getByTestId('shell-settings').click();
+			const banner = page.getByRole('banner');
+			await expect(banner.getByRole('button', { name: 'Open command palette' })).toBeVisible();
+			const settings = banner.getByRole('link', { name: 'Settings' });
+			await expect(settings).toBeVisible();
+			await settings.click();
 			await expect(page).toHaveURL(/\/settings$/);
-			await expect(page.getByTestId('shell-settings')).toHaveAttribute('aria-current', 'page');
+			await expect(settings).toHaveAttribute('aria-current', 'page');
+			await expect(page.getByRole('heading', { name: 'Settings', level: 1 })).toBeVisible();
 		} else {
 			await nav.getByRole('link', { name: 'Settings', exact: true }).click();
 			await expect(page).toHaveURL(/\/settings$/);

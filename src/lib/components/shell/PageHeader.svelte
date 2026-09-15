@@ -31,17 +31,27 @@
 		const mq = window.matchMedia(DESKTOP_MQ);
 		const root = node.closest('#main-content');
 
-		const sync = () => {
-			compact = mq.matches && !!root && root.scrollTop > 0;
+		const setHeaderHeight = () => {
+			if (!(root instanceof HTMLElement)) return;
+			root.style.setProperty('--page-header-h', mq.matches ? `${node.offsetHeight}px` : '0px');
 		};
 
+		const sync = () => {
+			compact = mq.matches && !!root && root.scrollTop > 0;
+			setHeaderHeight();
+		};
+
+		const ro = new ResizeObserver(setHeaderHeight);
+		ro.observe(node);
 		root?.addEventListener('scroll', sync, { passive: true });
 		mq.addEventListener('change', sync);
 		sync();
 
 		return () => {
+			ro.disconnect();
 			root?.removeEventListener('scroll', sync);
 			mq.removeEventListener('change', sync);
+			if (root instanceof HTMLElement) root.style.removeProperty('--page-header-h');
 		};
 	}
 </script>

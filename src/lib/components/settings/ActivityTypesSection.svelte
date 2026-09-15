@@ -55,10 +55,12 @@
 </script>
 
 <section
-	class="rounded-lg border border-outline-variant bg-surface-container p-4"
+	class="overflow-visible rounded-lg border border-outline-variant bg-surface-container"
 	aria-labelledby="settings-activity-types"
 >
-	<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+	<div
+		class="flex flex-wrap items-start justify-between gap-3 bg-surface-container px-4 pt-4 pb-4 md:sticky md:top-[var(--page-header-h,0px)] md:z-10"
+	>
 		<div class="min-w-0">
 			<h2 id="settings-activity-types" class="text-headline-md text-on-surface">
 				{m.settings_activity_types()}
@@ -70,59 +72,60 @@
 		</Button>
 	</div>
 
-	{#if sessionStore.activityTypes.length === 0}
-		<div
-			class="rounded-lg border border-dashed border-outline-variant bg-surface-container-low/40 px-4 py-8 text-center"
-		>
-			<p class="text-body-sm text-on-surface-variant">{m.activity_types_empty()}</p>
-			<Button variant="link" size="xs" class="mt-3" onclick={openCreate}>
-				{m.activity_types_create_one()}
-			</Button>
-		</div>
-	{:else}
-		<ul class="flex flex-col gap-2" data-testid="activity-type-list">
-			{#each sessionStore.activityTypes as type (type.id)}
-				{const sessionCount = $derived(sessionStore.countSessionsForActivityType(type.id))}
-				{const knownInUse = $derived(sessionCount != null && sessionCount > 0)}
-				{const deleteReasonId = $derived(`${type.id}-delete-reason`)}
-				<li
-					class="flex flex-wrap items-center gap-2 rounded border border-outline-variant bg-surface-container-low px-3 py-2"
-					data-testid="activity-type-row"
-					data-activity-type-id={type.id}
-				>
-					<ActivityChip {type} />
-					<span class="text-body-sm text-on-surface">{type.name}</span>
-					<div class="ml-auto flex gap-2">
-						<Button variant="secondary" size="xs" onclick={() => openEdit(type)}>
-							{m.activity_types_edit()}
-						</Button>
-						<Button
-							variant="secondary"
-							size="xs"
-							onclick={() => {
-								sessionStore.clearError();
-								deleteTarget = type;
-							}}
-							disabled={sessionCount == null || sessionCount > 0}
-							title={knownInUse ? m.activity_types_cannot_delete_has_sessions() : undefined}
-							aria-describedby={knownInUse ? deleteReasonId : undefined}
-						>
-							{m.activity_types_delete()}
-						</Button>
-					</div>
-					{#if knownInUse}
-						<span id={deleteReasonId} class="sr-only"
-							>{m.activity_types_cannot_delete_has_sessions()}</span
-						>
-					{/if}
-				</li>
-			{/each}
-		</ul>
-	{/if}
+	<div class="px-4 pb-4">
+		{#if sessionStore.activityTypes.length === 0}
+			<div
+				class="rounded-lg border border-dashed border-outline-variant bg-surface-container-low/40 px-4 py-8 text-center"
+			>
+				<p class="text-body-sm text-on-surface-variant">{m.activity_types_empty()}</p>
+				<Button variant="link" size="xs" class="mt-3" onclick={openCreate}>
+					{m.activity_types_create_one()}
+				</Button>
+			</div>
+		{:else}
+			<ul class="flex flex-col gap-2" data-testid="activity-type-list">
+				{#each sessionStore.activityTypes as type (type.id)}
+					{const sessionCount = $derived(sessionStore.countSessionsForActivityType(type.id))}
+					{const knownInUse = $derived(sessionCount != null && sessionCount > 0)}
+					{const deleteReasonId = $derived(`${type.id}-delete-reason`)}
+					<li
+						class="relative flex items-center gap-2 rounded border border-outline-variant bg-surface-container-low px-3 py-2"
+						data-testid="activity-type-row"
+						data-activity-type-id={type.id}
+					>
+						<ActivityChip {type} class="w-fit shrink-0" />
+						<div class="ml-auto flex shrink-0 gap-2">
+							<Button variant="secondary" size="xs" onclick={() => openEdit(type)}>
+								{m.activity_types_edit()}
+							</Button>
+							<Button
+								variant="secondary"
+								size="xs"
+								onclick={() => {
+									sessionStore.clearError();
+									deleteTarget = type;
+								}}
+								disabled={sessionCount == null || sessionCount > 0}
+								title={knownInUse ? m.activity_types_cannot_delete_has_sessions() : undefined}
+								aria-describedby={knownInUse ? deleteReasonId : undefined}
+							>
+								{m.activity_types_delete()}
+							</Button>
+						</div>
+						{#if knownInUse}
+							<span id={deleteReasonId} class="sr-only"
+								>{m.activity_types_cannot_delete_has_sessions()}</span
+							>
+						{/if}
+					</li>
+				{/each}
+			</ul>
+		{/if}
 
-	{#if sessionStore.error && formMode === null}
-		<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>
-	{/if}
+		{#if sessionStore.error && formMode === null}
+			<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>
+		{/if}
+	</div>
 </section>
 
 <Dialog

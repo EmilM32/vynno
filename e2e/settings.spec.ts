@@ -25,9 +25,13 @@ test.describe('settings', () => {
 
 	test('display name saves and persists across reload', async ({ page }) => {
 		const name = `E2E Name ${Date.now().toString(36)}`;
-		await page.getByLabel('Display name').fill(name);
-
 		const save = page.getByRole('button', { name: 'Save name' });
+		await expect(save).toHaveCount(0);
+
+		await page.getByLabel('Display name').fill(name);
+		await expect(save).toBeVisible();
+		await expect(save).toBeEnabled();
+
 		const [req] = await Promise.all([
 			page.waitForRequest(
 				(r) => r.method() === 'PATCH' && /\/v1\/me$/.test(new URL(r.url()).pathname)
@@ -35,13 +39,13 @@ test.describe('settings', () => {
 			save.click()
 		]);
 		expect(req.postDataJSON()).toMatchObject({ displayName: name });
-		// The button re-disables once the draft matches the stored name again.
-		await expect(save).toBeDisabled();
+		await expect(save).toHaveCount(0);
 
 		await page.reload();
 		await waitForClient(page);
 		await expect(page.getByLabel('Display name')).toHaveValue(name);
 		await expect(page.getByRole('region', { name: 'Profile' })).toContainText(name);
+		await expect(save).toHaveCount(0);
 	});
 
 	test('avatar uploads, serves publicly, and is removed', async ({ page, request }) => {
@@ -82,6 +86,9 @@ test.describe('settings', () => {
 	test('daily target persists across reload', async ({ page }) => {
 		const input = page.locator('#daily-target');
 		await expect(input).toBeVisible();
+		await expect(
+			page.getByRole('region', { name: 'Preferences' }).getByText('h', { exact: true })
+		).toBeVisible();
 		await input.fill('6');
 		await expect(input).toHaveValue('6');
 

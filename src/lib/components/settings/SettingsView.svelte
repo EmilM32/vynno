@@ -11,6 +11,7 @@
 	import ProfileAvatar from '$lib/components/shell/ProfileAvatar.svelte';
 	import { profileLabel } from '$lib/api/mappers/profile';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Chip from '$lib/components/ui/Chip.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
@@ -124,27 +125,29 @@
 		<p class="mt-2 text-body-sm text-on-surface-variant">{m.settings_photo_hint()}</p>
 
 		<div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
-			<Field id="display-name" label={m.settings_display_name()} class="min-w-0 flex-1">
-				<Input
-					tone="data"
-					type="text"
-					maxlength="80"
-					bind:value={displayNameDraft}
-					class="w-full"
-				/>
+			<Field
+				id="display-name"
+				label={m.settings_display_name()}
+				class="w-full max-w-[28ch] sm:max-w-[32ch]"
+			>
+				<Input tone="ui" type="text" maxlength="80" bind:value={displayNameDraft} class="w-full" />
 			</Field>
-			<Button variant="tonal" disabled={profileBusy || !nameDirty} onclick={onSaveName}>
-				{m.settings_save_profile()}
-			</Button>
+			{#if nameDirty}
+				<Button variant="tonal" disabled={profileBusy} onclick={onSaveName}>
+					{m.settings_save_profile()}
+				</Button>
+			{/if}
 		</div>
 
 		{#if sessionStore.error}
 			<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>
 		{/if}
 
-		<Button variant="secondary" class="mt-4" onclick={onLogout}>
-			{m.settings_logout()}
-		</Button>
+		<div class="mt-6 border-t border-outline-variant pt-4">
+			<Button variant="danger" onclick={onLogout}>
+				{m.settings_logout()}
+			</Button>
+		</div>
 	</section>
 
 	<ActivityTypesSection />
@@ -173,8 +176,17 @@
 					step="0.5"
 					value={prefsStore.dailyTargetHours}
 					oninput={onTargetInput}
-					class="w-full sm:w-28"
-				/>
+					class="w-full sm:w-32"
+				>
+					{#snippet trailing()}
+						<span
+							aria-hidden="true"
+							class="pointer-events-none absolute inset-y-0 right-3 flex items-center font-mono text-code-label text-on-surface-variant"
+						>
+							{m.settings_daily_target_unit()}
+						</span>
+					{/snippet}
+				</Input>
 			</Field>
 
 			<Field
@@ -243,7 +255,7 @@
 				</div>
 				<div>
 					<dt class="text-on-surface-variant">{m.settings_about_version()}</dt>
-					<dd class="font-mono text-code-label text-on-surface">{APP_VERSION}</dd>
+					<dd><Chip>{APP_VERSION}</Chip></dd>
 				</div>
 			</dl>
 			<p class="text-on-surface-variant">{m.settings_about_oneliner({ name: m.app_name() })}</p>

@@ -182,6 +182,7 @@
 	"insights_time_by_activity": "Czas według aktywności",
 	"insights_time_by_activity_aria": "Czas według aktywności",
 	"insights_no_activity": "Brak danych o aktywności dla tego okresu.",
+	"insights_activity_unassigned": "Nieprzypisane",
 	"insights_breakdown": "Rozbicie aktywności",
 	"insights_breakdown_aria": "Rozbicie aktywności",
 	"insights_col_project": "Projekt",

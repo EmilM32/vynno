@@ -94,8 +94,9 @@ Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs
 1. Header + range control: prev / civil-date label / next, Week | 2 weeks | Month, Custom
 2. Custom: dialog with From / To dates (native `type="date"`). Prev/next shift the active grain; next is disabled on the current window. Range is view-local (resets to the current week on leave).
 3. Time by Project donut (centre total)
-4. Time by Activity bar
-5. Activity Breakdown table
+4. Time by Activity bar — unlabeled sessions are **Unassigned** so bars match the donut; omit `0s` rows
+5. Activity Breakdown table — same Unassigned rows per project
+6. Mobile: grain + civil label on one line; donut is shorter (`h-64`) so Activity peeks above the fold. Activity height follows content. Desktop `lg`: Activity shares the donut row (`h-96`).
 
 Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 

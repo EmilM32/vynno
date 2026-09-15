@@ -575,6 +575,8 @@ describe('periodStats', () => {
 		const empty = periodStats([], projects, activityTypes, week, FIXED_NOW);
 		expect(empty.totalMs).toBe(0);
 		expect(empty.byProject).toEqual([]);
+		expect(empty.byActivity).toEqual([]);
+		expect(empty.breakdown).toEqual([]);
 	});
 
 	it('respects a historical custom span', () => {
@@ -583,6 +585,72 @@ describe('periodStats', () => {
 		const stats = periodStats(daySessions(), projects, activityTypes, { start, end }, FIXED_NOW);
 		// Mon 2h + Tue 1h; Wednesday is outside
 		expect(stats.totalMs).toBe(ms.hours(3));
+	});
+
+	it('buckets unlabeled sessions as Unassigned so activity matches project total', () => {
+		const bare = makeSession({
+			id: 'bare',
+			projectId: 'proj-a',
+			activityTypeId: undefined,
+			startedAt: localIso(2026, 2, 11, 9, 0),
+			endedAt: localIso(2026, 2, 11, 10, 17)
+		});
+		const week = periodBounds('week', FIXED_NOW);
+		const stats = periodStats([bare], projects, activityTypes, week, FIXED_NOW);
+
+		expect(stats.totalMs).toBe(ms.min(77));
+		expect(stats.byProject).toHaveLength(1);
+		expect(stats.byActivity).toEqual([
+			expect.objectContaining({
+				id: UNASSIGNED_ACTIVITY_ID,
+				label: 'Unassigned',
+				ms: stats.totalMs,
+				percent: 100
+			})
+		]);
+		expect(stats.breakdown).toEqual([
+			expect.objectContaining({
+				projectId: 'proj-a',
+				activityTypeId: UNASSIGNED_ACTIVITY_ID,
+				activityLabel: 'Unassigned',
+				ms: stats.totalMs,
+				percent: 100
+			})
+		]);
+		expect(stats.byActivity.every((row) => row.ms > 0)).toBe(true);
+		expect(stats.breakdown.every((row) => row.ms > 0)).toBe(true);
+	});
+
+	it('keeps tagged time and Unassigned in the same percent band as projects', () => {
+		const tagged = makeSession({
+			id: 'tagged',
+			projectId: 'proj-a',
+			activityTypeId: 'act-coding',
+			startedAt: localIso(2026, 2, 11, 9, 0),
+			endedAt: localIso(2026, 2, 11, 10, 0)
+		});
+		const bare = makeSession({
+			id: 'bare',
+			projectId: 'proj-b',
+			activityTypeId: undefined,
+			startedAt: localIso(2026, 2, 11, 10, 0),
+			endedAt: localIso(2026, 2, 11, 10, 30)
+		});
+		const week = periodBounds('week', FIXED_NOW);
+		const stats = periodStats([tagged, bare], projects, activityTypes, week, FIXED_NOW);
+
+		expect(stats.totalMs).toBe(ms.hours(1, 30));
+		expect(stats.byActivity.map((row) => row.id).sort()).toEqual(
+			['act-coding', UNASSIGNED_ACTIVITY_ID].sort()
+		);
+		expect(stats.byActivity.some((row) => row.ms === 0)).toBe(false);
+		expect(stats.breakdown.some((row) => row.ms === 0)).toBe(false);
+		const activityPct = stats.byActivity.reduce((sum, row) => sum + row.percent, 0);
+		expect(activityPct).toBeGreaterThanOrEqual(99);
+		expect(activityPct).toBeLessThanOrEqual(101);
+		const projectPct = stats.byProject.reduce((sum, row) => sum + row.percent, 0);
+		expect(projectPct).toBeGreaterThanOrEqual(99);
+		expect(projectPct).toBeLessThanOrEqual(101);
 	});
 });
 
@@ -645,6 +713,32 @@ describe('projectPeriodStats', () => {
 		expect(stats.byActivity).toEqual([]);
 		expect(stats.mostProductiveDay).toBeNull();
 		expect(stats.sharePercent).toBe(0);
+	});
+
+	it('buckets unlabeled project time as Unassigned', () => {
+		const bare = makeSession({
+			id: 'bare',
+			projectId: 'proj-a',
+			activityTypeId: undefined,
+			startedAt: localIso(2026, 2, 11, 9, 0),
+			endedAt: localIso(2026, 2, 11, 10, 0)
+		});
+		const stats = projectPeriodStats(
+			[bare],
+			'proj-a',
+			activityTypes,
+			{ kind: 'week' },
+			FIXED_NOW
+		);
+		expect(stats.totalMs).toBe(ms.hours(1));
+		expect(stats.byActivity).toEqual([
+			expect.objectContaining({
+				id: UNASSIGNED_ACTIVITY_ID,
+				label: 'Unassigned',
+				ms: ms.hours(1),
+				percent: 100
+			})
+		]);
 	});
 
 	it('custom window uses the given civil bounds', () => {

@@ -60,6 +60,68 @@ test.describe('insights', () => {
 		await expect(next).toBeDisabled();
 	});
 
+	test('untagged sessions show as Unassigned, not zero bars', async ({ page }) => {
+		const span = pastSpansOnCurrentDay(1)[0]!;
+		await seedManualSession(page, {
+			note: uniqueNote('untagged'),
+			startedAt: span.startedAt.toISOString(),
+			endedAt: span.endedAt.toISOString(),
+			activityTypeId: null
+		});
+		await page.goto('/insights');
+		await waitForClient(page);
+		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'Month' }).click();
+
+		const activity = page.getByRole('region', { name: 'Time by activity', exact: true });
+		await expect(activity.getByText('Unassigned')).toBeVisible();
+		await expect(activity.getByText(/0s · 0%/)).toHaveCount(0);
+
+		const breakdown = page.getByRole('region', { name: 'Activity breakdown', exact: true });
+		// Activity column is `hidden md:table-cell`; the row still exists in the table.
+		await expect(breakdown.getByText('Unassigned')).toHaveCount(1);
+		await expect(breakdown.locator('tbody tr')).toHaveCount(1);
+		await expect(breakdown.getByText('0s', { exact: true })).toHaveCount(0);
+		await expect(breakdown.getByText('0%', { exact: true })).toHaveCount(0);
+	});
+
+	test('desktop activity card matches donut height', async ({ page }, testInfo) => {
+		test.skip(testInfo.project.name === 'mobile', 'desktop shared row');
+		await expect(page.getByRole('region', { name: 'Time by project', exact: true })).toBeVisible();
+		const donut = page.getByRole('region', { name: 'Time by project', exact: true });
+		const activity = page.getByRole('region', { name: 'Time by activity', exact: true });
+		const donutBox = await donut.boundingBox();
+		const activityBox = await activity.boundingBox();
+		expect(donutBox).toBeTruthy();
+		expect(activityBox).toBeTruthy();
+		expect(Math.abs(donutBox!.height - activityBox!.height)).toBeLessThan(2);
+	});
+
+	test('activity heading peeks above the fold on mobile', async ({ page }, testInfo) => {
+		test.skip(testInfo.project.name !== 'mobile', 'mobile fold');
+		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'Month' }).click();
+		const heading = page.getByRole('heading', { name: 'Time by Activity' });
+		await expect(heading).toBeVisible();
+		const box = await heading.boundingBox();
+		const viewport = page.viewportSize();
+		expect(box).toBeTruthy();
+		expect(viewport).toBeTruthy();
+		expect(box!.y).toBeGreaterThan(0);
+		expect(box!.y).toBeLessThan(viewport!.height);
+	});
+
+	test('grain and civil label sit on one line', async ({ page }) => {
+		const period = page.getByRole('group', { name: 'Period' });
+		const label = page.getByTestId('insight-range-label');
+		await expect(period).toBeVisible();
+		const periodBox = await period.boundingBox();
+		const labelBox = await label.boundingBox();
+		expect(periodBox).toBeTruthy();
+		expect(labelBox).toBeTruthy();
+		expect(
+			Math.abs(periodBox!.y + periodBox!.height / 2 - (labelBox!.y + labelBox!.height / 2))
+		).toBeLessThan(16);
+	});
+
 	test('custom range dialog validates inverted dates', async ({ page }) => {
 		await page.getByRole('button', { name: 'Custom' }).click();
 		const dialog = page.getByRole('dialog', { name: 'Custom range' });

@@ -11,13 +11,14 @@
 		class?: string;
 	} = $props();
 
-	const maxMs = $derived(Math.max(1, ...items.map((i) => i.ms)));
+	const visible = $derived(items.filter((i) => i.ms > 0));
+	const maxMs = $derived(Math.max(1, ...visible.map((i) => i.ms)));
 </script>
 
 <section
 	class={[
 		'flex flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container p-6',
-		className ?? 'h-64 lg:h-96'
+		className ?? 'lg:h-96'
 	]}
 	aria-label={m.insights_time_by_activity_aria()}
 >
@@ -33,10 +34,10 @@
 		aria-label={m.insights_time_by_activity()}
 	>
 		<div class="flex min-h-full flex-col justify-center gap-3">
-			{#if items.length === 0}
+			{#if visible.length === 0}
 				<p class="text-body-sm text-on-surface-variant">{m.insights_no_activity()}</p>
 			{:else}
-				{#each items as item (item.id)}
+				{#each visible as item (item.id)}
 					<div class="flex flex-col gap-1">
 						<div class="flex items-center justify-between gap-2">
 							<span class="font-mono text-code-label text-on-surface">{item.label}</span>

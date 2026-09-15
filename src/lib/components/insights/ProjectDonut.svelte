@@ -41,7 +41,7 @@
 {/snippet}
 
 <section
-	class="vynno-chart flex h-96 flex-col rounded-lg border border-outline-variant bg-surface-container p-6"
+	class="vynno-chart flex h-64 flex-col rounded-lg border border-outline-variant bg-surface-container p-6 lg:h-96"
 	aria-label={m.insights_time_by_project_aria()}
 >
 	<div class="mb-4 flex items-center justify-between">

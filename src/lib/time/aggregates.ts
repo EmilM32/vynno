@@ -465,6 +465,26 @@ export function groupSessionsByTask(sessions: TimeSession[], nowMs = Date.now())
 /** Empty string in `activityTypeIds` matches sessions with no activity type. */
 export const UNASSIGNED_ACTIVITY_ID = '';
 
+function activitySlice(
+	activityTypeId: string | undefined,
+	activityById: Map<string, ActivityType>
+): { id: string; label: string; color: string } {
+	const id = activityTypeId || UNASSIGNED_ACTIVITY_ID;
+	if (id === UNASSIGNED_ACTIVITY_ID) {
+		return {
+			id: UNASSIGNED_ACTIVITY_ID,
+			label: m.insights_activity_unassigned(),
+			color: activityChartColor('on-surface-variant')
+		};
+	}
+	const a = activityById.get(id);
+	return {
+		id,
+		label: a ? a.name : m.common_unknown(),
+		color: a ? activityChartColor(a.color) : activityChartColor('outline')
+	};
+}
+
 export type SessionListFilter = {
 	range?: { start: Date; end: Date } | null;
 	projectIds?: readonly string[];
@@ -564,8 +584,7 @@ export function periodStats(
 
 		projectTotals.set(s.projectId, (projectTotals.get(s.projectId) ?? 0) + ms);
 
-		const actId = s.activityTypeId;
-		if (!actId) continue;
+		const actId = s.activityTypeId || UNASSIGNED_ACTIVITY_ID;
 		activityTotals.set(actId, (activityTotals.get(actId) ?? 0) + ms);
 
 		const pairKey = `${s.projectId}::${actId}`;
@@ -591,11 +610,11 @@ export function periodStats(
 
 	const byActivity: NamedTotal[] = [...activityTotals.entries()]
 		.map(([id, ms]) => {
-			const a = activityById.get(id);
+			const slice = activitySlice(id, activityById);
 			return {
-				id,
-				label: a ? a.name : m.common_unknown(),
-				color: a ? activityChartColor(a.color) : activityChartColor('outline'),
+				id: slice.id,
+				label: slice.label,
+				color: slice.color,
 				ms,
 				percent: pct(ms)
 			};
@@ -605,13 +624,13 @@ export function periodStats(
 	const breakdown: BreakdownRow[] = [...pairTotals.values()]
 		.map((row) => {
 			const p = projectName.get(row.projectId);
-			const a = activityById.get(row.activityTypeId);
+			const slice = activitySlice(row.activityTypeId, activityById);
 			return {
 				projectId: row.projectId,
 				projectName: p?.name ?? m.common_unknown(),
 				projectColor: p?.color ?? '#64748b',
-				activityTypeId: row.activityTypeId,
-				activityLabel: a ? a.name : m.common_unknown(),
+				activityTypeId: slice.id,
+				activityLabel: slice.label,
 				ms: row.ms,
 				percent: pct(row.ms)
 			};
@@ -712,8 +731,8 @@ export function projectPeriodStats(
 		sessionCount += 1;
 		const dayKey = localDateKey(s.startedAt, now, timeZone);
 		dayTotals.set(dayKey, (dayTotals.get(dayKey) ?? 0) + ms);
-		if (!s.activityTypeId) continue;
-		activityTotals.set(s.activityTypeId, (activityTotals.get(s.activityTypeId) ?? 0) + ms);
+		const actId = s.activityTypeId || UNASSIGNED_ACTIVITY_ID;
+		activityTotals.set(actId, (activityTotals.get(actId) ?? 0) + ms);
 	}
 
 	let mostProductiveDay: ProjectPeriodStats['mostProductiveDay'] = null;
@@ -731,11 +750,11 @@ export function projectPeriodStats(
 
 	const byActivity: NamedTotal[] = [...activityTotals.entries()]
 		.map(([id, ms]) => {
-			const a = activityById.get(id);
+			const slice = activitySlice(id, activityById);
 			return {
-				id,
-				label: a ? a.name : m.common_unknown(),
-				color: a ? activityChartColor(a.color) : activityChartColor('outline'),
+				id: slice.id,
+				label: slice.label,
+				color: slice.color,
 				ms,
 				percent: pct(ms)
 			};

@@ -182,6 +182,7 @@
 	"insights_time_by_activity": "Time by Activity",
 	"insights_time_by_activity_aria": "Time by activity",
 	"insights_no_activity": "No activity data for this period.",
+	"insights_activity_unassigned": "Unassigned",
 	"insights_breakdown": "Activity Breakdown",
 	"insights_breakdown_aria": "Activity breakdown",
 	"insights_col_project": "Project",

@@ -53,10 +53,13 @@
 	}
 </script>
 
-<div class="flex w-full flex-col gap-2 sm:w-auto sm:items-end" data-testid="insight-range-control">
-	<PeriodToggle value={grain} options={grainOptions} onchange={setGrain} />
-	<div class="flex flex-wrap items-center justify-between gap-2 sm:justify-end">
-		<div class="flex items-center gap-1">
+<div
+	class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end"
+	data-testid="insight-range-control"
+>
+	<div class="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto">
+		<PeriodToggle value={grain} options={grainOptions} onchange={setGrain} />
+		<div class="flex shrink-0 items-center gap-1">
 			<IconButton
 				icon="arrow_back"
 				label={m.insights_range_prev()}
@@ -80,15 +83,15 @@
 				onclick={() => shift(1)}
 			/>
 		</div>
-		<Button
-			variant={range.grain === 'custom' ? 'tonal' : 'secondary'}
-			size="sm"
-			aria-pressed={range.grain === 'custom'}
-			onclick={openCustom}
-		>
-			{m.insights_range_custom()}
-		</Button>
 	</div>
+	<Button
+		variant={range.grain === 'custom' ? 'tonal' : 'secondary'}
+		size="sm"
+		aria-pressed={range.grain === 'custom'}
+		onclick={openCustom}
+	>
+		{m.insights_range_custom()}
+	</Button>
 </div>
 
 <InsightRangeDialog

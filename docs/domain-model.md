@@ -129,7 +129,7 @@ User-owned dictionary row. `name` is a display label stored as typed; `color` is
 | Log date groups             | Local calendar date of `startedAt` or `endedAt` |
 | Activity chip               | `activityTypeId` → ActivityType                 |
 | Insights “Time by Project”  | Sum of stopped sessions by `projectId`          |
-| Insights “Time by Activity” | Sum by `activityTypeId`                         |
+| Insights “Time by Activity” | Sum by `activityTypeId`; unlabeled → Unassigned |
 | Ticket badge `DEV-842`      | `ticketId`                                      |
 | Project view KPIs / week    | Sessions with this `projectId` in the period    |
 

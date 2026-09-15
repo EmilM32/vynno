@@ -5,6 +5,7 @@ test.describe('timer lifecycle', () => {
 	test.beforeEach(async ({ page }) => {
 		await login(page);
 		await page.goto('/timer');
+		await waitForClient(page);
 	});
 
 	test('idle state on load', async ({ page }) => {

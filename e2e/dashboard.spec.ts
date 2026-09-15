@@ -14,14 +14,17 @@ test.describe('dashboard', () => {
 		await expect(page.getByText('Recent Logs')).toBeVisible();
 	});
 
-	test('weekly overview has day bars', async ({ page }) => {
+	test('weekly overview empty state lists the week', async ({ page }) => {
 		await login(page);
 		await page.goto('/dashboard');
 		const week = page.getByRole('region', { name: 'Weekly overview' });
 		await expect(week.getByText('Weekly Overview')).toBeVisible();
 		await expect(week.getByText('Not enough data yet')).toBeVisible();
-		await expect(week.getByText('Mon', { exact: true })).toBeVisible();
-		await expect(week.getByText('Sun', { exact: true })).toBeVisible();
+		const days = week.getByRole('listitem');
+		await expect(days).toHaveCount(7);
+		const labels = await days.allTextContents();
+		expect(labels[0]?.trim()).toMatch(/^Mon: 0s/);
+		expect(labels[6]?.trim()).toMatch(/^Sun: 0s/);
 	});
 
 	test('current focus empty when idle', async ({ page }) => {

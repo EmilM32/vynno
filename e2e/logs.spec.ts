@@ -4,6 +4,7 @@ import {
 	localCivilDay,
 	localDayAt,
 	login,
+	pastSpansOnCurrentDay,
 	seedManualSession,
 	seedStoppedSessions,
 	spaGo,
@@ -189,8 +190,20 @@ test.describe('logs activity chip', () => {
 	test('shows a chip when the session was started with an activity type', async ({ page }) => {
 		await login(page);
 		const note = uniqueNote('coding-chip');
-		await startSession(page, note, undefined, 'coding');
-		await stopSession(page);
+		const created = await page.request.post('/v1/activity-types', {
+			data: { name: 'coding', color: 'secondary' }
+		});
+		if (!created.ok()) {
+			throw new Error(`POST /activity-types failed (${created.status()} ${await created.text()})`);
+		}
+		const { id } = (await created.json()) as { id: string };
+		const span = pastSpansOnCurrentDay(1)[0]!;
+		await seedManualSession(page, {
+			note,
+			startedAt: span.startedAt.toISOString(),
+			endedAt: span.endedAt.toISOString(),
+			activityTypeId: id
+		});
 		await page.goto('/logs');
 		const row = page.getByTestId('log-row').filter({ hasText: note });
 		await expect(row.getByTestId('activity-chip')).toHaveText(/coding/i);

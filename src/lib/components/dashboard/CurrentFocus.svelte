@@ -7,6 +7,8 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 
+	let { class: className }: { class?: string } = $props();
+
 	const sessionStore = useSession();
 
 	const session = $derived(sessionStore.activeSession);
@@ -15,7 +17,11 @@
 </script>
 
 <div
-	class="relative flex flex-col rounded-lg border bg-surface-container p-4 md:col-span-8 {cardBorder}"
+	class={[
+		'relative flex flex-col rounded-lg border bg-surface-container p-4',
+		cardBorder,
+		className
+	]}
 >
 	{#if session}
 		<div class="mb-4 flex items-center justify-between">
@@ -43,7 +49,12 @@
 				<span class="font-mono text-code-data text-primary tabular-nums"
 					>{sessionStore.elapsedLabel}</span
 				>
-				<Button variant="primary" size="sm" onclick={() => sessionStore.stop()} disabled={pending}>
+				<Button
+					variant="secondary"
+					size="sm"
+					onclick={() => sessionStore.stop()}
+					disabled={pending}
+				>
 					<Icon name="stop" fill />
 					{m.timer_stop()}
 				</Button>
@@ -59,9 +70,8 @@
 			{m.dashboard_no_active()}
 		</p>
 		<div class="mt-auto border-t border-outline-variant/50 pt-4">
-			<Button variant="primary" size="sm" href={resolve('/timer')}>
-				<Icon name="play_arrow" />
-				{m.dashboard_start_session()}
+			<Button variant="link" size="sm" href={resolve('/timer')}>
+				{m.dashboard_go_to_timer()}
 			</Button>
 		</div>
 	{/if}

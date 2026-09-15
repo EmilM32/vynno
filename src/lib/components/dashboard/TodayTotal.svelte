@@ -1,11 +1,12 @@
 <script lang="ts">
 	import Icon from '$lib/components/ui/Icon.svelte';
-	import StatusDot from '$lib/components/ui/StatusDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
+	import { deltaDisplay, formatHoursDecimal, formatHoursMinutes } from '$lib/time/duration';
+
+	let { class: className }: { class?: string } = $props();
 
 	const sessionStore = useSession();
-	import { deltaDisplay, formatHoursDecimal, formatHoursMinutes } from '$lib/time/duration';
 
 	const totalLabel = $derived(formatHoursMinutes(sessionStore.todayTotalMs));
 	const deltaMs = $derived(sessionStore.todayDeltaMs);
@@ -14,13 +15,15 @@
 </script>
 
 <div
-	class="relative flex flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container px-4 py-3 md:col-span-4 md:p-4"
+	class={[
+		'relative flex flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container px-4 py-3 md:p-4',
+		className
+	]}
 >
-	<div class="mb-1 flex items-start justify-between md:mb-2">
+	<div class="mb-1 md:mb-2">
 		<h2 class="text-body-sm tracking-wider text-on-surface-variant uppercase">
 			{m.dashboard_today_total()}
 		</h2>
-		<StatusDot tone="live" class="hidden md:block" />
 	</div>
 	<div class="mt-auto flex items-end justify-between gap-3 md:block">
 		<div class="font-mono text-code-display tracking-tight text-primary" data-testid="today-total">

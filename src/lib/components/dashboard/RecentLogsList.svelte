@@ -7,6 +7,8 @@
 	import { useSession } from '$lib/stores/session.svelte';
 	import { formatClock, sessionElapsedMs } from '$lib/time/duration';
 
+	let { class: className }: { class?: string } = $props();
+
 	const sessionStore = useSession();
 
 	const logs = $derived(sessionStore.recentLogs);
@@ -21,13 +23,16 @@
 </script>
 
 <div
-	class="flex flex-col rounded-lg border border-outline-variant bg-surface-container md:h-[300px]"
+	class={[
+		'flex max-h-56 flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container md:h-[300px] md:max-h-none',
+		className
+	]}
 >
 	<div class="flex items-center justify-between border-b border-outline-variant p-4">
 		<h2 class="text-headline-md">{m.dashboard_recent_logs()}</h2>
 	</div>
 
-	<div class="md:no-scrollbar flex flex-1 flex-col gap-1 p-2 md:overflow-y-auto">
+	<div class="no-scrollbar flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2">
 		{#if logs.length === 0}
 			<p class="p-4 text-center text-body-sm text-on-surface-variant">
 				{m.dashboard_no_completed()}
@@ -53,11 +58,16 @@
 							{formatClock(duration)}
 						</span>
 						<span
-							class="inline-flex opacity-100 transition-opacity group-focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+							class={[
+								'inline-flex transition-opacity',
+								busy
+									? 'opacity-100'
+									: 'opacity-100 group-focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100'
+							]}
 						>
 							<IconButton
 								icon="play_arrow"
-								label={m.dashboard_restart_aria({ note: log.note })}
+								label={busy ? m.timer_stop_first() : m.dashboard_restart_aria({ note: log.note })}
 								size="sm"
 								disabled={busy}
 								onclick={() => restart(log.id)}

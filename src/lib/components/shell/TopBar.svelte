@@ -4,8 +4,8 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { commandPalette } from '$lib/stores/command-palette.svelte';
 	import { useSession } from '$lib/stores/session.svelte';
-	import Icon from '$lib/components/ui/Icon.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
+	import StatusDot from '$lib/components/ui/StatusDot.svelte';
 	import BrandMark from './BrandMark.svelte';
 	import { isNavActive } from './nav';
 
@@ -54,13 +54,10 @@
 			{#if !onTimer}
 				<span
 					role="status"
+					class="inline-flex size-10 items-center justify-center"
 					aria-label={live ? m.shell_session_recording() : m.shell_no_active_session()}
 				>
-					<Icon
-						name="fiber_manual_record"
-						fill={live}
-						class="px-1 {live ? 'text-secondary' : 'text-on-surface-variant'}"
-					/>
+					<StatusDot tone={live ? 'live' : 'idle'} />
 				</span>
 			{/if}
 		</div>

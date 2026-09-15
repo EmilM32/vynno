@@ -71,11 +71,11 @@ Not built on this screen: session target progress, desktop Quick Command panel. 
 
 ### 3.2 Dashboard (`/dashboard`)
 
-1. **Today’s Total** — monospaced duration + delta vs yesterday
-2. **Current Focus** — title, live timer, optional ticket
+1. **Today’s Total** — monospaced duration + delta vs yesterday (not a live-session indicator)
+2. **Current Focus** — title, live timer, optional ticket. Idle: copy + **Go to Timer** link (sidebar **Start New Session** is the primary start). Live: secondary Stop, open-in-Timer control
 3. **Active Projects** — horizontal cards: color, name, optional progress %, week hours → `/projects/[id]`
-4. **Weekly Overview** — bar chart Mon–Sun
-5. **Recent Logs** — compact list + restart
+4. **Weekly Overview** — bar chart Mon–Sun. Empty week: “Not enough data yet”. Sub-hour week: Y axis in minutes
+5. **Recent Logs** — compact list + restart (disabled while live). On mobile this block sits after Current Focus, before Active Projects / Weekly Overview
 
 ### 3.3 Logs (`/logs`)
 

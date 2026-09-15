@@ -145,6 +145,37 @@ export function hoursScale(maxMs: number): number {
 	return Math.max(1, Math.ceil(Math.max(0, maxMs) / 3_600_000));
 }
 
+export type HistogramUnit = 'h' | 'min';
+
+export type HistogramScale = {
+	unit: HistogramUnit;
+	domainMax: number;
+};
+
+const MINUTE_MS = 60_000;
+const HOUR_MS = 3_600_000;
+
+/** Ceil a sub-hour total onto a 15 / 30 / 45 / 60 minute axis. */
+function minutesScale(maxMs: number): number {
+	const minutes = Math.max(0, maxMs) / MINUTE_MS;
+	if (minutes <= 15) return 15;
+	if (minutes <= 30) return 30;
+	if (minutes <= 45) return 45;
+	return 60;
+}
+
+/**
+ * Histogram Y domain. Sub-hour weeks use minutes so short bars stay readable;
+ * otherwise the existing whole-hour ceiling.
+ */
+export function histogramScale(maxMs: number): HistogramScale {
+	const clamped = Math.max(0, maxMs);
+	if (clamped > 0 && clamped < HOUR_MS) {
+		return { unit: 'min', domainMax: minutesScale(clamped) };
+	}
+	return { unit: 'h', domainMax: hoursScale(clamped) };
+}
+
 function withRatios(buckets: Omit<WeekDayTotal, 'ratio'>[]): WeekDayTotal[] {
 	const max = Math.max(1, ...buckets.map((d) => d.ms));
 	return buckets.map((d) => ({ ...d, ratio: d.ms / max }));

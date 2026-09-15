@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, spaGo, startSession, uniqueNote } from './helpers';
+import { login, spaGo, startSession, stopSession, uniqueNote } from './helpers';
 
 test.describe('dashboard', () => {
 	test('renders core regions', async ({ page }) => {
@@ -19,7 +19,7 @@ test.describe('dashboard', () => {
 		await page.goto('/dashboard');
 		const week = page.getByRole('region', { name: 'Weekly overview' });
 		await expect(week.getByText('Weekly Overview')).toBeVisible();
-		// Day labels Mon–Sun on the hours axis
+		await expect(week.getByText('Not enough data yet')).toBeVisible();
 		await expect(week.getByText('Mon', { exact: true })).toBeVisible();
 		await expect(week.getByText('Sun', { exact: true })).toBeVisible();
 	});
@@ -27,8 +27,8 @@ test.describe('dashboard', () => {
 	test('current focus empty when idle', async ({ page }) => {
 		await login(page);
 		await page.goto('/dashboard');
-		await expect(page.getByText('No active session. Start tracking from the Timer.')).toBeVisible();
-		await expect(page.getByRole('link', { name: /Start session/i })).toBeVisible();
+		await expect(page.getByText('No active session.')).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Go to Timer' })).toBeVisible();
 	});
 });
 
@@ -53,7 +53,16 @@ test.describe('dashboard active focus (SPA)', () => {
 		await expect(page.getByRole('button', { name: 'Pause' })).toHaveCount(0);
 
 		await page.getByRole('button', { name: 'Stop' }).click();
-		await expect(view.getByText('No active session. Start tracking from the Timer.')).toBeVisible();
-		await expect(page.getByRole('link', { name: /Start session/i })).toBeVisible();
+		await expect(view.getByText('No active session.')).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Go to Timer' })).toBeVisible();
+	});
+
+	test('recent log play is disabled while live', async ({ page }) => {
+		await startSession(page, uniqueNote('prior-log'));
+		await stopSession(page);
+		await startSession(page, uniqueNote('live-now'));
+		await spaGo(page, 'Dashboard', '/dashboard');
+		const play = page.getByRole('button', { name: 'Stop the current session first' });
+		await expect(play.first()).toBeDisabled();
 	});
 });

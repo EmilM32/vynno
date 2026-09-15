@@ -7,13 +7,18 @@
 	import { useSession } from '$lib/stores/session.svelte';
 	import { formatCompact } from '$lib/time/duration';
 
+	let { class: className }: { class?: string } = $props();
+
 	const sessionStore = useSession();
 
 	const items = $derived(sessionStore.projectWeekSummaries);
 </script>
 
 <section
-	class="flex flex-col rounded-lg border border-outline-variant bg-surface-container p-4"
+	class={[
+		'flex flex-col rounded-lg border border-outline-variant bg-surface-container p-4',
+		className
+	]}
 	aria-label={m.dashboard_active_projects_aria()}
 >
 	<div class="mb-4 flex items-center justify-between">

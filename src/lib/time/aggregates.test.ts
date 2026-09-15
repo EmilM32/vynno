@@ -18,6 +18,7 @@ import {
 	todayTotalMs,
 	totalForLocalDay,
 	hoursScale,
+	histogramScale,
 	periodBucketTotals,
 	weeklyDayTotals,
 	yesterdayTotalMs
@@ -46,8 +47,7 @@ function daySessions() {
 		activityTypeId: 'act-coding',
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 11, 9, 0),
-		endedAt: localIso(2026, 2, 11, 11, 0),
-
+		endedAt: localIso(2026, 2, 11, 11, 0)
 	});
 	const todayB = makeSession({
 		id: 't2',
@@ -56,8 +56,7 @@ function daySessions() {
 		activityTypeId: 'act-meeting',
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 11, 11, 30),
-		endedAt: localIso(2026, 2, 11, 12, 0),
-
+		endedAt: localIso(2026, 2, 11, 12, 0)
 	});
 	// Yesterday (Mar 10): 1h
 	const yest = makeSession({
@@ -67,8 +66,7 @@ function daySessions() {
 		activityTypeId: 'act-coding',
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 10, 10, 0),
-		endedAt: localIso(2026, 2, 10, 11, 0),
-
+		endedAt: localIso(2026, 2, 10, 11, 0)
 	});
 	// Older stopped (Mon Mar 9)
 	const mon = makeSession({
@@ -78,8 +76,7 @@ function daySessions() {
 		activityTypeId: 'act-research',
 		status: 'stopped',
 		startedAt: localIso(2026, 2, 9, 14, 0),
-		endedAt: localIso(2026, 2, 9, 16, 0),
-
+		endedAt: localIso(2026, 2, 9, 16, 0)
 	});
 	return [todayA, todayB, yest, mon];
 }
@@ -102,8 +99,7 @@ describe('totalForLocalDay / today / yesterday / delta', () => {
 			projectId: 'proj-a',
 			status: 'active',
 			startedAt: localIso(2026, 2, 11, 15, 0),
-			endedAt: undefined,
-	
+			endedAt: undefined
 		});
 		const key = localDateKeyFromDate(FIXED_NOW);
 		// FIXED_NOW is 15:30 → 30m live
@@ -206,6 +202,28 @@ describe('hoursScale', () => {
 	});
 });
 
+describe('histogramScale', () => {
+	it('keeps the hour floor when empty', () => {
+		expect(histogramScale(0)).toEqual({ unit: 'h', domainMax: 1 });
+	});
+
+	it('uses a 15-minute axis for a few minutes of data', () => {
+		expect(histogramScale(ms.min(6))).toEqual({ unit: 'min', domainMax: 15 });
+		expect(histogramScale(ms.min(15))).toEqual({ unit: 'min', domainMax: 15 });
+	});
+
+	it('steps through 30 / 45 / 60 minute domains', () => {
+		expect(histogramScale(ms.min(16))).toEqual({ unit: 'min', domainMax: 30 });
+		expect(histogramScale(ms.min(45))).toEqual({ unit: 'min', domainMax: 45 });
+		expect(histogramScale(ms.min(59))).toEqual({ unit: 'min', domainMax: 60 });
+	});
+
+	it('switches to hours at one hour and above', () => {
+		expect(histogramScale(ms.hours(1))).toEqual({ unit: 'h', domainMax: 1 });
+		expect(histogramScale(ms.hours(5) + 1)).toEqual({ unit: 'h', domainMax: 6 });
+	});
+});
+
 describe('periodBucketTotals', () => {
 	it('week matches weeklyDayTotals', () => {
 		const sessions = daySessions();
@@ -233,8 +251,7 @@ describe('periodBucketTotals', () => {
 			projectId: 'proj-a',
 			status: 'stopped',
 			startedAt: localIso(2026, 0, 15, 10, 0),
-			endedAt: localIso(2026, 0, 15, 12, 0),
-	
+			endedAt: localIso(2026, 0, 15, 12, 0)
 		});
 		const months = periodBucketTotals([...daySessions(), older], { kind: 'all' }, FIXED_NOW);
 		expect(months.map((d) => d.key)).toEqual(['2026-01-01', '2026-02-01', '2026-03-01']);
@@ -274,8 +291,7 @@ describe('periodBucketTotals', () => {
 			projectId: 'proj-a',
 			status: 'stopped',
 			startedAt: localIso(2026, 1, 1, 10, 0),
-			endedAt: localIso(2026, 1, 1, 12, 0),
-	
+			endedAt: localIso(2026, 1, 1, 12, 0)
 		});
 		const parsed = customInsightRange('2026-02-01', '2026-03-11', FIXED_NOW);
 		expect(parsed.ok).toBe(true);

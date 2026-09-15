@@ -17,10 +17,10 @@
 	const statusDot: StatusDotTone = 'live';
 	const cardBorder = 'border-primary';
 
-	const projectCode = $derived(project?.code ?? project?.name?.slice(0, 4).toUpperCase() ?? '—');
+	const projectName = $derived(project?.name ?? m.common_unknown());
 	const detail = $derived.by(() => {
 		const note = session?.note?.trim();
-		return note ? `${projectCode} · ${note}` : projectCode;
+		return note ? `${projectName} · ${note}` : projectName;
 	});
 	const ariaLabel = $derived(
 		m.shell_session_chip_aria({
@@ -50,10 +50,12 @@
 			>
 		</div>
 		<div class="flex min-w-0 items-baseline gap-1.5">
-			<span class="shrink-0 font-mono text-code-label text-primary">{projectCode}</span>
+			<span class="max-w-[55%] shrink-0 truncate font-mono text-code-label text-primary"
+				>{projectName}</span
+			>
 			{#if session.note.trim()}
 				<span class="text-on-surface-variant" aria-hidden="true">·</span>
-				<span class="truncate text-body-sm text-on-surface">{session.note}</span>
+				<span class="min-w-0 truncate text-body-sm text-on-surface">{session.note}</span>
 			{/if}
 		</div>
 	</a>

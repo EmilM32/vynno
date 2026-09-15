@@ -35,14 +35,10 @@
 	{/if}
 
 	<div class="grid grid-cols-1 gap-gutter md:grid-cols-12">
-		<TodayTotal />
-		<CurrentFocus />
-	</div>
-
-	<ActiveProjects />
-
-	<div class="grid grid-cols-1 gap-gutter lg:grid-cols-2">
-		<WeeklyOverview />
-		<RecentLogsList />
+		<TodayTotal class="order-1 md:col-span-4" />
+		<CurrentFocus class="order-2 md:col-span-8" />
+		<RecentLogsList class="order-3 md:order-5 md:col-span-6" />
+		<ActiveProjects class="order-4 md:order-3 md:col-span-12" />
+		<WeeklyOverview class="order-5 h-64 md:order-4 md:col-span-6 md:h-[300px]" />
 	</div>
 </div>

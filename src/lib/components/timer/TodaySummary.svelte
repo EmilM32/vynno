@@ -4,7 +4,7 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { usePrefs } from '$lib/stores/prefs.svelte';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { formatHoursDecimal, formatHoursMinutes } from '$lib/time/duration';
+	import { deltaDisplay, formatHoursDecimal, formatHoursMinutes } from '$lib/time/duration';
 
 	const prefsStore = usePrefs();
 	const sessionStore = useSession();
@@ -17,13 +17,13 @@
 	const pct = $derived(Math.round(ratio * 100));
 	const barPct = $derived(Math.min(100, Math.max(0, ratio * 100)));
 	const deltaMs = $derived(sessionStore.todayDeltaMs);
-	const deltaPositive = $derived(deltaMs >= 0);
+	const delta = $derived(deltaDisplay(deltaMs));
 	const deltaAbs = $derived(Math.abs(deltaMs));
 	const overTarget = $derived(ratio > 1);
 </script>
 
 <aside
-	class="hidden items-center gap-5 border-t border-outline-variant px-5 py-3 lg:flex"
+	class="flex items-center gap-3 border-t border-outline-variant px-4 py-2 lg:gap-5 lg:px-5 lg:py-3"
 	aria-labelledby="timer-today-heading"
 	data-testid="timer-today-summary"
 >
@@ -39,18 +39,19 @@
 	>
 		{totalLabel}
 	</p>
-	<p class="flex shrink-0 items-center gap-1 text-body-sm text-on-surface-variant">
-		<Icon
-			name={deltaPositive ? 'arrow_upward' : 'arrow_downward'}
-			size="xs"
-			class={deltaPositive ? 'text-secondary' : 'text-tertiary'}
-		/>
-		<span class={deltaPositive ? 'text-secondary' : 'text-tertiary'}>
+	<p class="hidden shrink-0 items-center gap-1 text-body-sm text-on-surface-variant lg:flex">
+		{#if delta.icon}
+			<Icon name={delta.icon} size="xs" class={delta.ink} />
+		{/if}
+		<span class={delta.ink}>
 			{formatHoursDecimal(deltaAbs)}
 		</span>
 		<span>{m.dashboard_vs_yesterday()}</span>
 	</p>
-	<div class="ml-auto flex max-w-sm min-w-0 flex-1 items-center gap-3">
+	<span class="ml-auto shrink-0 font-mono text-code-label text-on-surface-variant lg:hidden">
+		{pct}%
+	</span>
+	<div class="ml-auto hidden max-w-sm min-w-0 flex-1 items-center gap-3 lg:flex">
 		<ProgressBar
 			value={barPct}
 			size="sm"

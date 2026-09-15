@@ -38,6 +38,25 @@
 	{/snippet}
 </Story>
 
+<Story
+	name="Timer"
+	parameters={{
+		sveltekit_experimental: {
+			state: {
+				page: { url: new URL('http://storybook.local/timer') }
+			}
+		}
+	}}
+>
+	{#snippet template()}
+		<StoryProviders seed={liveStorySeed('active')} nowMs={Date.now()}>
+			<div class="sb-shell-desktop relative min-h-screen bg-surface">
+				<SideNav />
+			</div>
+		</StoryProviders>
+	{/snippet}
+</Story>
+
 
 
 <style>

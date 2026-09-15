@@ -45,11 +45,29 @@
 		if ((live.ticketId ?? null) === next) return;
 		void sessionStore.updateSession(live.id, { ticketId: next });
 	}
+
+	const LG_MQ = '(min-width: 1024px)';
+	let dense = $state(false);
+
+	function watchDense(_node: HTMLElement) {
+		const mq = window.matchMedia(LG_MQ);
+		const sync = () => {
+			dense = mq.matches;
+		};
+		mq.addEventListener('change', sync);
+		sync();
+		return () => mq.removeEventListener('change', sync);
+	}
+
+	const fieldSize = $derived(dense ? 'sm' : 'md');
 </script>
 
-<div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-3">
-	<div class="flex min-w-0 flex-1 flex-col gap-1.5">
-		<label class="font-mono text-code-label text-on-surface-variant lg:sr-only" for="task-note"
+<div
+	class="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_10rem_7.5rem] lg:items-end"
+	{@attach watchDense}
+>
+	<div class="flex min-w-0 flex-col gap-1.5">
+		<label class="font-mono text-code-label text-on-surface-variant" for="task-note"
 			>{m.timer_task_aria()}</label
 		>
 		<div class="group relative w-full">
@@ -71,14 +89,14 @@
 		</div>
 	</div>
 
-	<div class="flex flex-wrap items-center gap-2 lg:shrink-0">
-		<label class="font-mono text-code-label text-on-surface-variant lg:sr-only" for="project-select"
+	<div class="flex min-w-0 flex-col gap-1.5">
+		<label class="font-mono text-code-label text-on-surface-variant" for="project-select"
 			>{m.timer_project_label()}</label
 		>
 		<Select
 			id="project-select"
-			size="sm"
-			class="min-w-[10rem] flex-1 sm:flex-none lg:w-48"
+			size={fieldSize}
+			class="w-full"
 			bind:value={sessionStore.draftProjectId}
 			disabled={locked}
 			onchange={onProjectChange}
@@ -87,37 +105,43 @@
 				<option value={project.id}>{project.name}</option>
 			{/each}
 		</Select>
-		<label
-			class="font-mono text-code-label text-on-surface-variant lg:sr-only"
-			for="activity-select">{m.timer_activity_label()}</label
-		>
-		<Select
-			id="activity-select"
-			size="sm"
-			class="min-w-[8.5rem] flex-1 sm:flex-none lg:w-40"
-			bind:value={sessionStore.draftActivityType}
-			disabled={locked}
-			data-testid="activity-select"
-			onchange={onActivityChange}
-		>
-			<option value="">{m.timer_activity_none()}</option>
-			{#each sessionStore.activityTypes as type (type.id)}
-				<option value={type.id}>{type.name}</option>
-			{/each}
-		</Select>
-		<label class="font-mono text-code-label text-on-surface-variant lg:sr-only" for="task-ticket"
-			>{m.timer_ticket_label()}</label
-		>
-		<Input
-			id="task-ticket"
-			tone="code"
-			size="sm"
-			class="min-w-[7rem] flex-1 sm:flex-none lg:w-28"
-			placeholder={m.timer_ticket_placeholder()}
-			bind:value={sessionStore.draftTicket}
-			disabled={locked}
-			onblur={onTicketBlur}
-			autocomplete="off"
-		/>
+	</div>
+
+	<div class="grid grid-cols-2 gap-3 lg:contents">
+		<div class="flex min-w-0 flex-col gap-1.5">
+			<label class="font-mono text-code-label text-on-surface-variant" for="activity-select"
+				>{m.timer_activity_label()}</label
+			>
+			<Select
+				id="activity-select"
+				size={fieldSize}
+				class="w-full"
+				bind:value={sessionStore.draftActivityType}
+				disabled={locked}
+				data-testid="activity-select"
+				onchange={onActivityChange}
+			>
+				<option value="">{m.timer_activity_none()}</option>
+				{#each sessionStore.activityTypes as type (type.id)}
+					<option value={type.id}>{type.name}</option>
+				{/each}
+			</Select>
+		</div>
+		<div class="flex min-w-0 flex-col gap-1.5">
+			<label class="font-mono text-code-label text-on-surface-variant" for="task-ticket"
+				>{m.timer_ticket_label()}</label
+			>
+			<Input
+				id="task-ticket"
+				tone="code"
+				size={fieldSize}
+				class="w-full"
+				placeholder={m.timer_ticket_placeholder()}
+				bind:value={sessionStore.draftTicket}
+				disabled={locked}
+				onblur={onTicketBlur}
+				autocomplete="off"
+			/>
+		</div>
 	</div>
 </div>

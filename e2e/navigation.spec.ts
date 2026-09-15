@@ -71,15 +71,37 @@ test.describe('navigation', () => {
 		);
 	});
 
-	test('mobile timer stays full-width without today summary', async ({ page }, testInfo) => {
+	test('mobile timer stays full-width with a compact today line', async ({ page }, testInfo) => {
 		test.skip(testInfo.project.name !== 'mobile', 'desktop timer layout is covered in layout.spec');
 		await login(page);
 		await page.goto('/timer');
-		await expect(page.getByTestId('timer-today-summary')).toBeHidden();
+		const today = page.getByTestId('timer-today-summary');
+		await expect(today).toBeVisible();
+		await expect(today.getByTestId('timer-today-total')).toBeVisible();
+		await expect(page.getByRole('status', { name: 'No active session' })).toHaveCount(0);
+		await page.goto('/dashboard');
+		await expect(page.getByRole('status', { name: 'No active session' })).toBeVisible();
+		await page.goto('/timer');
 		const timer = page.getByRole('region', { name: 'Session timer' });
 		const box = await timer.boundingBox();
 		expect(box).toBeTruthy();
 		expect(box!.width).toBeGreaterThan(300);
+	});
+
+	test('mobile timer stacks session fields', async ({ page }, testInfo) => {
+		test.skip(testInfo.project.name !== 'mobile', 'desktop timer layout is covered in layout.spec');
+		await login(page);
+		await page.goto('/timer');
+		await expect(page.getByLabel('Project')).toBeVisible();
+		await expect(page.getByLabel('Activity')).toBeVisible();
+		await expect(page.getByLabel('Ticket')).toBeVisible();
+		const project = await page.locator('#project-select').boundingBox();
+		const activity = await page.locator('#activity-select').boundingBox();
+		const ticket = await page.locator('#task-ticket').boundingBox();
+		expect(project && activity && ticket).toBeTruthy();
+		expect(activity!.y).toBeGreaterThan(project!.y + project!.height - 2);
+		expect(Math.abs(activity!.y - ticket!.y)).toBeLessThan(8);
+		expect(project!.width).toBeGreaterThan(activity!.width);
 	});
 
 	test('mobile page header does not collapse on scroll', async ({ page }, testInfo) => {

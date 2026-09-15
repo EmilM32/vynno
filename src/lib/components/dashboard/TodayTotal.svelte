@@ -5,11 +5,11 @@
 	import { useSession } from '$lib/stores/session.svelte';
 
 	const sessionStore = useSession();
-	import { formatHoursDecimal, formatHoursMinutes } from '$lib/time/duration';
+	import { deltaDisplay, formatHoursDecimal, formatHoursMinutes } from '$lib/time/duration';
 
 	const totalLabel = $derived(formatHoursMinutes(sessionStore.todayTotalMs));
 	const deltaMs = $derived(sessionStore.todayDeltaMs);
-	const deltaPositive = $derived(deltaMs >= 0);
+	const delta = $derived(deltaDisplay(deltaMs));
 	const deltaAbs = $derived(Math.abs(deltaMs));
 </script>
 
@@ -27,12 +27,10 @@
 			{totalLabel}
 		</div>
 		<div class="flex items-center gap-1 text-body-sm text-on-surface-variant md:mt-1">
-			<Icon
-				name={deltaPositive ? 'arrow_upward' : 'arrow_downward'}
-				size="xs"
-				class={deltaPositive ? 'text-secondary' : 'text-tertiary'}
-			/>
-			<span class={deltaPositive ? 'text-secondary' : 'text-tertiary'}>
+			{#if delta.icon}
+				<Icon name={delta.icon} size="xs" class={delta.ink} />
+			{/if}
+			<span class={delta.ink}>
 				{formatHoursDecimal(deltaAbs)}
 			</span>
 			<span>{m.dashboard_vs_yesterday()}</span>

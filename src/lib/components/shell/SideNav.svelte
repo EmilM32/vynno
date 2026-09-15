@@ -13,6 +13,7 @@
 	import { NAV_ITEMS, isNavActive } from './nav';
 
 	const prefsStore = usePrefs();
+	const onTimer = $derived(isNavActive(page.url.pathname, '/timer'));
 	let commandsBtn: HTMLElement | undefined = $state();
 
 	/** The palette restores focus here on close, so it needs the rendered node. */
@@ -35,9 +36,11 @@
 		</div>
 	</div>
 
-	<div class="mb-4 px-4">
-		<SessionChip />
-	</div>
+	{#if !onTimer}
+		<div class="mb-4 px-4">
+			<SessionChip />
+		</div>
+	{/if}
 
 	<ul class="flex flex-1 flex-col gap-1 px-3">
 		{#each NAV_ITEMS as item (item.href)}

@@ -40,15 +40,16 @@
 					-->
 					<button
 						type="button"
-						class="focus-ring group flex w-full items-center justify-between py-2.5 text-left transition-colors hover:bg-surface-container/80 disabled:cursor-not-allowed disabled:opacity-60"
+						class="focus-ring group flex w-full items-center justify-between py-2.5 text-left transition-colors hover:bg-surface-container/80 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent"
 						disabled={busy}
 						onclick={() => restart(item)}
 						title={busy ? m.timer_stop_first() : m.timer_start_this_task()}
+						aria-label={busy ? m.timer_stop_first() : undefined}
 						data-testid="recent-task-restart"
 					>
 						<div class="flex min-w-0 flex-col">
 							<span
-								class="truncate text-body-md text-on-surface transition-colors group-hover:text-primary"
+								class="truncate text-body-md text-on-surface transition-colors group-hover:text-primary group-disabled:group-hover:text-on-surface"
 								>{item.note}</span
 							>
 							<span class="font-mono text-code-label text-on-surface-variant">
@@ -61,7 +62,7 @@
 							</span>
 							<Icon
 								name="play_arrow"
-								class="text-on-surface-variant transition-colors group-hover:text-primary group-disabled:opacity-50"
+								class="text-on-surface-variant transition-colors group-hover:text-primary group-disabled:opacity-50 group-disabled:group-hover:text-on-surface-variant"
 							/>
 						</div>
 					</button>

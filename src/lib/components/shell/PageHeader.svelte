@@ -3,7 +3,7 @@
 
 	let {
 		title,
-		description,
+		description = '',
 		actions,
 		eyebrow,
 		leading,
@@ -11,7 +11,7 @@
 		showDescriptionOnMobile = false
 	}: {
 		title: string;
-		description: string;
+		description?: string;
 		actions?: Snippet;
 		eyebrow?: Snippet;
 		leading?: Snippet;
@@ -68,17 +68,19 @@
 					<div class="flex min-w-0 flex-wrap items-center gap-2">{@render titleExtra()}</div>
 				{/if}
 			</div>
-			<div class={['desc', compact && 'desc-compact']} aria-hidden={compact}>
-				<p
-					class={[
-						'mt-1 text-body-sm text-on-surface-variant',
-						!showDescriptionOnMobile && 'hidden md:block'
-					]}
-					data-testid="page-header-description"
-				>
-					{description}
-				</p>
-			</div>
+			{#if description}
+				<div class={['desc', compact && 'desc-compact']} aria-hidden={compact}>
+					<p
+						class={[
+							'mt-1 text-body-sm text-on-surface-variant',
+							!showDescriptionOnMobile && 'hidden md:block'
+						]}
+						data-testid="page-header-description"
+					>
+						{description}
+					</p>
+				</div>
+			{/if}
 		</div>
 		{#if actions}
 			<div class="w-full sm:w-auto sm:shrink-0">

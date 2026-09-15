@@ -13,7 +13,7 @@
 
 	const status = $derived(sessionStore.activeSession?.status);
 	const sessionChrome = $derived(
-		status === 'active' ? 'lg:border-primary lg:pulse-border' : 'lg:border-outline-variant'
+		status === 'active' ? 'border-primary pulse-border' : 'border-outline-variant'
 	);
 </script>
 
@@ -21,7 +21,7 @@
 	class="mx-auto flex w-full max-w-[600px] flex-col gap-8 md:mx-0 md:max-w-none"
 	data-testid="page-view"
 >
-	<PageHeader title={m.timer_title()} description={m.timer_subtitle()} />
+	<PageHeader title={m.timer_title()} />
 
 	{#if sessionStore.error}
 		<Banner>
@@ -35,10 +35,10 @@
 	{/if}
 
 	<div
-		class="flex flex-col gap-6 lg:gap-0 lg:overflow-hidden lg:rounded-lg lg:border lg:bg-surface-container {sessionChrome}"
+		class="flex flex-col overflow-hidden rounded-lg border bg-surface-container {sessionChrome}"
 		data-testid="timer-session"
 	>
-		<div class="lg:border-b lg:border-outline-variant lg:px-5 lg:py-3">
+		<div class="border-b border-outline-variant px-4 py-3 lg:px-5">
 			<TaskInput />
 		</div>
 		<TimerCard />

@@ -13,8 +13,12 @@ test.describe('timer lifecycle', () => {
 		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
 		await expect(page.getByTestId('timer-elapsed')).toHaveText('00:00:00');
 		await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
+		await expect(page.getByLabel('Task description')).toBeVisible();
+		await expect(page.getByLabel('Project')).toBeVisible();
 		await expect(page.getByLabel('Activity')).toBeVisible();
+		await expect(page.getByLabel('Ticket')).toBeVisible();
 		await expect(page.getByLabel('Activity')).toHaveValue('');
+		await expect(page.getByTestId('page-header-description')).toHaveCount(0);
 	});
 
 	test('start posts to sessions', async ({ page }) => {
@@ -78,7 +82,7 @@ test.describe('timer lifecycle', () => {
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await expect(page.getByTestId('timer-project')).toContainText('PERS');
+		await expect(page.getByTestId('timer-project')).toContainText('Personal');
 		await expect(page.getByRole('button', { name: 'Pause' })).toHaveCount(0);
 		await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible();
 		await expect(page.getByTestId('timer-elapsed')).toHaveText(/\d{2}:\d{2}:\d{2}/);
@@ -187,6 +191,8 @@ test.describe('timer lifecycle', () => {
 		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('busy'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await expect(page.getByTestId('recent-task-restart').first()).toBeDisabled();
+		const play = page.getByTestId('recent-task-restart').first();
+		await expect(play).toBeDisabled();
+		await expect(play).toHaveAttribute('aria-label', 'Stop the current session first');
 	});
 });

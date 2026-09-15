@@ -14,6 +14,7 @@ import {
 	endOfWeekSunday,
 	formatClock,
 	formatCompact,
+	deltaDisplay,
 	formatHoursDecimal,
 	formatHoursMinutes,
 	formatInsightRangeLabel,
@@ -114,6 +115,25 @@ describe('formatHoursMinutes', () => {
 describe('formatHoursDecimal', () => {
 	it('formats fractional hours', () => {
 		expect(formatHoursDecimal(ms.hours(1) + ms.min(12))).toBe('1.2h');
+	});
+});
+
+describe('deltaDisplay', () => {
+	it('treats a gain as up/green', () => {
+		expect(deltaDisplay(ms.hours(1))).toEqual({ icon: 'arrow_upward', ink: 'text-secondary' });
+	});
+
+	it('treats a loss as down/amber', () => {
+		expect(deltaDisplay(-ms.hours(1))).toEqual({ icon: 'arrow_downward', ink: 'text-tertiary' });
+	});
+
+	it('treats zero as neutral, not a win', () => {
+		expect(deltaDisplay(0)).toEqual({ icon: null, ink: 'text-on-surface-variant' });
+	});
+
+	it('treats sub-0.05h deltas as flat so 0.0h is never green', () => {
+		expect(deltaDisplay(ms.min(2))).toEqual({ icon: null, ink: 'text-on-surface-variant' });
+		expect(deltaDisplay(-ms.min(2))).toEqual({ icon: null, ink: 'text-on-surface-variant' });
 	});
 });
 

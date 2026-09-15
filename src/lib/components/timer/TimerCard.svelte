@@ -19,14 +19,8 @@
 	const statusColor = $derived(isActive ? 'text-secondary' : 'text-on-surface-variant');
 	const statusDot: StatusDotTone = $derived(isActive ? 'live' : 'idle');
 
-	const cardBorder = $derived(
-		isActive
-			? 'border-outline-variant max-lg:border-primary max-lg:pulse-border lg:border-transparent'
-			: 'border-outline-variant lg:border-transparent'
-	);
-
 	const clockLabel = $derived(isIdle ? '00:00:00' : sessionStore.elapsedLabel);
-	const projectCode = $derived(project?.code ?? project?.name?.slice(0, 4).toUpperCase() ?? '—');
+	const projectName = $derived(project?.name ?? m.common_unknown());
 	const pending = $derived(sessionStore.busy);
 
 	function onStartedChange(e: Event) {
@@ -38,7 +32,7 @@
 </script>
 
 <div
-	class="flex flex-col items-center rounded-lg border bg-surface-container px-6 py-7 lg:rounded-none lg:bg-transparent lg:px-5 lg:py-10 {cardBorder}"
+	class="flex flex-col items-center px-6 py-7 lg:px-5 lg:py-10"
 	role="region"
 	aria-label={m.timer_session_aria()}
 >
@@ -57,7 +51,7 @@
 		{#if !isIdle}
 			<span class="text-on-surface-variant" aria-hidden="true">·</span>
 			<span class="font-mono text-code-label text-primary" data-testid="timer-project">
-				{m.timer_proj_prefix({ code: projectCode })}
+				{m.timer_project_line({ name: projectName })}
 			</span>
 		{/if}
 	</div>
@@ -90,7 +84,7 @@
 			</Button>
 		{:else}
 			<Button
-				variant="primary"
+				variant="secondary"
 				size="lg"
 				class="flex-1"
 				onclick={() => sessionStore.stop()}

@@ -28,7 +28,7 @@
 </script>
 
 <div
-	class="overflow-hidden rounded-full bg-surface-dim {SIZE[size]} {className}"
+	class="overflow-hidden rounded-full bg-outline-variant {SIZE[size]} {className}"
 	role="progressbar"
 	aria-valuemin="0"
 	aria-valuemax="100"

@@ -23,6 +23,7 @@
 
 	const live = $derived(sessionStore.activeSession?.status === 'active');
 	const settingsActive = $derived(isNavActive(page.url.pathname, '/settings'));
+	const onTimer = $derived(isNavActive(page.url.pathname, '/timer'));
 </script>
 
 <header
@@ -50,16 +51,18 @@
 				aria-current={settingsActive ? 'page' : undefined}
 				data-testid="shell-settings"
 			/>
-			<span
-				role="status"
-				aria-label={live ? m.shell_session_recording() : m.shell_no_active_session()}
-			>
-				<Icon
-					name="fiber_manual_record"
-					fill={live}
-					class="px-1 {live ? 'text-secondary' : 'text-on-surface-variant'}"
-				/>
-			</span>
+			{#if !onTimer}
+				<span
+					role="status"
+					aria-label={live ? m.shell_session_recording() : m.shell_no_active_session()}
+				>
+					<Icon
+						name="fiber_manual_record"
+						fill={live}
+						class="px-1 {live ? 'text-secondary' : 'text-on-surface-variant'}"
+					/>
+				</span>
+			{/if}
 		</div>
 	</div>
 </header>

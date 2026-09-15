@@ -61,6 +61,14 @@ export function formatHoursDecimal(ms: number, digits = 1): string {
 	return `${hours.toFixed(digits)}h`;
 }
 
+/** Visual treatment for today-vs-yesterday. Matches `formatHoursDecimal` (1 decimal hour). */
+export function deltaDisplay(deltaMs: number): { icon: string | null; ink: string } {
+	const shown = Number((Math.abs(deltaMs) / 3_600_000).toFixed(1));
+	if (shown === 0) return { icon: null, ink: 'text-on-surface-variant' };
+	if (deltaMs > 0) return { icon: 'arrow_upward', ink: 'text-secondary' };
+	return { icon: 'arrow_downward', ink: 'text-tertiary' };
+}
+
 /** `datetime-local` value from an ISO timestamp (host-local). */
 export function isoToDatetimeLocal(iso: string): string {
 	const d = new Date(iso);

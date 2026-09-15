@@ -12,17 +12,17 @@ test.describe('desktop session chip', () => {
 		await expect(chip).toHaveText(/Start New Session/);
 		await chip.click();
 		await expect(page).toHaveURL(/\/timer$/);
+		await expect(desktopNav(page).getByTestId('shell-session-chip')).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
 	});
 
-	test('live chip shows status, elapsed, and the note', async ({ page }) => {
+	test('live chip is hidden on timer and shows status off-page', async ({ page }) => {
 		const note = uniqueNote('chip-live');
 		await startSession(page, note);
 
-		const chip = desktopNav(page).getByTestId('shell-session-chip');
-		await expect(chip).toBeVisible();
-		await expect(page.getByTestId('shell-session-status')).toHaveText('ACTIVE');
-		await expect(page.getByTestId('shell-session-elapsed')).toHaveText(/\d{2}:\d{2}:\d{2}/);
-		await expect(chip).toContainText(note);
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+		await expect(desktopNav(page).getByTestId('shell-session-chip')).toHaveCount(0);
+		await expect(page.getByTestId('timer-elapsed')).toHaveText(/\d{2}:\d{2}:\d{2}/);
 
 		const routes = [
 			['Dashboard', '/dashboard'],
@@ -33,9 +33,16 @@ test.describe('desktop session chip', () => {
 		] as const;
 		for (const [label, href] of routes) {
 			await spaGo(page, label, href);
+			const chip = desktopNav(page).getByTestId('shell-session-chip');
+			await expect(chip).toBeVisible();
 			await expect(page.getByTestId('shell-session-status')).toHaveText('ACTIVE');
+			await expect(page.getByTestId('shell-session-elapsed')).toHaveText(/\d{2}:\d{2}:\d{2}/);
 			await expect(chip).toContainText(note);
 		}
+
+		await spaGo(page, 'Timer', '/timer');
+		await expect(desktopNav(page).getByTestId('shell-session-chip')).toHaveCount(0);
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	});
 
 	test('chip is desktop-only', async ({ page }) => {
@@ -61,6 +68,7 @@ test.describe('desktop session chip', () => {
 
 		await desktopNav(page).getByTestId('shell-session-chip').click();
 		await expect(page).toHaveURL(/\/timer$/);
+		await expect(desktopNav(page).getByTestId('shell-session-chip')).toHaveCount(0);
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(note);
 	});

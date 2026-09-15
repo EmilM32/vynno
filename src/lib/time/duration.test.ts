@@ -14,6 +14,7 @@ import {
 	endOfWeekSunday,
 	formatClock,
 	formatCompact,
+	isCompactVisible,
 	deltaDisplay,
 	formatHoursDecimal,
 	formatHoursMinutes,
@@ -103,6 +104,20 @@ describe('formatCompact', () => {
 
 	it('shows hours and minutes', () => {
 		expect(formatCompact(ms.hours(2) + ms.min(15))).toBe('2h 15m');
+	});
+
+	it('floors sub-second totals to 0s', () => {
+		expect(formatCompact(0)).toBe('0s');
+		expect(formatCompact(999)).toBe('0s');
+		expect(formatCompact(1000)).toBe('1s');
+	});
+});
+
+describe('isCompactVisible', () => {
+	it('matches formatCompact non-0s', () => {
+		expect(isCompactVisible(0)).toBe(false);
+		expect(isCompactVisible(999)).toBe(false);
+		expect(isCompactVisible(1000)).toBe(true);
 	});
 });
 

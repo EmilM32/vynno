@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { m } from '$lib/paraglide/messages.js';
+	import { isVisibleActivityRow, type NamedTotal } from '$lib/time/aggregates';
 	import { formatCompact } from '$lib/time/duration';
-	import type { NamedTotal } from '$lib/time/aggregates';
 
 	let {
 		items,
@@ -11,7 +11,7 @@
 		class?: string;
 	} = $props();
 
-	const visible = $derived(items.filter((i) => i.ms > 0));
+	const visible = $derived(items.filter(isVisibleActivityRow));
 	const maxMs = $derived(Math.max(1, ...visible.map((i) => i.ms)));
 </script>
 

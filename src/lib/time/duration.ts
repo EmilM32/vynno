@@ -35,7 +35,7 @@ export function formatClock(ms: number): string {
  * Prefer hours+minutes when ≥ 1 minute.
  */
 export function formatCompact(ms: number): string {
-	const totalSec = Math.floor(Math.max(0, ms) / 1000);
+	const totalSec = compactSeconds(ms);
 	if (totalSec < 60) return `${totalSec}s`;
 
 	const totalMin = Math.floor(totalSec / 60);
@@ -45,6 +45,15 @@ export function formatCompact(ms: number): string {
 	if (h === 0) return `${m}m`;
 	if (m === 0) return `${h}h`;
 	return `${h}h ${m}m`;
+}
+
+function compactSeconds(ms: number): number {
+	return Math.floor(Math.max(0, ms) / 1000);
+}
+
+/** True when `formatCompact` would show a non-`0s` duration (whole seconds ≥ 1). */
+export function isCompactVisible(ms: number): boolean {
+	return compactSeconds(ms) >= 1;
 }
 
 /** Dashboard-style total: `06h 42m` (zero-padded hours). */

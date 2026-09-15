@@ -84,6 +84,46 @@ test.describe('insights', () => {
 		await expect(breakdown.getByText('0%', { exact: true })).toHaveCount(0);
 	});
 
+	test('tagged sub-second sessions do not appear as 0s · 0% rows', async ({ page }) => {
+		const span = pastSpansOnCurrentDay(1)[0]!;
+		const typeName = uniqueNote('QA-Focus');
+		const created = await page.request.post('/v1/activity-types', {
+			data: { name: typeName, color: 'secondary' }
+		});
+		expect(created.ok(), await created.text()).toBeTruthy();
+		const { id } = (await created.json()) as { id: string };
+
+		await seedManualSession(page, {
+			note: uniqueNote('untagged'),
+			startedAt: span.startedAt.toISOString(),
+			endedAt: span.endedAt.toISOString(),
+			activityTypeId: null
+		});
+		const tinyEnd = span.endedAt;
+		await seedManualSession(page, {
+			note: uniqueNote('tiny'),
+			startedAt: new Date(tinyEnd.getTime() - 500).toISOString(),
+			endedAt: tinyEnd.toISOString(),
+			activityTypeId: id
+		});
+
+		await page.goto('/insights');
+		await waitForClient(page);
+		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'Month' }).click();
+
+		const activity = page.getByRole('region', { name: 'Time by activity', exact: true });
+		await expect(activity.getByText('Unassigned')).toBeVisible();
+		await expect(activity.getByText(typeName)).toHaveCount(0);
+		await expect(activity.getByText(/0s · 0%/)).toHaveCount(0);
+
+		const breakdown = page.getByRole('region', { name: 'Activity breakdown', exact: true });
+		await expect(breakdown.getByText('Unassigned')).toHaveCount(1);
+		await expect(breakdown.getByText(typeName)).toHaveCount(0);
+		await expect(breakdown.locator('tbody tr')).toHaveCount(1);
+		await expect(breakdown.getByText('0s', { exact: true })).toHaveCount(0);
+		await expect(breakdown.getByText('0%', { exact: true })).toHaveCount(0);
+	});
+
 	test('desktop activity card matches donut height', async ({ page }, testInfo) => {
 		test.skip(testInfo.project.name === 'mobile', 'desktop shared row');
 		await expect(page.getByRole('region', { name: 'Time by project', exact: true })).toBeVisible();

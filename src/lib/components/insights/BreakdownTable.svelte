@@ -2,10 +2,12 @@
 	import { resolve } from '$app/paths';
 	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
+	import { isVisibleActivityRow, type BreakdownRow } from '$lib/time/aggregates';
 	import { formatCompact } from '$lib/time/duration';
-	import type { BreakdownRow } from '$lib/time/aggregates';
 
 	let { rows }: { rows: BreakdownRow[] } = $props();
+
+	const visible = $derived(rows.filter(isVisibleActivityRow));
 </script>
 
 <section
@@ -32,16 +34,16 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#if rows.length === 0}
+				{#if visible.length === 0}
 					<tr>
 						<td colspan="4" class="p-4 text-body-sm text-on-surface-variant"
 							>{m.insights_no_rows()}</td
 						>
 					</tr>
 				{:else}
-					{#each rows as row, i (row.projectId + row.activityTypeId)}
+					{#each visible as row, i (row.projectId + row.activityTypeId)}
 						<tr
-							class="transition-colors hover:bg-surface-container-high {i < rows.length - 1
+							class="transition-colors hover:bg-surface-container-high {i < visible.length - 1
 								? 'border-b border-outline-variant'
 								: ''}"
 						>

@@ -645,12 +645,54 @@ describe('periodStats', () => {
 		);
 		expect(stats.byActivity.some((row) => row.ms === 0)).toBe(false);
 		expect(stats.breakdown.some((row) => row.ms === 0)).toBe(false);
+		expect(stats.byActivity.every((row) => row.percent > 0 && row.ms >= 1000)).toBe(true);
+		expect(stats.breakdown.every((row) => row.percent > 0 && row.ms >= 1000)).toBe(true);
 		const activityPct = stats.byActivity.reduce((sum, row) => sum + row.percent, 0);
 		expect(activityPct).toBeGreaterThanOrEqual(99);
 		expect(activityPct).toBeLessThanOrEqual(101);
 		const projectPct = stats.byProject.reduce((sum, row) => sum + row.percent, 0);
 		expect(projectPct).toBeGreaterThanOrEqual(99);
 		expect(projectPct).toBeLessThanOrEqual(101);
+	});
+
+	it('omits tagged sub-second buckets that would display as 0s · 0%', () => {
+		const start = localIso(2026, 2, 11, 9, 0);
+		const bare = makeSession({
+			id: 'bare',
+			projectId: 'proj-a',
+			activityTypeId: undefined,
+			startedAt: start,
+			endedAt: localIso(2026, 2, 11, 10, 21)
+		});
+		const tiny = makeSession({
+			id: 'tiny',
+			projectId: 'proj-a',
+			activityTypeId: 'act-coding',
+			startedAt: localIso(2026, 2, 11, 10, 21),
+			endedAt: new Date(Date.parse(localIso(2026, 2, 11, 10, 21)) + 500).toISOString()
+		});
+		const week = periodBounds('week', FIXED_NOW);
+		const stats = periodStats([bare, tiny], projects, activityTypes, week, FIXED_NOW);
+
+		expect(stats.totalMs).toBe(ms.min(81) + 500);
+		expect(stats.byActivity).toEqual([
+			expect.objectContaining({
+				id: UNASSIGNED_ACTIVITY_ID,
+				label: 'Unassigned',
+				ms: ms.min(81),
+				percent: 100
+			})
+		]);
+		expect(stats.breakdown).toEqual([
+			expect.objectContaining({
+				activityTypeId: UNASSIGNED_ACTIVITY_ID,
+				activityLabel: 'Unassigned',
+				ms: ms.min(81),
+				percent: 100
+			})
+		]);
+		expect(stats.byActivity.some((row) => row.id === 'act-coding')).toBe(false);
+		expect(stats.breakdown.some((row) => row.activityTypeId === 'act-coding')).toBe(false);
 	});
 });
 
@@ -735,6 +777,38 @@ describe('projectPeriodStats', () => {
 			expect.objectContaining({
 				id: UNASSIGNED_ACTIVITY_ID,
 				label: 'Unassigned',
+				ms: ms.hours(1),
+				percent: 100
+			})
+		]);
+	});
+
+	it('omits tagged sub-second activity next to Unassigned', () => {
+		const bare = makeSession({
+			id: 'bare',
+			projectId: 'proj-a',
+			activityTypeId: undefined,
+			startedAt: localIso(2026, 2, 11, 9, 0),
+			endedAt: localIso(2026, 2, 11, 10, 0)
+		});
+		const tiny = makeSession({
+			id: 'tiny',
+			projectId: 'proj-a',
+			activityTypeId: 'act-coding',
+			startedAt: localIso(2026, 2, 11, 10, 0),
+			endedAt: new Date(Date.parse(localIso(2026, 2, 11, 10, 0)) + 400).toISOString()
+		});
+		const stats = projectPeriodStats(
+			[bare, tiny],
+			'proj-a',
+			activityTypes,
+			{ kind: 'week' },
+			FIXED_NOW
+		);
+		expect(stats.totalMs).toBe(ms.hours(1) + 400);
+		expect(stats.byActivity).toEqual([
+			expect.objectContaining({
+				id: UNASSIGNED_ACTIVITY_ID,
 				ms: ms.hours(1),
 				percent: 100
 			})

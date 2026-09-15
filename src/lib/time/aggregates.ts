@@ -11,6 +11,7 @@ import {
 	localMonthKeyFromDate,
 	monthShort,
 	monthShortYear,
+	isCompactVisible,
 	periodBounds,
 	type ProjectPeriodSpec,
 	sessionElapsedMs,
@@ -559,6 +560,11 @@ export type PeriodStats = {
 	breakdown: BreakdownRow[];
 };
 
+/** Drop buckets that would render as `0s` or `0%` (`formatCompact` floors sub-seconds). */
+export function isVisibleActivityRow(row: { ms: number; percent: number }): boolean {
+	return isCompactVisible(row.ms) && row.percent > 0;
+}
+
 export function periodStats(
 	sessions: TimeSession[],
 	projects: Project[],
@@ -619,6 +625,7 @@ export function periodStats(
 				percent: pct(ms)
 			};
 		})
+		.filter(isVisibleActivityRow)
 		.sort((a, b) => b.ms - a.ms);
 
 	const breakdown: BreakdownRow[] = [...pairTotals.values()]
@@ -635,6 +642,7 @@ export function periodStats(
 				percent: pct(row.ms)
 			};
 		})
+		.filter(isVisibleActivityRow)
 		.sort((a, b) => b.ms - a.ms);
 
 	return {
@@ -759,6 +767,7 @@ export function projectPeriodStats(
 				percent: pct(ms)
 			};
 		})
+		.filter(isVisibleActivityRow)
 		.sort((a, b) => b.ms - a.ms);
 
 	return {

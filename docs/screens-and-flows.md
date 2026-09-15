@@ -112,9 +112,9 @@ Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 
 ### 3.6 Projects (`/projects`)
 
-1. Header + **New project** CTA
-2. Tabs: **Active** | **Archived**
-3. List rows: color swatch, name, code chip, session count, actions. Name/code links to `/projects/[id]`
+1. Header. Subtitle **Your projects and archives.** (desktop). **New project**: labeled primary on desktop; add icon on the title row on mobile.
+2. Tabs: **Active** | **Archived**, compact under the title so the list sits higher on mobile.
+3. List rows: color swatch, name, code chip, session count, actions. Name/code links to `/projects/[id]`. Mobile: Edit (or Restore) stays visible; Archive/Delete live in a `…` overflow. Desktop: inline Edit / Archive / Delete.
 4. New / Edit: form dialog (name, code, optional progress 0–100, color palette)
 5. Hard-delete confirm dialog
 
@@ -129,19 +129,19 @@ Rules: [domain-model.md](./domain-model.md) §4.1 and [adr/0006-project-lifecycl
 
 Time dossier for one project. Not a seventh nav item — Projects stays highlighted (`/projects/*`).
 
-1. Header: back, color, name, code, archived/live badge
-2. Actions: Week / Month / All / Custom, Start session (or Open timer), Edit, Archive / Restore
-3. KPI cards: period total, daily average, share of period hours
-4. Period hours bar + time-by-activity bars
-5. Entries: search, activity filter (same chip as `/logs`, no project picker, no date chip), Entries | Grouped layout. Date-grouped rows; Grouped merges same-ticket sessions. The list uses the same Week / Month / All / Custom window as the KPIs and charts. Custom uses the same From / To dialog as Insights (span ≤ 366 days).
+1. Header: back, color, name, code, archived/live badge. Idle/archived subtitle is last-logged (or “No sessions yet.”). While live, the subtitle is omitted — ACTIVE NOW is the status.
+2. Actions: Week / Month / All / Custom, Start session (or Open timer), Edit, Archive / Restore. Idle: dossier **Start session** is the only primary start; the sidebar Start chip is hidden (same idea as hiding it on Timer). Live: sidebar chip stays; CTA is Open timer.
+3. KPI cards: period total, daily average, share of period hours. Mobile is 2+1 (share full width); desktop is three columns.
+4. Period hours bar + time-by-activity bars. Mobile: shorter hours chart (`h-48`) so Activity peeks above the fold; Activity height follows content. Desktop `lg`: the two charts share a row.
+5. Entries: search, activity filter (same chip as `/logs`, no project picker, no date chip), Entries | Grouped layout. Date-grouped rows only when that day has visible entries; live session uses an In progress header like `/logs`. Grouped merges same-ticket sessions. The list uses the same Week / Month / All / Custom window as the KPIs and charts. Custom uses the same From / To dialog as Insights (span ≤ 366 days).
 
-| State                           | UI                                                         |
-| ------------------------------- | ---------------------------------------------------------- |
-| Unknown id                      | Not-found copy + link back to `/projects`                  |
-| Archived                        | History stays; Start session hidden; Restore available     |
-| Live session on this project    | ACTIVE chip → `/timer`; primary CTA is Open timer          |
-| Live session on another project | Start disabled (`error_stop_before_start`)                 |
-| No sessions                     | Empty notes + entries; KPIs at zero                        |
+| State                           | UI                                                     |
+| ------------------------------- | ------------------------------------------------------ |
+| Unknown id                      | Not-found copy + link back to `/projects`              |
+| Archived                        | History stays; Start session hidden; Restore available |
+| Live session on this project    | ACTIVE chip → `/timer`; primary CTA is Open timer      |
+| Live session on another project | Start disabled (`error_stop_before_start`)             |
+| No sessions                     | Empty notes + entries; KPIs at zero                    |
 
 Start session sets `draftProjectId` and navigates to `/timer` (does not auto-start).
 

@@ -159,17 +159,19 @@
 		<p class="text-body-md text-on-surface-variant">{m.project_not_found_hint()}</p>
 	</div>
 {:else}
-	<div class="flex w-full flex-col gap-6" data-testid="page-view" data-project-id={project.id}>
+	<div
+		class="flex w-full flex-col gap-4 md:gap-6"
+		data-testid="page-view"
+		data-project-id={project.id}
+	>
 		<!--
 			Rendered twice: inline on desktop, and again inside the mobile "more" menu.
 			`inMenu` only changes visibility and whether picking an action closes the menu.
 		-->
 		{#snippet secondaryActions(inMenu: boolean)}
-			{const hideOnMobile = $derived(inMenu ? undefined : 'hidden md:inline-flex')}
 			{const busyProject = $derived(sessionStore.pendingAction === 'project')}
 			<Button
 				variant="secondary"
-				class={hideOnMobile}
 				onclick={() => {
 					sessionStore.clearError();
 					editing = true;
@@ -182,7 +184,6 @@
 			{#if archived}
 				<Button
 					variant="secondary"
-					class={hideOnMobile}
 					onclick={() => void sessionStore.restoreProject(project.id)}
 					disabled={busyProject}
 				>
@@ -191,7 +192,6 @@
 			{:else}
 				<Button
 					variant="secondary"
-					class={hideOnMobile}
 					onclick={() => void sessionStore.archiveProject(project.id)}
 					disabled={!canArchive || busyProject}
 					aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
@@ -201,7 +201,7 @@
 			{/if}
 		{/snippet}
 
-		<PageHeader title={project.name} description={lastLoggedLabel}>
+		<PageHeader title={project.name} description={liveHere ? '' : lastLoggedLabel}>
 			{#snippet eyebrow()}
 				<a
 					href={resolve('/projects')}
@@ -249,11 +249,14 @@
 								{liveHere ? m.project_open_timer() : m.project_start_session()}
 							</Button>
 						{/if}
-						{@render secondaryActions(false)}
+						<div class="hidden md:flex md:flex-wrap md:gap-2">
+							{@render secondaryActions(false)}
+						</div>
 						<IconButton
 							icon="more_horiz"
 							label={m.project_more_actions()}
 							variant="bordered"
+							size="sm"
 							class="md:hidden"
 							aria-expanded={moreOpen}
 							aria-controls={moreOpen ? 'project-more-actions' : undefined}
@@ -295,15 +298,15 @@
 			</div>
 		{/if}
 
-		<div class="grid auto-rows-[16rem] grid-cols-1 gap-6 lg:auto-rows-[300px] lg:grid-cols-2">
+		<div class="grid grid-cols-1 gap-4 lg:auto-rows-[300px] lg:grid-cols-2 lg:gap-6">
 			<WeeklyOverview
-				class="h-full"
+				class="h-48 md:h-64 lg:h-full"
 				days={chartDays}
 				barColor={project.color}
 				heading={chartHeading}
 				ariaLabel={chartAria}
 			/>
-			<ActivityBars class="h-full" items={stats?.byActivity ?? []} />
+			<ActivityBars class="lg:h-full" items={stats?.byActivity ?? []} />
 		</div>
 
 		<ProjectEntries sessions={mine} {period} />

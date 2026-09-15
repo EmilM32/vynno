@@ -23,6 +23,8 @@
 		captionTone?: KpiCaptionTone;
 		/** Applied to the metric, matching existing test ids. */
 		valueTestId?: string;
+		/** Layout utilities only (e.g. grid column span). */
+		class?: string;
 	}
 
 	let {
@@ -31,12 +33,16 @@
 		caption,
 		valueTone = 'default',
 		captionTone = 'muted',
-		valueTestId
+		valueTestId,
+		class: className = ''
 	}: Props = $props();
 </script>
 
 <div
-	class="flex flex-col justify-between rounded-lg border border-outline-variant bg-surface-container p-2 sm:p-4"
+	class={[
+		'flex flex-col justify-between rounded-lg border border-outline-variant bg-surface-container p-2 sm:p-4',
+		className
+	]}
 >
 	<span
 		class="font-mono text-[10px] tracking-wider text-on-surface-variant uppercase sm:text-code-label"

@@ -76,7 +76,10 @@
 	}
 </script>
 
-<div class="flex flex-wrap items-center gap-2" data-testid="project-period-control">
+<div
+	class="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto"
+	data-testid="project-period-control"
+>
 	<PeriodToggle value={preset} options={presetOptions} onchange={setPreset} />
 	<Button
 		variant={isCustom ? 'tonal' : 'secondary'}

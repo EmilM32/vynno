@@ -5,6 +5,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import type { Project } from '$lib/types/domain';
@@ -115,10 +116,25 @@
 </script>
 
 <div
-	class="mx-auto flex w-full max-w-2xl flex-col gap-6 md:mx-0 md:max-w-none"
+	class="mx-auto flex w-full max-w-2xl flex-col gap-3 md:mx-0 md:max-w-none md:gap-6"
 	data-testid="page-view"
 >
-	<PageHeader title={m.projects_title()} description={m.projects_subtitle()}>
+	<PageHeader
+		title={m.projects_title()}
+		description={m.projects_subtitle()}
+		actionsClass="max-md:hidden"
+	>
+		{#snippet titleExtra()}
+			<IconButton
+				icon="add"
+				label={m.projects_new()}
+				variant="bordered"
+				size="sm"
+				class="md:hidden"
+				onclick={openCreate}
+				data-testid="new-project"
+			/>
+		{/snippet}
 		{#snippet actions()}
 			<Button variant="primary" class="shrink-0" onclick={openCreate} data-testid="new-project">
 				{m.projects_new()}
@@ -138,7 +154,7 @@
 	{/if}
 
 	<div
-		class="flex gap-1 rounded-DEFAULT border border-outline-variant bg-surface-container p-1"
+		class="inline-flex gap-1 self-start rounded-DEFAULT border border-outline-variant bg-surface-container p-1"
 		role="tablist"
 		tabindex="-1"
 		aria-label={m.projects_status_aria()}
@@ -148,7 +164,6 @@
 			variant="tab"
 			size="sm"
 			selected={tab === 'active'}
-			class="flex-1"
 			role="tab"
 			aria-selected={tab === 'active'}
 			aria-controls="projects-panel"
@@ -163,7 +178,6 @@
 			variant="tab"
 			size="sm"
 			selected={tab === 'archived'}
-			class="flex-1"
 			role="tab"
 			aria-selected={tab === 'archived'}
 			aria-controls="projects-panel"

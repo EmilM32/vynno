@@ -53,7 +53,7 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await login(page);
 		await page.goto('/projects');
 		await waitForClient(page);
-		await page.getByTestId('new-project').click();
+		await page.getByRole('button', { name: 'New project' }).click();
 		await expectDialogReady(page, 'New project');
 		await expectNoViolations(page);
 	});

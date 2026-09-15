@@ -35,10 +35,25 @@
 	const range = $derived(logDateRangeForProjectPeriod(period, now, sessionStore.timeZone));
 	const listFilter = $derived({ range, activityTypeIds });
 
+	const live = $derived(sessions.find((s) => s.status === 'active') ?? null);
 	const stopped = $derived(sessions.filter((s) => s.status === 'stopped'));
 	const filtered = $derived(filterSessions(stopped, query, sessionStore.allProjects, listFilter));
-	const groups = $derived(groupSessionsByDate(filtered, sessionStore.timeZone));
+	const groups = $derived(
+		groupSessionsByDate(filtered, sessionStore.timeZone)
+			.map((group) => ({
+				...group,
+				tasks: layout === 'grouped' ? groupSessionsByTask(group.sessions) : []
+			}))
+			.filter((group) =>
+				layout === 'grouped' ? group.tasks.length > 0 : group.sessions.length > 0
+			)
+	);
 	const todayKey = $derived(localDateKeyFromDate(now, sessionStore.timeZone));
+	const liveVisible = $derived(
+		Boolean(live) &&
+			!query.trim() &&
+			filterSessions(live ? [live] : [], '', sessionStore.allProjects, listFilter).length > 0
+	);
 	const facetConstrained = $derived(Boolean(query.trim() || activityTypeIds.length));
 	const emptyMessage = $derived(
 		facetConstrained
@@ -95,14 +110,26 @@
 				</div>
 			</div>
 
-			{#if groups.length === 0}
+			{#if live && liveVisible}
+				<div class="flex items-center gap-4 py-2">
+					<div class="font-mono text-code-label text-primary">{m.logs_in_progress()}</div>
+					<div class="flex-1 border-t border-dashed border-outline-variant"></div>
+				</div>
+				<LogRow
+					session={live}
+					hideProject
+					onedit={() => openEdit(live)}
+					ondelete={() => openDelete(live)}
+				/>
+			{/if}
+
+			{#if groups.length === 0 && !liveVisible}
 				<p class="py-8 text-center text-body-md text-on-surface-variant">
 					{emptyMessage}
 				</p>
 			{:else}
 				{#each groups as group, i (group.dateKey)}
-					{const tasks = $derived(layout === 'grouped' ? groupSessionsByTask(group.sessions) : [])}
-					<div class="flex items-center gap-4 py-2 {i > 0 ? 'mt-4' : ''}">
+					<div class="flex items-center gap-4 py-2 {i > 0 || liveVisible ? 'mt-4' : ''}">
 						<div
 							class="font-mono text-code-label {group.dateKey === todayKey
 								? 'text-primary'
@@ -114,7 +141,7 @@
 					</div>
 					<div class="space-y-2">
 						{#if layout === 'grouped'}
-							{#each tasks as task (task.key)}
+							{#each group.tasks as task (task.key)}
 								{#if task.sessions.length === 1}
 									<LogRow
 										session={task.sessions[0]!}

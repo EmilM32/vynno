@@ -4,6 +4,15 @@ import { desktopNav, login, spaGo, startSession, uniqueNote } from './helpers';
 test.describe('desktop session chip', () => {
 	test.use({ viewport: { width: 1280, height: 720 } });
 
+	test('idle chip is hidden on the project dossier', async ({ page }) => {
+		await login(page);
+		await page.goto('/projects');
+		await page.getByTestId('project-open').first().click();
+		await expect(page).toHaveURL(/\/projects\/[^/]+$/);
+		await expect(desktopNav(page).getByTestId('shell-session-chip')).toHaveCount(0);
+		await expect(page.getByTestId('project-start')).toBeVisible();
+	});
+
 	test('idle chip is a start link to the timer', async ({ page }) => {
 		await login(page);
 		await page.goto('/dashboard');
@@ -39,6 +48,14 @@ test.describe('desktop session chip', () => {
 			await expect(page.getByTestId('shell-session-elapsed')).toHaveText(/\d{2}:\d{2}:\d{2}/);
 			await expect(chip).toContainText(note);
 		}
+
+		await spaGo(page, 'Projects', '/projects');
+		await page.getByTestId('project-open').first().click();
+		await expect(page).toHaveURL(/\/projects\/[^/]+$/);
+		const dossierChip = desktopNav(page).getByTestId('shell-session-chip');
+		await expect(dossierChip).toBeVisible();
+		await expect(page.getByTestId('shell-session-status')).toHaveText('ACTIVE');
+		await expect(page.getByTestId('page-header-description')).toHaveCount(0);
 
 		await spaGo(page, 'Timer', '/timer');
 		await expect(desktopNav(page).getByTestId('shell-session-chip')).toHaveCount(0);

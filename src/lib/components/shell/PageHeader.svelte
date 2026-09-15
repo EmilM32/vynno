@@ -5,6 +5,7 @@
 		title,
 		description = '',
 		actions,
+		actionsClass = '',
 		eyebrow,
 		leading,
 		titleExtra,
@@ -13,6 +14,8 @@
 		title: string;
 		description?: string;
 		actions?: Snippet;
+		/** Layout on the actions slot (e.g. hide the desktop CTA on small screens). */
+		actionsClass?: string;
 		eyebrow?: Snippet;
 		leading?: Snippet;
 		titleExtra?: Snippet;
@@ -83,7 +86,7 @@
 			{/if}
 		</div>
 		{#if actions}
-			<div class="w-full sm:w-auto sm:shrink-0">
+			<div class={['w-full sm:w-auto sm:shrink-0', actionsClass]}>
 				{@render actions()}
 			</div>
 		{/if}

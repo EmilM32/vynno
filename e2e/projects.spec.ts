@@ -26,9 +26,20 @@ test.describe('projects', () => {
 		await expect(page.getByText('Personal')).toBeVisible();
 	});
 
+	test('mobile row overflow holds Archive and Delete', async ({ page }, testInfo) => {
+		test.skip(testInfo.project.name !== 'mobile', 'overflow is phone-only');
+		const row = page.getByTestId('project-row').first();
+		await expect(row.getByRole('button', { name: 'Edit' })).toBeVisible();
+		await expect(row.getByTestId('project-row-more')).toBeVisible();
+		await row.getByTestId('project-row-more').click();
+		const menu = page.getByRole('menu', { name: 'More actions' });
+		await expect(menu.getByRole('menuitem', { name: 'Archive' })).toBeVisible();
+		await expect(menu.getByRole('menuitem', { name: 'Delete' })).toBeVisible();
+	});
+
 	test('creates a project and lists it as active', async ({ page }) => {
 		const name = `E2E Project ${Date.now()}`;
-		await page.getByTestId('new-project').click();
+		await page.getByRole('button', { name: 'New project' }).click();
 		await expect(page.getByRole('dialog', { name: 'New project' })).toBeVisible();
 		await page.getByLabel('Name').fill(name);
 		await page.locator('#project-code').fill('');
@@ -60,6 +71,14 @@ test.describe('projects', () => {
 	});
 
 	test('project hours chart follows the period toggle', async ({ page }) => {
+		const span = pastSpansOnCurrentDay(1)[0]!;
+		await seedManualSession(page, {
+			note: uniqueNote('chart'),
+			startedAt: span.startedAt.toISOString(),
+			endedAt: span.endedAt.toISOString()
+		});
+		await page.goto('/projects');
+		await waitForClient(page);
 		await page.getByTestId('project-open').first().click();
 		await expect(page.getByRole('region', { name: 'Hours this week' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Weekly Overview' })).toBeVisible();
@@ -196,7 +215,7 @@ test.describe('projects', () => {
 
 	test('new project appears in Timer picker', async ({ page }) => {
 		const name = `Timer Pick ${Date.now()}`;
-		await page.getByTestId('new-project').click();
+		await page.getByRole('button', { name: 'New project' }).click();
 		await expect(page.getByRole('dialog', { name: 'New project' })).toBeVisible();
 		await page.getByLabel('Name').fill(name);
 		await page.locator('#project-code').fill('');

@@ -30,3 +30,8 @@ export function isNavActive(pathname: string, href: string): boolean {
 	}
 	return pathname === href || pathname.startsWith(`${href}/`);
 }
+
+/** `/projects/:id` — not the list itself. */
+export function isProjectDossier(pathname: string): boolean {
+	return /^\/projects\/[^/]+/.test(pathname);
+}

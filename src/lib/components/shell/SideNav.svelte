@@ -10,10 +10,14 @@
 	import { profileLabel } from '$lib/api/mappers/profile';
 	import ProfileAvatar from './ProfileAvatar.svelte';
 	import SessionChip from './SessionChip.svelte';
-	import { NAV_ITEMS, isNavActive } from './nav';
+	import { useSession } from '$lib/stores/session.svelte';
+	import { NAV_ITEMS, isNavActive, isProjectDossier } from './nav';
 
 	const prefsStore = usePrefs();
+	const sessionStore = useSession();
 	const onTimer = $derived(isNavActive(page.url.pathname, '/timer'));
+	const onDossier = $derived(isProjectDossier(page.url.pathname));
+	const showSessionChip = $derived(!onTimer && (Boolean(sessionStore.activeSession) || !onDossier));
 	let commandsBtn: HTMLElement | undefined = $state();
 
 	/** The palette restores focus here on close, so it needs the rendered node. */
@@ -36,7 +40,7 @@
 		</div>
 	</div>
 
-	{#if !onTimer}
+	{#if showSessionChip}
 		<div class="mb-4 px-4">
 			<SessionChip />
 		</div>
@@ -89,7 +93,9 @@
 			>
 				<ProfileAvatar name={profileLabel(prefsStore)} src={prefsStore.avatarUrl} size="sm" />
 				<div class="min-w-0">
-					<p class="truncate text-body-sm font-medium text-on-surface">{profileLabel(prefsStore)}</p>
+					<p class="truncate text-body-sm font-medium text-on-surface">
+						{profileLabel(prefsStore)}
+					</p>
 					<p class="truncate font-mono text-[10px] text-on-surface-variant">{prefsStore.email}</p>
 				</div>
 			</a>

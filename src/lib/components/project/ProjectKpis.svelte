@@ -31,7 +31,7 @@
 	);
 </script>
 
-<div class="grid grid-cols-3 gap-gutter">
+<div class="grid grid-cols-2 gap-gutter md:grid-cols-3">
 	<KpiCard
 		label={m.insights_kpi_total_time()}
 		value={totalLabel}
@@ -41,6 +41,7 @@
 	/>
 	<KpiCard label={m.insights_kpi_daily_average()} value={avgLabel} />
 	<KpiCard
+		class="col-span-2 md:col-span-1"
 		label={m.project_kpi_share()}
 		value={`${stats.sharePercent}%`}
 		caption={shareOf}

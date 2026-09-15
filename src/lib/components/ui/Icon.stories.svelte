@@ -29,6 +29,7 @@
 		'search',
 		'settings',
 		'terminal',
+		'add',
 		'more_horiz',
 		'arrow_back',
 		'arrow_forward',

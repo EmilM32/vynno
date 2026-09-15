@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import pkg from '../../../../package.json' with { type: 'json' };
-import { APP_VERSION, isNavActive, MOBILE_TAB_ITEMS, NAV_ITEMS } from './nav';
+import { APP_VERSION, isNavActive, isProjectDossier, MOBILE_TAB_ITEMS, NAV_ITEMS } from './nav';
 
 describe('isNavActive', () => {
 	it('treats / and /dashboard as dashboard', () => {
@@ -24,6 +24,15 @@ describe('isNavActive', () => {
 		expect(isNavActive('/logs', '/insights')).toBe(false);
 		// "/time" must not match "/timer"
 		expect(isNavActive('/time', '/timer')).toBe(false);
+	});
+});
+
+describe('isProjectDossier', () => {
+	it('matches a project id under /projects, not the list', () => {
+		expect(isProjectDossier('/projects')).toBe(false);
+		expect(isProjectDossier('/projects/')).toBe(false);
+		expect(isProjectDossier('/projects/proj-auth')).toBe(true);
+		expect(isProjectDossier('/settings')).toBe(false);
 	});
 });
 

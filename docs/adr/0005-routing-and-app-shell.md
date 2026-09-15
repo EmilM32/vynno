@@ -16,7 +16,7 @@ Navigation structure is shared across viewports: six primary destinations and tw
    | ------------ | ------------------------------------------- |
    | `/timer`     | Active timer                                |
    | `/dashboard` | Dashboard                                   |
-   | `/logs`      | Activity / system logs                      |
+   | `/logs`      | Session history                             |
    | `/insights`  | Analytics                                   |
    | `/projects`  | Project management (CRUD)                   |
    | `/settings`  | Settings / preferences                      |

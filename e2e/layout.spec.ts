@@ -73,7 +73,7 @@ test.describe('desktop layout', () => {
 		await seedStoppedSessions(page, 16);
 		await page.goto('/logs');
 		const header = page.getByTestId('page-header');
-		const title = page.getByRole('heading', { name: 'System Logs', level: 1 });
+		const title = page.getByRole('heading', { name: 'Logs', level: 1 });
 		const description = page.getByTestId('page-header-description');
 		const search = page.getByRole('searchbox', { name: 'Search logs' });
 

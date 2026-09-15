@@ -21,7 +21,7 @@ test.describe('logs', () => {
 	});
 
 	test('shows the logs heading', async ({ page }) => {
-		await expect(page.getByRole('heading', { name: 'System Logs' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Logs', level: 1 })).toBeVisible();
 		// Date group separators look like YYYY-MM-DD
 		await expect(page.locator('body')).toContainText(/\d{4}-\d{2}-\d{2}/);
 	});

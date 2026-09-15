@@ -78,14 +78,14 @@
 		<div class="flex w-full flex-col gap-6" data-testid="page-view">
 			<PageHeader title={m.logs_title()} description={m.logs_subtitle()}>
 				{#snippet actions()}
-					<div class="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center">
+					<div class="flex w-full items-center gap-2">
 						<Input
 							id="logs-search"
 							name="q"
 							type="search"
 							tone="code"
 							size="sm"
-							class="w-full md:w-64"
+							class="min-w-0 flex-1 md:w-64 md:flex-none"
 							placeholder={m.logs_search_placeholder()}
 							bind:value={query}
 							aria-label={m.logs_search_aria()}
@@ -94,14 +94,14 @@
 								<Icon name="search" />
 							{/snippet}
 						</Input>
-						<Button variant="primary" size="sm" onclick={openCreate}>
+						<Button variant="secondary" size="sm" class="shrink-0" onclick={openCreate}>
 							{m.logs_add_entry()}
 						</Button>
 					</div>
 				{/snippet}
 			</PageHeader>
 
-			<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+			<div class="flex items-center justify-between gap-2">
 				<LogsFilterBar
 					bind:datePreset
 					bind:customRange
@@ -112,7 +112,7 @@
 					{now}
 					timeZone={sessionStore.timeZone}
 				/>
-				<div class="self-start">
+				<div class="shrink-0">
 					<PeriodToggle
 						bind:value={layout}
 						options={layoutOptions}

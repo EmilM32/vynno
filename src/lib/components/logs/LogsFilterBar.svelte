@@ -13,6 +13,7 @@
 	} from '$lib/time/duration';
 	import type { ActivityType, Project } from '$lib/types/domain';
 	import LogsDateDialog from './LogsDateDialog.svelte';
+	import LogsFiltersDialog from './LogsFiltersDialog.svelte';
 	import LogsPickDialog from './LogsPickDialog.svelte';
 
 	let {
@@ -41,11 +42,22 @@
 		showDates?: boolean;
 	} = $props();
 
+	/** Full logs page has three chips; collapse them below `md`. Dossier keeps the activity chip. */
+	const compactable = $derived(showDates && showProjects);
+
 	const dateConstrained = $derived(showDates && datePreset !== 'all');
 	const projectsConstrained = $derived(projectIds.length > 0);
 	const activitiesConstrained = $derived(activityTypeIds.length > 0);
 	const constrained = $derived(
 		dateConstrained || (showProjects && projectsConstrained) || activitiesConstrained
+	);
+	const facetCount = $derived(
+		(dateConstrained ? 1 : 0) +
+			(showProjects && projectsConstrained ? 1 : 0) +
+			(activitiesConstrained ? 1 : 0)
+	);
+	const compactLabel = $derived(
+		facetCount > 0 ? m.logs_filter_n({ n: facetCount }) : m.logs_filter_open()
 	);
 
 	const dateLabel = $derived.by(() => {
@@ -98,6 +110,12 @@
 	let projectDraft = $state.raw<string[]>([]);
 	let activitiesOpen = $state(false);
 	let activityDraft = $state.raw<string[]>([]);
+	let filtersOpen = $state(false);
+	let filtersDateDraft = $state<LogDatePreset>('all');
+	let filtersFrom = $state('');
+	let filtersTo = $state('');
+	let filtersProjectDraft = $state.raw<string[]>([]);
+	let filtersActivityDraft = $state.raw<string[]>([]);
 
 	function seedDateDraft() {
 		dateDraft = datePreset;
@@ -108,6 +126,15 @@
 		const today = localDateKeyFromDate(now, timeZone);
 		draftFrom = seed ? localDateKeyFromDate(seed.start, timeZone) : today;
 		draftTo = seed ? localDateKeyFromDate(seed.end, timeZone) : today;
+	}
+
+	function seedCombinedDraft() {
+		seedDateDraft();
+		filtersDateDraft = dateDraft;
+		filtersFrom = draftFrom;
+		filtersTo = draftTo;
+		filtersProjectDraft = [...projectIds];
+		filtersActivityDraft = [...activityTypeIds];
 	}
 
 	function openDates() {
@@ -125,6 +152,11 @@
 		activitiesOpen = true;
 	}
 
+	function openFilters() {
+		seedCombinedDraft();
+		filtersOpen = true;
+	}
+
 	function clearFilters() {
 		if (showDates) {
 			datePreset = 'all';
@@ -136,40 +168,55 @@
 </script>
 
 <div class="flex flex-wrap items-center gap-2" data-testid="logs-filters">
-	{#if showDates}
+	{#if compactable}
 		<Button
-			variant={dateConstrained ? 'tonal' : 'secondary'}
+			variant={constrained ? 'tonal' : 'secondary'}
 			size="sm"
-			aria-pressed={dateConstrained}
+			class="md:hidden"
+			aria-pressed={constrained}
 			aria-haspopup="dialog"
-			data-testid="logs-filter-dates"
-			onclick={openDates}
+			data-testid="logs-filter-open"
+			onclick={openFilters}
 		>
-			{dateLabel}
+			{compactLabel}
 		</Button>
 	{/if}
-	{#if showProjects}
+	<div class={['flex flex-wrap items-center gap-2', compactable && 'hidden md:flex']}>
+		{#if showDates}
+			<Button
+				variant={dateConstrained ? 'tonal' : 'secondary'}
+				size="sm"
+				aria-pressed={dateConstrained}
+				aria-haspopup="dialog"
+				data-testid="logs-filter-dates"
+				onclick={openDates}
+			>
+				{dateLabel}
+			</Button>
+		{/if}
+		{#if showProjects}
+			<Button
+				variant={projectsConstrained ? 'tonal' : 'secondary'}
+				size="sm"
+				aria-pressed={projectsConstrained}
+				aria-haspopup="dialog"
+				data-testid="logs-filter-projects"
+				onclick={openProjects}
+			>
+				{projectLabel}
+			</Button>
+		{/if}
 		<Button
-			variant={projectsConstrained ? 'tonal' : 'secondary'}
+			variant={activitiesConstrained ? 'tonal' : 'secondary'}
 			size="sm"
-			aria-pressed={projectsConstrained}
+			aria-pressed={activitiesConstrained}
 			aria-haspopup="dialog"
-			data-testid="logs-filter-projects"
-			onclick={openProjects}
+			data-testid="logs-filter-activities"
+			onclick={openActivities}
 		>
-			{projectLabel}
+			{activityLabel}
 		</Button>
-	{/if}
-	<Button
-		variant={activitiesConstrained ? 'tonal' : 'secondary'}
-		size="sm"
-		aria-pressed={activitiesConstrained}
-		aria-haspopup="dialog"
-		data-testid="logs-filter-activities"
-		onclick={openActivities}
-	>
-		{activityLabel}
-	</Button>
+	</div>
 	{#if constrained}
 		<Button variant="quiet" size="sm" data-testid="logs-filter-clear" onclick={clearFilters}>
 			{m.logs_filter_clear()}
@@ -219,3 +266,28 @@
 		activitiesOpen = false;
 	}}
 />
+
+{#if compactable}
+	<LogsFiltersDialog
+		open={filtersOpen}
+		bind:preset={filtersDateDraft}
+		bind:fromDay={filtersFrom}
+		bind:toDay={filtersTo}
+		bind:projectIds={filtersProjectDraft}
+		bind:activityTypeIds={filtersActivityDraft}
+		{projectItems}
+		{activityItems}
+		{now}
+		{timeZone}
+		{showProjects}
+		{showDates}
+		onclose={() => (filtersOpen = false)}
+		onapply={(next) => {
+			datePreset = next.preset;
+			customRange = next.customRange;
+			projectIds = next.projectIds;
+			activityTypeIds = next.activityTypeIds;
+			filtersOpen = false;
+		}}
+	/>
+{/if}

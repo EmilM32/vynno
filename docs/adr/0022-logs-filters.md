@@ -33,6 +33,7 @@
 - Project/activity filters without a date bound apply to the loaded window; the sentinel still pages if it is on screen.
 - Native date controls look different per OS.
 - Filters are not bookmarkable.
+- On viewports below `md`, `/logs` collapses the three chips into one Filters control that drafts date + project + activity and Apply-commits them. Desktop chips and named-preset immediate apply are unchanged. The project dossier still shows the activity chip.
 
 ## Alternatives considered
 

@@ -1,7 +1,7 @@
 # Screens and Flows — Vynno
 
 **Status:** Living  
-**Last updated:** 2026-09-11
+**Last updated:** 2026-09-15
 
 Route inventory, shell, and primary user flows. Named themes (`dark`, `light`, `deep-dark`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md). Unbuilt extras: [open.md](./open.md).
 
@@ -79,9 +79,9 @@ Not built on this screen: session target progress, desktop Quick Command panel. 
 
 ### 3.3 Logs (`/logs`)
 
-1. Title + grep-style search + Add entry
-2. Filter row: date (All / Today / Yesterday / Last 7 days / This week / This month / Custom From–To), multi-select projects, multi-select activities. Empty selection = all. View-local (resets on leave). Custom uses native `type="date"`.
-3. Layout toggle: **Entries** (default) | **Grouped**. View-local; not cleared with filters. Grouped merges same-ticket (else same project + note) sessions inside each day, with count + total duration. Multi-session summaries expand to the constituent rows.
+1. Title **Logs**, subtitle **Session history.** (hidden on mobile). Grep-style search + **Add entry** (secondary) on one row.
+2. Filter row: date (All / Today / Yesterday / Last 7 days / This week / This month / Custom From–To), multi-select projects, multi-select activities. Empty selection = all. View-local (resets on leave). Custom uses native `type="date"`. Desktop shows the three chips. Mobile collapses them into one **Filters** control that opens a dialog with the same facets; **Clear** stays on the bar.
+3. Layout toggle: **Entries** (default) | **Grouped**, on the same row as the filters. View-local; not cleared with filters. Grouped merges same-ticket (else same project + note) sessions inside each day, with count + total duration. Multi-session summaries expand to the constituent rows.
 4. Date separators (`YYYY-MM-DD`)
 5. Entries: project color + name, `> note` (one line; expand when truncated), optional ticket / activity chip, time range, duration. Completed rows have Play (hover-reveal on desktop, always visible on mobile) — starts a **new** session now with the same note / project / ticket / activity and goes to Timer. The in-progress row has no Play. Disabled while another session is live (`timer_stop_first`) or the project is archived.
 6. Grouped multi-session headers have the same Play (identity from the newest session in the group). Nested constituent rows keep their own Play.

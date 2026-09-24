@@ -100,7 +100,7 @@ test.describe('command palette', () => {
 		const count = await options.count();
 		expect(count).toBeGreaterThan(1);
 		const last = options.nth(count - 1);
-		// Seven commands currently fit in max-h-72. Cap the list so overflow — and
+		// Six commands currently fit in max-h-72. Cap the list so overflow — and
 		// scroll-into-view — is deterministic regardless of command count.
 		await listbox.evaluate((el) => {
 			el.style.maxHeight = '8rem';

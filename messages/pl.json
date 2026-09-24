@@ -36,7 +36,6 @@
 	"command_palette_hints": "↑↓ nawigacja · enter wybierz · esc zamknij",
 	"command_go_to": "Przejdź do: {page}",
 	"command_open_project": "Otwórz {name}",
-	"command_start_session": "Rozpocznij nową sesję",
 	"common_dismiss": "zamknij",
 	"common_dismiss_capital": "Zamknij",
 	"common_cancel": "Anuluj",

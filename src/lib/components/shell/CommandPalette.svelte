@@ -22,8 +22,8 @@
 
 	const open = $derived(commandPalette.open);
 
-	const commands = $derived.by((): Command[] => {
-		const navCmds: Command[] = NAV_ITEMS.map((item) => ({
+	const commands = $derived.by((): Command[] =>
+		NAV_ITEMS.map((item) => ({
 			id: item.href,
 			label: m.command_go_to({ page: item.label() }),
 			hint: item.href,
@@ -31,21 +31,8 @@
 			run: () => {
 				void goto(resolve(item.href as AppRoute));
 			}
-		}));
-
-		return [
-			{
-				id: 'start',
-				label: m.command_start_session(),
-				hint: '/timer',
-				icon: 'play_arrow',
-				run: () => {
-					void goto(resolve('/timer'));
-				}
-			},
-			...navCmds
-		];
-	});
+		}))
+	);
 
 	const filtered = $derived.by(() => {
 		const q = query.trim().toLowerCase();

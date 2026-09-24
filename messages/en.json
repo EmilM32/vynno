@@ -36,7 +36,6 @@
 	"command_palette_hints": "↑↓ navigate · enter select · esc close",
 	"command_go_to": "Go to {page}",
 	"command_open_project": "Open {name}",
-	"command_start_session": "Start new session",
 	"common_dismiss": "dismiss",
 	"common_dismiss_capital": "Dismiss",
 	"common_cancel": "Cancel",

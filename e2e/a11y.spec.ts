@@ -4,7 +4,7 @@ import { login, waitForClient } from './helpers';
 
 const routes = ['/timer', '/dashboard', '/logs', '/insights', '/projects', '/settings'] as const;
 
-const themes = ['dark', 'light', 'deep-dark'] as const;
+const themes = ['dark', 'light', 'deep-dark', 'ember', 'newsprint', 'zen'] as const;
 
 async function expectNoViolations(page: Page) {
 	const results = await new AxeBuilder({ page })

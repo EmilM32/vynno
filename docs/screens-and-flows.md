@@ -3,7 +3,7 @@
 **Status:** Living  
 **Last updated:** 2026-09-15
 
-Route inventory, shell, and primary user flows. Named themes (`dark`, `light`, `deep-dark`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md). Unbuilt extras: [open.md](./open.md).
+Route inventory, shell, and primary user flows. Named themes (`dark`, `light`, `deep-dark`, `ember`, `newsprint`, `zen`) share this layout; only the palette changes. Tokens: [design-system.md](./design-system.md). Unbuilt extras: [open.md](./open.md).
 
 ---
 

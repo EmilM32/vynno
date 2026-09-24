@@ -100,7 +100,14 @@ test.describe('settings', () => {
 		const select = page.locator('#ui-theme');
 		await expect(select).toBeVisible();
 		await expectTheme(page, 'dark');
-		await expect(select.locator('option')).toHaveText(['Dark', 'Light', 'Deep Dark']);
+		await expect(select.locator('option')).toHaveText([
+			'Dark',
+			'Light',
+			'Deep Dark',
+			'Ember',
+			'Newsprint',
+			'Zen'
+		]);
 
 		await select.selectOption('light');
 		await expectTheme(page, 'light');

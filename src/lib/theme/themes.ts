@@ -32,6 +32,24 @@ export const THEMES: readonly ThemeDefinition[] = [
 		colorScheme: 'dark',
 		themeColor: '#131313',
 		labelKey: 'theme_deep_dark'
+	},
+	{
+		id: 'ember',
+		colorScheme: 'dark',
+		themeColor: '#17120e',
+		labelKey: 'theme_ember'
+	},
+	{
+		id: 'newsprint',
+		colorScheme: 'light',
+		themeColor: '#f2efe6',
+		labelKey: 'theme_newsprint'
+	},
+	{
+		id: 'zen',
+		colorScheme: 'dark',
+		themeColor: '#1c1d21',
+		labelKey: 'theme_zen'
 	}
 ];
 

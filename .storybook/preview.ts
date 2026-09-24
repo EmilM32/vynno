@@ -34,7 +34,10 @@ const preview: Preview = {
 			themes: {
 				Dark: 'dark',
 				Light: 'light',
-				'Deep Dark': 'deep-dark'
+				'Deep Dark': 'deep-dark',
+				Ember: 'ember',
+				Newsprint: 'newsprint',
+				Zen: 'zen'
 			},
 			defaultTheme: 'Dark',
 			attributeName: 'data-theme'

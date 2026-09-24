@@ -1,6 +1,6 @@
 /** Hex maps copied from theme CSS — tests fail if UI text tokens drift below AA. */
 
-export type ThemeId = 'dark' | 'light' | 'deep-dark';
+export type ThemeId = 'dark' | 'light' | 'deep-dark' | 'ember' | 'newsprint' | 'zen';
 
 export type ThemeSwatch = {
 	surface: string;
@@ -60,6 +60,48 @@ export const THEME_SWATCHES: Record<ThemeId, ThemeSwatch> = {
 		error: '#ffb4ab',
 		indigo: '#a5b4fc',
 		coral: '#fb923c'
+	},
+	ember: {
+		surface: '#17120e',
+		container: '#241d16',
+		containerLow: '#1f1913',
+		on: '#f1e5d7',
+		onVar: '#d3c3ae',
+		primary: '#ffb95c',
+		onPrimary: '#452b00',
+		secondary: '#a8d97d',
+		tertiary: '#ffa9cd',
+		error: '#ffb4ab',
+		indigo: '#b8abf7',
+		coral: '#ff9e7a'
+	},
+	newsprint: {
+		surface: '#f2efe6',
+		container: '#e7e3d7',
+		containerLow: '#ede9df',
+		on: '#2b2b2a',
+		onVar: '#55544f',
+		primary: '#3a5175',
+		onPrimary: '#ffffff',
+		secondary: '#3f6b45',
+		tertiary: '#7d5a10',
+		error: '#a83329',
+		indigo: '#474099',
+		coral: '#a1462a'
+	},
+	zen: {
+		surface: '#1c1d21',
+		container: '#282a2f',
+		containerLow: '#232429',
+		on: '#e6e5e9',
+		onVar: '#b6b5bf',
+		primary: '#b6afe8',
+		onPrimary: '#25244f',
+		secondary: '#9fc4a0',
+		tertiary: '#e0c39a',
+		error: '#e5a29b',
+		indigo: '#8fb4dc',
+		coral: '#dfa387'
 	}
 };
 

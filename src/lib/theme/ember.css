@@ -1,0 +1,66 @@
+/* Ember — warm dark. Amber primary on a brown-black base, sage secondary, rose
+   tertiary. The only warm palette in the set; the cool themes own blue and cyan. */
+
+[data-theme='ember'] {
+	color-scheme: dark;
+
+	--dt-background: #17120e;
+	--dt-on-background: #f1e5d7;
+	--dt-surface: #17120e;
+	--dt-surface-dim: #17120e;
+	--dt-surface-bright: #3f352b;
+	--dt-surface-container-lowest: #110d09;
+	--dt-surface-container-low: #1f1913;
+	--dt-surface-container: #241d16;
+	--dt-surface-container-high: #30271e;
+	--dt-surface-container-highest: #3c3227;
+	--dt-surface-variant: #3c3227;
+	--dt-surface-tint: #ffb95c;
+
+	--dt-on-surface: #f1e5d7;
+	--dt-on-surface-variant: #d3c3ae;
+
+	--dt-outline: #9c8b76;
+	--dt-outline-variant: #4b4035;
+
+	--dt-primary: #ffb95c;
+	--dt-on-primary: #452b00;
+	--dt-primary-container: #e8a13a;
+	--dt-on-primary-container: #5a3900;
+	--dt-primary-fixed: #ffdfb5;
+	--dt-primary-fixed-dim: #ffb95c;
+	--dt-on-primary-fixed: #2a1800;
+	--dt-on-primary-fixed-variant: #6b4600;
+	--dt-inverse-primary: #8a5a00;
+
+	--dt-secondary: #a8d97d;
+	--dt-on-secondary: #1e3a00;
+	--dt-secondary-container: #8bbd60;
+	--dt-on-secondary-container: #294d00;
+	--dt-secondary-fixed: #c8f39c;
+	--dt-secondary-fixed-dim: #a8d97d;
+	--dt-on-secondary-fixed: #112600;
+	--dt-on-secondary-fixed-variant: #3c5c16;
+
+	--dt-tertiary: #ffa9cd;
+	--dt-on-tertiary: #5a1138;
+	--dt-tertiary-container: #e88ab3;
+	--dt-on-tertiary-container: #6d234a;
+	--dt-tertiary-fixed: #ffd6e6;
+	--dt-tertiary-fixed-dim: #ffa9cd;
+	--dt-on-tertiary-fixed: #3a0424;
+	--dt-on-tertiary-fixed-variant: #7d3057;
+
+	--dt-error: #ffb4ab;
+	--dt-on-error: #690005;
+	--dt-error-container: #93000a;
+	--dt-on-error-container: #ffdad6;
+
+	--dt-inverse-surface: #f1e5d7;
+	--dt-inverse-on-surface: #33291f;
+
+	/* Activity-type extras — not Material containers. Stored ids stay
+	   primary-container / secondary-container. */
+	--dt-indigo: #b8abf7;
+	--dt-coral: #ff9e7a;
+}

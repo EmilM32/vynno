@@ -2,7 +2,7 @@
 
 **Status:** Living  
 **Last updated:** 2026-09-11  
-**Hex values live in CSS:** `src/lib/theme/dark.css`, `light.css`, `deep-dark.css`. When this doc and the CSS diverge, prefer the CSS unless the change was an intentional product decision. Named themes: [adr/0008-named-themes.md](./adr/0008-named-themes.md).
+**Hex values live in CSS:** `src/lib/theme/dark.css`, `light.css`, `deep-dark.css`, `ember.css`, `newsprint.css`, `zen.css`. When this doc and the CSS diverge, prefer the CSS unless the change was an intentional product decision. Named themes: [adr/0008-named-themes.md](./adr/0008-named-themes.md).
 
 ---
 
@@ -10,7 +10,7 @@
 
 - **Aesthetic:** Minimalist-technical, high information density, terminal / IDE feel
 - **Audience:** Engineers and power users
-- **Mode:** Named color themes (`dark`, `light`, `deep-dark`). Not a boolean.
+- **Mode:** Named color themes (`dark`, `light`, `deep-dark`, `ember`, `newsprint`, `zen`). Not a boolean.
 - **Elevation:** Tonal layers + 1px borders; avoid soft material shadows
 - **Emotion:** Focused productivity, systemic reliability
 
@@ -20,14 +20,14 @@
 
 Material-style names are **shared** across themes. Hex lives in the palette CSS files as `--dt-*`; Tailwind utilities (`bg-surface`, `text-primary`) resolve through `@theme inline`. Do not copy hex from this doc into new CSS — copy from an existing palette file.
 
-| Semantic                   | Color                                                                                                                               |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Active timer / focus       | Primary (sky / electric cyan). Pulse border on Timer only; Current Focus uses a solid primary / tertiary / outline border by status |
-| Success / active indicator | Terminal / neon green (`secondary`)                                                                                                 |
-| Paused / warning           | Soft amber (`dark`, `light`) or lavender (`deep-dark`) — `tertiary`                                                                 |
-| Stopped / neutral status   | Slate / outline                                                                                                                     |
-| Destructive                | `error` / `error-container`                                                                                                         |
-| Activity extras            | Indigo / coral (`--dt-indigo`, `--dt-coral`). Stored on activity types as `primary-container` / `secondary-container`               |
+| Semantic                   | Color                                                                                                                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Active timer / focus       | Primary — sky / electric cyan, amber (`ember`), ink navy (`newsprint`), iris (`zen`). Pulse border on Timer only; Current Focus uses a solid primary / tertiary / outline border by status |
+| Success / active indicator | Green — terminal neon, or sage / pencil green in the low-chroma themes (`secondary`)                                                                                                       |
+| Paused / warning           | Soft amber (`dark`, `light`), lavender (`deep-dark`), rose (`ember`), ochre (`newsprint`) or sand (`zen`) — `tertiary`                                                                     |
+| Stopped / neutral status   | Slate / outline                                                                                                                                                                            |
+| Destructive                | `error` / `error-container`                                                                                                                                                                |
+| Activity extras            | Indigo / coral (`--dt-indigo`, `--dt-coral`). Stored on activity types as `primary-container` / `secondary-container`                                                                      |
 
 **Do not** use `outline`, `outline-variant`, or `*-fixed` tints as small text (they fail 4.5:1 on light). Status ink is `secondary` / `tertiary` / `error`, not `secondary-fixed`.
 

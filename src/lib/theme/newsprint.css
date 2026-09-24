@@ -1,0 +1,66 @@
+/* Newsprint — warm light. Graphite ink and ballpoint navy on newsprint stock.
+   Low chroma throughout, so the 1px rules read as pencil lines rather than chrome. */
+
+[data-theme='newsprint'] {
+	color-scheme: light;
+
+	--dt-background: #f2efe6;
+	--dt-on-background: #2b2b2a;
+	--dt-surface: #f2efe6;
+	--dt-surface-dim: #dbd6c9;
+	--dt-surface-bright: #faf8f3;
+	--dt-surface-container-lowest: #ffffff;
+	--dt-surface-container-low: #ede9df;
+	--dt-surface-container: #e7e3d7;
+	--dt-surface-container-high: #e0dbcd;
+	--dt-surface-container-highest: #d8d3c4;
+	--dt-surface-variant: #d8d3c4;
+	--dt-surface-tint: #3a5175;
+
+	--dt-on-surface: #2b2b2a;
+	--dt-on-surface-variant: #55544f;
+
+	--dt-outline: #79766a;
+	--dt-outline-variant: #bdb7a6;
+
+	--dt-primary: #3a5175;
+	--dt-on-primary: #ffffff;
+	--dt-primary-container: #4a6690;
+	--dt-on-primary-container: #ffffff;
+	--dt-primary-fixed: #d4dced;
+	--dt-primary-fixed-dim: #9fb0cd;
+	--dt-on-primary-fixed: #141d2e;
+	--dt-on-primary-fixed-variant: #33455f;
+	--dt-inverse-primary: #a8bada;
+
+	--dt-secondary: #3f6b45;
+	--dt-on-secondary: #ffffff;
+	--dt-secondary-container: #4c7f53;
+	--dt-on-secondary-container: #2c4d31;
+	--dt-secondary-fixed: #cbe4cb;
+	--dt-secondary-fixed-dim: #8fc296;
+	--dt-on-secondary-fixed: #0c1f10;
+	--dt-on-secondary-fixed-variant: #31522f;
+
+	--dt-tertiary: #7d5a10;
+	--dt-on-tertiary: #ffffff;
+	--dt-tertiary-container: #96701f;
+	--dt-on-tertiary-container: #ffffff;
+	--dt-tertiary-fixed: #f2e2bd;
+	--dt-tertiary-fixed-dim: #d8be84;
+	--dt-on-tertiary-fixed: #2a1e04;
+	--dt-on-tertiary-fixed-variant: #614412;
+
+	--dt-error: #a83329;
+	--dt-on-error: #ffffff;
+	--dt-error-container: #f5d9d3;
+	--dt-on-error-container: #7a2117;
+
+	--dt-inverse-surface: #31302d;
+	--dt-inverse-on-surface: #f1efe9;
+
+	/* Activity-type extras — not Material containers. Stored ids stay
+	   primary-container / secondary-container. */
+	--dt-indigo: #474099;
+	--dt-coral: #a1462a;
+}

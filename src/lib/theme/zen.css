@@ -1,0 +1,66 @@
+/* Zen — neutral dark, minimal chroma. Muted iris primary on lifted graphite,
+   sage secondary, sand tertiary. Restraint is the point: one accent, no neon. */
+
+[data-theme='zen'] {
+	color-scheme: dark;
+
+	--dt-background: #1c1d21;
+	--dt-on-background: #e6e5e9;
+	--dt-surface: #1c1d21;
+	--dt-surface-dim: #17181b;
+	--dt-surface-bright: #3b3d44;
+	--dt-surface-container-lowest: #151619;
+	--dt-surface-container-low: #232429;
+	--dt-surface-container: #282a2f;
+	--dt-surface-container-high: #31333a;
+	--dt-surface-container-highest: #3a3c44;
+	--dt-surface-variant: #3a3c44;
+	--dt-surface-tint: #b6afe8;
+
+	--dt-on-surface: #e6e5e9;
+	--dt-on-surface-variant: #b6b5bf;
+
+	--dt-outline: #83828e;
+	--dt-outline-variant: #4a4b53;
+
+	--dt-primary: #b6afe8;
+	--dt-on-primary: #25244f;
+	--dt-primary-container: #9a93d6;
+	--dt-on-primary-container: #2a2957;
+	--dt-primary-fixed: #dcd9f5;
+	--dt-primary-fixed-dim: #b6afe8;
+	--dt-on-primary-fixed: #171639;
+	--dt-on-primary-fixed-variant: #454478;
+	--dt-inverse-primary: #5b58a0;
+
+	--dt-secondary: #9fc4a0;
+	--dt-on-secondary: #1e3421;
+	--dt-secondary-container: #86ab88;
+	--dt-on-secondary-container: #20381f;
+	--dt-secondary-fixed: #cfe3cf;
+	--dt-secondary-fixed-dim: #9fc4a0;
+	--dt-on-secondary-fixed: #0e2210;
+	--dt-on-secondary-fixed-variant: #3d5a3e;
+
+	--dt-tertiary: #e0c39a;
+	--dt-on-tertiary: #3d2e15;
+	--dt-tertiary-container: #c9a97f;
+	--dt-on-tertiary-container: #4a3a1e;
+	--dt-tertiary-fixed: #f2ddc2;
+	--dt-tertiary-fixed-dim: #e0c39a;
+	--dt-on-tertiary-fixed: #2a1e0a;
+	--dt-on-tertiary-fixed-variant: #5c4828;
+
+	--dt-error: #e5a29b;
+	--dt-on-error: #4a1712;
+	--dt-error-container: #7d3630;
+	--dt-on-error-container: #ffdad6;
+
+	--dt-inverse-surface: #e6e5e9;
+	--dt-inverse-on-surface: #2b2c31;
+
+	/* Activity-type extras — not Material containers. Stored ids stay
+	   primary-container / secondary-container. */
+	--dt-indigo: #8fb4dc;
+	--dt-coral: #dfa387;
+}

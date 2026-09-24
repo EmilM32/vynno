@@ -13,7 +13,7 @@
 
 	const status = $derived(sessionStore.activeSession?.status);
 	const sessionChrome = $derived(
-		status === 'active' ? 'border-primary pulse-border' : 'border-outline-variant'
+		status === 'active' ? 'border-primary' : 'border-outline-variant'
 	);
 </script>
 

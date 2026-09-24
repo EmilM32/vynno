@@ -107,13 +107,12 @@ Focus is two-tier (always `:focus-visible`):
 
 Personality, the frequency gate, tokens, and do/don’t: **[motion.md](./motion.md)**. That file is the source of truth.
 
-| Effect                | Use                                         |
-| --------------------- | ------------------------------------------- |
-| Border pulse          | Active timer card                           |
-| Blink / pulse dot     | ACTIVE status, recording indicator          |
-| Hover row highlight   | Logs, recent tasks (`surface-variant` tint) |
-| Press scale           | Primary chrome (`.press`)                   |
-| Confirm / form dialog | Centered scale + fade, 200ms                |
+| Effect                | Use                                                |
+| --------------------- | -------------------------------------------------- |
+| Static live-dot glow  | ACTIVE status, recording indicator (`.today-glow`) |
+| Hover row highlight   | Logs, recent tasks (`surface-variant` tint)        |
+| Press scale           | Primary chrome (`.press`)                          |
+| Confirm / form dialog | Centered scale + fade, 200ms                       |
 
 ---
 
@@ -176,7 +175,7 @@ Non-chrome interactive surfaces are **not** `Button`: dismiss scrims, list rows,
 Composed widgets, store-owned screens, and one-off fields. See [ADR-0018](./adr/0018-atomic-ui-layer.md).
 
 - **Command / quick input** — timer `TaskInput` note and the command-palette flush field
-- **Timer card** — largest mono display; primary pulse when active
+- **Timer card** — largest mono display; solid primary border when active
 - **Log row / project row** — consume `ColorDot`, `Chip`, `ActivityChip`; stay composed
 - **Charts** — donut + bar; LayerChart wrappers; no heavy decoration
 - **Generic card / panel** — padding and header splits vary too much to own

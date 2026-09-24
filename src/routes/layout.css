@@ -38,34 +38,8 @@
 	}
 }
 
-/* Timer / status motion — respect reduced motion */
+/* Pressable chrome — pointer-down scale. Color hovers keep their own transition. */
 @layer utilities {
-	.pulse-border {
-		animation: borderPulse 2s infinite;
-	}
-
-	@keyframes borderPulse {
-		0% {
-			border-color: color-mix(in oklab, var(--color-primary) 20%, transparent);
-			box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-primary) 40%, transparent);
-		}
-		70% {
-			border-color: var(--color-primary);
-			box-shadow: 0 0 0 10px color-mix(in oklab, var(--color-primary) 0%, transparent);
-		}
-		100% {
-			border-color: color-mix(in oklab, var(--color-primary) 20%, transparent);
-			box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-primary) 0%, transparent);
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.pulse-border {
-			animation: none;
-		}
-	}
-
-	/* Pressable chrome — pointer-down scale. Color hovers keep their own transition. */
 	.press {
 		transition-property:
 			color, background-color, border-color, outline-color, text-decoration-color, fill, stroke,

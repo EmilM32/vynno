@@ -24,7 +24,7 @@
 
 <div
 	class={[
-		'flex max-h-56 flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container md:h-[300px] md:max-h-none',
+		'flex max-h-56 flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container md:h-75 md:max-h-none',
 		className
 	]}
 >

@@ -18,7 +18,7 @@
 
 <Story name="Mobile">
 	{#snippet template()}
-		<div class="sb-shell-mobile relative mx-auto min-h-24 max-w-[375px] bg-surface">
+		<div class="sb-shell-mobile relative mx-auto min-h-24 max-w-93.75 bg-surface">
 			<BottomNav />
 		</div>
 	{/snippet}

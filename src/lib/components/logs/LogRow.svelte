@@ -90,7 +90,7 @@
 	</div>
 
 	{#if !hideProject}
-		<div class="hidden min-w-[120px] shrink-0 md:flex">
+		<div class="hidden min-w-30 shrink-0 md:flex">
 			{@render projectIdentity()}
 		</div>
 	{/if}
@@ -100,7 +100,7 @@
 			<div
 				class={[
 					'min-w-0 flex-1 font-mono text-code-data text-on-surface-variant',
-					noteExpanded ? 'break-words whitespace-normal' : 'truncate'
+					noteExpanded ? 'wrap-break-word whitespace-normal' : 'truncate'
 				]}
 				title={session.note}
 				{@attach watchOverflow}
@@ -129,7 +129,7 @@
 		{#if activity}
 			<ActivityChip type={activity} />
 		{/if}
-		{@render timeCluster('', 'min-w-[80px] text-right text-code-display')}
+		{@render timeCluster('', 'min-w-20 text-right text-code-display')}
 	</div>
 
 	{#if canRestart || onedit || ondelete}

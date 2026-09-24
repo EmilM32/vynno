@@ -102,7 +102,7 @@
 <!-- Timer transport: `lg` primary Start / Stop. -->
 <Story name="Transport">
 	{#snippet template()}
-		<div class="flex max-w-[280px] gap-3">
+		<div class="flex max-w-70 gap-3">
 			<Button variant="primary" size="lg" class="flex-1">
 				<Icon name="stop" size="lg" fill />
 				Stop

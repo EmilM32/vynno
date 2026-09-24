@@ -69,7 +69,7 @@
 <section
 	class={[
 		'vynno-chart flex flex-col rounded-lg border border-outline-variant bg-surface-container p-4',
-		className ?? 'h-64 lg:h-[300px]'
+		className ?? 'h-64 lg:h-75'
 	]}
 	aria-label={regionLabel}
 >

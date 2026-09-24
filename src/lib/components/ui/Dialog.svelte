@@ -67,7 +67,7 @@
 {#if open}
 	<div
 		{@attach trapOverlay}
-		class="fixed inset-0 z-[100] flex items-center justify-center overscroll-contain px-4"
+		class="fixed inset-0 z-100 flex items-center justify-center overscroll-contain px-4"
 	>
 		<!-- Scrim, not chrome: a full-bleed dismiss surface, so it stays a raw button. -->
 		<button

@@ -64,7 +64,7 @@
 		</div>
 
 		{#if !hideProject}
-			<div class="hidden min-w-[120px] shrink-0 md:flex">
+			<div class="hidden min-w-30 shrink-0 md:flex">
 				<div class="flex min-w-0 items-center gap-2">
 					<ColorDot color={project?.color ?? '#64748b'} />
 					<span class="truncate text-body-sm text-on-surface"

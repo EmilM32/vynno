@@ -298,7 +298,7 @@
 			</div>
 		{/if}
 
-		<div class="grid grid-cols-1 gap-4 lg:auto-rows-[300px] lg:grid-cols-2 lg:gap-6">
+		<div class="grid grid-cols-1 gap-4 lg:auto-rows-75 lg:grid-cols-2 lg:gap-6">
 			<WeeklyOverview
 				class="h-48 md:h-64 lg:h-full"
 				days={chartDays}

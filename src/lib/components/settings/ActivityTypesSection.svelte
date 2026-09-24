@@ -59,7 +59,7 @@
 	aria-labelledby="settings-activity-types"
 >
 	<div
-		class="flex flex-wrap items-start justify-between gap-3 bg-surface-container px-4 pt-4 pb-4 md:sticky md:top-[var(--page-header-h,0px)] md:z-10"
+		class="flex flex-wrap items-start justify-between gap-3 bg-surface-container px-4 pt-4 pb-4 md:sticky md:top-(--page-header-h,0px) md:z-10"
 	>
 		<div class="min-w-0">
 			<h2 id="settings-activity-types" class="text-headline-md text-on-surface">

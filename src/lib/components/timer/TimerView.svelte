@@ -18,7 +18,7 @@
 </script>
 
 <div
-	class="mx-auto flex w-full max-w-[600px] flex-col gap-8 md:mx-0 md:max-w-none"
+	class="mx-auto flex w-full max-w-150 flex-col gap-8 md:mx-0 md:max-w-none"
 	data-testid="page-view"
 >
 	<PageHeader title={m.timer_title()} />

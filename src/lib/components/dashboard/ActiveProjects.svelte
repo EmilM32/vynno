@@ -36,7 +36,7 @@
 			{const pct = $derived(item.progressPercent ?? 0)}
 			<a
 				href={resolve(`/projects/${encodeURIComponent(item.project.id)}`)}
-				class="focus-ring flex min-w-[280px] shrink-0 flex-col gap-3 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline"
+				class="focus-ring flex min-w-70 shrink-0 flex-col gap-3 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline"
 				data-testid="active-project-card"
 			>
 				<div class="flex items-start justify-between">

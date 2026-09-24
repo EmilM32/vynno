@@ -20,7 +20,7 @@
 
 <a
 	href="#main-content"
-	class="focus-ring sr-only bg-primary text-on-primary focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[200] focus:rounded focus:px-3 focus:py-2 focus-visible:not-sr-only focus-visible:absolute focus-visible:top-2 focus-visible:left-2 focus-visible:z-[200] focus-visible:rounded focus-visible:px-3 focus-visible:py-2"
+	class="focus-ring sr-only bg-primary text-on-primary focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-200 focus:rounded focus:px-3 focus:py-2 focus-visible:not-sr-only focus-visible:absolute focus-visible:top-2 focus-visible:left-2 focus-visible:z-200 focus-visible:rounded focus-visible:px-3 focus-visible:py-2"
 >
 	{m.shell_skip_to_content()}
 </a>

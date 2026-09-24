@@ -70,7 +70,7 @@
 		</label>
 	{/if}
 
-	<div class="mt-6 flex w-full max-w-[280px] gap-3">
+	<div class="mt-6 flex w-full max-w-70 gap-3">
 		{#if isIdle}
 			<Button
 				variant="primary"

@@ -37,6 +37,13 @@
 		lc = await import('$lib/components/charts/lazy-bar');
 	});
 
+	/*
+	 * Never pass `motion="none"` to BarChart. LayerChart only checks `if (motion)`, so the string
+	 * turns on controlled domain motion, which skips band domains shorter than 2 keys. Switching
+	 * week → "all" with one month loaded then keeps the 7 stale day keys and every x is NaN.
+	 * Omitting the prop already means no animation.
+	 */
+
 	const days = $derived(daysProp ?? sessionStore.weekDayTotals);
 	const title = $derived(heading ?? m.dashboard_weekly_overview());
 	const regionLabel = $derived(ariaLabel ?? m.dashboard_weekly_overview_aria());
@@ -114,7 +121,6 @@
 				c={(d: ChartPoint) => (d.isToday ? 'today' : 'other')}
 				cDomain={['today', 'other']}
 				cRange={[fillToday, fillOther]}
-				motion="none"
 				legend={false}
 				rule={true}
 				grid={{ x: false, y: true }}

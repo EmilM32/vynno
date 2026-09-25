@@ -56,8 +56,8 @@
 		{#if items.length === 0 || totalMs <= 0}
 			<div class="h-48 w-48 rounded-full bg-surface-variant" aria-hidden="true"></div>
 		{:else if lc}
-			{@const PieChart = lc.PieChart}
-			{@const Tooltip = lc.Tooltip}
+			{const PieChart = $derived(lc.PieChart)}
+			{const Tooltip = $derived(lc.Tooltip)}
 			<PieChart
 				class="h-full w-full"
 				data={items}
@@ -67,7 +67,6 @@
 				c="color"
 				innerRadius={0.68}
 				padAngle={0.02}
-				motion="none"
 				legend={false}
 				padding={8}
 			>

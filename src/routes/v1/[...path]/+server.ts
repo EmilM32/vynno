@@ -1,14 +1,15 @@
 import { getApiOrigin } from '$lib/server/env';
-import { proxyToApi } from '$lib/server/proxy';
+import { proxyToApi, resolveClientAddress } from '$lib/server/proxy';
 import type { RequestHandler } from './$types';
 
-const proxy: RequestHandler = async ({ request, params, url, locals }) => {
+const proxy: RequestHandler = async (event) => {
 	return proxyToApi({
-		request,
-		path: params.path,
-		search: url.search,
+		request: event.request,
+		path: event.params.path,
+		search: event.url.search,
 		apiOrigin: getApiOrigin(),
-		requestId: locals.requestId
+		requestId: event.locals.requestId,
+		clientAddress: resolveClientAddress(() => event.getClientAddress())
 	});
 };
 

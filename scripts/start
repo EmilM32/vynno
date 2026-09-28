@@ -52,6 +52,9 @@ fi
 export NODE_ENV=production
 export HOST PORT ORIGIN BODY_SIZE_LIMIT API_ORIGIN
 export LOG_FORMAT=json
+# Client address is the hop Caddy appended, not a browser-supplied leftmost XFF.
+export ADDRESS_HEADER=X-Forwarded-For
+export XFF_DEPTH=1
 
 mkdir -p "$ROOT/logs" "$ROOT/var"
 rotate_log "$SPA_LOG"

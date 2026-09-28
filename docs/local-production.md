@@ -29,7 +29,7 @@ cp .env.production.example .env.production     # daily Node → :27182
 ./scripts/build
 ```
 
-In **vynno-api** `.env`, `SPA_ORIGIN` must include `https://vynno.localhost` (keep the Vite and preview origins). `COOKIE_SECURE=true` on the production API. `PUBLIC_API_ORIGIN=http://vynno.localhost:27182` (Swagger stays HTTP). Restart the API after changing it.
+In **vynno-api** `.env`, `SPA_ORIGIN` must include `https://vynno.localhost` (keep the Vite and preview origins). `COOKIE_SECURE=true` on the production API. `PUBLIC_API_ORIGIN=http://vynno.localhost:27182` (Swagger stays HTTP). Restart the API after changing it. `avatarUrl` remains the absolute `{PUBLIC_API_ORIGIN}/v1/avatars/{uuid}`. On this setup that origin is the internal API address. The SPA rewrites it to a same-origin path in `src/lib/api/mappers/profile.ts` before rendering. That is intentional.
 
 Certificates are Caddy `tls internal` (not Let's Encrypt — `.localhost` is not publicly issuable). After the first HTTPS start, trust the local CA once:
 
@@ -86,7 +86,7 @@ Vite (`npm run dev`) and Playwright load `.env` + `.env.development` and do not 
 - Does not listen on the LAN (`HOST=127.0.0.1`; Caddy `bind 127.0.0.1 [::1]`).
 - Does not rebuild on start. After pulling UI changes, `scripts/stop` then `scripts/build` then `scripts/start`. Build refuses while the SPA is running.
 - Playwright (`npm run test:e2e`) still uses `vite preview` at `E2E_ORIGIN` (`:4173`), not this server. E2e talks to playground `:8081` (`.env.development`) so it does not register throwaway users into daily `vynno`. Playground `scripts/dev` sends OTP mail to Mailpit; `DEV_MAIL_MODE=log` does not, and e2e fails fast. It also builds into `.svelte-kit/e2e-build` (`BUILD_DIR`), not `build/`, so running e2e while this server is up no longer replaces the build under the live Node — that produced `ERR_MODULE_NOT_FOUND` 500s before 2026-09-11 ([ADR-0014](./adr/0014-local-production-spa.md)).
-- Does not TLS-terminate vynno-api. Swagger stays [http://vynno.localhost:27182/swagger/](http://vynno.localhost:27182/swagger/). Avatar `<img>` URLs are rewritten to same-origin `/v1/avatars/…` in the SPA.
+- Does not TLS-terminate vynno-api. Swagger stays [http://vynno.localhost:27182/swagger/](http://vynno.localhost:27182/swagger/). `avatarUrl` stays the absolute `{PUBLIC_API_ORIGIN}/v1/avatars/{uuid}` (the internal API address on this setup). The SPA rewrites that to a same-origin path in `src/lib/api/mappers/profile.ts` before the `<img>` is rendered. That is intentional.
 
 Start-on-login (launchd) is a later optional step, not part of this cut.
 

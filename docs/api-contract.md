@@ -1,7 +1,7 @@
 # Vynno API contract
 
 **Status:** Living — the SPA speaks this contract against vynno-api  
-**Last updated:** 2026-09-10  
+**Last updated:** 2026-09-28  
 **Executable schemas:** `src/lib/api/schemas/` (source of truth if this doc and code drift)
 
 This is the wire format the SvelteKit app speaks. The backend should implement these resources. If the live API diverges, change **schemas + mappers only** — not views or the session store.
@@ -32,10 +32,10 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 
 | Code                         | Status  | When                                                  | UI string                                   |
 | ---------------------------- | ------- | ----------------------------------------------------- | ------------------------------------------- |
-| `not_found`                  | 404     | Unknown project, session, or activity type id         | `error_not_found`                           |
+| `not_found`                  | 404     | Unknown id, unknown route, or wrong method            | `error_not_found`                           |
 | `invalid_query`              | 400     | Bad `status` / `limit` / `cursor`                     | fallback                                    |
-| `invalid_json`               | 400     | Request or response body is not JSON                  | `error_invalid_response`                    |
-| `invalid_body`               | 400     | Write body failed the request schema / validation     | fallback (`error_failed_*`)                 |
+| `invalid_json`               | 400     | Malformed JSON or trailing data (response that is not JSON uses the same code on the client) | `error_invalid_response` |
+| `invalid_body`               | 400 / 413 | Schema or wrong JSON type (`400`). Body over 2 MB through the BFF is `413` with message `Request body is too large.` Not `internal_error`. | fallback (`error_failed_*`) |
 | `invalid_response`           | 502     | Client: body did not match the response schema        | `error_invalid_response`                    |
 | `http_error`                 | 4xx/5xx | Non-OK without an envelope                            | fallback                                    |
 | `session_not_active`         | 404     | `GET /sessions/active` when idle                      | `error_not_found`                           |
@@ -51,7 +51,8 @@ Creates return **`201`**. Other successful writes return **`200`** with the upda
 | `invalid_credentials`        | 401     | Login email/password do not match                     | `error_invalid_credentials`                 |
 | `email_in_use`               | 409     | Register with a taken email                           | `error_email_in_use`                        |
 | `invalid_code`               | 401     | Wrong, expired, or already used one-time code         | `error_invalid_code`                        |
-| `rate_limited`               | 429     | Register/reset send cooldown, send cap, or too many guesses | `error_rate_limited`                  |
+| `rate_limited`               | 429     | Login, register-code, or password-forgot limit. Body includes `Retry-After`. See below. | `error_rate_limited` |
+| `internal_error`             | 500     | Unexpected server failure. Not `invalid_body`.        | `error_internal`                            |
 
 Example envelope:
 
@@ -81,6 +82,24 @@ These are product rules the API must enforce. Details: [domain-model.md](./domai
 7. **Hard delete** only when **zero** sessions reference the project. Otherwise `409 project_has_sessions` — archive instead.
 8. **Code uniqueness** is case-insensitive among all non-deleted projects, only when `code` is non-empty.
 9. **Cannot start** on a missing (`404 not_found`) or archived (`409 project_archived`) project.
+
+### Text, identity, and limits
+
+**Email.** Emails are stored NFC, lowercased, domain in IDNA punycode. NFC and NFD are one account. An IDN domain and its punycode form are one stored email. Cc/Cf anywhere is `400 invalid_body`. Local part longer than 64 octets is `400`; 64 is accepted. Non-ASCII local parts are allowed. Existing rows are rechecked; collisions are reported, not auto-merged.
+
+**Names** (project, activity type, display name). NFC, strip zero-width characters (U+200B, U+200C, U+200D, U+2060, U+FEFF), reject bidi controls (U+202A–U+202E, U+2066–U+2069), other Cc, and U+FFFD. Length is Unicode code points, not UTF-16 units; an emoji counts as 1. Project and activity-type names are 1–80. Display name is 0–80 (`""` clears it). Whitespace-only or zero-width-only is empty.
+
+**Notes and tickets.** `note` is at most 500 code points. Tab, LF, and CR are allowed; other Cc and bidi are not. The API maps an empty note to Untitled. `ticketId` is at most 64 code points. Legacy rows with a longer note or ticket still load. A PATCH that omits the oversized field succeeds and does not revalidate that field.
+
+**Session times.** Instants compare at microsecond precision. `startedAt >= 2000-01-01T00:00:00Z`. Instants must be ≤ now + 5 minutes. Duration (`endedAt - startedAt`) is ≤ 7 days. A note-only PATCH of a legacy out-of-bounds row does not recheck those bounds. `targetDurationMs` maximum is `9007199254740991`.
+
+**Project code.** ASCII, at most 8 characters, and must include a letter or a digit. `---` and `ı` are `400`. `A-1` is `201`. Uniqueness is case-insensitive among non-deleted projects when `code` is non-empty.
+
+**`429 rate_limited`.** The body includes `Retry-After`. Login: 10 failures / 15 minutes per email (the 11th attempt is 429 even with the correct password until the window passes; a success resets that email’s counter) and 30 failures / 15 minutes per client IP. Register-code and password-forgot: 5 sends / 10 minutes per IP (the 6th is 429 and sends no mail). The client IP is the address the BFF writes to `X-Forwarded-For` from `getClientAddress()` after deleting any inbound `X-Forwarded-For` and `X-Real-IP`. A browser-supplied `X-Forwarded-For` is not the bucket key. The production Node process sets `ADDRESS_HEADER=X-Forwarded-For` and `XFF_DEPTH=1`, so the address is the one Caddy appended.
+
+**Bodies and routes.** `internal_error` is `500` and is not `invalid_body`. An unknown route or the wrong method is JSON `404` `not_found`. A body over 2 MB through the BFF is `413` `{ "error": { "code": "invalid_body", "message": "Request body is too large." } }`. A wrong JSON type is `400 invalid_body`. Malformed JSON and trailing data are `400 invalid_json`. Unknown fields are rejected on POST and PATCH. An empty `status` query means no status filter.
+
+**Avatar.** `avatarUrl` remains the absolute `{PUBLIC_API_ORIGIN}/v1/avatars/{uuid}`. On local production that origin is the internal API address. The SPA rewrites it to a same-origin path in `src/lib/api/mappers/profile.ts` before rendering. That is intentional.
 
 ---
 
@@ -125,7 +144,7 @@ Password reset is two steps. `POST /auth/password/forgot` always `204` for a wel
 }
 ```
 
-`displayName` may be `""`. `email` is the login identifier (not writable after register). `avatarUrl` is JSON `null` when absent. When set it is an absolute URL `{PUBLIC_API_ORIGIN}/v1/avatars/{uuid}`. There is no `handle`. Chrome shows `displayName` if non-empty, otherwise the raw email.
+`displayName` may be `""`. `email` is the login identifier (not writable after register). `avatarUrl` is JSON `null` when absent. When set it remains the absolute URL `{PUBLIC_API_ORIGIN}/v1/avatars/{uuid}`. On local production that origin is the internal API address; the SPA rewrites it to a same-origin path in `src/lib/api/mappers/profile.ts` before rendering. That is intentional. There is no `handle`. Chrome shows `displayName` if non-empty, otherwise the raw email.
 
 `UpdateProfileDto` — all fields optional:
 
@@ -133,7 +152,7 @@ Password reset is two steps. `POST /auth/password/forgot` always `204` for a wel
 { "displayName": "Alex Dev" }
 ```
 
-- `displayName`: trim; at most 80 characters. Omit = leave unchanged. `""` clears the name so the UI falls back to email. `null` → `invalid_body`.
+- `displayName`: NFC; strip zero-width characters; reject bidi, Cc, and U+FFFD; at most 80 code points (an emoji counts as 1). Omit = leave unchanged. `""` clears the name so the UI falls back to email. `null` → `invalid_body`. Empty and zero-width-only are `""`.
 - Do not send `email` or `avatarUrl`. Email is not user-editable. Avatar is only `PUT` / `DELETE /me/avatar`.
 
 `PUT /me/avatar`: field `file`; JPEG / PNG / WebP by magic bytes; max 1 MiB. Replace allocates a new UUID.
@@ -174,7 +193,9 @@ Password reset is two steps. `POST /auth/password/forgot` always `204` for a wel
 { "name": "New tool", "color": "#3b82f6", "code": "TOOL", "progressPercent": 60 }
 ```
 
-`code` may be `null` or omitted. `color` is a `#rrggbb` palette hex. `progressPercent` is optional 0–100; `null` or omit leaves it unset.
+`code` may be `null` or omitted. It is ASCII, at most 8 characters, and must include a letter or a digit. `---` and `ı` are `400`. `A-1` is `201`. `color` is a `#rrggbb` palette hex. `progressPercent` is optional 0–100; `null` or omit leaves it unset.
+
+`name` is NFC, 1–80 code points (an emoji counts as 1). Strip zero-width characters (U+200B, U+200C, U+200D, U+2060, U+FEFF). Reject bidi (U+202A–U+202E, U+2066–U+2069), other Cc, and U+FFFD. Whitespace-only or zero-width-only is rejected.
 
 `UpdateProjectDto` — all fields optional; `code: null` clears the chip; `progressPercent: null` clears the dashboard bar:
 
@@ -195,7 +216,7 @@ Per-user dictionary. Empty until the user creates rows.
 | DELETE | `/activity-types/:id`               | —                   | `204`                                      | `not_found`, `activity_type_has_sessions`  |
 | GET    | `/activity-types/:id/session-count` | —                   | `{ "count": number }`                      | `not_found`                                |
 
-`name` is a display label (trim, 1–80 characters, stored as typed), unique per user case-insensitively. The SPA shows this string; chips render it uppercase.
+`name` is NFC, 1–80 code points (an emoji counts as 1), unique per user case-insensitively. Strip zero-width characters; reject bidi, Cc, and U+FFFD. The SPA shows this string; chips render it uppercase.
 
 `color` is a theme token: `primary` \| `secondary` \| `tertiary` \| `error` \| `on-surface-variant` \| `outline` \| `primary-container` \| `secondary-container`. The last two are stored ids; the SPA paints them as indigo and coral activity accents, not Material container fills.
 
@@ -245,7 +266,9 @@ Per-user dictionary. Empty until the user creates rows.
 
 `GET /sessions/active` returns the active session. Idle → `404` `{ "error": { "code": "session_not_active", "message": "…" } }`.
 
-`status` query is a comma-separated list of those enum values. `limit` is a positive integer, default **20**, max **100**. `cursor` is an opaque string from the previous page’s `nextCursor`; omit it on the first page. Anything else is `400 invalid_query`.
+`status` query is a comma-separated list of those enum values. An empty `status` means no status filter. `limit` is a positive integer, default **20**, max **100**. `cursor` is an opaque string from the previous page’s `nextCursor`; omit it on the first page. Anything else is `400 invalid_query`.
+
+`note` is at most 500 code points. Tab, LF, and CR are allowed; other Cc and bidi are not. An emoji counts as 1. The API maps an empty note to Untitled. `ticketId` is at most 64 code points. Legacy oversized notes and ticket ids still load; a PATCH that omits the oversized field succeeds. Instants compare at microsecond precision. `startedAt >= 2000-01-01T00:00:00Z`. Instants must be ≤ now + 5 minutes. Duration is ≤ 7 days. A note-only PATCH of a legacy out-of-bounds row does not recheck those bounds. `targetDurationMs` maximum is `9007199254740991`. Stopping a session younger than 1 second deletes it instead of keeping a 0s row. Logs show `<1s` for older sub-second rows.
 
 Session list body:
 

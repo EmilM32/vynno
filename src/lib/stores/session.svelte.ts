@@ -39,8 +39,17 @@ import { createSubscriber, SvelteDate, SvelteMap, SvelteSet } from 'svelte/react
 /** Pages held back before `sessions` is replaced during a bulk drain. */
 const DRAIN_BATCH_PAGES = 5;
 
-/** Sub-second stops are accidental taps; they are deleted instead of stored. */
+/**
+ * Sub-second stops are accidental taps; they are deleted instead of stored.
+ * Both the server duration and the local press-to-press time must be under it,
+ * so a skewed client clock can never discard real time (EMI-74).
+ */
 const DISCARD_UNDER_MS = 1000;
+
+/** Monotonic ms; immune to wall-clock skew and adjustments. */
+function monotonicMs(): number {
+	return performance.now();
+}
 
 function isSessionAlreadyActive(e: unknown): boolean {
 	return (e instanceof ApiError || e instanceof DomainError) && e.code === 'session_already_active';
@@ -97,6 +106,10 @@ export class SessionStore {
 	#extraSessionIds = new SvelteSet<string>();
 	#drainGen = 0;
 	#drainLoading = false;
+	/** Server clock minus client clock, estimated from start/stop responses. */
+	#clockOffsetMs = $state(0);
+	/** Session started from this tab and the monotonic time of that Start. */
+	#localStart: { id: string; atMs: number } | null = null;
 	#pageLoading = false;
 	#countInflight = new SvelteMap<string, Promise<number | undefined>>();
 
@@ -119,9 +132,9 @@ export class SessionStore {
 	error = $state<string | null>(null);
 
 	/** In-flight mutation; blocks double-submit. */
-	pendingAction = $state<
-		'start' | 'stop' | 'project' | 'profile' | 'activity' | 'session' | null
-	>(null);
+	pendingAction = $state<'start' | 'stop' | 'project' | 'profile' | 'activity' | 'session' | null>(
+		null
+	);
 
 	busy = $derived(this.pendingAction != null);
 
@@ -566,12 +579,16 @@ export class SessionStore {
 			this.draftNote = note;
 			this.draftActivityType = activityTypeId ?? '';
 			this.draftTicket = ticketId ?? '';
+			const sentAt = Date.now();
+			const pressedAt = monotonicMs();
 			const started = await this.#requireRepo().startSession({
 				projectId,
 				note,
 				ticketId,
 				activityTypeId
 			});
+			this.#syncServerClock(started.startedAt, sentAt);
+			this.#localStart = { id: started.id, atMs: pressedAt };
 			this.#upsertSession(started);
 			this.#adjustSessionCount(started.projectId, started.activityTypeId, 1);
 			announce(m.announce_session_started());
@@ -684,14 +701,24 @@ export class SessionStore {
 		if (!s) return;
 		if (!this.#begin('stop')) return;
 		this.error = null;
+		const local = this.#localStart?.id === s.id ? this.#localStart : null;
+		const localMs = local ? monotonicMs() - local.atMs : null;
 		try {
-			if (sessionElapsedMs(s, Date.now()) < DISCARD_UNDER_MS) {
+			const sentAt = Date.now();
+			const stopped = await this.#requireRepo().stopSession(s.id);
+			if (stopped.endedAt) this.#syncServerClock(stopped.endedAt, sentAt);
+			this.#localStart = null;
+			// Server timestamps only: never compare the client clock with `startedAt`.
+			if (
+				localMs != null &&
+				localMs < DISCARD_UNDER_MS &&
+				sessionElapsedMs(stopped) < DISCARD_UNDER_MS
+			) {
 				await this.#requireRepo().deleteSession(s.id);
 				this.#removeSession(s.id);
 				this.#adjustSessionCount(s.projectId, s.activityTypeId, -1);
 				return;
 			}
-			const stopped = await this.#requireRepo().stopSession(s.id);
 			this.#applyDraftFromSession(stopped);
 			this.#upsertSession(stopped);
 			announce(m.announce_session_stopped());
@@ -751,9 +778,7 @@ export class SessionStore {
 		}
 	};
 
-	#begin = (
-		action: 'start' | 'stop' | 'project' | 'profile' | 'activity' | 'session'
-	): boolean => {
+	#begin = (action: 'start' | 'stop' | 'project' | 'profile' | 'activity' | 'session'): boolean => {
 		if (this.pendingAction) return false;
 		this.pendingAction = action;
 		return true;
@@ -818,13 +843,31 @@ export class SessionStore {
 	};
 
 	#syncClock = (): void => {
-		this.nowMs = Date.now();
+		this.nowMs = this.#serverNowMs();
+	};
+
+	/** Client clock corrected to the server clock that stamps `startedAt` / `endedAt`. */
+	#serverNowMs = (): number => Date.now() + this.#clockOffsetMs;
+
+	/**
+	 * `stamp` is server "now" during a request sent at `sentAt` (client clock).
+	 * Offsets inside the round trip are latency, not skew, and are ignored.
+	 */
+	#syncServerClock = (stamp: string, sentAt: number): void => {
+		const server = Date.parse(stamp);
+		if (Number.isNaN(server)) return;
+		const receivedAt = Date.now();
+		if (server >= sentAt && server <= receivedAt) {
+			this.#clockOffsetMs = 0;
+			return;
+		}
+		this.#clockOffsetMs = server - (sentAt + receivedAt) / 2;
 	};
 
 	/** Tick only while a reader is subscribed (active elapsed / live today KPIs). */
 	#liveNowMs = (): number => {
 		this.#clockSubscribe();
-		return Date.now();
+		return this.#serverNowMs();
 	};
 
 	#asOfMs = (): number => {
@@ -1074,6 +1117,8 @@ export class SessionStore {
 		this.#bumpDrain();
 		this.#drainLoading = false;
 		this.#pageLoading = false;
+		this.#clockOffsetMs = 0;
+		this.#localStart = null;
 		this.#active = null;
 		this.#loadedSessionIds = new SvelteSet();
 		this.#extraSessionIds = new SvelteSet();

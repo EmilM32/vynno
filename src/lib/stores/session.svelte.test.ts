@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '$lib/api/errors';
 import { MemoryTimeTrackingRepository } from '$lib/data/memory-repository';
 import { FIXED_NOW, makeProject, makeSession, sampleAppSeed } from '$lib/test/factories';
 import { todayTotalMs as aggregateTodayTotalMs } from '$lib/time/aggregates';
 import { sessionElapsedMs, startOfYesterday } from '$lib/time/duration';
 import { PrefsStore } from './prefs.svelte';
+import type { TimeSession } from '$lib/types/domain';
 import { SessionStore } from './session.svelte';
 
 function hydrateWithRepo(seed = sampleAppSeed()) {
@@ -177,7 +178,7 @@ describe('SessionStore draft activity', () => {
 		expect(listActivityTypes).not.toHaveBeenCalled();
 
 		const liveId = store.activeSession?.id;
-		// A stop in the same millisecond is discarded; this test covers a real stop.
+		// A sub-second Start→Stop is discarded; backdate so this covers a real stop.
 		await store.updateSession(liveId!, {
 			startedAt: new Date(Date.now() - 5_000).toISOString()
 		});
@@ -598,32 +599,111 @@ describe('SessionStore lazy session counts', () => {
 
 describe('SessionStore sub-second stop', () => {
 	let store: SessionStore;
+	let mono = 0;
+
+	beforeEach(() => {
+		mono = 0;
+		vi.spyOn(performance, 'now').mockImplementation(() => mono);
+	});
 
 	afterEach(() => {
 		store?.reset();
 		vi.restoreAllMocks();
 	});
 
-	it('deletes a session stopped in under a second and does not call stopSession', async () => {
-		const live = makeSession({
-			id: 'flick',
-			status: 'active',
-			endedAt: undefined,
-			note: 'tap',
-			startedAt: new Date(Date.now() - 200).toISOString()
-		});
-		const repo = new MemoryTimeTrackingRepository({ ...sampleAppSeed(), sessions: [live] });
+	function setup(sessions: TimeSession[] = []) {
+		const repo = new MemoryTimeTrackingRepository({ ...sampleAppSeed(), sessions });
 		const stopSession = vi.spyOn(repo, 'stopSession');
 		const deleteSession = vi.spyOn(repo, 'deleteSession');
 		store = new SessionStore(new PrefsStore());
-		store.hydrate({ ...sampleAppSeed(), sessions: [live] }, { repo });
+		store.hydrate({ ...sampleAppSeed(), sessions }, { repo });
+		return { repo, stopSession, deleteSession };
+	}
+
+	/** Server clock `skewMs` ahead of the client; the stop lands `serverMs` after the start. */
+	function skewServer(repo: MemoryTimeTrackingRepository, skewMs: number, serverMs: number) {
+		const proto = MemoryTimeTrackingRepository.prototype;
+		const start = proto.startSession.bind(repo);
+		const stop = proto.stopSession.bind(repo);
+		vi.spyOn(repo, 'startSession').mockImplementation(async (input) => ({
+			...(await start(input)),
+			startedAt: new Date(Date.now() + skewMs).toISOString()
+		}));
+		vi.spyOn(repo, 'stopSession').mockImplementation(async (id) => {
+			const stopped = await stop(id);
+			return {
+				...stopped,
+				startedAt: store.activeSession!.startedAt,
+				endedAt: new Date(Date.parse(store.activeSession!.startedAt) + serverMs).toISOString()
+			};
+		});
+	}
+
+	it('stops then deletes a session started and stopped here in under a second', async () => {
+		const { repo, stopSession, deleteSession } = setup();
+
+		await store.start({ projectId: 'proj-auth', note: 'tap' });
+		const id = store.activeSession!.id;
+		mono += 200;
+		await store.stop();
+
+		expect(stopSession).toHaveBeenCalledWith(id);
+		expect(deleteSession).toHaveBeenCalledWith(id);
+		expect(store.activeSession).toBeNull();
+		expect(store.sessions.some((s) => s.id === id)).toBe(false);
+		expect(await repo.getSession(id)).toBeUndefined();
+	});
+
+	it.each([
+		['behind', 10 * 60_000],
+		['ahead', -10 * 60_000]
+	])('keeps a 5s session when the client clock is 10 min %s the server', async (_, skewMs) => {
+		const { repo, deleteSession } = setup();
+		skewServer(repo, skewMs, 5_000);
+
+		await store.start({ projectId: 'proj-auth', note: 'real work' });
+		const id = store.activeSession!.id;
+		mono += 5_000;
+		await store.stop();
+
+		expect(deleteSession).not.toHaveBeenCalled();
+		expect(store.sessions.find((s) => s.id === id)?.status).toBe('stopped');
+	});
+
+	it('keeps a session whose server duration is 1s+ even after a quick local stop', async () => {
+		const { repo, deleteSession } = setup();
+		skewServer(repo, 10 * 60_000, 1_500);
+
+		await store.start({ projectId: 'proj-auth', note: 'slow network' });
+		mono += 300;
+		await store.stop();
+
+		expect(deleteSession).not.toHaveBeenCalled();
+	});
+
+	it('corrects the live elapsed time for client clock skew', async () => {
+		const { repo } = setup();
+		skewServer(repo, -10 * 60_000, 5_000);
+
+		await store.start({ projectId: 'proj-auth', note: 'skewed' });
+
+		expect(store.elapsedMs).toBeGreaterThanOrEqual(0);
+		expect(store.elapsedMs).toBeLessThan(1_000);
+	});
+
+	it('keeps a sub-second session whose Start was not pressed in this tab', async () => {
+		const live = makeSession({
+			id: 'elsewhere',
+			status: 'active',
+			endedAt: undefined,
+			startedAt: new Date(Date.now() - 200).toISOString()
+		});
+		const { stopSession, deleteSession } = setup([live]);
 
 		await store.stop();
 
-		expect(deleteSession).toHaveBeenCalledWith('flick');
-		expect(stopSession).not.toHaveBeenCalled();
-		expect(store.activeSession).toBeNull();
-		expect(store.sessions.some((s) => s.id === 'flick')).toBe(false);
-		expect(await repo.getSession('flick')).toBeUndefined();
+		expect(stopSession).toHaveBeenCalledWith('elsewhere');
+		expect(deleteSession).not.toHaveBeenCalled();
+		expect(store.sessions.find((s) => s.id === 'elsewhere')?.status).toBe('stopped');
 	});
 });

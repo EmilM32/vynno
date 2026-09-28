@@ -8,23 +8,24 @@ import {
 	type NormalizeResult
 } from './normalize';
 
+/**
+ * One row of `text_vectors.json`. That file is generated from vynno-api
+ * `internal/domain/testdata/text_vectors.json` by its `scripts/sync-contract`;
+ * the Go tests run the same rows. An empty note or ticket is `normalized: ""`.
+ */
 type Vector = {
 	name: string;
-	fn: 'normalizeName' | 'normalizeNote' | 'normalizeTicketId';
-	raw: string;
-	min?: number;
-	max?: number;
-	ok: boolean;
-	value?: string;
+	kind: 'name' | 'note' | 'ticket';
+	input: string;
+	normalized?: string;
+	error?: string;
 	reason?: 'invalid' | 'empty' | 'too_long';
 };
 
 function run(vector: Vector): NormalizeResult {
-	if (vector.fn === 'normalizeName') {
-		return normalizeName(vector.raw, { min: vector.min ?? 1, max: vector.max ?? 80 });
-	}
-	if (vector.fn === 'normalizeNote') return normalizeNote(vector.raw);
-	return normalizeTicketId(vector.raw);
+	if (vector.kind === 'name') return normalizeName(vector.input, { min: 1, max: 80 });
+	if (vector.kind === 'note') return normalizeNote(vector.input);
+	return normalizeTicketId(vector.input);
 }
 
 describe('codePointLength', () => {
@@ -38,11 +39,11 @@ describe('text vectors', () => {
 	for (const vector of vectors as Vector[]) {
 		it(vector.name, () => {
 			const result = run(vector);
-			if (vector.ok) {
-				expect(result).toEqual({ ok: true, value: vector.value });
-			} else {
+			if (vector.error) {
 				expect(result.ok).toBe(false);
 				if (!result.ok && vector.reason) expect(result.reason).toBe(vector.reason);
+			} else {
+				expect(result).toEqual({ ok: true, value: vector.normalized });
 			}
 		});
 	}

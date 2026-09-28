@@ -17,17 +17,20 @@ function isBidi(cp: number): boolean {
 	return (cp >= 0x202a && cp <= 0x202e) || (cp >= 0x2066 && cp <= 0x2069);
 }
 
-/** Practical Cc check: C0 controls and DEL. Notes may keep tab, LF, and CR. */
+/** Unicode Cc: C0, DEL, and C1 (U+0080–U+009F), as the API. Notes may keep tab, LF, and CR. */
 function isRejectedControl(cp: number, note: boolean): boolean {
-	if (cp === 0x7f) return true;
-	if (cp >= 0x20) return false;
+	if (cp > 0x1f && (cp < 0x7f || cp > 0x9f)) return false;
 	if (note && (cp === 0x09 || cp === 0x0a || cp === 0x0d)) return false;
 	return true;
 }
 
-/** `\s` plus NEL (U+0085), which `/\s/u` misses. ZW and FEFF are already stripped. */
+/**
+ * Go `unicode.IsSpace` for everything that survives `clean`. `/\s/u` also matches
+ * U+FEFF, which Go does not trim (notes keep it; names strip it first). NEL is Cc
+ * and rejected before trimming.
+ */
 function isTrimChar(cp: number): boolean {
-	return cp === 0x0085 || cp === 0xfeff || cp === 0x200b || /\s/u.test(String.fromCodePoint(cp));
+	return cp !== 0xfeff && /\s/u.test(String.fromCodePoint(cp));
 }
 
 function fromCodePoints(cps: number[]): string {
@@ -44,8 +47,10 @@ function clean(raw: string, note: boolean): number[] | 'invalid' {
 	const cps: number[] = [];
 	for (const char of nfc) {
 		const cp = char.codePointAt(0)!;
-		if (cp === 0xfffd || isBidi(cp) || isRejectedControl(cp, note)) return 'invalid';
-		if (STRIP.has(cp)) continue;
+		if (isBidi(cp) || isRejectedControl(cp, note)) return 'invalid';
+		// Names and tickets only: notes keep U+FFFD and zero-width characters (ZWJ emoji).
+		if (!note && cp === 0xfffd) return 'invalid';
+		if (!note && STRIP.has(cp)) continue;
 		cps.push(cp);
 	}
 	let start = 0;
@@ -67,7 +72,10 @@ export function normalizeName(raw: string, bounds: { min: number; max: number })
 	return { ok: true, value: fromCodePoints(cps) };
 }
 
-/** Note: max 500 code points. Empty stays `''`. Tab, LF, and CR are allowed. */
+/**
+ * Note: max 500 code points. Empty stays `''` (the API stores it as Untitled).
+ * Tab, LF, and CR are allowed. No zero-width strip and no U+FFFD reject, as the API.
+ */
 export function normalizeNote(raw: string): NormalizeResult {
 	const cps = clean(raw, true);
 	if (cps === 'invalid') return { ok: false, reason: 'invalid' };

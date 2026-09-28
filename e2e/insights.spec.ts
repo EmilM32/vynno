@@ -221,6 +221,53 @@ test.describe('insights', () => {
 		await expectRingHolds(donut);
 	});
 
+	test('breakdown shows 20 rows plus the rest, and a keyboard toggle for all (EMI-88 N2-05)', async ({
+		page
+	}) => {
+		const typeIds: string[] = [];
+		for (let t = 0; t < 6; t++) {
+			const created = await page.request.post('/v1/activity-types', {
+				data: { name: uniqueNote(`Cap${t}`), color: 'secondary' }
+			});
+			expect(created.ok(), await created.text()).toBeTruthy();
+			typeIds.push(((await created.json()) as { id: string }).id);
+		}
+		const spans = pastSpansOnCurrentDay(30, 60_000);
+		for (let p = 0; p < 5; p++) {
+			const project = await createProject(page, { name: `Cap ${p} ${Date.now().toString(36)}` });
+			for (let t = 0; t < 6; t++) {
+				const span = spans[p * 6 + t]!;
+				await seedManualSession(page, {
+					projectId: project.id,
+					activityTypeId: typeIds[t]!,
+					note: uniqueNote(`cap-${p}-${t}`),
+					startedAt: span.startedAt.toISOString(),
+					endedAt: span.endedAt.toISOString()
+				});
+			}
+		}
+		await page.goto('/insights');
+		await waitForClient(page);
+
+		const breakdown = page.getByRole('region', { name: 'Activity breakdown', exact: true });
+		const rows = breakdown.locator('tbody tr');
+		await expect(rows).toHaveCount(21);
+		await expect(breakdown.getByTestId('breakdown-rest')).toContainText('+10 more');
+
+		const showAll = breakdown.getByRole('button', { name: 'Show all (30)' });
+		await expect(showAll).toHaveAttribute('aria-expanded', 'false');
+		await showAll.focus();
+		await page.keyboard.press('Enter');
+		await expect(rows).toHaveCount(30);
+		await expect(breakdown.getByTestId('breakdown-rest')).toHaveCount(0);
+
+		const showFewer = breakdown.getByRole('button', { name: 'Show fewer' });
+		await expect(showFewer).toHaveAttribute('aria-expanded', 'true');
+		await expect(showFewer).toBeFocused();
+		await page.keyboard.press('Enter');
+		await expect(rows).toHaveCount(21);
+	});
+
 	test('a long range pages history at the bulk size without repeats (EMI-59)', async ({
 		page
 	}, testInfo) => {

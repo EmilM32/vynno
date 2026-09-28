@@ -1,13 +1,23 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import Button from '$lib/components/ui/Button.svelte';
 	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { formatShare, isVisibleActivityRow, type BreakdownRow } from '$lib/time/aggregates';
 	import { formatCompact } from '$lib/time/duration';
+	import { capBreakdown } from './breakdown';
 
 	let { rows }: { rows: BreakdownRow[] } = $props();
 
+	const tbodyId = $props.id();
+
+	let expanded = $state(false);
+
 	const visible = $derived(rows.filter(isVisibleActivityRow));
+	const capped = $derived(capBreakdown(visible));
+	const list = $derived(expanded ? visible : capped.shown);
+	/** Collapsed and cut: one summary line stands in for the hidden rows. */
+	const rest = $derived(expanded ? null : capped.rest);
 </script>
 
 <section
@@ -33,7 +43,7 @@
 					<th scope="col" class="px-4 py-2 text-right font-medium">%</th>
 				</tr>
 			</thead>
-			<tbody>
+			<tbody id={tbodyId}>
 				{#if visible.length === 0}
 					<tr>
 						<td colspan="4" class="p-4 text-body-sm text-on-surface-variant"
@@ -41,9 +51,9 @@
 						>
 					</tr>
 				{:else}
-					{#each visible as row, i (row.projectId + row.activityTypeId)}
+					{#each list as row, i (row.projectId + row.activityTypeId)}
 						<tr
-							class="transition-colors hover:bg-surface-container-high {i < visible.length - 1
+							class="transition-colors hover:bg-surface-container-high {i < list.length - 1 || rest
 								? 'border-b border-outline-variant'
 								: ''}"
 						>
@@ -70,8 +80,38 @@
 							</td>
 						</tr>
 					{/each}
+					{#if rest}
+						<tr data-testid="breakdown-rest">
+							<td class="px-4 py-3 font-mono text-code-label text-on-surface-variant">
+								{m.insights_breakdown_more({ count: rest.count })}
+							</td>
+							<td class="hidden px-4 py-3 md:table-cell"></td>
+							<td class="px-4 py-3 font-mono text-code-data text-on-surface-variant">
+								{formatCompact(rest.ms)}
+							</td>
+							<td class="px-4 py-3 text-right font-mono text-code-data text-on-surface-variant">
+								{formatShare(rest)}
+							</td>
+						</tr>
+					{/if}
 				{/if}
 			</tbody>
 		</table>
 	</div>
+
+	{#if capped.rest}
+		<div class="border-t border-outline-variant px-4 py-3">
+			<Button
+				variant="link"
+				size="sm"
+				aria-expanded={expanded}
+				aria-controls={tbodyId}
+				onclick={() => (expanded = !expanded)}
+			>
+				{expanded
+					? m.insights_breakdown_show_fewer()
+					: m.insights_breakdown_show_all({ count: visible.length })}
+			</Button>
+		</div>
+	{/if}
 </section>

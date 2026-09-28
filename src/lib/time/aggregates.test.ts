@@ -913,3 +913,57 @@ describe('vs yesterday on a Monday (EMI-58)', () => {
 		expect(todayDeltaMs(sessions, now, 'UTC')).toBe(ms.hours(1));
 	});
 });
+
+describe('periodBucketTotals single-pass totals (EMI-59)', () => {
+	// Sunday of the EU DST switch; sessions every 7 h over ~5 months, some crossing midnight.
+	const now = new Date('2026-03-29T10:00:00Z');
+	const sessions = Array.from({ length: 500 }, (_, i) => {
+		const start = now.getTime() - i * 7 * 3_600_000 - 90_000;
+		return makeSession({
+			id: `b${i}`,
+			status: 'stopped',
+			startedAt: new Date(start).toISOString(),
+			endedAt: new Date(start + (20 + (i % 5) * 30) * 60_000).toISOString()
+		});
+	});
+	const keyOf = (s: (typeof sessions)[number], tz?: string) =>
+		localDateKeyFromDate(new Date(s.startedAt), tz);
+
+	it.each(['UTC', 'Europe/Warsaw', 'America/St_Johns', 'Pacific/Kiritimati', undefined])(
+		'matches per-day and per-month scans in %s',
+		(tz) => {
+			for (const kind of ['week', 'month'] as const) {
+				for (const bar of periodBucketTotals(sessions, { kind }, now, tz)) {
+					expect(bar.ms).toBe(totalForLocalDay(sessions, bar.key, now.getTime(), tz));
+				}
+			}
+			const months = periodBucketTotals(sessions, { kind: 'all' }, now, tz);
+			for (const bar of months) {
+				const want = sessions
+					.filter((s) => keyOf(s, tz).startsWith(bar.key.slice(0, 7)))
+					.reduce((sum, s) => sum + (Date.parse(s.endedAt!) - Date.parse(s.startedAt)), 0);
+				expect(bar.ms).toBe(want);
+			}
+
+			const range = (from: string) => {
+				const result = customInsightRange(from, localDateKeyFromDate(now, tz), now, tz);
+				if (!result.ok) throw new Error(result.error);
+				return result.range;
+			};
+			const daily = range('2026-03-10');
+			for (const bar of periodBucketTotals(sessions, { kind: 'custom', range: daily }, now, tz)) {
+				expect(bar.ms).toBe(totalForLocalDay(sessions, bar.key, now.getTime(), tz));
+			}
+
+			const weekly = range('2025-12-01');
+			const startKey = localDateKeyFromDate(weekly.start, tz);
+			const endKey = localDateKeyFromDate(weekly.end, tz);
+			const inRange = sessions.filter((s) => keyOf(s, tz) >= startKey && keyOf(s, tz) <= endKey);
+			const bars = periodBucketTotals(sessions, { kind: 'custom', range: weekly }, now, tz);
+			expect(bars.length).toBeGreaterThan(5);
+			expect(bars.reduce((sum, bar) => sum + bar.ms, 0)).toBe(
+				inRange.reduce((sum, s) => sum + (Date.parse(s.endedAt!) - Date.parse(s.startedAt)), 0)
+			);
+		}
+	);
+});

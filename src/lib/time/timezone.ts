@@ -27,19 +27,33 @@ export type ZonedParts = {
 	second: number;
 };
 
+const partsFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Building an `Intl.DateTimeFormat` costs far more than formatting with one, and aggregates
+ * call this once per session per render (EMI-59), so keep one per zone.
+ */
+function partsFormatter(timeZone: string): Intl.DateTimeFormat {
+	let dtf = partsFormatters.get(timeZone);
+	if (!dtf) {
+		dtf = new Intl.DateTimeFormat('en-US', {
+			timeZone,
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+			hourCycle: 'h23'
+		});
+		partsFormatters.set(timeZone, dtf);
+	}
+	return dtf;
+}
+
 export function partsInTimeZone(date: Date, timeZone: string): ZonedParts {
-	const dtf = new Intl.DateTimeFormat('en-US', {
-		timeZone,
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit',
-		hourCycle: 'h23'
-	});
 	const map: Record<string, string> = {};
-	for (const part of dtf.formatToParts(date)) {
+	for (const part of partsFormatter(timeZone).formatToParts(date)) {
 		if (part.type !== 'literal') map[part.type] = part.value;
 	}
 	return {

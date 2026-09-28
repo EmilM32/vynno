@@ -305,6 +305,39 @@ export async function seedManualSession(
 	}
 }
 
+/**
+ * Bulk stopped sessions via the API for perf runs: `count` spans packed evenly backwards from
+ * an hour ago over `spanMs`, round-robin across `projectIds`. Newest first, like real history.
+ */
+export async function seedManySessions(
+	page: Page,
+	opts: { count: number; projectIds: string[]; spanMs: number; concurrency?: number }
+) {
+	const end = Date.now() - 60 * 60 * 1000;
+	const gap = Math.floor(opts.spanMs / opts.count);
+	const duration = Math.max(1_000, Math.floor(gap * 0.6));
+	let next = 0;
+	const worker = async () => {
+		while (next < opts.count) {
+			const i = next++;
+			const startedAt = end - (i + 1) * gap;
+			const res = await apiFetch(page, '/sessions/manual', {
+				method: 'POST',
+				data: {
+					projectId: opts.projectIds[i % opts.projectIds.length],
+					note: `perf-${i}`,
+					startedAt: new Date(startedAt).toISOString(),
+					endedAt: new Date(startedAt + duration).toISOString()
+				}
+			});
+			if (!res.ok()) {
+				throw new Error(`POST /sessions/manual #${i} failed (${res.status()} ${await res.text()})`);
+			}
+		}
+	};
+	await Promise.all(Array.from({ length: opts.concurrency ?? 24 }, worker));
+}
+
 /** Create stopped sessions via the API, then full-navigate so the SPA hydrates them. */
 export async function seedStoppedSessions(page: Page, count: number) {
 	const projectId = await firstProjectId(page);

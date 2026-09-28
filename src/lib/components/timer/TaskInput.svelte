@@ -4,17 +4,40 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
+	import { noteRejectMessage, ticketRejectMessage } from '$lib/text/field-error';
+	import { normalizeNote, normalizeTicketId } from '$lib/text/normalize';
 
 	const sessionStore = useSession();
 
 	const live = $derived(sessionStore.activeSession);
 	const locked = $derived(sessionStore.busy);
+	const noteResult = $derived(normalizeNote(sessionStore.draftNote));
+	const ticketResult = $derived(normalizeTicketId(sessionStore.draftTicket));
+	const noteError = $derived(
+		noteResult.ok || (live != null && sessionStore.draftNote === live.note)
+			? ''
+			: noteRejectMessage(noteResult.reason)
+	);
+	const ticketError = $derived(
+		ticketResult.ok || (live != null && sessionStore.draftTicket === (live.ticketId ?? ''))
+			? ''
+			: ticketRejectMessage(ticketResult.reason)
+	);
+
+	function applyDraft(): { note: string; ticketId: string } | null {
+		if (!noteResult.ok || !ticketResult.ok) return null;
+		sessionStore.draftNote = noteResult.value;
+		sessionStore.draftTicket = ticketResult.value;
+		return { note: noteResult.value, ticketId: ticketResult.value };
+	}
 
 	function onKeydown(e: KeyboardEvent) {
 		if (e.key !== 'Enter' || locked) return;
 		e.preventDefault();
+		const draft = applyDraft();
+		if (!draft) return;
 		if (live) {
-			void sessionStore.updateSession(live.id, { note: sessionStore.draftNote });
+			void sessionStore.updateSession(live.id, { note: draft.note });
 		} else {
 			sessionStore.start();
 		}
@@ -22,8 +45,13 @@
 
 	function onNoteBlur() {
 		if (!live || locked) return;
-		if (sessionStore.draftNote === live.note) return;
-		void sessionStore.updateSession(live.id, { note: sessionStore.draftNote });
+		if (!noteResult.ok) return;
+		if (noteResult.value === live.note) {
+			sessionStore.draftNote = noteResult.value;
+			return;
+		}
+		sessionStore.draftNote = noteResult.value;
+		void sessionStore.updateSession(live.id, { note: noteResult.value });
 	}
 
 	function onProjectChange() {
@@ -41,7 +69,9 @@
 
 	function onTicketBlur() {
 		if (!live || locked) return;
-		const next = sessionStore.draftTicket.trim() || null;
+		if (!ticketResult.ok) return;
+		const next = ticketResult.value || null;
+		sessionStore.draftTicket = ticketResult.value;
 		if ((live.ticketId ?? null) === next) return;
 		void sessionStore.updateSession(live.id, { ticketId: next });
 	}
@@ -87,6 +117,9 @@
 				onblur={onNoteBlur}
 			/>
 		</div>
+		{#if noteError}
+			<p class="text-body-sm text-error" role="alert">{noteError}</p>
+		{/if}
 	</div>
 
 	<div class="flex min-w-0 flex-col gap-1.5">
@@ -142,6 +175,9 @@
 				onblur={onTicketBlur}
 				autocomplete="off"
 			/>
+			{#if ticketError}
+				<p class="text-body-sm text-error" role="alert">{ticketError}</p>
+			{/if}
 		</div>
 	</div>
 </div>

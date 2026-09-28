@@ -5,10 +5,12 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { defaultProjectColor, suggestCode } from '$lib/projects/palette';
 	import {
+		PROJECT_NAME_MAX,
 		parseProgressPercent,
 		validateProjectFieldErrors,
 		type ProjectFieldErrorKey
 	} from '$lib/projects/validate';
+	import { normalizeName } from '$lib/text/normalize';
 	import type { Project } from '$lib/types/domain';
 	import ProjectColorPicker from './ProjectColorPicker.svelte';
 
@@ -37,9 +39,7 @@
 	// svelte-ignore state_referenced_locally
 	let codeTouched = $state(mode === 'edit');
 	// svelte-ignore state_referenced_locally
-	let progress = $state(
-		project?.progressPercent != null ? String(project.progressPercent) : ''
-	);
+	let progress = $state(project?.progressPercent != null ? String(project.progressPercent) : '');
 	let fieldErrors = $state<Partial<Record<ProjectFieldErrorKey, string>>>({});
 
 	function onNameInput(e: Event) {
@@ -60,9 +60,11 @@
 		const errors = validateProjectFieldErrors({ name, color, code, progress });
 		fieldErrors = errors;
 		if (errors.name || errors.code || errors.color || errors.progress) return;
+		const normalized = normalizeName(name, { min: 1, max: PROJECT_NAME_MAX });
+		if (!normalized.ok) return;
 		const parsed = parseProgressPercent(progress);
 		onsubmit({
-			name,
+			name: normalized.value,
 			color,
 			code,
 			progressPercent: parsed === 'invalid' ? null : parsed
@@ -75,7 +77,6 @@
 		<Input
 			type="text"
 			required
-			maxlength="80"
 			value={name}
 			oninput={onNameInput}
 			placeholder={m.projects_name_placeholder()}

@@ -3,6 +3,9 @@
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
+	import { PROJECT_NAME_MAX } from '$lib/projects/validate';
+	import { nameRejectMessage } from '$lib/text/field-error';
+	import { normalizeName } from '$lib/text/normalize';
 	import {
 		ACTIVITY_COLOR_TOKENS,
 		isActivityColorToken,
@@ -27,6 +30,7 @@
 
 	// svelte-ignore state_referenced_locally
 	let name = $state(type?.name ?? '');
+	let nameError = $state('');
 	// svelte-ignore state_referenced_locally
 	let color = $state<ActivityColorToken>(
 		type && isActivityColorToken(type.color) ? type.color : ACTIVITY_COLOR_TOKENS[0]
@@ -34,9 +38,14 @@
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
-		const trimmed = name.trim();
-		if (!trimmed || pending) return;
-		onsubmit({ name: trimmed, color });
+		if (pending) return;
+		const normalized = normalizeName(name, { min: 1, max: PROJECT_NAME_MAX });
+		if (!normalized.ok) {
+			nameError = nameRejectMessage(normalized.reason, PROJECT_NAME_MAX);
+			return;
+		}
+		nameError = '';
+		onsubmit({ name: normalized.value, color });
 	}
 </script>
 
@@ -45,8 +54,9 @@
 		id="activity-type-name"
 		label={m.settings_activity_type_name()}
 		hint={m.settings_activity_type_name_hint()}
+		error={nameError}
 	>
-		<Input tone="data" type="text" maxlength="32" bind:value={name} class="w-full" />
+		<Input tone="data" type="text" bind:value={name} class="w-full" />
 	</Field>
 	<div class="flex flex-col gap-1">
 		<span class="text-body-md text-on-surface">{m.settings_activity_type_color()}</span>

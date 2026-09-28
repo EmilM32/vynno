@@ -5,6 +5,8 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
+	import { noteRejectMessage, ticketRejectMessage } from '$lib/text/field-error';
+	import { normalizeNote, normalizeTicketId } from '$lib/text/normalize';
 	import { datetimeLocalToIso, isoToDatetimeLocal } from '$lib/time/duration';
 	import type {
 		CreateManualSessionInput,
@@ -27,9 +29,7 @@
 	} = $props();
 
 	const sessionStore = useSession();
-	const live = $derived(
-		session != null && session.status === 'active'
-	);
+	const live = $derived(session != null && session.status === 'active');
 
 	// svelte-ignore state_referenced_locally
 	let note = $state(session?.note ?? '');
@@ -46,6 +46,8 @@
 	// svelte-ignore state_referenced_locally
 	let endedLocal = $state(isoToDatetimeLocal(session?.endedAt ?? new Date().toISOString()));
 	let timeError = $state<string | null>(null);
+	let noteError = $state('');
+	let ticketError = $state('');
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -61,12 +63,24 @@
 			return;
 		}
 		timeError = null;
+		const noteResult = normalizeNote(note);
+		const ticketResult = normalizeTicketId(ticketId);
+		const originalNote = session?.note ?? '';
+		const originalTicket = session?.ticketId ?? '';
+		const keepLegacyNote = mode === 'edit' && note === originalNote && !noteResult.ok;
+		const keepLegacyTicket = mode === 'edit' && ticketId === originalTicket && !ticketResult.ok;
+		noteError = noteResult.ok || keepLegacyNote ? '' : noteRejectMessage(noteResult.reason);
+		ticketError =
+			ticketResult.ok || keepLegacyTicket ? '' : ticketRejectMessage(ticketResult.reason);
+		if (noteError || ticketError) return;
+		const nextTicket = ticketResult.ok ? ticketResult.value || null : null;
 		if (mode === 'create') {
+			if (!noteResult.ok || !ticketResult.ok) return;
 			onsubmit({
 				projectId,
-				note,
+				note: noteResult.value,
 				activityTypeId: activityTypeId || undefined,
-				ticketId: ticketId.trim() || undefined,
+				ticketId: ticketResult.value || undefined,
 				startedAt,
 				endedAt: endedAt!
 			});
@@ -74,18 +88,18 @@
 		}
 		const patch: UpdateSessionInput = {
 			projectId,
-			note,
 			activityTypeId: activityTypeId || null,
-			ticketId: ticketId.trim() || null,
 			startedAt
 		};
+		if (noteResult.ok) patch.note = noteResult.value;
+		if (ticketResult.ok) patch.ticketId = nextTicket;
 		if (!live && endedAt) patch.endedAt = endedAt;
 		onsubmit(patch);
 	}
 </script>
 
 <form class="flex flex-col gap-4" onsubmit={handleSubmit} novalidate data-testid="session-form">
-	<Field id="session-note" label={m.logs_field_note()}>
+	<Field id="session-note" label={m.logs_field_note()} error={noteError}>
 		<Input tone="data" type="text" bind:value={note} autocomplete="off" class="w-full" />
 	</Field>
 
@@ -107,7 +121,7 @@
 		</Field>
 	</div>
 
-	<Field id="session-ticket" label={m.logs_field_ticket()}>
+	<Field id="session-ticket" label={m.logs_field_ticket()} error={ticketError}>
 		<Input
 			tone="code"
 			type="text"

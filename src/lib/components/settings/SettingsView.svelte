@@ -15,7 +15,10 @@
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
+	import { DISPLAY_NAME_MAX } from '$lib/auth/validate';
 	import { APP_VERSION } from '$lib/components/shell/nav';
+	import { nameRejectMessage } from '$lib/text/field-error';
+	import { normalizeName } from '$lib/text/normalize';
 	import ActivityTypesSection from './ActivityTypesSection.svelte';
 	import ThemeSelect from './ThemeSelect.svelte';
 
@@ -23,6 +26,7 @@
 	const prefsStore = usePrefs();
 
 	let displayNameDraft = $derived(prefsStore.displayName);
+	let nameError = $state('');
 	let fileInput: HTMLInputElement | undefined;
 
 	const profileBusy = $derived(sessionStore.pendingAction === 'profile');
@@ -30,8 +34,13 @@
 
 	async function onSaveName() {
 		if (profileBusy) return;
-		const name = displayNameDraft.trim();
-		const ok = await sessionStore.updateProfile({ displayName: name });
+		const name = normalizeName(displayNameDraft, { min: 0, max: DISPLAY_NAME_MAX });
+		if (!name.ok) {
+			nameError = nameRejectMessage(name.reason, DISPLAY_NAME_MAX);
+			return;
+		}
+		nameError = '';
+		const ok = await sessionStore.updateProfile({ displayName: name.value });
 		if (ok) displayNameDraft = prefsStore.displayName;
 	}
 
@@ -128,9 +137,10 @@
 			<Field
 				id="display-name"
 				label={m.settings_display_name()}
+				error={nameError}
 				class="w-full max-w-[28ch] sm:max-w-[32ch]"
 			>
-				<Input tone="ui" type="text" maxlength="80" bind:value={displayNameDraft} class="w-full" />
+				<Input tone="ui" type="text" bind:value={displayNameDraft} class="w-full" />
 			</Field>
 			{#if nameDirty}
 				<Button variant="tonal" disabled={profileBusy} onclick={onSaveName}>

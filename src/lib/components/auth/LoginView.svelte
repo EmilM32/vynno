@@ -13,6 +13,7 @@
 		isValidEmail,
 		isValidOTP,
 		isValidRegisterCode,
+		DISPLAY_NAME_MAX,
 		normalizeEmail,
 		passwordsMatch,
 		validateRegisterFieldErrors,
@@ -20,6 +21,7 @@
 		type RegisterFieldErrorKey,
 		type ResetFieldErrorKey
 	} from '$lib/auth/validate';
+	import { normalizeName } from '$lib/text/normalize';
 	import BrandMark from '$lib/components/shell/BrandMark.svelte';
 	import { APP_VERSION } from '$lib/components/shell/nav';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -191,12 +193,14 @@
 
 		pending = true;
 		try {
+			const displayName = normalizeName(registerDisplayName, { min: 0, max: DISPLAY_NAME_MAX });
+			if (!displayName.ok) return;
 			await registerRequest(
 				email,
 				registerPassword,
 				registerRemember,
 				registerCode.trim(),
-				registerDisplayName.trim() || undefined
+				displayName.value || undefined
 			);
 			authStore.applySession(email, registerRemember);
 			await goto(resolve('/dashboard'), { invalidateAll: true });
@@ -556,7 +560,6 @@
 								type="text"
 								name="displayName"
 								autocomplete="nickname"
-								maxlength="80"
 								bind:value={registerDisplayName}
 								onkeydown={onFieldKeydown}
 								disabled={registerStep === 'code'}

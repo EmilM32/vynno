@@ -5,6 +5,7 @@
 	import StatusDot, { type StatusDotTone } from '$lib/components/ui/StatusDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
+	import { normalizeNote, normalizeTicketId } from '$lib/text/normalize';
 	import { datetimeLocalToIso, isoToDatetimeLocal } from '$lib/time/duration';
 
 	const sessionStore = useSession();
@@ -22,6 +23,15 @@
 	const clockLabel = $derived(isIdle ? '00:00:00' : sessionStore.elapsedLabel);
 	const projectName = $derived(project?.name ?? m.common_unknown());
 	const pending = $derived(sessionStore.busy);
+
+	function onStart() {
+		const note = normalizeNote(sessionStore.draftNote);
+		const ticket = normalizeTicketId(sessionStore.draftTicket);
+		if (!note.ok || !ticket.ok) return;
+		sessionStore.draftNote = note.value;
+		sessionStore.draftTicket = ticket.value;
+		void sessionStore.start();
+	}
 
 	function onStartedChange(e: Event) {
 		if (!session || pending) return;
@@ -72,13 +82,7 @@
 
 	<div class="mt-6 flex w-full max-w-70 gap-3">
 		{#if isIdle}
-			<Button
-				variant="primary"
-				size="lg"
-				class="flex-1"
-				onclick={() => sessionStore.start()}
-				disabled={pending}
-			>
+			<Button variant="primary" size="lg" class="flex-1" onclick={onStart} disabled={pending}>
 				<Icon name="play_arrow" size="xl" fill />
 				{m.timer_start()}
 			</Button>

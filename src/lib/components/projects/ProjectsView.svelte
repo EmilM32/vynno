@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import Banner from '$lib/components/ui/Banner.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -70,9 +69,14 @@
 		}
 	}
 
+	function prefetchProject(project: Project) {
+		void sessionStore.ensureSessionCount('project', project.id);
+	}
+
 	function requestDelete(project: Project) {
 		sessionStore.clearError();
 		deleteTarget = project;
+		void sessionStore.ensureSessionCount('project', project.id);
 	}
 
 	async function confirmDelete() {
@@ -91,10 +95,6 @@
 		if (!project.isArchived) return sessionStore.canArchiveOrDeleteActive(project.id);
 		return true;
 	}
-
-	onMount(() => {
-		void sessionStore.loadSessionCounts();
-	});
 
 	function onTabListKey(e: KeyboardEvent) {
 		if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
@@ -223,6 +223,7 @@
 						onrestore={async () => {
 							if (await sessionStore.restoreProject(project.id)) tab = 'active';
 						}}
+						onprefetch={() => prefetchProject(project)}
 						ondelete={() => requestDelete(project)}
 					/>
 				{/each}

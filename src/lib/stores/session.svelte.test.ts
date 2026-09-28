@@ -558,3 +558,36 @@ describe('SessionStore history drain', () => {
 		expect(ids.filter((id) => id === 'dup-0')).toHaveLength(1);
 	});
 });
+
+describe('SessionStore lazy session counts', () => {
+	let store: SessionStore;
+
+	afterEach(() => {
+		store?.reset();
+		vi.restoreAllMocks();
+	});
+
+	it('fetches a project count once and shares a concurrent call', async () => {
+		const repo = new MemoryTimeTrackingRepository(sampleAppSeed());
+		const original = repo.countSessionsForProject.bind(repo);
+		let calls = 0;
+		vi.spyOn(repo, 'countSessionsForProject').mockImplementation(async (id) => {
+			calls += 1;
+			await new Promise((resolve) => setTimeout(resolve, 20));
+			return original(id);
+		});
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(sampleAppSeed(), { repo });
+
+		const [first, second] = await Promise.all([
+			store.ensureSessionCount('project', 'proj-auth'),
+			store.ensureSessionCount('project', 'proj-auth')
+		]);
+		expect(first).toBe(second);
+		expect(first).toBeGreaterThan(0);
+		expect(calls).toBe(1);
+
+		expect(await store.ensureSessionCount('project', 'proj-auth')).toBe(first);
+		expect(calls).toBe(1);
+	});
+});

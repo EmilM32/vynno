@@ -34,7 +34,7 @@ import type {
 	UpdateSessionInput
 } from '$lib/types/domain';
 import { createContext } from 'svelte';
-import { createSubscriber, SvelteDate, SvelteSet } from 'svelte/reactivity';
+import { createSubscriber, SvelteDate, SvelteMap, SvelteSet } from 'svelte/reactivity';
 
 /** Pages held back before `sessions` is replaced during a bulk drain. */
 const DRAIN_BATCH_PAGES = 5;
@@ -95,6 +95,7 @@ export class SessionStore {
 	#drainGen = 0;
 	#drainLoading = false;
 	#pageLoading = false;
+	#countInflight = new SvelteMap<string, Promise<number | undefined>>();
 
 	/** Active (non-archived) projects for pickers. */
 	projects = $state.raw<Project[]>([]);
@@ -393,6 +394,28 @@ export class SessionStore {
 			...this.activityTypeSessionCounts,
 			...Object.fromEntries(activityEntries)
 		};
+	};
+
+	/**
+	 * One session-count for a delete guard. Cached; concurrent callers share the request.
+	 * `undefined` means the count is still unknown (delete stays blocked).
+	 */
+	ensureSessionCount = async (
+		kind: 'project' | 'activity',
+		id: string
+	): Promise<number | undefined> => {
+		const cached = this.#cachedCount(kind, id);
+		if (cached != null) return cached;
+		const key = `${kind}:${id}`;
+		const inflight = this.#countInflight.get(key);
+		if (inflight) return inflight;
+		const pending = this.#loadOneSessionCount(kind, id);
+		this.#countInflight.set(key, pending);
+		try {
+			return await pending;
+		} finally {
+			if (this.#countInflight.get(key) === pending) this.#countInflight.delete(key);
+		}
 	};
 
 	createProject = async (input: CreateProjectInput): Promise<Project | null> => {
@@ -885,6 +908,33 @@ export class SessionStore {
 		}
 	};
 
+	#cachedCount = (kind: 'project' | 'activity', id: string): number | undefined => {
+		const map = kind === 'project' ? this.projectSessionCounts : this.activityTypeSessionCounts;
+		return map[id];
+	};
+
+	#loadOneSessionCount = async (
+		kind: 'project' | 'activity',
+		id: string
+	): Promise<number | undefined> => {
+		try {
+			const repo = this.#requireRepo();
+			const count =
+				kind === 'project'
+					? await repo.countSessionsForProject(id)
+					: await repo.countSessionsForActivityType(id);
+			if (kind === 'project') {
+				this.projectSessionCounts = { ...this.projectSessionCounts, [id]: count };
+			} else {
+				this.activityTypeSessionCounts = { ...this.activityTypeSessionCounts, [id]: count };
+			}
+			return count;
+		} catch (e) {
+			this.error = userMessageForError(e, m.error_invalid_response);
+			return undefined;
+		}
+	};
+
 	#bumpDrain = (): number => {
 		this.#drainGen += 1;
 		return this.#drainGen;
@@ -1018,6 +1068,7 @@ export class SessionStore {
 		this.#active = null;
 		this.#loadedSessionIds = new SvelteSet();
 		this.#extraSessionIds = new SvelteSet();
+		this.#countInflight.clear();
 		this.sessions = [];
 		this.nextCursor = null;
 		this.loadingMore = false;

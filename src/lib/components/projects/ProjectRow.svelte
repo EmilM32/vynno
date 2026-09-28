@@ -17,6 +17,8 @@
 		onarchive: () => void;
 		onrestore: () => void;
 		ondelete: () => void;
+		/** Overflow open, or hover/focus of the row actions — prefetch one session count. */
+		onprefetch?: () => void;
 	}
 
 	let {
@@ -28,7 +30,8 @@
 		onedit,
 		onarchive,
 		onrestore,
-		ondelete
+		ondelete,
+		onprefetch
 	}: Props = $props();
 
 	/** one / few (2–4, excluding 12–14) / other — covers Polish and English. */
@@ -61,9 +64,14 @@
 		moreOpen = false;
 	}
 
+	function prefetch() {
+		onprefetch?.();
+	}
+
 	function toggleMore(e: MouseEvent) {
 		e.stopPropagation();
 		moreOpen = !moreOpen;
+		if (moreOpen) prefetch();
 	}
 
 	function onWindowPointer(e: PointerEvent) {
@@ -177,7 +185,12 @@
 		</Button>
 	{/snippet}
 
-	<div class="flex items-center gap-1.5 sm:hidden">
+	<div
+		class="flex items-center gap-1.5 sm:hidden"
+		role="group"
+		onpointerenter={prefetch}
+		onfocusin={prefetch}
+	>
 		{#if archived}
 			{@render restoreBtn()}
 		{:else}
@@ -211,7 +224,12 @@
 		</div>
 	</div>
 
-	<div class="hidden flex-wrap items-center gap-1.5 sm:flex sm:shrink-0">
+	<div
+		class="hidden flex-wrap items-center gap-1.5 sm:flex sm:shrink-0"
+		role="group"
+		onpointerenter={prefetch}
+		onfocusin={prefetch}
+	>
 		{#if archived}
 			{@render restoreBtn()}
 		{:else}

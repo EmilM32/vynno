@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
@@ -19,9 +18,15 @@
 
 	const busy = $derived(sessionStore.pendingAction === 'activity');
 
-	onMount(() => {
-		void sessionStore.loadSessionCounts();
-	});
+	function prefetchActivity(id: string) {
+		void sessionStore.ensureSessionCount('activity', id);
+	}
+
+	function openDelete(type: ActivityType) {
+		sessionStore.clearError();
+		deleteTarget = type;
+		void sessionStore.ensureSessionCount('activity', type.id);
+	}
 
 	function openCreate() {
 		sessionStore.clearError();
@@ -92,6 +97,8 @@
 						class="relative flex items-center gap-2 rounded border border-outline-variant bg-surface-container-low px-3 py-2"
 						data-testid="activity-type-row"
 						data-activity-type-id={type.id}
+						onpointerenter={() => prefetchActivity(type.id)}
+						onfocusin={() => prefetchActivity(type.id)}
 					>
 						<ActivityChip {type} class="w-fit shrink-0" />
 						<div class="ml-auto flex shrink-0 gap-2">
@@ -101,10 +108,7 @@
 							<Button
 								variant="secondary"
 								size="xs"
-								onclick={() => {
-									sessionStore.clearError();
-									deleteTarget = type;
-								}}
+								onclick={() => openDelete(type)}
 								disabled={sessionCount == null || sessionCount > 0}
 								title={knownInUse ? m.activity_types_cannot_delete_has_sessions() : undefined}
 								aria-describedby={knownInUse ? deleteReasonId : undefined}

@@ -80,6 +80,7 @@
 	"dashboard_active_projects_aria": "Aktywne projekty",
 	"dashboard_this_week": "W tym tygodniu",
 	"dashboard_logged_this_week": "{duration} zarejestrowano w tym tygodniu",
+	"dashboard_nothing_logged_this_week": "Nic nie zarejestrowano w tym tygodniu",
 	"dashboard_weekly_overview": "Przegląd tygodnia",
 	"dashboard_weekly_overview_aria": "Przegląd tygodnia",
 	"dashboard_hours": "Godziny",

@@ -5,7 +5,7 @@
 	import { resolve } from '$app/paths';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { formatCompact } from '$lib/time/duration';
+	import { weekLoggedLabel } from './week-logged';
 
 	let { class: className }: { class?: string } = $props();
 
@@ -54,13 +54,13 @@
 					<ProgressBar
 						value={pct}
 						fill={item.project.color}
-						label={m.dashboard_logged_this_week({ duration: formatCompact(item.ms) })}
+						label={weekLoggedLabel(item.ms)}
 						class="w-full"
 					/>
 				{/if}
 				<div class="mt-1 flex items-center justify-between">
 					<span class="text-body-sm text-on-surface-variant">
-						{m.dashboard_logged_this_week({ duration: formatCompact(item.ms) })}
+						{weekLoggedLabel(item.ms)}
 					</span>
 					<Icon name="arrow_forward" size="sm" class="text-on-surface-variant" />
 				</div>

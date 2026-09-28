@@ -70,7 +70,10 @@ test.describe('insights', () => {
 		});
 		await page.goto('/insights');
 		await waitForClient(page);
-		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'Month' }).click();
+		await page
+			.getByRole('group', { name: 'Period' })
+			.getByRole('button', { name: 'Month' })
+			.click();
 
 		const activity = page.getByRole('region', { name: 'Time by activity', exact: true });
 		await expect(activity.getByText('Unassigned')).toBeVisible();
@@ -109,7 +112,10 @@ test.describe('insights', () => {
 
 		await page.goto('/insights');
 		await waitForClient(page);
-		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'Month' }).click();
+		await page
+			.getByRole('group', { name: 'Period' })
+			.getByRole('button', { name: 'Month' })
+			.click();
 
 		const activity = page.getByRole('region', { name: 'Time by activity', exact: true });
 		await expect(activity.getByText('Unassigned')).toBeVisible();
@@ -138,7 +144,10 @@ test.describe('insights', () => {
 
 	test('activity heading peeks above the fold on mobile', async ({ page }, testInfo) => {
 		test.skip(testInfo.project.name !== 'mobile', 'mobile fold');
-		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'Month' }).click();
+		await page
+			.getByRole('group', { name: 'Period' })
+			.getByRole('button', { name: 'Month' })
+			.click();
 		const heading = page.getByRole('heading', { name: 'Time by Activity' });
 		await expect(heading).toBeVisible();
 		const box = await heading.boundingBox();

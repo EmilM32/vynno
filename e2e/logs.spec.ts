@@ -305,8 +305,8 @@ test.describe('logs filters', () => {
 		const { id: otherId } = (await created.json()) as { id: string };
 		const personalNote = uniqueNote('personal');
 		const otherNote = uniqueNote('other');
-		const start = localDayAt(0, 9, 0);
-		const end = localDayAt(0, 10, 0);
+		const start = localDayAt(1, 9, 0);
+		const end = localDayAt(1, 10, 0);
 		await seedManualSession(page, {
 			note: personalNote,
 			projectId: personalId,
@@ -343,8 +343,8 @@ test.describe('logs filters', () => {
 		const bare = uniqueNote('bare');
 		await startSession(page, coded, undefined, 'coding');
 		await stopSession(page);
-		const start = localDayAt(0, 12, 0);
-		const end = localDayAt(0, 13, 0);
+		const start = localDayAt(1, 12, 0);
+		const end = localDayAt(1, 13, 0);
 		await seedManualSession(page, {
 			note: bare,
 			startedAt: start.toISOString(),
@@ -400,8 +400,8 @@ test.describe('logs layout', () => {
 			await seedManualSession(page, {
 				note: notes[i]!,
 				ticketId: ticket,
-				startedAt: localDayAt(0, startHour, 0).toISOString(),
-				endedAt: localDayAt(0, endHour, 0).toISOString()
+				startedAt: localDayAt(1, startHour, 0).toISOString(),
+				endedAt: localDayAt(1, endHour, 0).toISOString()
 			});
 		}
 		await page.goto('/logs');
@@ -450,8 +450,8 @@ test.describe('logs layout', () => {
 		);
 		await seedManualSession(page, {
 			note,
-			startedAt: localDayAt(0, 8, 0).toISOString(),
-			endedAt: localDayAt(0, 8, 30).toISOString()
+			startedAt: localDayAt(1, 8, 0).toISOString(),
+			endedAt: localDayAt(1, 8, 30).toISOString()
 		});
 		await page.setViewportSize({ width: 1280, height: 720 });
 		await page.goto('/logs');

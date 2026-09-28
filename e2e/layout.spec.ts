@@ -103,8 +103,11 @@ test.describe('desktop layout', () => {
 		await login(page);
 		await seedUsedActivityTypes(page, 6);
 		await page.goto('/settings');
-		await expect(page.getByTestId('activity-type-row')).toHaveCount(6);
-		// The spans only render once the session counts land, so wait for the real condition.
+		const rows = page.getByTestId('activity-type-row');
+		await expect(rows).toHaveCount(6);
+		// Counts load lazily when a row is hovered or focused (EMI-70); the sr-only reasons
+		// render once they land, so hover every row and wait for the real condition.
+		for (const row of await rows.all()) await row.hover();
 		await expect(page.locator('[data-testid="activity-type-row"] span.sr-only')).toHaveCount(6);
 
 		const scroll = await page.evaluate(() => {

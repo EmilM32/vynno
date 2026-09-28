@@ -257,6 +257,8 @@ test.describe('settings', () => {
 		await expect(row).toBeVisible();
 		const deleteBtn = row.getByRole('button', { name: 'Delete' });
 		await expect(deleteBtn).toBeDisabled();
+		// The session count loads when the row is hovered (EMI-70); the reason follows it.
+		await row.hover();
 		await expect(deleteBtn).toHaveAttribute(
 			'title',
 			'Cannot delete an activity type that has sessions.'

@@ -114,7 +114,12 @@ test.describe('project delete guards', () => {
 		await waitForClient(page);
 		const row = page.getByTestId('project-row').filter({ hasText: project.name });
 		await expect(row.getByRole('button', { name: 'Delete' })).toBeDisabled();
-		// Reason text settles once the per-project session-count fan-out lands.
+		// While the count is unknown the reason says so; it loads when the actions are
+		// hovered (EMI-70, EMI-79).
+		await expect(page.locator(byId(`${project.id}-delete-reason`))).toHaveText(
+			'Checking whether this project has sessions'
+		);
+		await row.getByRole('button', { name: 'Edit' }).hover();
 		await expect(page.locator(byId(`${project.id}-delete-reason`))).toHaveText(
 			'Projects with sessions cannot be deleted — archive instead'
 		);
@@ -155,7 +160,9 @@ test.describe('project delete guards', () => {
 		await waitForClient(page);
 		const row = page.getByTestId('project-row').filter({ hasText: name });
 		const deleteButton = row.getByRole('button', { name: 'Delete' });
-		// Enables only after the session count for this project comes back as 0.
+		// Disabled until the lazy session count (fetched on hover, EMI-70) comes back as 0.
+		await expect(deleteButton).toBeDisabled();
+		await row.getByRole('button', { name: 'Edit' }).hover();
 		await expect(deleteButton).toBeEnabled();
 		await deleteButton.click();
 

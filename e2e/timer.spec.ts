@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { firstProjectId, login, uniqueNote, waitForClient } from './helpers';
+import { firstProjectId, login, stopSession, uniqueNote, waitForClient } from './helpers';
 
 test.describe('timer lifecycle', () => {
 	test.beforeEach(async ({ page }) => {
@@ -136,13 +136,16 @@ test.describe('timer lifecycle', () => {
 
 	// The UI swaps Start for Stop, so a second Start is only reachable when the store is stale.
 	// Seeding the live session out of band reproduces exactly that race.
-	test('a second start while a session is live surfaces the 409 conflict', async ({ page }) => {
+	// Since EMI-57 the 409 is not an error for the user: the app loads the live session and
+	// offers Stop for it.
+	test('a second start while a session is live surfaces the live session', async ({ page }) => {
 		await waitForClient(page);
 		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
 
 		const projectId = await firstProjectId(page);
+		const outOfBand = uniqueNote('out-of-band');
 		const seeded = await page.request.post('/v1/sessions', {
-			data: { projectId, note: uniqueNote('out-of-band') }
+			data: { projectId, note: outOfBand }
 		});
 		expect(seeded.status()).toBe(201);
 
@@ -155,10 +158,10 @@ test.describe('timer lifecycle', () => {
 		]);
 		expect(res.status()).toBe(409);
 		expect(await res.json()).toMatchObject({ error: { code: 'session_already_active' } });
-		// The banner also carries its dismiss control, so match on the message, not the whole node.
-		await expect(page.getByRole('alert')).toContainText(
-			'Stop the current session before starting a new one.'
-		);
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(outOfBand);
+		await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
+		await expect(page.getByRole('alert')).toHaveCount(0);
 	});
 
 	// Contract: UpdateSessionDto must not carry `status` or `id` — stopping is the /stop verb.
@@ -186,8 +189,8 @@ test.describe('timer lifecycle', () => {
 		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('prior'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await page.getByRole('button', { name: 'Stop' }).click();
-		await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
+		// Held past 1 s so Stop keeps it as a recent task (EMI-73).
+		await stopSession(page);
 
 		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('busy'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();

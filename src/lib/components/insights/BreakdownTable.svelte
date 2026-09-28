@@ -54,13 +54,13 @@
 									aria-label={m.insights_open_project({ name: row.projectName })}
 								>
 									<ColorDot color={row.projectColor} />
-									<span class="truncate">{row.projectName}</span>
+									<span class="truncate"><bdi>{row.projectName}</bdi></span>
 								</a>
 							</td>
 							<td
 								class="hidden px-4 py-3 font-mono text-code-label text-on-surface-variant md:table-cell"
 							>
-								{row.activityLabel}
+								<bdi>{row.activityLabel}</bdi>
 							</td>
 							<td class="px-4 py-3 font-mono text-code-data text-on-surface">
 								{formatCompact(row.ms)}

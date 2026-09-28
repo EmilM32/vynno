@@ -47,7 +47,7 @@
 					<div class="flex min-w-0 flex-col gap-1">
 						<div class="flex min-w-0 items-center justify-between gap-2">
 							<span class="min-w-0 truncate font-mono text-code-label text-on-surface"
-								>{item.label}</span
+								><bdi>{item.label}</bdi></span
 							>
 							<span class="font-mono text-code-label text-on-surface-variant">
 								{formatCompact(item.ms)} · {item.percent}%

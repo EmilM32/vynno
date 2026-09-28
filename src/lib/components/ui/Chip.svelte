@@ -4,7 +4,7 @@
 	const VARIANT: Record<ChipVariant, string> = {
 		code: 'rounded bg-surface-container-high px-1.5 py-0.5 text-on-surface-variant',
 		ticket:
-			'rounded-DEFAULT border border-outline-variant bg-surface-container-high px-2 py-0.5 text-primary'
+			'max-w-full min-w-0 truncate rounded-DEFAULT border border-outline-variant bg-surface-container-high px-2 py-0.5 text-primary'
 	};
 </script>
 
@@ -14,10 +14,14 @@
 	interface Props {
 		variant?: ChipVariant;
 		class?: string;
+		/** Full chip text. Shown as the native tooltip when the ticket variant truncates. */
+		title?: string;
 		children: Snippet;
 	}
 
-	let { variant = 'code', class: className = '', children }: Props = $props();
+	let { variant = 'code', class: className = '', title, children }: Props = $props();
 </script>
 
-<span class="font-mono text-code-label {VARIANT[variant]} {className}">{@render children()}</span>
+<span class="font-mono text-code-label {VARIANT[variant]} {className}" {title}
+	>{@render children()}</span
+>

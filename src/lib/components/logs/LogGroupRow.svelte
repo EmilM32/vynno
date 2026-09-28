@@ -54,7 +54,7 @@
 				<div class="flex min-w-0 items-center gap-2">
 					<ColorDot color={project?.color ?? '#64748b'} />
 					<span class="truncate text-body-sm text-on-surface"
-						>{project?.name ?? m.common_unknown()}</span
+						><bdi>{project?.name ?? m.common_unknown()}</bdi></span
 					>
 				</div>
 			{/if}
@@ -68,7 +68,7 @@
 				<div class="flex min-w-0 items-center gap-2">
 					<ColorDot color={project?.color ?? '#64748b'} />
 					<span class="truncate text-body-sm text-on-surface"
-						>{project?.name ?? m.common_unknown()}</span
+						><bdi>{project?.name ?? m.common_unknown()}</bdi></span
 					>
 				</div>
 			</div>
@@ -76,11 +76,11 @@
 
 		<div class="min-w-0 md:flex-1">
 			<div class="truncate font-mono text-code-data text-on-surface-variant" title={group.note}>
-				&gt; {group.note}
+				&gt; <bdi>{group.note}</bdi>
 			</div>
-			<div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+			<div class="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5">
 				{#if group.ticketId}
-					<Chip variant="ticket">{group.ticketId}</Chip>
+					<Chip variant="ticket" title={group.ticketId}>{group.ticketId}</Chip>
 				{/if}
 				<span
 					class="font-mono text-code-label text-on-surface-variant"

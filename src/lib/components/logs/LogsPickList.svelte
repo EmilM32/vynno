@@ -54,7 +54,7 @@
 			{#if item.color || item.dotClass}
 				<ColorDot color={item.color ?? 'transparent'} class={item.dotClass ?? ''} />
 			{/if}
-			<span class="min-w-0 truncate">{item.label}</span>
+			<span class="min-w-0 truncate"><bdi>{item.label}</bdi></span>
 		</Button>
 	{/each}
 </div>

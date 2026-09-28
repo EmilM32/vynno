@@ -114,7 +114,7 @@
 				<div class="flex min-w-0 items-center gap-2">
 					<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
 					<span class="truncate font-mono text-code-label text-on-surface-variant">
-						{item.label}
+						<bdi>{item.label}</bdi>
 						<span class="text-on-surface-variant">· {item.percent}%</span>
 					</span>
 				</div>
@@ -126,7 +126,7 @@
 				>
 					<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
 					<span class="truncate font-mono text-code-label text-on-surface-variant">
-						{item.label}
+						<bdi>{item.label}</bdi>
 						<span class="text-on-surface-variant">· {item.percent}%</span>
 					</span>
 				</a>

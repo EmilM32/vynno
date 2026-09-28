@@ -42,7 +42,9 @@
 				<div class="flex items-start justify-between">
 					<div class="flex items-center gap-2">
 						<ColorDot color={item.project.color} size="md" />
-						<span class="text-body-md font-medium text-on-surface">{item.project.name}</span>
+						<span class="text-body-md font-medium text-on-surface"
+							><bdi>{item.project.name}</bdi></span
+						>
 					</div>
 					{#if item.progressPercent != null}
 						<span class="font-mono text-code-data text-on-surface-variant">{pct}%</span>

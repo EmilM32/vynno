@@ -47,9 +47,9 @@
 					<div class="flex min-w-0 items-center gap-3 overflow-hidden">
 						<ColorDot color={project?.color ?? '#64748b'} />
 						<div class="flex min-w-0 flex-col">
-							<span class="truncate text-body-sm text-on-surface">{log.note}</span>
+							<span class="truncate text-body-sm text-on-surface"><bdi>{log.note}</bdi></span>
 							<span class="font-mono text-code-label text-[10px] text-on-surface-variant">
-								{project?.name ?? m.common_unknown()}
+								<bdi>{project?.name ?? m.common_unknown()}</bdi>
 							</span>
 						</div>
 					</div>

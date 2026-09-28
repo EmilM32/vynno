@@ -113,7 +113,7 @@
 			<div class="min-w-0">
 				<div class="flex flex-wrap items-center gap-2">
 					<span class="text-body-md font-medium text-on-surface hover:text-primary"
-						>{project.name}</span
+						><bdi>{project.name}</bdi></span
 					>
 					{#if project.code}
 						<Chip>{project.code}</Chip>

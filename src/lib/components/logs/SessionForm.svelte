@@ -107,7 +107,7 @@
 		<Field id="session-project" label={m.logs_field_project()}>
 			<Select bind:value={projectId} class="w-full">
 				{#each sessionStore.allProjects as project (project.id)}
-					<option value={project.id}>{project.name}</option>
+					<option value={project.id} dir="auto">{project.name}</option>
 				{/each}
 			</Select>
 		</Field>
@@ -115,7 +115,7 @@
 			<Select bind:value={activityTypeId} class="w-full">
 				<option value="">{m.logs_activity_none()}</option>
 				{#each sessionStore.activityTypes as type (type.id)}
-					<option value={type.id}>{type.name}</option>
+					<option value={type.id} dir="auto">{type.name}</option>
 				{/each}
 			</Select>
 		</Field>

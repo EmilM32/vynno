@@ -18,5 +18,5 @@
 	class="rounded-[2px] border px-2 py-0.5 font-mono text-[10px] tracking-wider uppercase {colorClass} {className}"
 	data-testid="activity-chip"
 >
-	{label}
+	<bdi>{label}</bdi>
 </span>

@@ -217,7 +217,7 @@
 					}}
 				>
 					{#each sessionStore.projects as project (project.id)}
-						<option value={project.id}>{project.name}</option>
+						<option value={project.id} dir="auto">{project.name}</option>
 					{/each}
 				</Select>
 			</Field>

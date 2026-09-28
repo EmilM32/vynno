@@ -63,7 +63,9 @@
 {#snippet projectIdentity()}
 	<div class="flex min-w-0 items-center gap-2">
 		<ColorDot color={project?.color ?? '#64748b'} />
-		<span class="truncate text-body-sm text-on-surface">{project?.name ?? m.common_unknown()}</span>
+		<span class="truncate text-body-sm text-on-surface"
+			><bdi>{project?.name ?? m.common_unknown()}</bdi></span
+		>
 	</div>
 {/snippet}
 
@@ -105,7 +107,7 @@
 				title={session.note}
 				{@attach watchOverflow}
 			>
-				&gt; {session.note}
+				&gt; <bdi>{session.note}</bdi>
 			</div>
 			{#if noteExpanded || noteOverflows}
 				<IconButton
@@ -119,8 +121,8 @@
 			{/if}
 		</div>
 		{#if session.ticketId}
-			<div class="mt-1.5 flex flex-wrap items-center gap-1.5">
-				<Chip variant="ticket">{session.ticketId}</Chip>
+			<div class="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5">
+				<Chip variant="ticket" title={session.ticketId}>{session.ticketId}</Chip>
 			</div>
 		{/if}
 	</div>

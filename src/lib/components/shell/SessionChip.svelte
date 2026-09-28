@@ -51,11 +51,11 @@
 		</div>
 		<div class="flex min-w-0 items-baseline gap-1.5">
 			<span class="max-w-[55%] shrink-0 truncate font-mono text-code-label text-primary"
-				>{projectName}</span
+				><bdi>{projectName}</bdi></span
 			>
 			{#if session.note.trim()}
 				<span class="text-on-surface-variant" aria-hidden="true">·</span>
-				<span class="min-w-0 truncate text-body-sm text-on-surface">{session.note}</span>
+				<span class="min-w-0 truncate text-body-sm text-on-surface"><bdi>{session.note}</bdi></span>
 			{/if}
 		</div>
 	</a>

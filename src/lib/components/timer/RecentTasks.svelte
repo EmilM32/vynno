@@ -50,10 +50,10 @@
 						<div class="flex min-w-0 flex-col">
 							<span
 								class="truncate text-body-md text-on-surface transition-colors group-hover:text-primary group-disabled:group-hover:text-on-surface"
-								>{item.note}</span
+								><bdi>{item.note}</bdi></span
 							>
 							<span class="font-mono text-code-label text-on-surface-variant">
-								{project?.name ?? m.common_unknown()}
+								<bdi>{project?.name ?? m.common_unknown()}</bdi>
 							</span>
 						</div>
 						<div class="flex shrink-0 items-center gap-3 pl-3">

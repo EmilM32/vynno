@@ -18,19 +18,19 @@
 
 <div
 	class={[
-		'relative flex flex-col rounded-lg border bg-surface-container p-4',
+		'relative flex min-w-0 flex-col rounded-lg border bg-surface-container p-4',
 		cardBorder,
 		className
 	]}
 >
 	{#if session}
-		<div class="mb-4 flex items-center justify-between">
-			<div class="flex items-center gap-2">
-				<h2 class="text-body-sm tracking-wider text-on-surface-variant uppercase">
+		<div class="mb-4 flex min-w-0 items-center justify-between gap-3">
+			<div class="flex min-w-0 items-center gap-2">
+				<h2 class="shrink-0 text-body-sm tracking-wider text-on-surface-variant uppercase">
 					{m.dashboard_current_focus()}
 				</h2>
 				{#if session.ticketId}
-					<Chip variant="ticket">{session.ticketId}</Chip>
+					<Chip variant="ticket" title={session.ticketId}>{session.ticketId}</Chip>
 				{/if}
 			</div>
 			<IconButton
@@ -42,7 +42,12 @@
 			/>
 		</div>
 
-		<p class="mb-2 text-headline-md text-on-surface">{session.note}</p>
+		<p
+			class="mb-2 line-clamp-3 text-headline-md [overflow-wrap:anywhere] break-words text-on-surface"
+			title={session.note}
+		>
+			<bdi>{session.note}</bdi>
+		</p>
 
 		<div class="mt-auto flex flex-wrap items-center gap-3 border-t border-outline-variant/50 pt-4">
 			<div class="flex items-center gap-2">

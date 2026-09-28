@@ -76,7 +76,7 @@
 				{#if leading}
 					<div class="shrink-0">{@render leading()}</div>
 				{/if}
-				<h1 class="min-w-0 truncate text-headline-lg text-on-surface">{title}</h1>
+				<h1 class="min-w-0 truncate text-headline-lg text-on-surface"><bdi>{title}</bdi></h1>
 				{#if titleExtra}
 					<div class="flex min-w-0 flex-wrap items-center gap-2">{@render titleExtra()}</div>
 				{/if}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { OTHER_ID, topNWithOther } from '$lib/components/insights/legend';
 	import { m } from '$lib/paraglide/messages.js';
 	import { isVisibleActivityRow, type NamedTotal } from '$lib/time/aggregates';
 	import { formatCompact } from '$lib/time/duration';
@@ -12,7 +13,12 @@
 	} = $props();
 
 	const visible = $derived(items.filter(isVisibleActivityRow));
-	const maxMs = $derived(Math.max(1, ...visible.map((i) => i.ms)));
+	const rows = $derived(
+		topNWithOther(visible).map((item) =>
+			item.id === OTHER_ID ? { ...item, label: m.insights_other_projects() } : item
+		)
+	);
+	const maxMs = $derived(Math.max(1, ...rows.map((i) => i.ms)));
 </script>
 
 <section
@@ -34,13 +40,15 @@
 		aria-label={m.insights_time_by_activity()}
 	>
 		<div class="flex min-h-full flex-col justify-center gap-3">
-			{#if visible.length === 0}
+			{#if rows.length === 0}
 				<p class="text-body-sm text-on-surface-variant">{m.insights_no_activity()}</p>
 			{:else}
-				{#each visible as item (item.id)}
-					<div class="flex flex-col gap-1">
-						<div class="flex items-center justify-between gap-2">
-							<span class="font-mono text-code-label text-on-surface">{item.label}</span>
+				{#each rows as item (item.id)}
+					<div class="flex min-w-0 flex-col gap-1">
+						<div class="flex min-w-0 items-center justify-between gap-2">
+							<span class="min-w-0 truncate font-mono text-code-label text-on-surface"
+								>{item.label}</span
+							>
 							<span class="font-mono text-code-label text-on-surface-variant">
 								{formatCompact(item.ms)} · {item.percent}%
 							</span>

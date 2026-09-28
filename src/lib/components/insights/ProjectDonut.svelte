@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import { m } from '$lib/paraglide/messages.js';
+	import { OTHER_ID, topNWithOther } from '$lib/components/insights/legend';
 	import { formatHoursMinutes } from '$lib/time/duration';
 	import type { NamedTotal } from '$lib/time/aggregates';
 
@@ -22,6 +23,19 @@
 	 */
 	let lc = $state.raw<typeof import('$lib/components/charts/lazy-pie') | null>(null);
 
+	const rows = $derived(
+		topNWithOther(items).map((item) =>
+			item.id === OTHER_ID ? { ...item, label: m.insights_other_projects() } : item
+		)
+	);
+
+	/**
+	 * Layerchart's root uses `height: 100%` unless given a pixel `height`.
+	 * A percentage of a flex slot collapses, so the ring is this tall on purpose
+	 * (192px, above the 140px floor after the chart's own padding).
+	 */
+	const chartPx = 192;
+
 	onMount(async () => {
 		lc = await import('$lib/components/charts/lazy-pie');
 	});
@@ -41,7 +55,7 @@
 {/snippet}
 
 <section
-	class="vynno-chart flex h-64 flex-col rounded-lg border border-outline-variant bg-surface-container p-6 lg:h-96"
+	class="vynno-chart flex min-h-64 flex-col rounded-lg border border-outline-variant bg-surface-container p-6 lg:min-h-96"
 	aria-label={m.insights_time_by_project_aria()}
 >
 	<div class="mb-4 flex items-center justify-between">
@@ -49,18 +63,23 @@
 	</div>
 
 	<div
-		class="relative flex min-h-0 w-full flex-1 items-center justify-center"
+		class="relative w-full shrink-0"
+		style:height={chartPx + 'px'}
+		style:min-height={chartPx + 'px'}
 		role="img"
 		aria-label={m.insights_project_distribution_aria({ total: formatHoursMinutes(totalMs) })}
 	>
 		{#if items.length === 0 || totalMs <= 0}
-			<div class="h-48 w-48 rounded-full bg-surface-variant" aria-hidden="true"></div>
+			<div class="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+				<div class="aspect-square h-[calc(100%-1rem)] rounded-full bg-surface-variant"></div>
+			</div>
 		{:else if lc}
 			{const PieChart = $derived(lc.PieChart)}
 			{const Tooltip = $derived(lc.Tooltip)}
 			<PieChart
-				class="h-full w-full"
-				data={items}
+				class="w-full"
+				height={chartPx}
+				data={rows}
 				key="id"
 				label="label"
 				value="ms"
@@ -89,19 +108,29 @@
 		{@render centerTotal()}
 	</div>
 
-	<div class="mt-4 grid grid-cols-2 gap-2 border-t border-outline-variant pt-4">
-		{#each items as item (item.id)}
-			<a
-				href={resolve(`/projects/${encodeURIComponent(item.id)}`)}
-				class="focus-ring flex items-center gap-2 rounded-sm"
-				aria-label={m.insights_open_project({ name: item.label })}
-			>
-				<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
-				<span class="truncate font-mono text-code-label text-on-surface-variant">
-					{item.label}
-					<span class="text-on-surface-variant">· {item.percent}%</span>
-				</span>
-			</a>
+	<div class="mt-4 grid min-w-0 grid-cols-2 gap-2 border-t border-outline-variant pt-4">
+		{#each rows as item (item.id)}
+			{#if item.id === OTHER_ID}
+				<div class="flex min-w-0 items-center gap-2">
+					<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
+					<span class="truncate font-mono text-code-label text-on-surface-variant">
+						{item.label}
+						<span class="text-on-surface-variant">· {item.percent}%</span>
+					</span>
+				</div>
+			{:else}
+				<a
+					href={resolve(`/projects/${encodeURIComponent(item.id)}`)}
+					class="focus-ring flex min-w-0 items-center gap-2 rounded-sm"
+					aria-label={m.insights_open_project({ name: item.label })}
+				>
+					<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
+					<span class="truncate font-mono text-code-label text-on-surface-variant">
+						{item.label}
+						<span class="text-on-surface-variant">· {item.percent}%</span>
+					</span>
+				</a>
+			{/if}
 		{/each}
 		{#if items.length === 0}
 			<span class="col-span-2 text-body-sm text-on-surface-variant">{m.insights_no_data()}</span>

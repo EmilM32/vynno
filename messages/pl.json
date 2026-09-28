@@ -178,6 +178,7 @@
 	"insights_project_distribution_aria": "Rozkład projektów, łącznie {total}",
 	"insights_total": "Razem",
 	"insights_no_data": "Brak danych dla tego okresu.",
+	"insights_other_projects": "Inne",
 	"insights_time_by_activity": "Czas według aktywności",
 	"insights_time_by_activity_aria": "Czas według aktywności",
 	"insights_no_activity": "Brak danych o aktywności dla tego okresu.",

@@ -96,7 +96,7 @@ Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs
 3. Time by Project donut (centre total)
 4. Time by Activity bar — unlabeled sessions are **Unassigned** so bars match the donut; omit buckets that would display as `0s` or `0%` (`formatCompact` floors sub-seconds)
 5. Activity Breakdown table — same Unassigned rows per project; same visibility filter
-6. Mobile: grain + civil label on one line; donut is shorter (`h-64`) so Activity peeks above the fold. Activity height follows content. Desktop `lg`: Activity shares the donut row (`h-96`).
+6. Mobile: grain + civil label on one line; the donut card is at least 16rem and grows (legend capped at six projects plus Other) so the ring stays visible. Activity height follows content and uses the same cap. Desktop `lg`: the row is at least `h-96`.
 
 Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 

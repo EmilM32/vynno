@@ -178,6 +178,7 @@
 	"insights_project_distribution_aria": "Project distribution, total {total}",
 	"insights_total": "Total",
 	"insights_no_data": "No data for this period.",
+	"insights_other_projects": "Other",
 	"insights_time_by_activity": "Time by Activity",
 	"insights_time_by_activity_aria": "Time by activity",
 	"insights_no_activity": "No activity data for this period.",

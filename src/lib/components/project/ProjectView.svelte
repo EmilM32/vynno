@@ -208,7 +208,12 @@
 			{/if}
 		{/snippet}
 
-		<PageHeader title={project.name} description={liveHere ? '' : lastLoggedLabel}>
+		<!-- The meta line (count / last logged / none) is the answer on a phone too (EMI-88 N2-03). -->
+		<PageHeader
+			title={project.name}
+			description={liveHere ? '' : lastLoggedLabel}
+			showDescriptionOnMobile
+		>
 			{#snippet eyebrow()}
 				<a
 					href={resolve('/projects')}

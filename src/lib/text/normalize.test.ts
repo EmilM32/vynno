@@ -11,11 +11,12 @@ import {
 /**
  * One row of `text_vectors.json`. That file is generated from vynno-api
  * `internal/domain/testdata/text_vectors.json` by its `scripts/sync-contract`;
- * the Go tests run the same rows. An empty note or ticket is `normalized: ""`.
+ * the Go tests run the same rows. An empty note, ticket or display name is `normalized: ""`
+ * (for a display name that clears it, invisible-only input included: EMI-88 N2-04).
  */
 type Vector = {
 	name: string;
-	kind: 'name' | 'note' | 'ticket';
+	kind: 'name' | 'note' | 'ticket' | 'displayName';
 	input: string;
 	normalized?: string;
 	error?: string;
@@ -24,6 +25,7 @@ type Vector = {
 
 function run(vector: Vector): NormalizeResult {
 	if (vector.kind === 'name') return normalizeName(vector.input, { min: 1, max: 80 });
+	if (vector.kind === 'displayName') return normalizeName(vector.input, { min: 0, max: 80 });
 	if (vector.kind === 'note') return normalizeNote(vector.input);
 	return normalizeTicketId(vector.input);
 }

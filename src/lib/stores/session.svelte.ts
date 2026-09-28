@@ -1,9 +1,11 @@
 import { browser } from '$app/environment';
 import { announce } from '$lib/a11y/announce';
-import { SESSION_PAGE_SIZE } from '$lib/api/pagination';
+import { ApiError } from '$lib/api/errors';
+import { SESSION_BULK_PAGE_SIZE, SESSION_PAGE_SIZE } from '$lib/api/pagination';
 import type { AppSeed } from '$lib/api/types';
 import { userMessageForError } from '$lib/api/user-message';
 import { createRepository } from '$lib/data/create-repository';
+import { DomainError } from '$lib/data/errors';
 import type { TimeTrackingRepository } from '$lib/data/repository';
 import { m } from '$lib/paraglide/messages.js';
 import { type PrefsStore } from '$lib/stores/prefs.svelte';
@@ -23,6 +25,7 @@ import type {
 	CreateManualSessionInput,
 	CreateProjectInput,
 	Project,
+	SessionPage,
 	StartSessionInput,
 	TimeSession,
 	UpdateActivityTypeInput,
@@ -32,6 +35,13 @@ import type {
 } from '$lib/types/domain';
 import { createContext } from 'svelte';
 import { createSubscriber, SvelteDate, SvelteSet } from 'svelte/reactivity';
+
+/** Pages held back before `sessions` is replaced during a bulk drain. */
+const DRAIN_BATCH_PAGES = 5;
+
+function isSessionAlreadyActive(e: unknown): boolean {
+	return (e instanceof ApiError || e instanceof DomainError) && e.code === 'session_already_active';
+}
 
 export type HydrateOptions = {
 	nowMs?: number;
@@ -69,6 +79,22 @@ export class SessionStore {
 	loadingMore = $state(false);
 	projectSessionCounts = $state.raw<Record<string, number>>({});
 	activityTypeSessionCounts = $state.raw<Record<string, number>>({});
+
+	/**
+	 * Live session from `GET /sessions/active` when it is not in the loaded window.
+	 * `activeSession` prefers the window copy of this id.
+	 */
+	#active = $state.raw<TimeSession | null>(null);
+	/** Ids already in `sessions`, including rows merged from outside the page. */
+	#loadedSessionIds = new SvelteSet<string>();
+	/**
+	 * Active row older than the contiguous page. It must not move the cursor
+	 * bound (`sessions` stays newest-first, so this id sits at the tail).
+	 */
+	#extraSessionIds = new SvelteSet<string>();
+	#drainGen = 0;
+	#drainLoading = false;
+	#pageLoading = false;
 
 	/** Active (non-archived) projects for pickers. */
 	projects = $state.raw<Project[]>([]);
@@ -124,8 +150,13 @@ export class SessionStore {
 		this.activityTypes = seed.activityTypes ?? [];
 		this.sessions = seed.sessions;
 		this.nextCursor = seed.nextCursor ?? null;
+		this.#rebuildLoadedIds();
+		this.#extraSessionIds.clear();
+		this.#active = null;
+		const seededLive = this.#liveFromSeed(seed);
+		if (seededLive) this.#mergeActive(seededLive);
 
-		const live = this.sessions.find((s) => s.status === 'active');
+		const live = this.activeSession;
 		if (live) {
 			this.#applyDraftFromSession(live);
 		} else {
@@ -153,6 +184,12 @@ export class SessionStore {
 	}
 
 	activeSession = $derived.by(() => {
+		const dedicated = this.#active;
+		if (dedicated) {
+			const inWindow = this.sessions.find((s) => s.id === dedicated.id);
+			if (inWindow) return inWindow.status === 'active' ? inWindow : null;
+			return dedicated.status === 'active' ? dedicated : null;
+		}
 		return this.sessions.find((s) => s.status === 'active') ?? null;
 	});
 
@@ -214,14 +251,24 @@ export class SessionStore {
 	};
 
 	refresh = async (): Promise<void> => {
+		this.cancelDrain();
 		const repo = this.#requireRepo();
-		const [page, allProjects, activityTypes] = await Promise.all([
+		const previousActiveId = this.#active?.id;
+		const [page, allProjects, activityTypes, active] = await Promise.all([
 			repo.listSessions({ limit: SESSION_PAGE_SIZE }),
 			repo.listProjects({ includeArchived: true }),
-			repo.listActivityTypes()
+			repo.listActivityTypes(),
+			repo.getActiveSession()
 		]);
+		this.#extraSessionIds.clear();
 		this.sessions = page.items;
+		this.#rebuildLoadedIds();
 		this.nextCursor = page.nextCursor;
+		this.#active = null;
+		if (active) {
+			this.#mergeActive(active);
+			if (active.id !== previousActiveId) this.#applyDraftFromSession(active);
+		}
 		this.#setProjects(allProjects);
 		this.#setActivityTypes(activityTypes);
 		this.#syncClock();
@@ -229,36 +276,101 @@ export class SessionStore {
 
 	loadMore = async (): Promise<boolean> => {
 		if (!this.nextCursor || this.loadingMore) return false;
-		const repo = this.#requireRepo();
-		this.loadingMore = true;
+		this.#pageLoading = true;
+		this.#syncLoadingMore();
 		try {
-			const page = await repo.listSessions({
-				limit: SESSION_PAGE_SIZE,
-				cursor: this.nextCursor
-			});
-			const have = new SvelteSet(this.sessions.map((s) => s.id));
-			const extra = page.items.filter((s) => !have.has(s.id));
-			this.sessions = [...this.sessions, ...extra];
+			const page = await this.#loadSessionPage(SESSION_PAGE_SIZE, this.nextCursor);
+			const { fresh, reached } = this.#unseen(page.items, new SvelteSet());
+			this.#releaseExtras(reached);
+			this.#commitSessions(fresh);
 			this.nextCursor = page.nextCursor;
-			return extra.length > 0;
+			return fresh.length > 0;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_invalid_response);
 			return false;
 		} finally {
-			this.loadingMore = false;
+			this.#pageLoading = false;
+			this.#syncLoadingMore();
 		}
 	};
 
-	/** Fetch further pages until the oldest loaded session is at or before `startedAtMs`, or the list ends. `null` drains all remaining pages. */
+	/**
+	 * Fetch further pages until the oldest loaded session is at or before `startedAtMs`,
+	 * or the list ends. `null` drains all remaining pages.
+	 * Uses the bulk page size and commits every few pages. A later call, or
+	 * {@link cancelDrain}, stops this loop without an abort signal.
+	 */
 	ensureThrough = async (startedAtMs: number | null): Promise<void> => {
-		while (this.nextCursor) {
-			const oldest = this.sessions.at(-1);
-			if (startedAtMs != null && oldest != null && Date.parse(oldest.startedAt) <= startedAtMs) {
-				return;
-			}
-			const more = await this.loadMore();
-			if (!more) return;
+		const gen = this.#bumpDrain();
+		if (this.#coveredThrough(startedAtMs, null)) {
+			this.#drainLoading = false;
+			this.#syncLoadingMore();
+			return;
 		}
+		this.#drainLoading = true;
+		this.#syncLoadingMore();
+		const pending: TimeSession[] = [];
+		const pendingIds = new SvelteSet<string>();
+		const reached: string[] = [];
+		let pagesInBatch = 0;
+		let cursor = this.nextCursor;
+		const flush = (next: string | null) => {
+			this.#releaseExtras(reached);
+			reached.length = 0;
+			this.#commitSessions(pending);
+			pending.length = 0;
+			pendingIds.clear();
+			pagesInBatch = 0;
+			this.nextCursor = next;
+		};
+		try {
+			while (cursor) {
+				if (gen !== this.#drainGen) return;
+				if (this.#coveredThrough(startedAtMs, pending)) {
+					flush(cursor);
+					return;
+				}
+				let page: SessionPage;
+				try {
+					page = await this.#loadSessionPage(SESSION_BULK_PAGE_SIZE, cursor);
+				} catch (e) {
+					if (gen !== this.#drainGen) return;
+					flush(cursor);
+					this.error = userMessageForError(e, m.error_invalid_response);
+					return;
+				}
+				if (gen !== this.#drainGen) return;
+				if (page.nextCursor === cursor) {
+					flush(cursor);
+					return;
+				}
+				const unseen = this.#unseen(page.items, pendingIds);
+				for (const s of unseen.fresh) {
+					pending.push(s);
+					pendingIds.add(s.id);
+				}
+				reached.push(...unseen.reached);
+				pagesInBatch += 1;
+				cursor = page.nextCursor;
+				const covered = cursor == null || this.#coveredThrough(startedAtMs, pending);
+				if (pagesInBatch >= DRAIN_BATCH_PAGES || covered) {
+					flush(cursor);
+					if (covered) return;
+				}
+			}
+		} finally {
+			if (gen === this.#drainGen) {
+				this.#drainLoading = false;
+				this.#syncLoadingMore();
+			}
+		}
+	};
+
+	/** Stop an in-flight {@link ensureThrough} before its next `listSessions` call. */
+	cancelDrain = (): void => {
+		this.#bumpDrain();
+		this.#drainLoading = false;
+		this.#syncLoadingMore();
 	};
 
 	loadSessionCounts = async (): Promise<void> => {
@@ -438,7 +550,19 @@ export class SessionStore {
 			this.#adjustSessionCount(started.projectId, started.activityTypeId, 1);
 			announce(m.announce_session_started());
 		} catch (e) {
-			this.error = userMessageForError(e, m.error_failed_start_session);
+			if (isSessionAlreadyActive(e)) {
+				try {
+					const active = await this.#requireRepo().getActiveSession();
+					if (active) {
+						this.#mergeActive(active);
+						this.#applyDraftFromSession(active);
+					}
+				} catch (inner) {
+					this.error = userMessageForError(inner, m.error_failed_start_session);
+				}
+			} else {
+				this.error = userMessageForError(e, m.error_failed_start_session);
+			}
 		} finally {
 			this.#end();
 		}
@@ -627,12 +751,19 @@ export class SessionStore {
 	 */
 	#adoptLiveFromSeed = (seed: AppSeed): void => {
 		if (this.activeSession) return;
-		const live = seed.sessions.find((s) => s.status === 'active');
+		const live = this.#liveFromSeed(seed);
 		if (!live) return;
 		const local = this.sessions.find((s) => s.id === live.id);
 		if (local?.status === 'stopped') return;
-		this.#upsertSession(live);
+		this.#mergeActive(live);
 		this.#applyDraftFromSession(live);
+	};
+
+	/** `active: null` is an explicit idle. Omitted falls back to the loaded window. */
+	#liveFromSeed = (seed: AppSeed): TimeSession | null => {
+		if (seed.active) return seed.active.status === 'active' ? seed.active : null;
+		if (seed.active === null) return null;
+		return seed.sessions.find((s) => s.status === 'active') ?? null;
 	};
 
 	#normalizeProjectSelection = (): void => {
@@ -714,12 +845,23 @@ export class SessionStore {
 	};
 
 	#upsertSession = (session: TimeSession): void => {
-		this.sessions = this.#upsertById(this.sessions, session);
+		const idx = this.sessions.findIndex((s) => s.id === session.id);
+		if (idx === -1) {
+			this.#loadedSessionIds.add(session.id);
+			this.sessions = [session, ...this.sessions];
+		} else {
+			this.sessions = this.sessions.map((s, i) => (i === idx ? session : s));
+		}
+		if (session.status === 'active') this.#active = session;
+		else if (this.#active?.id === session.id) this.#active = null;
 		this.#syncClock();
 	};
 
 	#removeSession = (id: string): void => {
 		this.sessions = this.sessions.filter((s) => s.id !== id);
+		this.#loadedSessionIds.delete(id);
+		this.#extraSessionIds.delete(id);
+		if (this.#active?.id === id) this.#active = null;
 		this.#syncClock();
 	};
 
@@ -743,6 +885,124 @@ export class SessionStore {
 		}
 	};
 
+	#bumpDrain = (): number => {
+		this.#drainGen += 1;
+		return this.#drainGen;
+	};
+
+	#syncLoadingMore = (): void => {
+		this.loadingMore = this.#drainLoading || this.#pageLoading;
+	};
+
+	#rebuildLoadedIds = (): void => {
+		this.#loadedSessionIds = new SvelteSet(this.sessions.map((s) => s.id));
+	};
+
+	/** Oldest startedAt that came from a page, ignoring the out-of-window active row. */
+	#oldestPagedStartedAt = (): number | null => {
+		for (let i = this.sessions.length - 1; i >= 0; i--) {
+			const s = this.sessions[i]!;
+			if (this.#extraSessionIds.has(s.id)) continue;
+			const t = Date.parse(s.startedAt);
+			return Number.isNaN(t) ? null : t;
+		}
+		return null;
+	};
+
+	#coveredThrough = (startedAtMs: number | null, pending: TimeSession[] | null): boolean => {
+		if (!this.nextCursor && (pending == null || pending.length === 0)) return true;
+		if (startedAtMs == null) return false;
+		let oldest = this.#oldestPagedStartedAt();
+		if (pending) {
+			for (const s of pending) {
+				const t = Date.parse(s.startedAt);
+				if (!Number.isNaN(t) && (oldest == null || t < oldest)) oldest = t;
+			}
+		}
+		return oldest != null && oldest <= startedAtMs;
+	};
+
+	#loadSessionPage = (limit: number, cursor: string | null): Promise<SessionPage> => {
+		return this.#requireRepo().listSessions({
+			limit,
+			...(cursor ? { cursor } : {})
+		});
+	};
+
+	/**
+	 * New rows from one page. Repeats (in the page, in `skip`, or already loaded) are dropped.
+	 * Extras that this page has now reached are listed but not unmarked until commit.
+	 */
+	#unseen = (
+		items: TimeSession[],
+		skip: Set<string>
+	): { fresh: TimeSession[]; reached: string[] } => {
+		const fresh: TimeSession[] = [];
+		const reached: string[] = [];
+		const seen = new SvelteSet<string>();
+		for (const s of items) {
+			if (seen.has(s.id) || skip.has(s.id)) continue;
+			seen.add(s.id);
+			if (this.#loadedSessionIds.has(s.id)) {
+				if (this.#extraSessionIds.has(s.id)) reached.push(s.id);
+				continue;
+			}
+			fresh.push(s);
+		}
+		return { fresh, reached };
+	};
+
+	#releaseExtras = (ids: string[]): void => {
+		for (const id of ids) this.#extraSessionIds.delete(id);
+	};
+
+	#commitSessions = (items: TimeSession[]): void => {
+		if (items.length === 0) return;
+		const fresh: TimeSession[] = [];
+		for (const s of items) {
+			if (this.#loadedSessionIds.has(s.id)) continue;
+			this.#loadedSessionIds.add(s.id);
+			fresh.push(s);
+		}
+		if (fresh.length === 0) return;
+		if (this.#extraSessionIds.size === 0) {
+			this.sessions = [...this.sessions, ...fresh];
+			return;
+		}
+		const base: TimeSession[] = [];
+		const extras: TimeSession[] = [];
+		for (const s of this.sessions) {
+			if (this.#extraSessionIds.has(s.id)) extras.push(s);
+			else base.push(s);
+		}
+		this.sessions = [...base, ...fresh, ...extras];
+	};
+
+	#mergeActive = (session: TimeSession): void => {
+		this.#active = session.status === 'active' ? session : null;
+		const idx = this.sessions.findIndex((s) => s.id === session.id);
+		if (idx !== -1) {
+			this.#extraSessionIds.delete(session.id);
+			this.sessions = this.sessions.map((s, i) => (i === idx ? session : s));
+			this.#loadedSessionIds.add(session.id);
+			return;
+		}
+		const oldest = this.#oldestPagedStartedAt();
+		const started = Date.parse(session.startedAt);
+		if (this.nextCursor != null && oldest != null && !Number.isNaN(started) && started < oldest) {
+			this.#extraSessionIds.add(session.id);
+		}
+		this.#insertNewestFirst(session);
+		this.#loadedSessionIds.add(session.id);
+	};
+
+	#insertNewestFirst = (session: TimeSession): void => {
+		const started = Date.parse(session.startedAt);
+		const idx = this.sessions.findIndex((s) => Date.parse(s.startedAt) < started);
+		if (idx === -1) this.sessions = [...this.sessions, session];
+		else this.sessions = [...this.sessions.slice(0, idx), session, ...this.sessions.slice(idx)];
+	};
+
 	reset = (): void => {
 		if (this.#visibilityBound && typeof document !== 'undefined') {
 			document.removeEventListener('visibilitychange', this.#onVisible);
@@ -752,6 +1012,12 @@ export class SessionStore {
 		this.#hydrated = false;
 		this.nowMs = 0;
 		this.timeZone = DEFAULT_TIME_ZONE;
+		this.#bumpDrain();
+		this.#drainLoading = false;
+		this.#pageLoading = false;
+		this.#active = null;
+		this.#loadedSessionIds = new SvelteSet();
+		this.#extraSessionIds = new SvelteSet();
 		this.sessions = [];
 		this.nextCursor = null;
 		this.loadingMore = false;

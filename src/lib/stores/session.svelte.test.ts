@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ApiError } from '$lib/api/errors';
 import { MemoryTimeTrackingRepository } from '$lib/data/memory-repository';
 import { FIXED_NOW, makeProject, makeSession, sampleAppSeed } from '$lib/test/factories';
-import { sessionElapsedMs } from '$lib/time/duration';
+import { todayTotalMs as aggregateTodayTotalMs } from '$lib/time/aggregates';
+import { sessionElapsedMs, startOfYesterday } from '$lib/time/duration';
 import { PrefsStore } from './prefs.svelte';
 import { SessionStore } from './session.svelte';
 
@@ -123,7 +125,9 @@ describe('SessionStore draft activity', () => {
 		expect(store.sessions).toHaveLength(15);
 		expect(store.nextCursor).toBeTruthy();
 
+		const listSessions = vi.spyOn(repo, 'listSessions');
 		await store.loadMore();
+		expect(listSessions).toHaveBeenCalledWith({ limit: 15, cursor: page.nextCursor });
 		expect(store.sessions.length).toBeGreaterThan(15);
 		expect(store.sessions.map((s) => s.id)).toEqual([...new Set(store.sessions.map((s) => s.id))]);
 
@@ -368,5 +372,189 @@ describe('SessionStore restart', () => {
 		const ok = await store.restartFromSession('missing');
 		expect(ok).toBe(false);
 		expect(store.activeSession).toBeNull();
+	});
+});
+
+function stoppedSession(id: string, startMs: number, durationMs = 5 * 60_000) {
+	return makeSession({
+		id,
+		status: 'stopped',
+		startedAt: new Date(startMs).toISOString(),
+		endedAt: new Date(startMs + durationMs).toISOString()
+	});
+}
+
+describe('SessionStore active session outside the window', () => {
+	let store: SessionStore;
+
+	afterEach(() => {
+		store?.reset();
+		vi.restoreAllMocks();
+	});
+
+	it('resolves activeSession when the live row is not on the first page', async () => {
+		const nowMs = Date.UTC(2026, 5, 15, 18, 0, 0);
+		const newer = Array.from({ length: 16 }, (_, i) =>
+			stoppedSession(`newer-${i}`, nowMs - i * 60_000, 30_000)
+		);
+		const live = makeSession({
+			id: 'live-hidden',
+			status: 'active',
+			endedAt: undefined,
+			note: 'Still going',
+			startedAt: new Date(nowMs - 30 * 60_000).toISOString()
+		});
+		const repo = new MemoryTimeTrackingRepository({
+			...sampleAppSeed(),
+			sessions: [...newer, live]
+		});
+		const page = await repo.listSessions({ limit: 15 });
+		expect(page.items.some((s) => s.id === live.id)).toBe(false);
+
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(
+			{
+				...sampleAppSeed(),
+				sessions: page.items,
+				nextCursor: page.nextCursor,
+				active: live
+			},
+			{ repo, nowMs, timeZone: 'UTC' }
+		);
+
+		expect(store.activeSession?.id).toBe('live-hidden');
+		expect(store.activeSession != null).toBe(true);
+		expect(store.sessions.filter((s) => s.id === live.id)).toHaveLength(1);
+
+		await store.refresh();
+		expect(store.activeSession?.id).toBe('live-hidden');
+		expect(store.activeSession != null).toBe(true);
+		expect(store.error).toBeNull();
+		expect(store.sessions.filter((s) => s.id === live.id)).toHaveLength(1);
+	});
+
+	it('hydrates the live row after session_already_active and leaves error clear', async () => {
+		const nowMs = Date.UTC(2026, 5, 15, 18, 0, 0);
+		const newer = Array.from({ length: 16 }, (_, i) =>
+			stoppedSession(`newer-${i}`, nowMs - i * 60_000, 30_000)
+		);
+		const live = makeSession({
+			id: 'live-hidden',
+			status: 'active',
+			endedAt: undefined,
+			note: 'Still going',
+			startedAt: new Date(nowMs - 30 * 60_000).toISOString()
+		});
+		const repo = new MemoryTimeTrackingRepository({
+			...sampleAppSeed(),
+			sessions: [...newer, live]
+		});
+		const page = await repo.listSessions({ limit: 15 });
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(
+			{ ...sampleAppSeed(), sessions: page.items, nextCursor: page.nextCursor },
+			{ repo, nowMs, timeZone: 'UTC' }
+		);
+		expect(store.activeSession).toBeNull();
+
+		vi.spyOn(repo, 'startSession').mockRejectedValue(
+			new ApiError(409, 'session_already_active', 'busy')
+		);
+		await store.start({ projectId: 'proj-auth', note: 'Again' });
+
+		expect(store.activeSession?.id).toBe('live-hidden');
+		expect(store.activeSession != null).toBe(true);
+		expect(store.error).toBeNull();
+	});
+});
+
+describe('SessionStore history drain', () => {
+	let store: SessionStore;
+
+	afterEach(() => {
+		store?.reset();
+		vi.restoreAllMocks();
+	});
+
+	it('ensureThrough(yesterday) fills todayTotalMs from later pages at limit 100', async () => {
+		const nowMs = Date.UTC(2026, 5, 15, 18, 0, 0);
+		const sessions = Array.from({ length: 40 }, (_, i) =>
+			stoppedSession(`today-${i}`, nowMs - (i + 1) * 6 * 60_000)
+		);
+		const repo = new MemoryTimeTrackingRepository({ ...sampleAppSeed(), sessions });
+		const page = await repo.listSessions({ limit: 15 });
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(
+			{ ...sampleAppSeed(), sessions: page.items, nextCursor: page.nextCursor },
+			{ repo, nowMs, timeZone: 'UTC' }
+		);
+		const expected = aggregateTodayTotalMs(sessions, new Date(nowMs), 'UTC');
+		expect(store.todayTotalMs).toBeLessThan(expected);
+
+		const listSessions = vi.spyOn(repo, 'listSessions');
+		await store.ensureThrough(startOfYesterday(new Date(nowMs), 'UTC'));
+
+		expect(store.todayTotalMs).toBe(expected);
+		expect(listSessions.mock.calls.length).toBeGreaterThan(0);
+		for (const call of listSessions.mock.calls) {
+			expect(call[0]?.limit).toBe(100);
+		}
+	});
+
+	it('a second ensureThrough stops the first drain before it finishes', async () => {
+		const nowMs = Date.UTC(2026, 5, 15, 12, 0, 0);
+		const sessions = Array.from({ length: 250 }, (_, i) =>
+			stoppedSession(`bulk-${String(i).padStart(3, '0')}`, nowMs - i * 60_000, 30_000)
+		);
+		const repo = new MemoryTimeTrackingRepository({ ...sampleAppSeed(), sessions });
+		const original = repo.listSessions.bind(repo);
+		const firstPage = await original({ limit: 15 });
+		let calls = 0;
+		let release: () => void = () => {};
+		const gate = new Promise<void>((resolve) => {
+			release = resolve;
+		});
+		vi.spyOn(repo, 'listSessions').mockImplementation(async (filters) => {
+			calls += 1;
+			if (calls === 1) await gate;
+			return original(filters);
+		});
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(
+			{ ...sampleAppSeed(), sessions: firstPage.items, nextCursor: firstPage.nextCursor },
+			{ repo, nowMs, timeZone: 'UTC' }
+		);
+		const coveredAt = Date.parse(firstPage.items.at(-1)!.startedAt);
+		const first = store.ensureThrough(0);
+		await vi.waitUntil(() => calls === 1);
+		await store.ensureThrough(coveredAt);
+		release();
+		await first;
+		expect(calls).toBe(1);
+	});
+
+	it('drops a repeated session id from a later page', async () => {
+		const nowMs = Date.UTC(2026, 5, 15, 18, 0, 0);
+		const sessions = Array.from({ length: 40 }, (_, i) =>
+			stoppedSession(`dup-${i}`, nowMs - (i + 1) * 6 * 60_000)
+		);
+		const repo = new MemoryTimeTrackingRepository({ ...sampleAppSeed(), sessions });
+		const original = repo.listSessions.bind(repo);
+		const firstPage = await original({ limit: 15 });
+		vi.spyOn(repo, 'listSessions').mockImplementation(async (filters) => {
+			const page = await original(filters);
+			const repeated = page.items[0];
+			if (!repeated) return page;
+			return { ...page, items: [firstPage.items[0]!, repeated, ...page.items] };
+		});
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(
+			{ ...sampleAppSeed(), sessions: firstPage.items, nextCursor: firstPage.nextCursor },
+			{ repo, nowMs, timeZone: 'UTC' }
+		);
+		await store.ensureThrough(startOfYesterday(new Date(nowMs), 'UTC'));
+		const ids = store.sessions.map((s) => s.id);
+		expect(ids).toEqual([...new Set(ids)]);
+		expect(ids.filter((id) => id === 'dup-0')).toHaveLength(1);
 	});
 });

@@ -1,15 +1,23 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import Banner from '$lib/components/ui/Banner.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
+	import { startOfYesterday } from '$lib/time/duration';
 	import RecentTasks from './RecentTasks.svelte';
 	import TaskInput from './TaskInput.svelte';
 	import TimerCard from './TimerCard.svelte';
 	import TodaySummary from './TodaySummary.svelte';
 
 	const sessionStore = useSession();
+
+	onMount(() => {
+		void sessionStore.ensureThrough(
+			startOfYesterday(new Date(sessionStore.nowMs), sessionStore.timeZone)
+		);
+	});
 
 	const status = $derived(sessionStore.activeSession?.status);
 	const sessionChrome = $derived(

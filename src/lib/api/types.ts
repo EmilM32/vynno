@@ -7,4 +7,9 @@ export interface AppSeed {
 	activityTypes: ActivityType[];
 	sessions: TimeSession[];
 	nextCursor: string | null;
+	/**
+	 * Live session from `GET /sessions/active`.
+	 * Omitted by older fixtures; `null` means the endpoint reported none.
+	 */
+	active?: TimeSession | null;
 }

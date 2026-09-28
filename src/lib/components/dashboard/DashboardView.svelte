@@ -5,7 +5,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { periodBounds } from '$lib/time/duration';
+	import { periodBounds, startOfYesterday } from '$lib/time/duration';
 	import ActiveProjects from './ActiveProjects.svelte';
 	import CurrentFocus from './CurrentFocus.svelte';
 	import RecentLogsList from './RecentLogsList.svelte';
@@ -15,8 +15,11 @@
 	const sessionStore = useSession();
 
 	onMount(() => {
-		const { start } = periodBounds('week', new Date(sessionStore.nowMs), sessionStore.timeZone);
-		void sessionStore.ensureThrough(start.getTime());
+		const now = new Date(sessionStore.nowMs);
+		const { start } = periodBounds('week', now, sessionStore.timeZone);
+		void sessionStore.ensureThrough(
+			Math.min(start.getTime(), startOfYesterday(now, sessionStore.timeZone))
+		);
 	});
 </script>
 

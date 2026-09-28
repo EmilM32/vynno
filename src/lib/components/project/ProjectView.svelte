@@ -24,11 +24,11 @@
 	} from '$lib/time/aggregates';
 	import {
 		formatInsightRangeLabel,
-		formatRelativePast,
 		periodBounds,
 		type ProjectPeriodSpec
 	} from '$lib/time/duration';
 	import { SvelteDate } from 'svelte/reactivity';
+	import { projectHeaderMeta } from './header-meta';
 	import ProjectEntries from './ProjectEntries.svelte';
 	import ProjectKpis from './ProjectKpis.svelte';
 	import ProjectPeriodControl from './ProjectPeriodControl.svelte';
@@ -83,12 +83,14 @@
 			: undefined
 	);
 	const lastLogged = $derived(latestStoppedStartedAt(mine));
+	const historyComplete = $derived(sessionStore.nextCursor == null);
 	const lastLoggedLabel = $derived(
-		lastLogged
-			? m.project_last_logged({
-					when: formatRelativePast(lastLogged, sessionStore.nowMs)
-				})
-			: m.project_no_sessions()
+		projectHeaderMeta({
+			lastLogged,
+			historyComplete,
+			sessionCount: project ? sessionStore.countSessionsForProject(project.id) : undefined,
+			nowMs: sessionStore.nowMs
+		})
 	);
 
 	const archived = $derived(Boolean(project?.isArchived));
@@ -100,6 +102,12 @@
 	);
 	const canArchive = $derived(project ? sessionStore.canArchiveOrDeleteActive(project.id) : false);
 	const startDisabled = $derived(otherLive || sessionStore.busy);
+
+	$effect(() => {
+		if (project && !lastLogged && !historyComplete) {
+			void sessionStore.ensureSessionCount('project', project.id);
+		}
+	});
 
 	$effect(() => {
 		const spec = period;

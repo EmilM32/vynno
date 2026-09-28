@@ -237,6 +237,7 @@
 	"projects_cannot_archive_last": "Nie można zarchiwizować ostatniego aktywnego projektu",
 	"projects_cannot_delete_has_sessions": "Projektów z sesjami nie można usunąć — zarchiwizuj zamiast tego",
 	"projects_cannot_delete_last": "Nie można usunąć ostatniego aktywnego projektu",
+	"projects_cannot_delete_checking": "Sprawdzam, czy projekt ma sesje",
 	"project_back": "Projekty",
 	"project_not_found": "Nie znaleziono tego projektu.",
 	"project_not_found_hint": "Mógł zostać usunięty. Wróć do listy projektów.",

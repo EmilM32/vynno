@@ -211,10 +211,9 @@
 		{:else}
 			<ul class="flex flex-col gap-2" data-testid="project-list">
 				{#each visible as project (project.id)}
-					{const count = $derived(sessionStore.countSessionsForProject(project.id) ?? 0)}
 					<ProjectRow
 						{project}
-						sessionCount={count}
+						sessionCount={sessionStore.countSessionsForProject(project.id)}
 						canArchive={sessionStore.canArchiveOrDeleteActive(project.id)}
 						canDelete={canDelete(project)}
 						busy={sessionStore.pendingAction === 'project'}

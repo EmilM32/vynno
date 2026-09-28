@@ -237,6 +237,7 @@
 	"projects_cannot_archive_last": "Cannot archive the last active project",
 	"projects_cannot_delete_has_sessions": "Projects with sessions cannot be deleted — archive instead",
 	"projects_cannot_delete_last": "Cannot delete the last active project",
+	"projects_cannot_delete_checking": "Checking whether this project has sessions",
 	"project_back": "Projects",
 	"project_not_found": "That project could not be found.",
 	"project_not_found_hint": "It may have been deleted. Return to the project list.",

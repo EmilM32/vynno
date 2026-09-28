@@ -6,10 +6,12 @@
 	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import type { Project } from '$lib/types/domain';
+	import { formatSessionCount } from './session-count';
 
 	interface Props {
 		project: Project;
-		sessionCount: number;
+		/** `undefined` until the lazy count loads. */
+		sessionCount: number | undefined;
 		canArchive: boolean;
 		canDelete: boolean;
 		busy?: boolean;
@@ -34,20 +36,17 @@
 		onprefetch
 	}: Props = $props();
 
-	/** one / few (2–4, excluding 12–14) / other — covers Polish and English. */
-	function sessionCountWord(n: number): string {
-		const abs = Math.abs(n);
-		if (abs === 1) return m.projects_session_one();
-		const mod10 = abs % 10;
-		const mod100 = abs % 100;
-		if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-			return m.projects_session_few();
-		}
-		return m.projects_session_other();
-	}
-
 	const archived = $derived(Boolean(project.isArchived));
-	const sessionWord = $derived(sessionCountWord(sessionCount));
+	const sessionLabel = $derived(formatSessionCount(sessionCount));
+	const deleteReason = $derived(
+		sessionCount != null && sessionCount > 0
+			? m.projects_cannot_delete_has_sessions()
+			: !archived && !canArchive
+				? m.projects_cannot_delete_last()
+				: sessionCount == null
+					? m.projects_cannot_delete_checking()
+					: m.projects_cannot_delete_last()
+	);
 
 	let moreOpen = $state(false);
 	let rowEl: HTMLElement | undefined = $state();
@@ -124,9 +123,12 @@
 						>
 					{/if}
 				</div>
-				<p class="mt-0.5 font-mono text-code-label text-on-surface-variant">
-					{sessionCount}
-					{sessionWord}
+				<!-- Unknown count keeps the line height but shows nothing (EMI-79). -->
+				<p
+					class="mt-0.5 font-mono text-code-label text-on-surface-variant"
+					data-testid="project-session-count"
+				>
+					{#if sessionLabel}{sessionLabel}{:else}&nbsp;{/if}
 				</p>
 			</div>
 		</a>
@@ -245,7 +247,7 @@
 	{/if}
 	{#if !canDelete}
 		<span id={`${project.id}-delete-reason`} class="sr-only">
-			{sessionCount > 0 ? m.projects_cannot_delete_has_sessions() : m.projects_cannot_delete_last()}
+			{deleteReason}
 		</span>
 	{/if}
 </li>

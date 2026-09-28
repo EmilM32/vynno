@@ -67,6 +67,7 @@ Daily production UI on this machine is [https://vynno.localhost](https://vynno.l
 | `npm run test:e2e`        | Playwright against a running vynno-api (manual; see below)         |
 | `npm run test:e2e:ui`     | Playwright UI mode                                                 |
 | `npm run test:e2e:headed` | Playwright headed browser                                          |
+| `npm run test:e2e:perf`   | Opt-in `@perf` history-drain timings (`PERF_SESSIONS`, default 5k) |
 | `npm run test:all`        | Unit tests, then Playwright e2e (run on purpose, not on git hooks) |
 | `npm run storybook`       | Component workshop (reusable UI, all named themes)                 |
 | `npm run build-storybook` | Static Storybook build → `storybook-static/` (gitignored)          |

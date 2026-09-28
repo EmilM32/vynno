@@ -14,6 +14,8 @@ export default defineConfig({
 	retries: process.env.CI ? 2 : 0,
 	workers: process.env.CI ? 1 : undefined,
 	reporter: process.env.CI ? 'github' : 'list',
+	// `@perf` seeds thousands of sessions; run it on purpose with `npm run test:e2e:perf`.
+	grepInvert: process.env.E2E_PERF ? undefined : /@perf/,
 	use: {
 		baseURL: e2eOrigin,
 		locale: 'en-US',

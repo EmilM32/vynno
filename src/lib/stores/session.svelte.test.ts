@@ -3,7 +3,7 @@ import { ApiError } from '$lib/api/errors';
 import { MemoryTimeTrackingRepository } from '$lib/data/memory-repository';
 import { FIXED_NOW, makeProject, makeSession, sampleAppSeed } from '$lib/test/factories';
 import { todayTotalMs as aggregateTodayTotalMs } from '$lib/time/aggregates';
-import { sessionElapsedMs, startOfYesterday } from '$lib/time/duration';
+import { startOfYesterday } from '$lib/time/duration';
 import { PrefsStore } from './prefs.svelte';
 import type { TimeSession } from '$lib/types/domain';
 import { SessionStore } from './session.svelte';
@@ -312,6 +312,8 @@ describe('SessionStore draft activity', () => {
 	});
 
 	it('uses Date.now() for elapsed while active', () => {
+		// Frozen clock: two real `Date.now()` reads can straddle a millisecond.
+		vi.useFakeTimers({ now: Date.parse('2026-03-11T10:05:00.000Z') });
 		const active = makeSession({
 			id: 'live',
 			status: 'active',
@@ -320,7 +322,9 @@ describe('SessionStore draft activity', () => {
 		});
 		store = new SessionStore(new PrefsStore());
 		store.hydrate({ ...sampleAppSeed(), sessions: [active] }, { nowMs: Date.now() });
-		expect(store.elapsedMs).toBe(sessionElapsedMs(active, Date.now()));
+		expect(store.elapsedMs).toBe(5 * 60_000);
+		vi.advanceTimersByTime(1_000);
+		expect(store.elapsedMs).toBe(5 * 60_000 + 1_000);
 	});
 });
 

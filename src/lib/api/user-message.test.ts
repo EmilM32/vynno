@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { m } from '$lib/paraglide/messages.js';
 import { ApiError } from './errors';
 import { DomainError } from '$lib/data/errors';
 import { userMessageForError } from './user-message';
@@ -31,6 +32,15 @@ describe('userMessageForError', () => {
 		);
 		expect(userMessageForError(new ApiError(409, 'name_in_use', 'x'), () => 'fb')).toBe(
 			'That name is already in use.'
+		);
+	});
+
+	it('maps rate_limited and internal_error to the localized strings', () => {
+		expect(userMessageForError(new ApiError(429, 'rate_limited', 'x'), () => 'fb')).toBe(
+			m.error_rate_limited()
+		);
+		expect(userMessageForError(new ApiError(500, 'internal_error', 'x'), () => 'fb')).toBe(
+			m.error_internal()
 		);
 	});
 

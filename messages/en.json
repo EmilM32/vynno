@@ -404,6 +404,7 @@
 	"error_email_in_use": "That email is already taken.",
 	"error_invalid_code": "That code is invalid or has expired.",
 	"error_rate_limited": "Too many attempts. Wait a minute and try again.",
+	"error_internal": "Something went wrong.",
 	"error_failed_register": "Could not create the account.",
 	"error_load_title": "Couldn't load workspace",
 	"error_load_body": "Check your connection and try again.",

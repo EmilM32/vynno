@@ -32,6 +32,8 @@ export function userMessageForError(e: unknown, fallback: () => string): string 
 			return m.error_invalid_code();
 		case 'rate_limited':
 			return m.error_rate_limited();
+		case 'internal_error':
+			return m.error_internal();
 		case 'name_in_use':
 			return m.activity_types_name_in_use();
 		case 'activity_type_has_sessions':

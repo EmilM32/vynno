@@ -404,6 +404,7 @@
 	"error_email_in_use": "Ten adres e-mail jest już zajęty.",
 	"error_invalid_code": "Ten kod jest nieprawidłowy lub wygasł.",
 	"error_rate_limited": "Zbyt wiele prób. Poczekaj chwilę i spróbuj ponownie.",
+	"error_internal": "Coś poszło nie tak.",
 	"error_failed_register": "Nie udało się utworzyć konta.",
 	"error_load_title": "Nie udało się wczytać przestrzeni",
 	"error_load_body": "Sprawdź połączenie i spróbuj ponownie.",

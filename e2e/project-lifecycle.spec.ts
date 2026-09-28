@@ -255,3 +255,34 @@ test.describe('project listing and codes', () => {
 		await expect(dialog.getByRole('alert')).toContainText('That project code is already in use.');
 	});
 });
+
+test.describe('lazy session counts', () => {
+	test('projects and settings load without count requests; a hover fetches one (EMI-70)', async ({
+		page
+	}) => {
+		await login(page);
+		const projects = [];
+		for (let i = 0; i < 3; i++)
+			projects.push(await createProject(page, { name: projectName('Lazy') }));
+		const counts: string[] = [];
+		page.on('request', (r) => {
+			const path = new URL(r.url()).pathname;
+			if (path.endsWith('/session-count')) counts.push(path);
+		});
+
+		await page.goto('/projects');
+		await waitForClient(page);
+		await page.waitForLoadState('networkidle');
+		expect(counts).toEqual([]);
+
+		const row = page.getByTestId('project-row').filter({ hasText: projects[0]!.name });
+		await row.getByRole('button', { name: 'Edit' }).hover();
+		await expect.poll(() => counts).toEqual([`/v1/projects/${projects[0]!.id}/session-count`]);
+
+		counts.length = 0;
+		await page.goto('/settings');
+		await waitForClient(page);
+		await page.waitForLoadState('networkidle');
+		expect(counts).toEqual([]);
+	});
+});

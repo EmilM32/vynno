@@ -67,3 +67,30 @@ test.describe('logs chrome', () => {
 		await expect(page.getByTestId('log-row').filter({ hasText: yesterdayNote })).toHaveCount(0);
 	});
 });
+
+test.describe('logs chrome long ticket', () => {
+	test('a 64-char ticket truncates inside its row (EMI-68)', async ({ page }) => {
+		await login(page);
+		const ticket = `TICKET-${'X'.repeat(57)}`;
+		const note = uniqueNote('long-ticket');
+		await seedManualSession(page, {
+			note,
+			ticketId: ticket,
+			startedAt: localDayAt(1, 10, 0).toISOString(),
+			endedAt: localDayAt(1, 11, 0).toISOString()
+		});
+		await page.goto('/logs');
+
+		const row = page.getByTestId('log-row').filter({ hasText: note });
+		const chip = row.getByTitle(ticket, { exact: true });
+		await expect(chip).toBeVisible();
+		const fit = await chip.evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
+		expect(fit.scroll).toBeGreaterThan(fit.client);
+		const rowBox = (await row.boundingBox())!;
+		const chipBox = (await chip.boundingBox())!;
+		expect(chipBox.x + chipBox.width).toBeLessThanOrEqual(rowBox.x + rowBox.width + 0.5);
+		expect(
+			await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+		).toBe(true);
+	});
+});

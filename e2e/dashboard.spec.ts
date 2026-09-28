@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, spaGo, startSession, stopSession, uniqueNote } from './helpers';
+import { firstProjectId, login, spaGo, startSession, stopSession, uniqueNote } from './helpers';
 
 test.describe('dashboard', () => {
 	test('renders core regions', async ({ page }) => {
@@ -69,3 +69,40 @@ test.describe('dashboard active focus (SPA)', () => {
 		await expect(play.first()).toBeDisabled();
 	});
 });
+
+for (const viewport of [
+	{ name: 'desktop', size: { width: 1280, height: 800 } },
+	{ name: 'mobile', size: { width: 390, height: 844 } }
+]) {
+	test.describe(`dashboard long live note (${viewport.name})`, () => {
+		test.use({ viewport: viewport.size });
+
+		test('a 500-char live note and long ticket stay inside Current focus (EMI-68)', async ({
+			page
+		}) => {
+			await login(page);
+			const note = uniqueNote('live').padEnd(500, 'w');
+			const ticket = `TICKET-${'X'.repeat(57)}`;
+			const projectId = await firstProjectId(page);
+			const started = await page.request.post('/v1/sessions', {
+				data: { projectId, note, ticketId: ticket }
+			});
+			expect(started.status()).toBe(201);
+			await page.goto('/dashboard');
+
+			const text = page.getByTitle(note, { exact: true });
+			await expect(text).toBeVisible();
+			const clamp = await text.evaluate((el) => ({
+				clamped: el.scrollHeight > el.clientHeight,
+				fits: el.scrollWidth <= el.clientWidth
+			}));
+			expect(clamp).toEqual({ clamped: true, fits: true });
+			const chip = page.getByTitle(ticket, { exact: true }).first();
+			const chipFit = await chip.evaluate((el) => el.scrollWidth > el.clientWidth);
+			expect(chipFit).toBe(true);
+			expect(
+				await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+			).toBe(true);
+		});
+	});
+}

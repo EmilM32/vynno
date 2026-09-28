@@ -873,6 +873,9 @@ export class SessionStore {
 	/** Client clock corrected to the server clock that stamps `startedAt` / `endedAt`. */
 	#serverNowMs = (): number => Date.now() + this.#clockOffsetMs;
 
+	/** Server-corrected now for one-off checks such as form bounds. Does not tick. */
+	serverNowMs = (): number => this.#serverNowMs();
+
 	/**
 	 * `stamp` is server "now" during a request sent at `sentAt` (client clock).
 	 * Offsets inside the round trip are latency, not skew, and are ignored.

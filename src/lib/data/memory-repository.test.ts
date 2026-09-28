@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FIXED_NOW, PROJECT_IDS, sampleAppSeed } from '$lib/test/factories';
+import { FIXED_NOW, PROJECT_IDS, makeSession, sampleAppSeed } from '$lib/test/factories';
 import type { DomainErrorCode } from './errors';
 import { MemoryTimeTrackingRepository } from './memory-repository';
 
@@ -156,6 +156,35 @@ describe('MemoryTimeTrackingRepository', () => {
 			expect(created.status).toBe('stopped');
 			expect(created.note).toBe('Forgot');
 			expect(await repo.getActiveSession()).not.toBeNull();
+		});
+
+		it('rejects manual sessions outside the contract time bounds', async () => {
+			const hour = 60 * 60_000;
+			const at = (offsetMs: number) => new Date(FIXED_NOW.getTime() + offsetMs).toISOString();
+			const manual = (startedAt: string, endedAt: string) =>
+				repo.createManualSession({ projectId: PROJECT_IDS.auth, note: 'x', startedAt, endedAt });
+			await expectCode(manual(at(20 * hour), at(21 * hour)), 'invalid_body');
+			await expectCode(manual('1999-12-31T22:00:00Z', '1999-12-31T23:00:00Z'), 'invalid_body');
+			await expectCode(manual(at(-8 * 24 * hour), at(0)), 'invalid_body');
+			await expect(manual('2000-01-01T00:00:00Z', '2000-01-01T01:00:00Z')).resolves.toBeDefined();
+		});
+
+		it('re-checks bounds only when a patch carries an instant', async () => {
+			const legacy = makeSession({
+				id: 'legacy',
+				projectId: PROJECT_IDS.auth,
+				status: 'stopped',
+				startedAt: '1990-01-01T10:00:00.000Z',
+				endedAt: '1990-01-01T11:00:00.000Z'
+			});
+			repo = new MemoryTimeTrackingRepository({ ...sampleAppSeed(FIXED_NOW), sessions: [legacy] });
+			await expect(repo.updateSession('legacy', { note: 'Renamed' })).resolves.toMatchObject({
+				note: 'Renamed'
+			});
+			await expectCode(
+				repo.updateSession('legacy', { endedAt: '1990-01-01T12:00:00.000Z' }),
+				'invalid_body'
+			);
 		});
 
 		it('deletes live and stopped sessions', async () => {

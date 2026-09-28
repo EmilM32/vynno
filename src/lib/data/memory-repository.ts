@@ -9,6 +9,7 @@ import {
 } from '$lib/projects/validate';
 import { normalizeName } from '$lib/text/normalize';
 import { isActivityColorToken, type ActivityColorToken } from '$lib/time/activity-styles';
+import { checkSessionTimes, type SessionTimesReject } from '$lib/time/session-bounds';
 import type {
 	ActivityType,
 	CreateActivityTypeInput,
@@ -455,7 +456,11 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			if (input.targetDurationMs != null) session.targetDurationMs = input.targetDurationMs;
 			else delete session.targetDurationMs;
 		}
-		assertSessionTimes(session, Date.now());
+		assertSessionTimes(
+			session,
+			Date.now(),
+			input.startedAt !== undefined || input.endedAt !== undefined
+		);
 		const idx = this.#sessions.findIndex((s) => s.id === id);
 		this.#sessions[idx] = session;
 		this.#sortSessions();
@@ -533,27 +538,37 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	}
 }
 
-function assertSessionTimes(session: TimeSession, _nowMs: number): void {
+const SESSION_TIMES_MESSAGE: Record<SessionTimesReject, string> = {
+	end_before_start: 'endedAt must be after startedAt.',
+	before_min: 'startedAt must be on or after 2000-01-01T00:00:00Z.',
+	in_future: 'startedAt and endedAt must not be more than 5 minutes in the future.',
+	too_long: 'A session must not last longer than 7 days.'
+};
+
+/** `checkBounds` is false for a patch that omits both instants (contract: no bounds re-check). */
+function assertSessionTimes(session: TimeSession, nowMs: number, checkBounds = true): void {
 	const started = Date.parse(session.startedAt);
 	if (Number.isNaN(started)) {
 		throw new DomainError('invalid_body', 'must be an ISO-8601 timestamp.');
 	}
+	let ended: number | null = null;
 	if (session.status === 'stopped') {
 		if (!session.endedAt) {
 			throw new DomainError('invalid_body', 'endedAt is required on a stopped session.');
 		}
-		const ended = Date.parse(session.endedAt);
+		ended = Date.parse(session.endedAt);
 		if (Number.isNaN(ended) || ended <= started) {
-			throw new DomainError('invalid_body', 'endedAt must be after startedAt.');
+			throw new DomainError('invalid_body', SESSION_TIMES_MESSAGE.end_before_start);
 		}
-		return;
-	}
-	if (session.endedAt) {
+	} else if (session.endedAt) {
 		throw new DomainError(
 			'invalid_body',
 			'endedAt is only set on stopped sessions; use POST .../stop.'
 		);
 	}
+	if (!checkBounds) return;
+	const reject = checkSessionTimes(started, ended, nowMs);
+	if (reject) throw new DomainError('invalid_body', SESSION_TIMES_MESSAGE[reject]);
 }
 
 function isAllowedAvatar(buf: Uint8Array): boolean {

@@ -5,9 +5,14 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { noteRejectMessage, ticketRejectMessage } from '$lib/text/field-error';
-	import { normalizeNote, normalizeTicketId } from '$lib/text/normalize';
-	import { datetimeLocalToIso, isoToDatetimeLocal } from '$lib/time/duration';
+	import {
+		noteRejectMessage,
+		sessionTimeRejectMessage,
+		ticketRejectMessage
+	} from '$lib/text/field-error';
+	import { isoToDatetimeLocal } from '$lib/time/duration';
+	import { SESSION_MAX_FUTURE_SKEW_MS, SESSION_MIN_START_MS } from '$lib/time/session-bounds';
+	import { buildSessionSubmit } from './session-form';
 	import type {
 		CreateManualSessionInput,
 		TimeSession,
@@ -39,62 +44,45 @@
 	let activityTypeId = $state(session?.activityTypeId ?? '');
 	// svelte-ignore state_referenced_locally
 	let ticketId = $state(session?.ticketId ?? '');
+	const openedAtMs = sessionStore.serverNowMs();
 	// svelte-ignore state_referenced_locally
 	let startedLocal = $state(
-		isoToDatetimeLocal(session?.startedAt ?? new Date(Date.now() - 60 * 60_000).toISOString())
+		isoToDatetimeLocal(session?.startedAt ?? new Date(openedAtMs - 60 * 60_000).toISOString())
 	);
 	// svelte-ignore state_referenced_locally
-	let endedLocal = $state(isoToDatetimeLocal(session?.endedAt ?? new Date().toISOString()));
+	let endedLocal = $state(
+		isoToDatetimeLocal(session?.endedAt ?? new Date(openedAtMs).toISOString())
+	);
 	let timeError = $state<string | null>(null);
 	let noteError = $state('');
 	let ticketError = $state('');
 
+	/** Picker hints only (`novalidate`): `buildSessionSubmit` enforces the same bounds. */
+	const minLocal = isoToDatetimeLocal(new Date(SESSION_MIN_START_MS).toISOString());
+	const maxLocal = isoToDatetimeLocal(
+		new Date(openedAtMs + SESSION_MAX_FUTURE_SKEW_MS).toISOString()
+	);
+
 	function handleSubmit(e: Event) {
 		e.preventDefault();
 		if (pending) return;
-		const startedAt = datetimeLocalToIso(startedLocal);
-		const endedAt = live ? null : datetimeLocalToIso(endedLocal);
-		if (!startedAt || (!live && !endedAt)) {
-			timeError = m.logs_time_invalid();
-			return;
-		}
-		if (!live && endedAt && Date.parse(endedAt) <= Date.parse(startedAt)) {
-			timeError = m.logs_time_invalid();
+		const result = buildSessionSubmit({
+			mode,
+			session,
+			values: { note, projectId, activityTypeId, ticketId, startedLocal, endedLocal },
+			nowMs: sessionStore.serverNowMs()
+		});
+		if (result.kind === 'invalid') {
+			const { errors } = result;
+			timeError = errors.time ? sessionTimeRejectMessage(errors.time) : null;
+			noteError = errors.note ? noteRejectMessage(errors.note) : '';
+			ticketError = errors.ticket ? ticketRejectMessage(errors.ticket) : '';
 			return;
 		}
 		timeError = null;
-		const noteResult = normalizeNote(note);
-		const ticketResult = normalizeTicketId(ticketId);
-		const originalNote = session?.note ?? '';
-		const originalTicket = session?.ticketId ?? '';
-		const keepLegacyNote = mode === 'edit' && note === originalNote && !noteResult.ok;
-		const keepLegacyTicket = mode === 'edit' && ticketId === originalTicket && !ticketResult.ok;
-		noteError = noteResult.ok || keepLegacyNote ? '' : noteRejectMessage(noteResult.reason);
-		ticketError =
-			ticketResult.ok || keepLegacyTicket ? '' : ticketRejectMessage(ticketResult.reason);
-		if (noteError || ticketError) return;
-		const nextTicket = ticketResult.ok ? ticketResult.value || null : null;
-		if (mode === 'create') {
-			if (!noteResult.ok || !ticketResult.ok) return;
-			onsubmit({
-				projectId,
-				note: noteResult.value,
-				activityTypeId: activityTypeId || undefined,
-				ticketId: ticketResult.value || undefined,
-				startedAt,
-				endedAt: endedAt!
-			});
-			return;
-		}
-		const patch: UpdateSessionInput = {
-			projectId,
-			activityTypeId: activityTypeId || null,
-			startedAt
-		};
-		if (noteResult.ok) patch.note = noteResult.value;
-		if (ticketResult.ok) patch.ticketId = nextTicket;
-		if (!live && endedAt) patch.endedAt = endedAt;
-		onsubmit(patch);
+		noteError = '';
+		ticketError = '';
+		onsubmit(result.input);
 	}
 </script>
 
@@ -134,11 +122,25 @@
 
 	<div class="grid gap-4 sm:grid-cols-2">
 		<Field id="session-started" label={m.logs_field_started()}>
-			<Input tone="code" type="datetime-local" bind:value={startedLocal} class="w-full" />
+			<Input
+				tone="code"
+				type="datetime-local"
+				bind:value={startedLocal}
+				min={minLocal}
+				max={maxLocal}
+				class="w-full"
+			/>
 		</Field>
 		{#if !live}
 			<Field id="session-ended" label={m.logs_field_ended()}>
-				<Input tone="code" type="datetime-local" bind:value={endedLocal} class="w-full" />
+				<Input
+					tone="code"
+					type="datetime-local"
+					bind:value={endedLocal}
+					min={minLocal}
+					max={maxLocal}
+					class="w-full"
+				/>
 			</Field>
 		{/if}
 	</div>

@@ -24,6 +24,32 @@ import {
 } from './duration';
 import { addDaysInTimeZone } from './timezone';
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Elapsed ms per local day key, in one pass. Only sessions starting in [`fromMs`, `toMs`)
+ * get a key, so callers pass a window a day wider than their buckets on each side (DST).
+ * Charts read one bar per day; scanning every session once per bar was O(days × sessions).
+ */
+function totalsByLocalDay(
+	sessions: TimeSession[],
+	fromMs: number,
+	toMs: number,
+	nowMs: number,
+	timeZone?: string
+): Map<string, number> {
+	const totals = new Map<string, number>();
+	for (const s of sessions) {
+		const parsed = Date.parse(s.startedAt);
+		// Same fallback as `localDateKey`: an unparseable start counts as today.
+		const t = Number.isNaN(parsed) ? nowMs : parsed;
+		if (t < fromMs || t >= toMs) continue;
+		const key = localDateKeyFromDate(new Date(t), timeZone);
+		totals.set(key, (totals.get(key) ?? 0) + sessionElapsedMs(s, nowMs));
+	}
+	return totals;
+}
+
 /** Total completed (+ optional live) duration for a local calendar day. */
 export function totalForLocalDay(
 	sessions: TimeSession[],
@@ -31,13 +57,17 @@ export function totalForLocalDay(
 	nowMs = Date.now(),
 	timeZone?: string
 ): number {
-	let total = 0;
-	for (const s of sessions) {
-		const key = localDateKey(s.startedAt, new Date(nowMs), timeZone);
-		if (key !== dayKey) continue;
-		total += sessionElapsedMs(s, nowMs);
-	}
-	return total;
+	// A civil day in any zone (UTC−12…+14) starts within a day of the same UTC date.
+	const utcDay = Date.parse(`${dayKey}T00:00:00Z`);
+	if (Number.isNaN(utcDay)) return 0;
+	const totals = totalsByLocalDay(
+		sessions,
+		utcDay - 2 * DAY_MS,
+		utcDay + 3 * DAY_MS,
+		nowMs,
+		timeZone
+	);
+	return totals.get(dayKey) ?? 0;
 }
 
 export function todayTotalMs(sessions: TimeSession[], now = new Date(), timeZone?: string): number {
@@ -188,19 +218,19 @@ function addLocalDays(start: Date, days: number, timeZone?: string): Date {
 		: new Date(start.getFullYear(), start.getMonth(), start.getDate() + days);
 }
 
-function totalForYearMonth(
+/** Elapsed ms per local `YYYY-MM`, in one pass (not one pass per month). */
+function totalsByYearMonth(
 	sessions: TimeSession[],
-	yearMonth: string,
 	nowMs: number,
 	timeZone?: string
-): number {
-	let total = 0;
+): Map<string, number> {
+	const now = new Date(nowMs);
+	const totals = new Map<string, number>();
 	for (const s of sessions) {
-		const key = localDateKey(s.startedAt, new Date(nowMs), timeZone);
-		if (!key.startsWith(yearMonth)) continue;
-		total += sessionElapsedMs(s, nowMs);
+		const key = localDateKey(s.startedAt, now, timeZone).slice(0, 7);
+		totals.set(key, (totals.get(key) ?? 0) + sessionElapsedMs(s, nowMs));
 	}
-	return total;
+	return totals;
 }
 
 /** Mon–Sun totals for the week containing `now`. */
@@ -237,6 +267,8 @@ export function periodBucketTotals(
 
 	if (period.kind === 'week') {
 		const weekStart = startOfWeekMonday(now, timeZone);
+		const from = weekStart.getTime() - DAY_MS;
+		const totals = totalsByLocalDay(sessions, from, from + 9 * DAY_MS, nowMs, timeZone);
 		const days: Omit<WeekDayTotal, 'ratio'>[] = [];
 		for (let i = 0; i < 7; i++) {
 			const d = addLocalDays(weekStart, i, timeZone);
@@ -244,7 +276,7 @@ export function periodBucketTotals(
 			days.push({
 				key,
 				label: weekdayShort(d, undefined, timeZone),
-				ms: totalForLocalDay(sessions, key, nowMs, timeZone),
+				ms: totals.get(key) ?? 0,
 				isToday: key === todayKey
 			});
 		}
@@ -254,6 +286,8 @@ export function periodBucketTotals(
 	if (period.kind === 'month') {
 		const start = startOfMonth(now, timeZone);
 		const count = calendarDaysInclusive(start, endOfMonth(now, timeZone), timeZone);
+		const from = start.getTime() - DAY_MS;
+		const totals = totalsByLocalDay(sessions, from, from + (count + 2) * DAY_MS, nowMs, timeZone);
 		const days: Omit<WeekDayTotal, 'ratio'>[] = [];
 		for (let i = 0; i < count; i++) {
 			const d = addLocalDays(start, i, timeZone);
@@ -261,7 +295,7 @@ export function periodBucketTotals(
 			days.push({
 				key,
 				label: String(Number(key.slice(-2))),
-				ms: totalForLocalDay(sessions, key, nowMs, timeZone),
+				ms: totals.get(key) ?? 0,
 				isToday: key === todayKey
 			});
 		}
@@ -273,6 +307,7 @@ export function periodBucketTotals(
 	const currentKey = localMonthKeyFromDate(now, timeZone);
 	const includeYear = localMonthKeyFromDate(first, timeZone).slice(0, 4) !== currentKey.slice(0, 4);
 	const months: Omit<WeekDayTotal, 'ratio'>[] = [];
+	const monthTotals = totalsByYearMonth(sessions, nowMs, timeZone);
 
 	for (let i = 0; i < 240; i++) {
 		const d = addCalendarMonths(first, i, timeZone);
@@ -285,7 +320,7 @@ export function periodBucketTotals(
 			label: includeYear
 				? monthShortYear(d, undefined, timeZone)
 				: monthShort(d, undefined, timeZone),
-			ms: totalForYearMonth(sessions, monthKey, nowMs, timeZone),
+			ms: monthTotals.get(monthKey) ?? 0,
 			isToday: monthKey === currentKey
 		});
 		if (d.getTime() >= currentMonth.getTime() || monthKey === currentKey) break;
@@ -307,6 +342,13 @@ function customRangeBucketTotals(
 	const endKey = localDateKeyFromDate(end, timeZone);
 	const days = calendarDaysInclusive(start, end, timeZone);
 	const origin = new Date(startOfLocalDay(start, timeZone));
+	const totals = totalsByLocalDay(
+		sessions,
+		origin.getTime() - DAY_MS,
+		origin.getTime() + (days + 2) * DAY_MS,
+		nowMs,
+		timeZone
+	);
 
 	if (days <= CUSTOM_DAILY_BUCKET_MAX) {
 		const buckets: Omit<WeekDayTotal, 'ratio'>[] = [];
@@ -316,7 +358,7 @@ function customRangeBucketTotals(
 			buckets.push({
 				key,
 				label: String(Number(key.slice(-2))),
-				ms: totalForLocalDay(sessions, key, nowMs, timeZone),
+				ms: totals.get(key) ?? 0,
 				isToday: key === todayKey
 			});
 		}
@@ -338,7 +380,7 @@ function customRangeBucketTotals(
 			const day = addLocalDays(weekStart, d, timeZone);
 			const key = localDateKeyFromDate(day, timeZone);
 			if (key < startKey || key > endKey) continue;
-			ms += totalForLocalDay(sessions, key, nowMs, timeZone);
+			ms += totals.get(key) ?? 0;
 			if (key === todayKey) containsToday = true;
 		}
 

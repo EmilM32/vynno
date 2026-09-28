@@ -100,7 +100,7 @@
 						onpointerenter={() => prefetchActivity(type.id)}
 						onfocusin={() => prefetchActivity(type.id)}
 					>
-						<ActivityChip {type} class="w-fit shrink-0" />
+						<ActivityChip {type} />
 						<div class="ml-auto flex shrink-0 gap-2">
 							<Button variant="secondary" size="xs" onclick={() => openEdit(type)}>
 								{m.activity_types_edit()}

@@ -23,3 +23,15 @@
 		</div>
 	{/snippet}
 </Story>
+
+<Story name="Long name in a narrow row">
+	{#snippet template()}
+		<div
+			class="flex w-[324px] items-center gap-2 rounded border border-outline-variant px-3 py-2"
+			data-testid="narrow-row"
+		>
+			<ActivityChip type={{ id: 'act-long', name: 'A'.repeat(80), color: 'primary' }} />
+			<span class="ml-auto shrink-0 text-body-sm" data-testid="row-actions">Edit · Delete</span>
+		</div>
+	{/snippet}
+</Story>

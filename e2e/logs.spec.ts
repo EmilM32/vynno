@@ -1,4 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
+import pl from '../messages/pl.json' with { type: 'json' };
+import { e2eOrigin } from './env';
 import {
 	firstProjectId,
 	localCivilDay,
@@ -529,5 +531,28 @@ test.describe('logs entry validation', () => {
 		await expect(form.getByRole('alert')).toHaveText('Start and end cannot be in the future.');
 		await expect(page.getByText('Failed to add session')).toHaveCount(0);
 		expect(posts).toHaveLength(0);
+	});
+});
+
+test.describe('logs entry validation (390px, Polish)', () => {
+	test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+	test('a future entry shows the Polish message on a phone (EMI-69)', async ({ page }) => {
+		await login(page);
+		await page.context().addCookies([{ name: 'PARAGLIDE_LOCALE', value: 'pl', url: e2eOrigin }]);
+		await page.goto('/logs');
+		await waitForClient(page);
+		await expect(page.locator('html')).toHaveAttribute('lang', 'pl');
+		await page.getByRole('button', { name: pl.logs_add_entry }).click();
+		const form = page.getByRole('dialog', { name: pl.logs_form_new }).getByTestId('session-form');
+
+		const tomorrow = localCivilDay(localDayAt(-1));
+		await form.getByLabel(pl.logs_field_note).fill(uniqueNote('jutro'));
+		await form.getByLabel(pl.logs_field_started, { exact: true }).fill(`${tomorrow}T09:00`);
+		await form.getByLabel(pl.logs_field_ended, { exact: true }).fill(`${tomorrow}T10:00`);
+		await form.getByRole('button', { name: pl.logs_create, exact: true }).click();
+		const alert = form.getByRole('alert');
+		await expect(alert).toHaveText(pl.logs_time_future);
+		await expect(alert).toBeInViewport();
 	});
 });

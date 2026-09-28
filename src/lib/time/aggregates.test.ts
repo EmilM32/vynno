@@ -23,7 +23,12 @@ import {
 	weeklyDayTotals,
 	yesterdayTotalMs
 } from './aggregates';
-import { customInsightRange, localDateKeyFromDate, periodBounds } from './duration';
+import {
+	customInsightRange,
+	formatStoppedDuration,
+	localDateKeyFromDate,
+	periodBounds
+} from './duration';
 
 const projects = [
 	makeProject({ id: 'proj-a', name: 'Alpha', color: '#111' }),
@@ -148,6 +153,26 @@ describe('recentTasks', () => {
 
 	it('respects limit', () => {
 		expect(recentTasks(daySessions(), 1)).toHaveLength(1);
+	});
+
+	it('omits stopped sessions shorter than 1s and formats that duration as <1s', () => {
+		expect(formatStoppedDuration(0)).toBe('<1s');
+		expect(formatStoppedDuration(999)).toBe('<1s');
+		expect(formatStoppedDuration(1000)).toBe('1s');
+		const short = makeSession({
+			id: 'short',
+			note: 'blip',
+			startedAt: '2026-03-11T12:00:00.000Z',
+			endedAt: '2026-03-11T12:00:00.400Z'
+		});
+		const longer = makeSession({
+			id: 'longer',
+			note: 'real work',
+			startedAt: '2026-03-11T10:00:00.000Z',
+			endedAt: '2026-03-11T11:00:00.000Z'
+		});
+		expect(recentTasks([short, longer], 5).map((task) => task.note)).toEqual(['real work']);
+		expect(recentTasks([short], 5)).toEqual([]);
 	});
 });
 
@@ -765,13 +790,7 @@ describe('projectPeriodStats', () => {
 			startedAt: localIso(2026, 2, 11, 9, 0),
 			endedAt: localIso(2026, 2, 11, 10, 0)
 		});
-		const stats = projectPeriodStats(
-			[bare],
-			'proj-a',
-			activityTypes,
-			{ kind: 'week' },
-			FIXED_NOW
-		);
+		const stats = projectPeriodStats([bare], 'proj-a', activityTypes, { kind: 'week' }, FIXED_NOW);
 		expect(stats.totalMs).toBe(ms.hours(1));
 		expect(stats.byActivity).toEqual([
 			expect.objectContaining({

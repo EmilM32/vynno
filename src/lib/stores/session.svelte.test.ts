@@ -177,6 +177,10 @@ describe('SessionStore draft activity', () => {
 		expect(listActivityTypes).not.toHaveBeenCalled();
 
 		const liveId = store.activeSession?.id;
+		// A stop in the same millisecond is discarded; this test covers a real stop.
+		await store.updateSession(liveId!, {
+			startedAt: new Date(Date.now() - 5_000).toISOString()
+		});
 		await store.stop();
 		expect(store.activeSession).toBeNull();
 		expect(store.sessions.find((s) => s.id === liveId)?.status).toBe('stopped');
@@ -589,5 +593,37 @@ describe('SessionStore lazy session counts', () => {
 
 		expect(await store.ensureSessionCount('project', 'proj-auth')).toBe(first);
 		expect(calls).toBe(1);
+	});
+});
+
+describe('SessionStore sub-second stop', () => {
+	let store: SessionStore;
+
+	afterEach(() => {
+		store?.reset();
+		vi.restoreAllMocks();
+	});
+
+	it('deletes a session stopped in under a second and does not call stopSession', async () => {
+		const live = makeSession({
+			id: 'flick',
+			status: 'active',
+			endedAt: undefined,
+			note: 'tap',
+			startedAt: new Date(Date.now() - 200).toISOString()
+		});
+		const repo = new MemoryTimeTrackingRepository({ ...sampleAppSeed(), sessions: [live] });
+		const stopSession = vi.spyOn(repo, 'stopSession');
+		const deleteSession = vi.spyOn(repo, 'deleteSession');
+		store = new SessionStore(new PrefsStore());
+		store.hydrate({ ...sampleAppSeed(), sessions: [live] }, { repo });
+
+		await store.stop();
+
+		expect(deleteSession).toHaveBeenCalledWith('flick');
+		expect(stopSession).not.toHaveBeenCalled();
+		expect(store.activeSession).toBeNull();
+		expect(store.sessions.some((s) => s.id === 'flick')).toBe(false);
+		expect(await repo.getSession('flick')).toBeUndefined();
 	});
 });

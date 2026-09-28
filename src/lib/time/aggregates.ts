@@ -84,7 +84,7 @@ export function recentTasks(sessions: TimeSession[], limit = 5): RecentTask[] {
 	const out: RecentTask[] = [];
 
 	const sorted = [...sessions]
-		.filter((s) => s.status === 'stopped')
+		.filter((s) => s.status === 'stopped' && sessionElapsedMs(s) >= 1000)
 		.sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
 
 	for (const s of sorted) {

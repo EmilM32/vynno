@@ -8,7 +8,7 @@
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { formatCompact, formatTimeRange, sessionElapsedMs } from '$lib/time/duration';
+	import { formatStoppedDuration, formatTimeRange, sessionElapsedMs } from '$lib/time/duration';
 	import type { TimeSession } from '$lib/types/domain';
 
 	const sessionStore = useSession();
@@ -73,7 +73,7 @@
 			{range}
 		</div>
 		<div class="font-mono text-code-data whitespace-nowrap text-on-surface {durationClass}">
-			{formatCompact(duration)}
+			{formatStoppedDuration(duration)}
 		</div>
 	</div>
 {/snippet}

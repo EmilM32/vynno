@@ -7,7 +7,7 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import type { TaskGroup } from '$lib/time/aggregates';
-	import { formatCompact } from '$lib/time/duration';
+	import { formatStoppedDuration } from '$lib/time/duration';
 	import type { TimeSession } from '$lib/types/domain';
 	import LogRow from './LogRow.svelte';
 
@@ -59,7 +59,7 @@
 				</div>
 			{/if}
 			<div class="ml-auto font-mono text-code-data whitespace-nowrap text-on-surface">
-				{formatCompact(group.totalMs)}
+				{formatStoppedDuration(group.totalMs)}
 			</div>
 		</div>
 
@@ -92,7 +92,7 @@
 		</div>
 
 		<div class="hidden font-mono text-code-display whitespace-nowrap text-on-surface md:block">
-			{formatCompact(group.totalMs)}
+			{formatStoppedDuration(group.totalMs)}
 		</div>
 
 		<div class="flex shrink-0 items-center justify-end gap-1.5 self-end md:self-center">

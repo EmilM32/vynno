@@ -39,6 +39,9 @@ import { createSubscriber, SvelteDate, SvelteMap, SvelteSet } from 'svelte/react
 /** Pages held back before `sessions` is replaced during a bulk drain. */
 const DRAIN_BATCH_PAGES = 5;
 
+/** Sub-second stops are accidental taps; they are deleted instead of stored. */
+const DISCARD_UNDER_MS = 1000;
+
 function isSessionAlreadyActive(e: unknown): boolean {
 	return (e instanceof ApiError || e instanceof DomainError) && e.code === 'session_already_active';
 }
@@ -682,6 +685,12 @@ export class SessionStore {
 		if (!this.#begin('stop')) return;
 		this.error = null;
 		try {
+			if (sessionElapsedMs(s, Date.now()) < DISCARD_UNDER_MS) {
+				await this.#requireRepo().deleteSession(s.id);
+				this.#removeSession(s.id);
+				this.#adjustSessionCount(s.projectId, s.activityTypeId, -1);
+				return;
+			}
 			const stopped = await this.#requireRepo().stopSession(s.id);
 			this.#applyDraftFromSession(stopped);
 			this.#upsertSession(stopped);

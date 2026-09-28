@@ -171,7 +171,7 @@ Chrome-less card. Login is `POST /v1/auth/login`. Register is `POST /v1/auth/reg
          → Timer returns to Idle (draft keeps last note/project)
 ```
 
-A break is stop, then start again (new session). There is no pause. Grouped logs sum same-ticket repeats in a day.
+A break is stop, then start again (new session). There is no pause. Grouped logs sum same-ticket repeats in a day. Stopping a session younger than 1 second deletes it instead of keeping a 0s row. Logs show `<1s` for older sub-second rows.
 
 ### C — Restart from recent
 

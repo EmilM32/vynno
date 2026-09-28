@@ -56,6 +56,12 @@ export function isCompactVisible(ms: number): boolean {
 	return compactSeconds(ms) >= 1;
 }
 
+/** Log-row label. A stopped duration under 1s is `<1s`, not `0s`. Zero stays `0s` on charts. */
+export function formatStoppedDuration(ms: number): string {
+	if (ms < 1000) return '<1s';
+	return formatCompact(ms);
+}
+
 /** Dashboard-style total: `06h 42m` (zero-padded hours). */
 export function formatHoursMinutes(ms: number): string {
 	const totalMin = Math.floor(Math.max(0, ms) / 60_000);

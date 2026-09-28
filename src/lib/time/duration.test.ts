@@ -14,6 +14,7 @@ import {
 	endOfWeekSunday,
 	formatClock,
 	formatCompact,
+	formatStoppedDuration,
 	isCompactVisible,
 	deltaDisplay,
 	formatHoursDecimal,
@@ -110,6 +111,14 @@ describe('formatCompact', () => {
 		expect(formatCompact(0)).toBe('0s');
 		expect(formatCompact(999)).toBe('0s');
 		expect(formatCompact(1000)).toBe('1s');
+	});
+});
+
+describe('formatStoppedDuration', () => {
+	it('labels a stopped duration under 1s as <1s', () => {
+		expect(formatStoppedDuration(0)).toBe('<1s');
+		expect(formatStoppedDuration(999)).toBe('<1s');
+		expect(formatStoppedDuration(1000)).toBe('1s');
 	});
 });
 

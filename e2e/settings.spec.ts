@@ -257,6 +257,8 @@ test.describe('settings', () => {
 		await expect(row).toBeVisible();
 		const deleteBtn = row.getByRole('button', { name: 'Delete' });
 		await expect(deleteBtn).toBeDisabled();
+		// The session count loads when the row is hovered (EMI-70); the reason follows it.
+		await row.hover();
 		await expect(deleteBtn).toHaveAttribute(
 			'title',
 			'Cannot delete an activity type that has sessions.'
@@ -271,5 +273,64 @@ test.describe('settings', () => {
 		await deleteBtn.click({ force: true });
 		await expect(page.getByRole('dialog')).toHaveCount(0);
 		expect(deletes).toEqual([]);
+	});
+});
+
+/** 80 code points, no spaces: the longest name the API accepts (EMI-66). */
+function longTypeName(tag: string): string {
+	return `${tag}_${Date.now().toString(36)}_`.padEnd(80, 'x');
+}
+
+async function addActivityType(page: Page, name: string) {
+	const section = page.getByRole('region', { name: 'Activity types' });
+	await section.getByRole('button', { name: 'Add', exact: true }).click();
+	const dialog = page.getByRole('dialog', { name: 'New activity type' });
+	await dialog.locator('#activity-type-name').fill(name);
+	await dialog.getByRole('button', { name: 'Add', exact: true }).click();
+	await expect(dialog).toBeHidden();
+}
+
+test.describe('settings activity type length', () => {
+	test.beforeEach(async ({ page }) => {
+		await login(page);
+		await page.goto('/settings');
+		await waitForClient(page);
+	});
+
+	test('an 80-char type saves and edits; 81 fails inline (EMI-66)', async ({ page }) => {
+		const name = longTypeName('long');
+		await addActivityType(page, name);
+		const row = page.getByTestId('activity-type-row').filter({ hasText: name });
+		await expect(row).toBeVisible();
+
+		await row.getByRole('button', { name: 'Edit' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Edit activity type' });
+		await dialog.locator('#activity-type-name').fill(`${name}y`);
+		await dialog.getByRole('button', { name: 'Save' }).click();
+		await expect(dialog.getByText('Name must be at most 80 characters.')).toBeVisible();
+
+		const renamed = longTypeName('renamed');
+		await dialog.locator('#activity-type-name').fill(renamed);
+		await dialog.getByRole('button', { name: 'Save' }).click();
+		await expect(dialog).toBeHidden();
+		await expect(page.getByTestId('activity-type-row').filter({ hasText: renamed })).toBeVisible();
+	});
+
+	test.describe('mobile', () => {
+		test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+		test('Edit and Delete stay on screen next to an 80-char type (EMI-77)', async ({ page }) => {
+			const name = longTypeName('mobile');
+			await addActivityType(page, name);
+			const row = page.getByTestId('activity-type-row').filter({ hasText: name });
+			for (const label of ['Edit', 'Delete']) {
+				const button = row.getByRole('button', { name: label });
+				await button.scrollIntoViewIfNeeded();
+				await expect(button).toBeInViewport({ ratio: 1 });
+			}
+			expect(
+				await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+			).toBe(true);
+		});
 	});
 });

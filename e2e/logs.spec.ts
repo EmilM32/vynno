@@ -1,4 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+import pl from '../messages/pl.json' with { type: 'json' };
+import { e2eOrigin } from './env';
 import {
 	firstProjectId,
 	localCivilDay,
@@ -10,7 +12,8 @@ import {
 	spaGo,
 	startSession,
 	stopSession,
-	uniqueNote
+	uniqueNote,
+	waitForClient
 } from './helpers';
 
 test.describe('logs', () => {
@@ -305,8 +308,8 @@ test.describe('logs filters', () => {
 		const { id: otherId } = (await created.json()) as { id: string };
 		const personalNote = uniqueNote('personal');
 		const otherNote = uniqueNote('other');
-		const start = localDayAt(0, 9, 0);
-		const end = localDayAt(0, 10, 0);
+		const start = localDayAt(1, 9, 0);
+		const end = localDayAt(1, 10, 0);
 		await seedManualSession(page, {
 			note: personalNote,
 			projectId: personalId,
@@ -343,8 +346,8 @@ test.describe('logs filters', () => {
 		const bare = uniqueNote('bare');
 		await startSession(page, coded, undefined, 'coding');
 		await stopSession(page);
-		const start = localDayAt(0, 12, 0);
-		const end = localDayAt(0, 13, 0);
+		const start = localDayAt(1, 12, 0);
+		const end = localDayAt(1, 13, 0);
 		await seedManualSession(page, {
 			note: bare,
 			startedAt: start.toISOString(),
@@ -400,8 +403,8 @@ test.describe('logs layout', () => {
 			await seedManualSession(page, {
 				note: notes[i]!,
 				ticketId: ticket,
-				startedAt: localDayAt(0, startHour, 0).toISOString(),
-				endedAt: localDayAt(0, endHour, 0).toISOString()
+				startedAt: localDayAt(1, startHour, 0).toISOString(),
+				endedAt: localDayAt(1, endHour, 0).toISOString()
 			});
 		}
 		await page.goto('/logs');
@@ -450,8 +453,8 @@ test.describe('logs layout', () => {
 		);
 		await seedManualSession(page, {
 			note,
-			startedAt: localDayAt(0, 8, 0).toISOString(),
-			endedAt: localDayAt(0, 8, 30).toISOString()
+			startedAt: localDayAt(1, 8, 0).toISOString(),
+			endedAt: localDayAt(1, 8, 30).toISOString()
 		});
 		await page.setViewportSize({ width: 1280, height: 720 });
 		await page.goto('/logs');
@@ -462,5 +465,94 @@ test.describe('logs layout', () => {
 		await toggle.click();
 		await expect(toggle).toHaveAttribute('aria-expanded', 'true');
 		await expect(row.getByText(note)).toBeVisible();
+	});
+});
+
+test.describe('logs entry validation', () => {
+	test.beforeEach(async ({ page }) => {
+		await login(page);
+		await page.goto('/logs');
+		await waitForClient(page);
+		await page.getByRole('button', { name: 'Add entry' }).click();
+	});
+
+	function watchManualPosts(page: Page): string[] {
+		const posts: string[] = [];
+		page.on('request', (r) => {
+			if (r.method() === 'POST' && new URL(r.url()).pathname === '/v1/sessions/manual') {
+				posts.push(r.url());
+			}
+		});
+		return posts;
+	}
+
+	test('over-long note and ticket fail inline; the limits save (EMI-62)', async ({ page }) => {
+		const form = page
+			.getByRole('dialog', { name: 'Manual time entry' })
+			.getByTestId('session-form');
+		const posts = watchManualPosts(page);
+		await form.getByLabel('Task').fill('n'.repeat(501));
+		await form.getByLabel('Ticket').fill('T'.repeat(65));
+		await form.getByRole('button', { name: 'Add', exact: true }).click();
+		await expect(form.getByText('Note must be at most 500 characters.')).toBeVisible();
+		await expect(form.getByText('Ticket must be at most 64 characters.')).toBeVisible();
+		expect(posts).toHaveLength(0);
+
+		const note = uniqueNote('max-note').padEnd(500, 'x');
+		const ticket = `DEV-${'9'.repeat(60)}`;
+		await form.getByLabel('Task').fill(note);
+		await form.getByLabel('Ticket').fill(ticket);
+		await form.getByRole('button', { name: 'Add', exact: true }).click();
+		await expect(form).toBeHidden();
+		expect(posts).toHaveLength(1);
+		await expect(page.getByTestId('log-row').filter({ hasText: note.slice(0, 30) })).toBeVisible();
+	});
+
+	test('an entry in the future says so instead of failing generically (EMI-69)', async ({
+		page
+	}) => {
+		const form = page
+			.getByRole('dialog', { name: 'Manual time entry' })
+			.getByTestId('session-form');
+		const start = form.getByLabel('Start', { exact: true });
+		const end = form.getByLabel('End', { exact: true });
+		// `min` is the local wall time of the 2000-01-01T00:00Z bound (1999-12-31 west of UTC).
+		expect(await start.evaluate((el: HTMLInputElement) => new Date(el.min).toISOString())).toBe(
+			'2000-01-01T00:00:00.000Z'
+		);
+		await expect(start).toHaveAttribute('max', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+
+		const posts = watchManualPosts(page);
+		const tomorrow = localCivilDay(localDayAt(-1));
+		await form.getByLabel('Task').fill(uniqueNote('future'));
+		await start.fill(`${tomorrow}T09:00`);
+		await end.fill(`${tomorrow}T10:00`);
+		await form.getByRole('button', { name: 'Add', exact: true }).click();
+		await expect(form.getByRole('alert')).toHaveText('Start and end cannot be in the future.');
+		await expect(page.getByText('Failed to add session')).toHaveCount(0);
+		expect(posts).toHaveLength(0);
+	});
+});
+
+test.describe('logs entry validation (390px, Polish)', () => {
+	test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+	test('a future entry shows the Polish message on a phone (EMI-69)', async ({ page }) => {
+		await login(page);
+		await page.context().addCookies([{ name: 'PARAGLIDE_LOCALE', value: 'pl', url: e2eOrigin }]);
+		await page.goto('/logs');
+		await waitForClient(page);
+		await expect(page.locator('html')).toHaveAttribute('lang', 'pl');
+		await page.getByRole('button', { name: pl.logs_add_entry }).click();
+		const form = page.getByRole('dialog', { name: pl.logs_form_new }).getByTestId('session-form');
+
+		const tomorrow = localCivilDay(localDayAt(-1));
+		await form.getByLabel(pl.logs_field_note).fill(uniqueNote('jutro'));
+		await form.getByLabel(pl.logs_field_started, { exact: true }).fill(`${tomorrow}T09:00`);
+		await form.getByLabel(pl.logs_field_ended, { exact: true }).fill(`${tomorrow}T10:00`);
+		await form.getByRole('button', { name: pl.logs_create, exact: true }).click();
+		const alert = form.getByRole('alert');
+		await expect(alert).toHaveText(pl.logs_time_future);
+		await expect(alert).toBeInViewport();
 	});
 });

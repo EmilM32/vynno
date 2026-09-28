@@ -114,7 +114,12 @@ test.describe('project delete guards', () => {
 		await waitForClient(page);
 		const row = page.getByTestId('project-row').filter({ hasText: project.name });
 		await expect(row.getByRole('button', { name: 'Delete' })).toBeDisabled();
-		// Reason text settles once the per-project session-count fan-out lands.
+		// While the count is unknown the reason says so; it loads when the actions are
+		// hovered (EMI-70, EMI-79).
+		await expect(page.locator(byId(`${project.id}-delete-reason`))).toHaveText(
+			'Checking whether this project has sessions'
+		);
+		await row.getByRole('button', { name: 'Edit' }).hover();
 		await expect(page.locator(byId(`${project.id}-delete-reason`))).toHaveText(
 			'Projects with sessions cannot be deleted — archive instead'
 		);
@@ -155,7 +160,9 @@ test.describe('project delete guards', () => {
 		await waitForClient(page);
 		const row = page.getByTestId('project-row').filter({ hasText: name });
 		const deleteButton = row.getByRole('button', { name: 'Delete' });
-		// Enables only after the session count for this project comes back as 0.
+		// Disabled until the lazy session count (fetched on hover, EMI-70) comes back as 0.
+		await expect(deleteButton).toBeDisabled();
+		await row.getByRole('button', { name: 'Edit' }).hover();
 		await expect(deleteButton).toBeEnabled();
 		await deleteButton.click();
 
@@ -246,5 +253,36 @@ test.describe('project listing and codes', () => {
 		expect(res.status()).toBe(409);
 		expect(await res.json()).toMatchObject({ error: { code: 'code_in_use' } });
 		await expect(dialog.getByRole('alert')).toContainText('That project code is already in use.');
+	});
+});
+
+test.describe('lazy session counts', () => {
+	test('projects and settings load without count requests; a hover fetches one (EMI-70)', async ({
+		page
+	}) => {
+		await login(page);
+		const projects = [];
+		for (let i = 0; i < 3; i++)
+			projects.push(await createProject(page, { name: projectName('Lazy') }));
+		const counts: string[] = [];
+		page.on('request', (r) => {
+			const path = new URL(r.url()).pathname;
+			if (path.endsWith('/session-count')) counts.push(path);
+		});
+
+		await page.goto('/projects');
+		await waitForClient(page);
+		await page.waitForLoadState('networkidle');
+		expect(counts).toEqual([]);
+
+		const row = page.getByTestId('project-row').filter({ hasText: projects[0]!.name });
+		await row.getByRole('button', { name: 'Edit' }).hover();
+		await expect.poll(() => counts).toEqual([`/v1/projects/${projects[0]!.id}/session-count`]);
+
+		counts.length = 0;
+		await page.goto('/settings');
+		await waitForClient(page);
+		await page.waitForLoadState('networkidle');
+		expect(counts).toEqual([]);
 	});
 });

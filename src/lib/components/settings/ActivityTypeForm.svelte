@@ -3,9 +3,8 @@
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import { PROJECT_NAME_MAX } from '$lib/projects/validate';
 	import { nameRejectMessage } from '$lib/text/field-error';
-	import { normalizeName } from '$lib/text/normalize';
+	import { NAME_MAX, normalizeName } from '$lib/text/normalize';
 	import {
 		ACTIVITY_COLOR_TOKENS,
 		isActivityColorToken,
@@ -39,9 +38,9 @@
 	function handleSubmit(e: Event) {
 		e.preventDefault();
 		if (pending) return;
-		const normalized = normalizeName(name, { min: 1, max: PROJECT_NAME_MAX });
+		const normalized = normalizeName(name, { min: 1, max: NAME_MAX });
 		if (!normalized.ok) {
-			nameError = nameRejectMessage(normalized.reason, PROJECT_NAME_MAX);
+			nameError = nameRejectMessage(normalized.reason, NAME_MAX);
 			return;
 		}
 		nameError = '';

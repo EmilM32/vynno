@@ -1,5 +1,8 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import {
+	createProject,
+	firstProjectId,
+	localCivilDay,
 	login,
 	pastSpansOnCurrentDay,
 	seedManualSession,
@@ -70,7 +73,10 @@ test.describe('insights', () => {
 		});
 		await page.goto('/insights');
 		await waitForClient(page);
-		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'Month' }).click();
+		await page
+			.getByRole('group', { name: 'Period' })
+			.getByRole('button', { name: 'Month' })
+			.click();
 
 		const activity = page.getByRole('region', { name: 'Time by activity', exact: true });
 		await expect(activity.getByText('Unassigned')).toBeVisible();
@@ -109,7 +115,10 @@ test.describe('insights', () => {
 
 		await page.goto('/insights');
 		await waitForClient(page);
-		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'Month' }).click();
+		await page
+			.getByRole('group', { name: 'Period' })
+			.getByRole('button', { name: 'Month' })
+			.click();
 
 		const activity = page.getByRole('region', { name: 'Time by activity', exact: true });
 		await expect(activity.getByText('Unassigned')).toBeVisible();
@@ -138,7 +147,10 @@ test.describe('insights', () => {
 
 	test('activity heading peeks above the fold on mobile', async ({ page }, testInfo) => {
 		test.skip(testInfo.project.name !== 'mobile', 'mobile fold');
-		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'Month' }).click();
+		await page
+			.getByRole('group', { name: 'Period' })
+			.getByRole('button', { name: 'Month' })
+			.click();
 		const heading = page.getByRole('heading', { name: 'Time by Activity' });
 		await expect(heading).toBeVisible();
 		const box = await heading.boundingBox();
@@ -160,6 +172,61 @@ test.describe('insights', () => {
 		expect(
 			Math.abs(periodBox!.y + periodBox!.height / 2 - (labelBox!.y + labelBox!.height / 2))
 		).toBeLessThan(16);
+	});
+
+	test('project donut keeps six projects plus Other inside its card (EMI-61)', async ({ page }) => {
+		const spans = pastSpansOnCurrentDay(8, 10 * 60_000);
+		for (let i = 0; i < spans.length; i++) {
+			const project = await createProject(page, { name: `Donut ${i} ${Date.now().toString(36)}` });
+			await seedManualSession(page, {
+				projectId: project.id,
+				note: uniqueNote(`donut-${i}`),
+				startedAt: spans[i]!.startedAt.toISOString(),
+				endedAt: spans[i]!.endedAt.toISOString()
+			});
+		}
+		await page.goto('/insights');
+		await waitForClient(page);
+
+		const donut = page.getByRole('region', { name: 'Time by project', exact: true });
+		await expect(donut.getByRole('link', { name: /^Open Donut/ })).toHaveCount(6);
+		const other = donut.getByText('Other', { exact: true });
+		await expect(other).toBeVisible();
+		const ring = donut.locator('svg.lc-layout-svg');
+		await expect(ring).toBeVisible();
+		expect((await ring.boundingBox())!.height).toBeGreaterThanOrEqual(140);
+
+		const card = (await donut.boundingBox())!;
+		for (const item of [...(await donut.getByRole('link').all()), other]) {
+			const box = (await item.boundingBox())!;
+			expect(box.x + box.width).toBeLessThanOrEqual(card.x + card.width + 0.5);
+			expect(box.y + box.height).toBeLessThanOrEqual(card.y + card.height + 0.5);
+		}
+	});
+
+	test('a long range pages history at the bulk size without repeats (EMI-59)', async ({
+		page
+	}, testInfo) => {
+		test.skip(testInfo.project.name === 'mobile', 'network shape, not layout');
+		const projectId = await firstProjectId(page);
+		// 240 stopped sessions over ~60 days: the SSR page holds 15, the rest must drain.
+		await seedSpread(page, projectId, 240, 6 * 60 * 60 * 1000);
+
+		const insights = watchHistoryPages(page);
+		await page.goto('/insights');
+		await waitForClient(page);
+		await page.getByRole('button', { name: 'Custom' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Custom range' });
+		await dialog.getByLabel('From').fill(localCivilDay(new Date(Date.now() - 70 * 86_400_000)));
+		await dialog.getByLabel('To').fill(localCivilDay(new Date()));
+		await dialog.getByRole('button', { name: 'Apply' }).click();
+		await insights.settled();
+
+		const dossier = watchHistoryPages(page);
+		await page.goto(`/projects/${projectId}`);
+		await waitForClient(page);
+		await page.getByRole('group', { name: 'Period' }).getByRole('button', { name: 'All' }).click();
+		await dossier.settled();
 	});
 
 	test('custom range dialog validates inverted dates', async ({ page }) => {
@@ -209,3 +276,49 @@ test.describe('insights SSR seed', () => {
 		expect(seedRefetches).toEqual([]);
 	});
 });
+
+/** Stopped sessions packed backwards from 2 days ago, `gapMs` apart, 30 min each. */
+async function seedSpread(page: Page, projectId: string, count: number, gapMs: number) {
+	const newest = Date.now() - 2 * 86_400_000;
+	for (let batch = 0; batch < count; batch += 20) {
+		await Promise.all(
+			Array.from({ length: Math.min(20, count - batch) }, (_, j) => {
+				const startedAt = newest - (batch + j) * gapMs;
+				return seedManualSession(page, {
+					projectId,
+					note: uniqueNote(`spread-${batch + j}`),
+					startedAt: new Date(startedAt).toISOString(),
+					endedAt: new Date(startedAt + 30 * 60_000).toISOString()
+				});
+			})
+		);
+	}
+}
+
+/**
+ * Record `GET /v1/sessions?cursor=…` from now on. `settled()` waits for the drain to finish,
+ * then checks every page used the bulk size and no cursor was requested twice (EMI-81).
+ */
+function watchHistoryPages(page: Page) {
+	const cursors: string[] = [];
+	const limits = new Set<string>();
+	const onRequest = (r: { url(): string; method(): string }) => {
+		const url = new URL(r.url());
+		if (r.method() !== 'GET' || url.pathname !== '/v1/sessions') return;
+		const cursor = url.searchParams.get('cursor');
+		if (!cursor) return;
+		cursors.push(cursor);
+		limits.add(url.searchParams.get('limit') ?? '');
+	};
+	page.on('request', onRequest);
+	return {
+		async settled() {
+			await expect.poll(() => cursors.length).toBeGreaterThanOrEqual(2);
+			await expect(page.getByText('Loading earlier sessions…')).toHaveCount(0);
+			await page.waitForLoadState('networkidle');
+			page.off('request', onRequest);
+			expect([...limits]).toEqual(['100']);
+			expect(new Set(cursors).size).toBe(cursors.length);
+		}
+	};
+}

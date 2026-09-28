@@ -1,5 +1,14 @@
-import { expect, test } from '@playwright/test';
-import { firstProjectId, login, uniqueNote, waitForClient } from './helpers';
+import { expect, test, type Page } from '@playwright/test';
+import {
+	firstProjectId,
+	login,
+	pastSpansOnCurrentDay,
+	seedManualSession,
+	spaGo,
+	stopSession,
+	uniqueNote,
+	waitForClient
+} from './helpers';
 
 test.describe('timer lifecycle', () => {
 	test.beforeEach(async ({ page }) => {
@@ -136,13 +145,16 @@ test.describe('timer lifecycle', () => {
 
 	// The UI swaps Start for Stop, so a second Start is only reachable when the store is stale.
 	// Seeding the live session out of band reproduces exactly that race.
-	test('a second start while a session is live surfaces the 409 conflict', async ({ page }) => {
+	// Since EMI-57 the 409 is not an error for the user: the app loads the live session and
+	// offers Stop for it.
+	test('a second start while a session is live surfaces the live session', async ({ page }) => {
 		await waitForClient(page);
 		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
 
 		const projectId = await firstProjectId(page);
+		const outOfBand = uniqueNote('out-of-band');
 		const seeded = await page.request.post('/v1/sessions', {
-			data: { projectId, note: uniqueNote('out-of-band') }
+			data: { projectId, note: outOfBand }
 		});
 		expect(seeded.status()).toBe(201);
 
@@ -155,10 +167,10 @@ test.describe('timer lifecycle', () => {
 		]);
 		expect(res.status()).toBe(409);
 		expect(await res.json()).toMatchObject({ error: { code: 'session_already_active' } });
-		// The banner also carries its dismiss control, so match on the message, not the whole node.
-		await expect(page.getByRole('alert')).toContainText(
-			'Stop the current session before starting a new one.'
-		);
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(outOfBand);
+		await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
+		await expect(page.getByRole('alert')).toHaveCount(0);
 	});
 
 	// Contract: UpdateSessionDto must not carry `status` or `id` — stopping is the /stop verb.
@@ -186,8 +198,8 @@ test.describe('timer lifecycle', () => {
 		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('prior'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await page.getByRole('button', { name: 'Stop' }).click();
-		await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
+		// Held past 1 s so Stop keeps it as a recent task (EMI-73).
+		await stopSession(page);
 
 		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('busy'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
@@ -195,5 +207,120 @@ test.describe('timer lifecycle', () => {
 		const play = page.getByTestId('recent-task-restart').first();
 		await expect(play).toBeDisabled();
 		await expect(play).toHaveAttribute('aria-label', 'Stop the current session first');
+	});
+});
+
+test.describe('timer sub-second stop', () => {
+	async function sessionsWithNote(page: Page, note: string) {
+		const res = await page.request.get('/v1/sessions?limit=20');
+		expect(res.ok()).toBe(true);
+		const body = (await res.json()) as { items: { note: string }[] };
+		return body.items.filter((s) => s.note === note).length;
+	}
+
+	async function startFromTimer(page: Page, note: string) {
+		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+	}
+
+	test('a tap under 1 s is discarded; a second or more is kept (EMI-73)', async ({ page }) => {
+		await login(page);
+		await page.goto('/timer');
+		await waitForClient(page);
+
+		const tap = uniqueNote('tap');
+		await startFromTimer(page, tap);
+		await stopSession(page, { discard: true });
+		await expect(page.getByTestId('recent-tasks').getByText(tap)).toHaveCount(0);
+		expect(await sessionsWithNote(page, tap)).toBe(0);
+
+		const kept = uniqueNote('kept');
+		await startFromTimer(page, kept);
+		await stopSession(page);
+		await expect(page.getByTestId('recent-tasks').getByText(kept)).toBeVisible();
+		expect(await sessionsWithNote(page, kept)).toBe(1);
+	});
+
+	for (const skewMin of [-10, 10]) {
+		test(`a 2 s session survives a client clock ${skewMin > 0 ? 'ahead' : 'behind'} by 10 min (EMI-74)`, async ({
+			page
+		}) => {
+			await page.clock.install({ time: new Date(Date.now() + skewMin * 60_000) });
+			await login(page);
+			await page.goto('/timer');
+			await waitForClient(page);
+
+			const note = uniqueNote(`skew${skewMin}`);
+			await startFromTimer(page, note);
+			await expect(page.getByTestId('timer-elapsed')).toHaveText(/^00:00:0[2-9]$/);
+			await stopSession(page);
+			await expect(page.getByTestId('recent-tasks').getByText(note)).toBeVisible();
+			expect(await sessionsWithNote(page, note)).toBe(1);
+		});
+	}
+});
+
+/** Stopped sessions today, newest first, so a hard load only sees the first 15 (EMI-57/58). */
+async function seedToday(page: Page, projectId: string, count: number): Promise<number> {
+	const spans = pastSpansOnCurrentDay(count, 60_000);
+	for (const span of spans) {
+		await seedManualSession(page, {
+			projectId,
+			note: uniqueNote('today'),
+			startedAt: span.startedAt.toISOString(),
+			endedAt: span.endedAt.toISOString()
+		});
+	}
+	return spans.reduce((sum, s) => sum + (s.endedAt.getTime() - s.startedAt.getTime()), 0);
+}
+
+for (const viewport of [
+	{ name: 'desktop', size: { width: 1280, height: 800 } },
+	{ name: 'mobile', size: { width: 390, height: 844 } }
+]) {
+	test.describe(`timer history beyond the first page (${viewport.name})`, () => {
+		test.use({ viewport: viewport.size });
+
+		test('a live session older than 16 newer logs still shows Stop (EMI-57)', async ({ page }) => {
+			await login(page);
+			const projectId = await firstProjectId(page);
+			const live = uniqueNote('old-live');
+			const started = await page.request.post('/v1/sessions', { data: { projectId, note: live } });
+			expect(started.status()).toBe(201);
+			const { id } = (await started.json()) as { id: string };
+			const moved = await page.request.patch(`/v1/sessions/${id}`, {
+				data: { startedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString() }
+			});
+			expect(moved.status()).toBe(200);
+			await seedToday(page, projectId, 16);
+
+			await page.goto('/timer');
+			await waitForClient(page);
+			await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+			await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(live);
+			await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
+		});
+	});
+}
+
+test.describe('timer today total', () => {
+	test('TODAY counts all 20 sessions on a hard load and after SPA nav (EMI-58)', async ({
+		page
+	}) => {
+		await login(page);
+		const totalMs = await seedToday(page, await firstProjectId(page), 20);
+
+		await page.goto('/timer');
+		await waitForClient(page);
+		const today = page.getByTestId('timer-today-total');
+		// 20 one-minute spans unless the run starts within 20 min of midnight.
+		if (totalMs === 20 * 60_000) await expect(today).toHaveText(/\b20m\b/);
+		const hardLoad = await today.textContent();
+
+		await page.goto('/dashboard');
+		await waitForClient(page);
+		await spaGo(page, 'Timer', '/timer');
+		await expect(today).toHaveText(hardLoad!);
 	});
 });

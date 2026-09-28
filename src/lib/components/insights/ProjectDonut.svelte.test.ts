@@ -35,21 +35,17 @@ describe('ProjectDonut chart box', () => {
 		expect(body).not.toContain('min-h-40');
 	});
 
-	it(
-		'keeps the ring at least 140px at a 390px width, with 8 projects and with 4',
-		async () => {
-			const measured = await measureRings([
-				{ items: eight, totalMs: 1_000_000 },
-				{ items: four, totalMs: 400_000 }
-			]);
-			for (const ring of measured) {
-				expect(ring.svgHeight).toBeGreaterThanOrEqual(140);
-				expect(ring.diameter).toBeGreaterThanOrEqual(140);
-				expect(ring.totalBottom).toBeLessThanOrEqual(ring.legendTop);
-			}
-		},
-		60_000
-	);
+	it('keeps the ring at least 140px at a 390px width, with 8 projects and with 4', async () => {
+		const measured = await measureRings([
+			{ items: eight, totalMs: 1_000_000 },
+			{ items: four, totalMs: 400_000 }
+		]);
+		for (const ring of measured) {
+			expect(ring.svgHeight).toBeGreaterThanOrEqual(140);
+			expect(ring.diameter).toBeGreaterThanOrEqual(140);
+			expect(ring.totalBottom).toBeLessThanOrEqual(ring.legendTop);
+		}
+	}, 60_000);
 });
 
 async function measureRings(
@@ -63,6 +59,9 @@ async function measureRings(
 		page.on('console', (msg) => logs.push(`console:${msg.type()}:${msg.text()}`));
 		page.on('pageerror', (err) => logs.push(`pageerror:${err.message}`));
 		page.on('requestfailed', (req) => logs.push(`failed:${req.url()} ${req.failure()?.errorText}`));
+		page.on('framenavigated', (frame) => {
+			if (frame === page.mainFrame()) logs.push(`navigated:${frame.url()}`);
+		});
 		const address = server.httpServer?.address();
 		if (address == null || typeof address === 'string') throw new Error('harness has no port');
 		const out = [];
@@ -129,6 +128,17 @@ async function startHarness(): Promise<ViteDevServer> {
 		configFile: false,
 		appType: 'custom',
 		logLevel: 'error',
+		// Own cache: sharing `node_modules/.vite` with `npm run dev` (another config hash) made
+		// Vite re-bundle deps it found at runtime (layerchart via `lazy-pie`) and reload the
+		// page mid-test, wiping `window.__mount` (EMI-87 N-16). Crawl both entries up front.
+		cacheDir: path.join(root, 'node_modules/.vite/donut-harness'),
+		optimizeDeps: {
+			entries: [
+				'src/lib/components/insights/ProjectDonut.svelte',
+				'src/lib/components/charts/lazy-pie.ts'
+			],
+			include: ['layerchart']
+		},
 		plugins: [
 			tailwindcss(),
 			svelte({ preprocess: vitePreprocess() }),

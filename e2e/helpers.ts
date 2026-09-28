@@ -282,6 +282,11 @@ export async function seedManualSession(
 		ticketId?: string | null;
 	}
 ) {
+	// The API rejects instants more than 5 min ahead (EMI-69). Fail loudly here instead of
+	// letting a spec pass or fail depending on the time of day.
+	if (Date.parse(opts.endedAt) > Date.now()) {
+		throw new Error(`seedManualSession: endedAt ${opts.endedAt} is in the future`);
+	}
 	const projectId = opts.projectId ?? (await firstProjectId(page));
 	const created = await apiFetch(page, '/sessions/manual', {
 		method: 'POST',
@@ -383,7 +388,14 @@ export async function startSession(
 	await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 }
 
-export async function stopSession(page: Page) {
+/**
+ * Stop from /timer. Stop discards a session under 1 s (EMI-73), so by default this waits
+ * until the clock shows a full second. `discard: true` stops at once.
+ */
+export async function stopSession(page: Page, opts: { discard?: boolean } = {}) {
+	if (!opts.discard) {
+		await expect(page.getByTestId('timer-elapsed')).not.toHaveText('00:00:00');
+	}
 	await page.getByRole('button', { name: 'Stop', exact: true }).click();
 	await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
 }

@@ -1,11 +1,13 @@
 import { expect, test } from '@playwright/test';
 import {
+	createProject,
 	firstProjectId,
 	localCivilDay,
 	localDayAt,
 	login,
 	pastSpansOnCurrentDay,
 	seedManualSession,
+	seedManySessions,
 	spaGo,
 	startSession,
 	stopSession,
@@ -171,6 +173,43 @@ test.describe('projects', () => {
 		await expect(page.getByTestId('page-header-description')).toBeVisible();
 		await expect(page.getByRole('link', { name: 'Projects' }).first()).toBeVisible();
 		await expect(page.getByTestId('error-page')).toHaveCount(0);
+	});
+
+	test('dossier header shows the session count on a phone too (EMI-88 N2-03)', async ({ page }) => {
+		const old = await createProject(page, { name: `Old ${Date.now().toString(36)}` });
+		for (let i = 0; i < 3; i++) {
+			const startedAt = localDayAt(200 + i, 10);
+			await seedManualSession(page, {
+				projectId: old.id,
+				note: uniqueNote(`old-${i}`),
+				startedAt: startedAt.toISOString(),
+				endedAt: new Date(startedAt.getTime() + 30 * 60_000).toISOString()
+			});
+		}
+		// SSR holds 15 and one drain page is 100: 140 newer sessions on another project keep the
+		// old three unloaded, so the header has to come from the lazy count, not a loaded session.
+		// Low concurrency: parallel workers seeding at 24 each exhausted Postgres connections.
+		const busy = await createProject(page, { name: `Busy ${Date.now().toString(36)}` });
+		await seedManySessions(page, {
+			count: 140,
+			projectIds: [busy.id],
+			spanMs: 10 * 86_400_000,
+			concurrency: 6
+		});
+		const empty = await createProject(page, { name: `Empty ${Date.now().toString(36)}` });
+
+		await page.goto(`/projects/${old.id}`);
+		await waitForClient(page);
+		const meta = page.getByTestId('page-header-description');
+		await expect(meta).toHaveText('3 sessions');
+		await expect(meta).toBeVisible();
+		const start = (await page.getByTestId('project-start').boundingBox())!;
+		expect(start.x + start.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+
+		await page.goto(`/projects/${empty.id}`);
+		await waitForClient(page);
+		await expect(meta).toHaveText('No sessions yet.');
+		await expect(meta).toBeVisible();
 	});
 
 	test('can edit and delete a project entry', async ({ page }) => {

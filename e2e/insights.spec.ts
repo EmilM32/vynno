@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import {
 	createProject,
 	firstProjectId,
@@ -192,9 +192,7 @@ test.describe('insights', () => {
 		await expect(donut.getByRole('link', { name: /^Open Donut/ })).toHaveCount(6);
 		const other = donut.getByText('Other', { exact: true });
 		await expect(other).toBeVisible();
-		const ring = donut.locator('svg.lc-layout-svg');
-		await expect(ring).toBeVisible();
-		expect((await ring.boundingBox())!.height).toBeGreaterThanOrEqual(140);
+		await expectRingHolds(donut);
 
 		const card = (await donut.boundingBox())!;
 		for (const item of [...(await donut.getByRole('link').all()), other]) {
@@ -202,6 +200,72 @@ test.describe('insights', () => {
 			expect(box.x + box.width).toBeLessThanOrEqual(card.x + card.width + 0.5);
 			expect(box.y + box.height).toBeLessThanOrEqual(card.y + card.height + 0.5);
 		}
+	});
+
+	test('project donut ring holds 140px with four projects (EMI-61)', async ({ page }) => {
+		const spans = pastSpansOnCurrentDay(4, 10 * 60_000);
+		for (let i = 0; i < spans.length; i++) {
+			const project = await createProject(page, { name: `Ring ${i} ${Date.now().toString(36)}` });
+			await seedManualSession(page, {
+				projectId: project.id,
+				note: uniqueNote(`ring-${i}`),
+				startedAt: spans[i]!.startedAt.toISOString(),
+				endedAt: spans[i]!.endedAt.toISOString()
+			});
+		}
+		await page.goto('/insights');
+		await waitForClient(page);
+
+		const donut = page.getByRole('region', { name: 'Time by project', exact: true });
+		await expect(donut.getByRole('link', { name: /^Open Ring/ })).toHaveCount(4);
+		await expectRingHolds(donut);
+	});
+
+	test('breakdown shows 20 rows plus the rest, and a keyboard toggle for all (EMI-88 N2-05)', async ({
+		page
+	}) => {
+		const typeIds: string[] = [];
+		for (let t = 0; t < 6; t++) {
+			const created = await page.request.post('/v1/activity-types', {
+				data: { name: uniqueNote(`Cap${t}`), color: 'secondary' }
+			});
+			expect(created.ok(), await created.text()).toBeTruthy();
+			typeIds.push(((await created.json()) as { id: string }).id);
+		}
+		const spans = pastSpansOnCurrentDay(30, 60_000);
+		for (let p = 0; p < 5; p++) {
+			const project = await createProject(page, { name: `Cap ${p} ${Date.now().toString(36)}` });
+			for (let t = 0; t < 6; t++) {
+				const span = spans[p * 6 + t]!;
+				await seedManualSession(page, {
+					projectId: project.id,
+					activityTypeId: typeIds[t]!,
+					note: uniqueNote(`cap-${p}-${t}`),
+					startedAt: span.startedAt.toISOString(),
+					endedAt: span.endedAt.toISOString()
+				});
+			}
+		}
+		await page.goto('/insights');
+		await waitForClient(page);
+
+		const breakdown = page.getByRole('region', { name: 'Activity breakdown', exact: true });
+		const rows = breakdown.locator('tbody tr');
+		await expect(rows).toHaveCount(21);
+		await expect(breakdown.getByTestId('breakdown-rest')).toContainText('+10 more');
+
+		const showAll = breakdown.getByRole('button', { name: 'Show all (30)' });
+		await expect(showAll).toHaveAttribute('aria-expanded', 'false');
+		await showAll.focus();
+		await page.keyboard.press('Enter');
+		await expect(rows).toHaveCount(30);
+		await expect(breakdown.getByTestId('breakdown-rest')).toHaveCount(0);
+
+		const showFewer = breakdown.getByRole('button', { name: 'Show fewer' });
+		await expect(showFewer).toHaveAttribute('aria-expanded', 'true');
+		await expect(showFewer).toBeFocused();
+		await page.keyboard.press('Enter');
+		await expect(rows).toHaveCount(21);
 	});
 
 	test('a long range pages history at the bulk size without repeats (EMI-59)', async ({
@@ -276,6 +340,35 @@ test.describe('insights SSR seed', () => {
 		expect(seedRefetches).toEqual([]);
 	});
 });
+
+/**
+ * The ring is at least 140px across and the centre total sits above the legend. Layerchart
+ * sizes the arcs from a measured container a frame after the SVG mounts, so poll the geometry
+ * instead of reading it once (this used to be a Vite + Chromium unit test that flaked under
+ * load: EMI-87 N-16, EMI-88 N2-01).
+ */
+async function expectRingHolds(donut: Locator) {
+	const measure = () =>
+		donut.evaluate((region) => {
+			const svg = region.querySelector('svg.lc-layout-svg');
+			if (!(svg instanceof SVGSVGElement)) return null;
+			const box = svg.querySelector('g')?.getBBox();
+			const total = region.querySelector('[role="img"] .tabular-nums')?.getBoundingClientRect();
+			const legend = region.querySelector('.border-t')?.getBoundingClientRect();
+			if (!box || !total || !legend) return null;
+			return {
+				svgHeight: svg.getBoundingClientRect().height,
+				diameter: Math.max(box.width, box.height),
+				totalBottom: total.bottom,
+				legendTop: legend.top
+			};
+		});
+
+	await expect.poll(async () => (await measure())?.diameter ?? 0).toBeGreaterThanOrEqual(140);
+	const ring = (await measure())!;
+	expect(ring.svgHeight).toBeGreaterThanOrEqual(140);
+	expect(ring.totalBottom).toBeLessThanOrEqual(ring.legendTop);
+}
 
 /** Stopped sessions packed backwards from 2 days ago, `gapMs` apart, 30 min each. */
 async function seedSpread(page: Page, projectId: string, count: number, gapMs: number) {

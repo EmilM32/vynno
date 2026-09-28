@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
@@ -28,8 +29,10 @@
 		)
 	);
 
+	// Track only the range: the drain's own commits must not re-run this (EMI-81).
 	$effect(() => {
-		void sessionStore.ensureThrough(range.start.getTime());
+		const startMs = range.start.getTime();
+		untrack(() => void sessionStore.ensureThrough(startMs));
 	});
 </script>
 

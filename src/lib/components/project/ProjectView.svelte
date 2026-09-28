@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import ActivityBars from '$lib/components/insights/ActivityBars.svelte';
@@ -109,19 +110,17 @@
 		}
 	});
 
+	// Track only the period: the drain's own commits must not re-run this (EMI-81).
 	$effect(() => {
 		const spec = period;
 		const timeZone = sessionStore.timeZone;
-		if (spec.kind === 'all') {
-			void sessionStore.ensureThrough(null);
-			return;
-		}
-		if (spec.kind === 'custom') {
-			void sessionStore.ensureThrough(spec.range.start.getTime());
-			return;
-		}
-		const { start } = periodBounds(spec.kind, new Date(), timeZone);
-		void sessionStore.ensureThrough(start.getTime());
+		const through =
+			spec.kind === 'all'
+				? null
+				: spec.kind === 'custom'
+					? spec.range.start.getTime()
+					: periodBounds(spec.kind, new Date(), timeZone).start.getTime();
+		untrack(() => void sessionStore.ensureThrough(through));
 	});
 
 	function openTimer() {

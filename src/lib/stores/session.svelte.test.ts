@@ -538,6 +538,57 @@ describe('SessionStore history drain', () => {
 		expect(calls).toBe(1);
 	});
 
+	async function bulkStore(count: number, onRequest?: () => void) {
+		const nowMs = Date.UTC(2026, 5, 15, 12, 0, 0);
+		const sessions = Array.from({ length: count }, (_, i) =>
+			stoppedSession(`bulk-${String(i).padStart(4, '0')}`, nowMs - i * 60_000, 30_000)
+		);
+		const repo = new MemoryTimeTrackingRepository({ ...sampleAppSeed(), sessions });
+		const original = repo.listSessions.bind(repo);
+		const firstPage = await original({ limit: 15 });
+		const cursors: (string | undefined)[] = [];
+		vi.spyOn(repo, 'listSessions').mockImplementation(async (filters) => {
+			cursors.push(filters?.cursor);
+			onRequest?.();
+			return original(filters);
+		});
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(
+			{ ...sampleAppSeed(), sessions: firstPage.items, nextCursor: firstPage.nextCursor },
+			{ repo, nowMs, timeZone: 'UTC' }
+		);
+		return { sessions, cursors };
+	}
+
+	it('re-calling ensureThrough after every batch commit requests each cursor once', async () => {
+		// Mimic the view effect: it re-runs right after a batch commit, while the
+		// drain's next page request is already in flight (EMI-81).
+		const again: Promise<void>[] = [];
+		let committed = 0;
+		const { sessions, cursors } = await bulkStore(1_500, () => {
+			if (store.sessions.length === committed) return;
+			committed = store.sessions.length;
+			again.push(store.ensureThrough(null));
+		});
+		committed = store.sessions.length;
+		await store.ensureThrough(null);
+		await Promise.all(again);
+
+		expect(again.length).toBeGreaterThan(0);
+		expect(new Set(cursors).size).toBe(cursors.length);
+		expect(store.sessions).toHaveLength(sessions.length);
+	});
+
+	it('a wider target extends the running drain instead of restarting it', async () => {
+		const { sessions, cursors } = await bulkStore(1_500);
+		const first = store.ensureThrough(Date.parse(sessions[400]!.startedAt));
+		const wider = store.ensureThrough(null);
+		await Promise.all([first, wider]);
+
+		expect(new Set(cursors).size).toBe(cursors.length);
+		expect(store.sessions).toHaveLength(sessions.length);
+	});
+
 	it('drops a repeated session id from a later page', async () => {
 		const nowMs = Date.UTC(2026, 5, 15, 18, 0, 0);
 		const sessions = Array.from({ length: 40 }, (_, i) =>

@@ -51,6 +51,8 @@ function monotonicMs(): number {
 	return performance.now();
 }
 
+type DrainRun = { gen: number; target: number | null; promise: Promise<void> };
+
 function isSessionAlreadyActive(e: unknown): boolean {
 	return (e instanceof ApiError || e instanceof DomainError) && e.code === 'session_already_active';
 }
@@ -106,6 +108,8 @@ export class SessionStore {
 	#extraSessionIds = new SvelteSet<string>();
 	#drainGen = 0;
 	#drainLoading = false;
+	/** The drain in flight; its `target` can widen while it runs. */
+	#drainRun: DrainRun | null = null;
 	/** Server clock minus client clock, estimated from start/stop responses. */
 	#clockOffsetMs = $state(0);
 	/** Session started from this tab and the monotonic time of that Start. */
@@ -314,12 +318,32 @@ export class SessionStore {
 	/**
 	 * Fetch further pages until the oldest loaded session is at or before `startedAtMs`,
 	 * or the list ends. `null` drains all remaining pages.
-	 * Uses the bulk page size and commits every few pages. A later call, or
-	 * {@link cancelDrain}, stops this loop without an abort signal.
+	 * Uses the bulk page size and commits every few pages. Idempotent while a drain runs:
+	 * the same target shares it and a wider one extends it in place, so a caller that
+	 * re-runs on every batch commit never re-requests a cursor (EMI-81). A narrower
+	 * target, or {@link cancelDrain}, stops the loop without an abort signal.
 	 */
-	ensureThrough = async (startedAtMs: number | null): Promise<void> => {
+	ensureThrough = (startedAtMs: number | null): Promise<void> => {
+		const running = this.#drainRun;
+		if (running && running.gen === this.#drainGen) {
+			if (running.target === startedAtMs) return running.promise;
+			if (startedAtMs === null || (running.target !== null && startedAtMs < running.target)) {
+				running.target = startedAtMs;
+				return running.promise;
+			}
+		}
 		const gen = this.#bumpDrain();
-		if (this.#coveredThrough(startedAtMs, null)) {
+		const run: DrainRun = { gen, target: startedAtMs, promise: Promise.resolve() };
+		run.promise = this.#drain(run).finally(() => {
+			if (this.#drainRun === run) this.#drainRun = null;
+		});
+		this.#drainRun = run;
+		return run.promise;
+	};
+
+	#drain = async (run: DrainRun): Promise<void> => {
+		const { gen } = run;
+		if (this.#coveredThrough(run.target, null)) {
 			this.#drainLoading = false;
 			this.#syncLoadingMore();
 			return;
@@ -343,7 +367,7 @@ export class SessionStore {
 		try {
 			while (cursor) {
 				if (gen !== this.#drainGen) return;
-				if (this.#coveredThrough(startedAtMs, pending)) {
+				if (this.#coveredThrough(run.target, pending)) {
 					flush(cursor);
 					return;
 				}
@@ -369,7 +393,7 @@ export class SessionStore {
 				reached.push(...unseen.reached);
 				pagesInBatch += 1;
 				cursor = page.nextCursor;
-				const covered = cursor == null || this.#coveredThrough(startedAtMs, pending);
+				const covered = cursor == null || this.#coveredThrough(run.target, pending);
 				if (pagesInBatch >= DRAIN_BATCH_PAGES || covered) {
 					flush(cursor);
 					if (covered) return;
@@ -1116,6 +1140,7 @@ export class SessionStore {
 		this.timeZone = DEFAULT_TIME_ZONE;
 		this.#bumpDrain();
 		this.#drainLoading = false;
+		this.#drainRun = null;
 		this.#pageLoading = false;
 		this.#clockOffsetMs = 0;
 		this.#localStart = null;

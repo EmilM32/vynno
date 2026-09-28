@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import PeriodToggle from '$lib/components/insights/PeriodToggle.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -54,8 +55,10 @@
 	);
 	const listFilter = $derived({ range, projectIds, activityTypeIds });
 
+	// Track only the range: the drain's own commits must not re-run this (EMI-81).
 	$effect(() => {
-		if (range) void sessionStore.ensureThrough(range.start.getTime());
+		const startMs = range?.start.getTime();
+		if (startMs != null) untrack(() => void sessionStore.ensureThrough(startMs));
 	});
 
 	const live = $derived(sessionStore.activeSession);

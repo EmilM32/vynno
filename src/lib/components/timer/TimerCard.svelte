@@ -60,7 +60,11 @@
 		>
 		{#if !isIdle}
 			<span class="text-on-surface-variant" aria-hidden="true">·</span>
-			<span class="font-mono text-code-label text-primary" data-testid="timer-project">
+			<span
+				class="line-clamp-2 min-w-0 font-mono text-code-label wrap-anywhere text-primary"
+				title={projectName}
+				data-testid="timer-project"
+			>
 				{m.timer_project_line({ name: projectName })}
 			</span>
 		{/if}

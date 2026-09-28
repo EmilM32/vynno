@@ -63,7 +63,7 @@
 {#snippet projectIdentity()}
 	<div class="flex min-w-0 items-center gap-2">
 		<ColorDot color={project?.color ?? '#64748b'} />
-		<span class="truncate text-body-sm text-on-surface"
+		<span class="truncate text-body-sm text-on-surface" title={project?.name}
 			><bdi>{project?.name ?? m.common_unknown()}</bdi></span
 		>
 	</div>
@@ -92,7 +92,8 @@
 	</div>
 
 	{#if !hideProject}
-		<div class="hidden min-w-30 shrink-0 md:flex">
+		<!-- Capped so a long name truncates instead of pushing note, time and actions out (EMI-76). -->
+		<div class="hidden max-w-[25%] min-w-30 shrink-0 md:flex">
 			{@render projectIdentity()}
 		</div>
 	{/if}
@@ -127,9 +128,9 @@
 		{/if}
 	</div>
 
-	<div class="hidden items-center gap-4 md:flex">
+	<div class="hidden min-w-0 items-center gap-4 md:flex">
 		{#if activity}
-			<ActivityChip type={activity} />
+			<span class="flex max-w-40 min-w-0"><ActivityChip type={activity} /></span>
 		{/if}
 		{@render timeCluster('', 'min-w-20 text-right text-code-display')}
 	</div>

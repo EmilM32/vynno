@@ -3,6 +3,7 @@
 	import { fn } from 'storybook/test';
 	import { makeSession } from '$lib/test/factories';
 	import StoryProviders from '$lib/storybook/StoryProviders.svelte';
+	import { storySeed } from '$lib/storybook/seed';
 	import LogRow from './LogRow.svelte';
 
 	const { Story } = defineMeta({
@@ -18,6 +19,16 @@
 			ondelete: fn()
 		}
 	});
+
+	/** 80 chars without spaces: project and activity names must truncate (EMI-76). */
+	const longSeed = (() => {
+		const seed = storySeed();
+		return {
+			...seed,
+			projects: seed.projects.map((p) => ({ ...p, name: '😀'.repeat(80) })),
+			activityTypes: (seed.activityTypes ?? []).map((a) => ({ ...a, name: 'A'.repeat(80) }))
+		};
+	})();
 </script>
 
 <Story name="Default">
@@ -76,6 +87,14 @@
 			<div class="max-w-xl">
 				<LogRow {...args} />
 			</div>
+		</StoryProviders>
+	{/snippet}
+</Story>
+
+<Story name="LongNames">
+	{#snippet template(args)}
+		<StoryProviders seed={longSeed}>
+			<LogRow {...args} />
 		</StoryProviders>
 	{/snippet}
 </Story>

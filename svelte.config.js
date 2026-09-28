@@ -1,4 +1,24 @@
 import adapter from '@sveltejs/adapter-node';
+import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+
+/**
+ * Every process that loads this config (vite build, vitest, svelte-kit sync, vite dev) rewrites
+ * `.svelte-kit/generated/server/internal.js` with a hash of this name. Kit's default is
+ * `Date.now()`, so a vitest run during a build gave the server half a different
+ * `__sveltekit_*` global than the client half, and no page hydrated. The commit is the same
+ * in every process. Rebuilding one commit with uncommitted edits keeps the name: reload open tabs.
+ */
+function appVersion() {
+	try {
+		return execSync('git rev-parse HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+			.toString()
+			.trim();
+	} catch {
+		// No git (e.g. a copied tree): still deterministic across processes.
+		return JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version;
+	}
+}
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -7,6 +27,8 @@ const config = {
 		runes: ({ filename }) => (filename.split(/[/\\]/).includes('node_modules') ? undefined : true)
 	},
 	kit: {
+		version: { name: appVersion() },
+
 		// Local production is a Node process on this machine (ADR-0014).
 		// BUILD_DIR lets a concurrent e2e build write elsewhere so it cannot replace `build/`
 		// under the live daily Node (ADR-0014 amendment). Daily default is unchanged.

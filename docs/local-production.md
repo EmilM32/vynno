@@ -113,6 +113,8 @@ Optional viewer: `brew install lnav`.
 
 **Do not rebuild over a running SPA.** `scripts/build` refuses if Node is still serving `build/` — replacing hashed assets under a live process kills it (`ENOENT` on `*.js.br`). Stop, build, start.
 
+**A build that fails `verify-build` is not safe to start.** `npm run build` ends with `scripts/verify-build.js`, which checks that the server and client halves use the same `__sveltekit_*` global. A mismatch renders pages that never hydrate while `/healthz` stays green. `kit.version.name` is the git commit (`svelte.config.js`), so tests or `svelte-kit sync` running during a build no longer cause it; if the check fails anyway (e.g. a commit landed mid-build), build again. Rebuilding one commit with uncommitted edits keeps the version name, so reload open tabs after `scripts/start`.
+
 Caddyfile changes — logging, and the `header` block that stamps `Referrer-Policy` / `X-Content-Type-Options` / `X-Frame-Options` on static assets ([ADR-0025](./adr/0025-security-headers.md)) — apply only after `scripts/stop` then `scripts/start` (Caddy does not pick up this file in place). `scripts/start` copies it to `/tmp/vynno.Caddyfile`, which is what the running Caddy reads.
 
 Check the headers after a restart:

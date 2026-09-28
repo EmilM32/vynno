@@ -893,3 +893,23 @@ describe('roundShares / formatShare / isVisibleActivityRow (EMI-78)', () => {
 		expect(stats.byProject.reduce((sum, r) => sum + r.percent, 0)).toBe(100);
 	});
 });
+
+describe('vs yesterday on a Monday (EMI-58)', () => {
+	it('compares Monday with Sunday, not with the previous Friday', () => {
+		const now = new Date('2026-03-16T12:00:00Z'); // Monday
+		const span = (startIso: string, hours: number) =>
+			makeSession({
+				id: startIso,
+				status: 'stopped',
+				startedAt: startIso,
+				endedAt: new Date(Date.parse(startIso) + ms.hours(hours)).toISOString()
+			});
+		const sessions = [
+			span('2026-03-16T08:00:00Z', 2),
+			span('2026-03-15T09:00:00Z', 1),
+			span('2026-03-13T09:00:00Z', 5)
+		];
+		expect(yesterdayTotalMs(sessions, now, 'UTC')).toBe(ms.hours(1));
+		expect(todayDeltaMs(sessions, now, 'UTC')).toBe(ms.hours(1));
+	});
+});

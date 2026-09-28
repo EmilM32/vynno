@@ -617,6 +617,81 @@ describe('SessionStore history drain', () => {
 		expect(ids).toEqual([...new Set(ids)]);
 		expect(ids.filter((id) => id === 'dup-0')).toHaveLength(1);
 	});
+
+	it('the same target shares one drain promise', async () => {
+		const { sessions, cursors } = await bulkStore(500);
+		const first = store.ensureThrough(null);
+		expect(store.ensureThrough(null)).toBe(first);
+		await first;
+		expect(store.sessions).toHaveLength(sessions.length);
+		expect(new Set(cursors).size).toBe(cursors.length);
+	});
+
+	it('commits every five pages, not after every page', async () => {
+		const lengthsAtRequest: number[] = [];
+		await bulkStore(1_500, () => lengthsAtRequest.push(store.sessions.length));
+		await store.ensureThrough(null);
+		expect(lengthsAtRequest.slice(0, 5)).toEqual([15, 15, 15, 15, 15]);
+		expect(lengthsAtRequest[5]).toBe(515);
+		expect(new Set(lengthsAtRequest).size).toBe(Math.ceil(lengthsAtRequest.length / 5));
+	});
+
+	it('cancelDrain stops before the next page request', async () => {
+		const { cursors } = await bulkStore(1_500, () => {
+			if (cursors.length === 1) store.cancelDrain();
+		});
+		await store.ensureThrough(null);
+		expect(cursors).toHaveLength(1);
+		expect(store.loadingMore).toBe(false);
+		expect(store.nextCursor).not.toBeNull();
+	});
+
+	async function pagedStore(
+		override: (call: number, cursor: string | undefined) => 'error' | 'stuck' | null
+	) {
+		const nowMs = Date.UTC(2026, 5, 15, 12, 0, 0);
+		const sessions = Array.from({ length: 1_000 }, (_, i) =>
+			stoppedSession(`paged-${String(i).padStart(4, '0')}`, nowMs - i * 60_000, 30_000)
+		);
+		const repo = new MemoryTimeTrackingRepository({ ...sampleAppSeed(), sessions });
+		const original = repo.listSessions.bind(repo);
+		const firstPage = await original({ limit: 15 });
+		const cursors: (string | undefined)[] = [];
+		vi.spyOn(repo, 'listSessions').mockImplementation(async (filters) => {
+			cursors.push(filters?.cursor);
+			const kind = override(cursors.length, filters?.cursor);
+			if (kind === 'error') throw new ApiError(500, 'internal_error', 'boom');
+			const page = await original(filters);
+			return kind === 'stuck' ? { ...page, nextCursor: filters!.cursor! } : page;
+		});
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(
+			{ ...sampleAppSeed(), sessions: firstPage.items, nextCursor: firstPage.nextCursor },
+			{ repo, nowMs, timeZone: 'UTC' }
+		);
+		return { cursors };
+	}
+
+	it('stops when the API hands back the cursor it was given', async () => {
+		const { cursors } = await pagedStore((call) => (call === 2 ? 'stuck' : null));
+		await store.ensureThrough(null);
+		expect(cursors).toHaveLength(2);
+		expect(store.nextCursor).toBe(cursors[1]);
+		expect(store.loadingMore).toBe(false);
+	});
+
+	it('keeps the pages it loaded, sets the error, and can resume after a failed page', async () => {
+		const { cursors } = await pagedStore((call) => (call === 3 ? 'error' : null));
+		await store.ensureThrough(null);
+		expect(store.sessions).toHaveLength(215);
+		expect(store.error).toBeTruthy();
+		expect(store.nextCursor).toBe(cursors[2]);
+		expect(store.loadingMore).toBe(false);
+
+		await store.ensureThrough(null);
+		expect(store.sessions).toHaveLength(1_000);
+		expect(cursors.filter((c) => c === cursors[2])).toHaveLength(2);
+	});
 });
 
 describe('SessionStore lazy session counts', () => {

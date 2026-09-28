@@ -1,4 +1,6 @@
 import { m } from '$lib/paraglide/messages.js';
+import { nameRejectMessage } from '$lib/text/field-error';
+import { normalizeName } from '$lib/text/normalize';
 
 export const EMAIL_MAX = 254;
 export const PASSWORD_MIN = 8;
@@ -57,9 +59,12 @@ export function validateRegisterFieldErrors(
 	if (!input.confirm) errors.confirm = m.register_confirm_required();
 	else if (input.password !== input.confirm) errors.confirm = m.register_password_mismatch();
 
-	const displayName = input.displayName.trim();
-	if (displayName.length > DISPLAY_NAME_MAX) {
-		errors.displayName = m.register_display_name_max({ max: DISPLAY_NAME_MAX });
+	const displayName = normalizeName(input.displayName, { min: 0, max: DISPLAY_NAME_MAX });
+	if (!displayName.ok) {
+		errors.displayName =
+			displayName.reason === 'too_long'
+				? m.register_display_name_max({ max: DISPLAY_NAME_MAX })
+				: nameRejectMessage(displayName.reason, DISPLAY_NAME_MAX);
 	}
 
 	return errors;

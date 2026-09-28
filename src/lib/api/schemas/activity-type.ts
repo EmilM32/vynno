@@ -1,7 +1,12 @@
 import * as v from 'valibot';
+import { NAME_MAX, codePointLength } from '$lib/text/normalize';
 import { activityColorSchema, idSchema, listSchema } from './common';
 
-export const activityTypeNameSchema = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(80));
+export const activityTypeNameSchema = v.pipe(
+	v.string(),
+	v.trim(),
+	v.check((name) => codePointLength(name) >= 1 && codePointLength(name) <= NAME_MAX)
+);
 
 export const activityTypeDtoSchema = v.object({
 	id: idSchema,

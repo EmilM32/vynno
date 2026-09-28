@@ -3,8 +3,11 @@ import type { AppSeed } from '$lib/api/types';
 import {
 	normalizeCode,
 	normalizeProjectFields,
+	PROJECT_NAME_MAX,
+	resolvedProjectName,
 	validateProjectFields
 } from '$lib/projects/validate';
+import { normalizeName } from '$lib/text/normalize';
 import { isActivityColorToken, type ActivityColorToken } from '$lib/time/activity-styles';
 import type {
 	ActivityType,
@@ -65,10 +68,6 @@ function sessionAfterCursor(s: TimeSession, startedAt: string, id: string): bool
 	if (a < b) return true;
 	if (a > b) return false;
 	return s.id < id;
-}
-
-function normalizeActivityTypeName(name: string): string {
-	return name.trim();
 }
 
 /**
@@ -138,7 +137,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	async updateProject(id: string, input: UpdateProjectInput): Promise<Project> {
 		const project = this.#requireProject(id);
 
-		const nextName = input.name !== undefined ? input.name.trim() : project.name;
+		const nextName = input.name !== undefined ? resolvedProjectName(input.name) : project.name;
 		const nextColor = input.color !== undefined ? input.color : project.color;
 		let nextCode: string | undefined = project.code;
 		if (input.code !== undefined) {
@@ -270,11 +269,11 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	}
 
 	#requireActivityName(name: string): string {
-		const n = normalizeActivityTypeName(name);
-		if (!n || n.length > 80) {
+		const normalized = normalizeName(name, { min: 1, max: PROJECT_NAME_MAX });
+		if (!normalized.ok) {
 			throw new DomainError('invalid_body', 'Name must be 1–80 characters after trim.');
 		}
-		return n;
+		return normalized.value;
 	}
 
 	#requireActivityColor(color: string): ActivityColorToken {
@@ -300,11 +299,11 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	}
 
 	async updateProfile(input: UpdateProfileInput): Promise<UserProfile> {
-		const name = input.displayName.trim();
-		if (name.length > 80) {
+		const name = normalizeName(input.displayName, { min: 0, max: PROJECT_NAME_MAX });
+		if (!name.ok) {
 			throw new DomainError('invalid_body', 'Display name is too long.');
 		}
-		this.#profile = { ...this.#profile, displayName: name };
+		this.#profile = { ...this.#profile, displayName: name.value };
 		return { ...this.#profile };
 	}
 

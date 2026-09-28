@@ -32,6 +32,9 @@ describe('validateProjectFields', () => {
 
 	it('rejects invalid code chars', () => {
 		expect(validateProjectFields({ name: 'X', color, code: 'A_B' })).toMatch(/code/i);
+		expect(validateProjectFields({ name: 'X', color, code: '---' })).toMatch(/code/i);
+		expect(validateProjectFields({ name: 'X', color, code: 'ı' })).toMatch(/code/i);
+		expect(validateProjectFields({ name: 'X', color, code: 'A-1' })).toBeNull();
 	});
 
 	it('accepts valid fields', () => {
@@ -50,8 +53,21 @@ describe('validateProjectFields', () => {
 		).toMatch(/0 to 100/i);
 	});
 
+	it('accepts 80 emoji and rejects 81 code points', () => {
+		const eighty = '😀'.repeat(80);
+		expect(validateProjectFields({ name: eighty, color, code: '' })).toBeNull();
+		expect(validateProjectFieldErrors({ name: `${eighty}😀`, color, code: '' }).name).toMatch(/80/);
+	});
+
+	it('rejects whitespace-only and zero-width-only names', () => {
+		expect(validateProjectFields({ name: ' \u00a0 ', color, code: '' })).toMatch(/required/i);
+		expect(validateProjectFields({ name: '\u200b\ufeff', color, code: '' })).toMatch(/required/i);
+	});
+
 	it('accepts empty or in-range progress', () => {
-		expect(validateProjectFieldErrors({ name: 'X', color, code: '', progress: '' }).progress).toBeUndefined();
+		expect(
+			validateProjectFieldErrors({ name: 'X', color, code: '', progress: '' }).progress
+		).toBeUndefined();
 		expect(
 			validateProjectFieldErrors({ name: 'X', color, code: '', progress: '0' }).progress
 		).toBeUndefined();
@@ -64,6 +80,10 @@ describe('normalizeProjectFields', () => {
 			name: 'Foo',
 			color
 		});
+	});
+
+	it('strips a zero-width character from the name', () => {
+		expect(normalizeProjectFields({ name: 'D\u200bUP', color, code: '' }).name).toBe('DUP');
 	});
 
 	it('includes normalized code', () => {

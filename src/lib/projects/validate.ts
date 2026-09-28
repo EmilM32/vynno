@@ -1,4 +1,6 @@
 import { m } from '$lib/paraglide/messages.js';
+import { nameRejectMessage } from '$lib/text/field-error';
+import { normalizeName } from '$lib/text/normalize';
 import { isPaletteColor } from './palette';
 
 export const PROJECT_NAME_MAX = 80;
@@ -18,14 +20,31 @@ export interface NormalizedProjectFields {
 	code?: string;
 }
 
+function hasNonAscii(value: string): boolean {
+	for (const char of value) {
+		const cp = char.codePointAt(0)!;
+		if (cp > 0x7f) return true;
+	}
+	return false;
+}
+
 export function normalizeCode(raw: string | undefined | null): string | undefined {
 	if (raw == null) return undefined;
-	const code = raw.trim().toUpperCase();
-	return code.length > 0 ? code : undefined;
+	const trimmed = raw.trim();
+	if (!trimmed) return undefined;
+	// Uppercase only ASCII. `ı`.toUpperCase() is `I`, which would sneak past the pattern.
+	if (hasNonAscii(trimmed)) return trimmed;
+	return trimmed.toUpperCase();
+}
+
+/** Normalized name when it passes; otherwise trimmed raw so validation can still report why. */
+export function resolvedProjectName(raw: string): string {
+	const result = normalizeName(raw, { min: 1, max: PROJECT_NAME_MAX });
+	return result.ok ? result.value : raw.trim();
 }
 
 export function normalizeProjectFields(input: ProjectFieldValues): NormalizedProjectFields {
-	const name = input.name.trim();
+	const name = resolvedProjectName(input.name);
 	const code = normalizeCode(input.code);
 	return {
 		name,
@@ -53,19 +72,17 @@ export function validateProjectFieldErrors(
 	input: ProjectFieldValues & { progress?: string }
 ): Partial<Record<ProjectFieldErrorKey, string>> {
 	const errors: Partial<Record<ProjectFieldErrorKey, string>> = {};
-	const name = input.name.trim();
-	if (!name) errors.name = m.validation_name_required();
-	else if (name.length > PROJECT_NAME_MAX) {
-		errors.name = m.validation_name_max({ max: PROJECT_NAME_MAX });
-	}
+	const name = normalizeName(input.name, { min: 1, max: PROJECT_NAME_MAX });
+	if (!name.ok) errors.name = nameRejectMessage(name.reason, PROJECT_NAME_MAX);
 
 	if (!isPaletteColor(input.color)) errors.color = m.validation_color_palette();
 
 	const code = normalizeCode(input.code);
 	if (code != null) {
+		const hasLetterOrDigit = /[A-Z0-9]/.test(code);
 		if (code.length > PROJECT_CODE_MAX) {
 			errors.code = m.validation_code_max({ max: PROJECT_CODE_MAX });
-		} else if (!PROJECT_CODE_PATTERN.test(code)) {
+		} else if (hasNonAscii(code) || !hasLetterOrDigit || !PROJECT_CODE_PATTERN.test(code)) {
 			errors.code = m.validation_code_chars();
 		}
 	}

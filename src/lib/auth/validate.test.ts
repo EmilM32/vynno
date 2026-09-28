@@ -72,6 +72,17 @@ describe('validateRegisterFieldErrors', () => {
 	it('allows an empty display name', () => {
 		expect(validateRegisterFieldErrors({ ...valid, displayName: '  ' })).toEqual({});
 	});
+
+	it('counts display name in code points and allows empty after zero-width strip', () => {
+		const eighty = '😀'.repeat(80);
+		expect(
+			validateRegisterFieldErrors({ ...valid, displayName: eighty }).displayName
+		).toBeUndefined();
+		expect(
+			validateRegisterFieldErrors({ ...valid, displayName: `${eighty}😀` }).displayName
+		).toMatch(/80/);
+		expect(validateRegisterFieldErrors({ ...valid, displayName: '\u200b' })).toEqual({});
+	});
 });
 
 describe('isValidRegisterCode', () => {

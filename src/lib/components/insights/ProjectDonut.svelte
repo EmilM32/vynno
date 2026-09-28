@@ -4,7 +4,7 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import { OTHER_ID, topNWithOther } from '$lib/components/insights/legend';
 	import { formatHoursMinutes } from '$lib/time/duration';
-	import type { NamedTotal } from '$lib/time/aggregates';
+	import { formatShare, type NamedTotal } from '$lib/time/aggregates';
 
 	let {
 		items,
@@ -96,7 +96,7 @@
 							<Tooltip.List>
 								<Tooltip.Item
 									label={m.insights_total()}
-									value="{formatHoursMinutes(data.ms)} · {data.percent}%"
+									value="{formatHoursMinutes(data.ms)} · {formatShare(data)}"
 									color={data.color}
 								/>
 							</Tooltip.List>
@@ -115,7 +115,7 @@
 					<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
 					<span class="truncate font-mono text-code-label text-on-surface-variant">
 						<bdi>{item.label}</bdi>
-						<span class="text-on-surface-variant">· {item.percent}%</span>
+						<span class="text-on-surface-variant">· {formatShare(item)}</span>
 					</span>
 				</div>
 			{:else}
@@ -127,7 +127,7 @@
 					<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
 					<span class="truncate font-mono text-code-label text-on-surface-variant">
 						<bdi>{item.label}</bdi>
-						<span class="text-on-surface-variant">· {item.percent}%</span>
+						<span class="text-on-surface-variant">· {formatShare(item)}</span>
 					</span>
 				</a>
 			{/if}

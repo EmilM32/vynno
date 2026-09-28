@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { FIXED_NOW, localIso, makeProject, makeSession, ms } from '$lib/test/factories';
 import {
 	filterSessions,
+	formatShare,
+	isVisibleActivityRow,
+	roundShares,
 	UNASSIGNED_ACTIVITY_ID,
 	groupSessionsByDate,
 	groupSessionsByTask,
@@ -849,5 +852,44 @@ describe('projectPeriodStats', () => {
 		expect(stats.totalMs).toBe(ms.hours(2));
 		expect(stats.sessionCount).toBe(1);
 		expect(stats.allMs).toBe(ms.hours(2, 30));
+	});
+});
+
+describe('roundShares / formatShare / isVisibleActivityRow (EMI-78)', () => {
+	it('rounds shares to integers that sum to exactly 100', () => {
+		expect(roundShares([1, 1, 1])).toEqual([34, 33, 33]);
+		expect(roundShares([0, 0])).toEqual([0, 0]);
+		const tiny = roundShares(Array.from({ length: 321 }, () => 1));
+		expect(tiny.reduce((a, b) => a + b, 0)).toBe(100);
+	});
+
+	it('keeps rows with a real share below 0.5% and labels them <1%', () => {
+		expect(isVisibleActivityRow({ ms: 60_000 })).toBe(true);
+		expect(isVisibleActivityRow({ ms: 0 })).toBe(false);
+		expect(isVisibleActivityRow({ ms: 400 })).toBe(false);
+		expect(formatShare({ ms: 60_000, percent: 0 })).toBe('<1%');
+		expect(formatShare({ ms: 0, percent: 0 })).toBe('0%');
+		expect(formatShare({ ms: 60_000, percent: 42 })).toBe('42%');
+	});
+
+	it('lists breakdown rows when every project×activity pair is under 0.5%', () => {
+		const many = Array.from({ length: 300 }, (_, i) =>
+			makeProject({ id: `p${i}`, name: `P${i}`, color: '#111' })
+		);
+		const sessions = many.map((p, i) =>
+			makeSession({
+				id: `s${i}`,
+				projectId: p.id,
+				startedAt: '2026-03-11T10:00:00.000Z',
+				endedAt: '2026-03-11T10:05:00.000Z'
+			})
+		);
+		const stats = periodStats(sessions, many, [], {
+			start: new Date('2026-03-11T00:00:00.000Z'),
+			end: new Date('2026-03-12T00:00:00.000Z')
+		});
+		expect(stats.breakdown).toHaveLength(300);
+		expect(stats.breakdown.reduce((sum, r) => sum + r.percent, 0)).toBe(100);
+		expect(stats.byProject.reduce((sum, r) => sum + r.percent, 0)).toBe(100);
 	});
 });

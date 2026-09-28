@@ -560,9 +560,43 @@ export type PeriodStats = {
 	breakdown: BreakdownRow[];
 };
 
-/** Drop buckets that would render as `0s` or `0%` (`formatCompact` floors sub-seconds). */
-export function isVisibleActivityRow(row: { ms: number; percent: number }): boolean {
-	return isCompactVisible(row.ms) && row.percent > 0;
+/**
+ * Drop buckets that would render as `0s` (`formatCompact` floors sub-seconds).
+ * Decided on `ms`, never on the rounded `percent`: a real but tiny share shows as `<1%`.
+ */
+export function isVisibleActivityRow(row: { ms: number }): boolean {
+	return isCompactVisible(row.ms);
+}
+
+/**
+ * Integer percents of `values` that sum to exactly 100 (largest-remainder rounding).
+ * Display only; logic reads `ms`. All zeros when the total is 0.
+ */
+export function roundShares(values: readonly number[]): number[] {
+	const total = values.reduce((sum, v) => sum + Math.max(0, v), 0);
+	if (total <= 0) return values.map(() => 0);
+	const exact = values.map((v) => (Math.max(0, v) / total) * 100);
+	const out = exact.map(Math.floor);
+	let left = 100 - out.reduce((sum, v) => sum + v, 0);
+	const order = exact
+		.map((v, i) => ({ i, rem: v - Math.floor(v) }))
+		.sort((a, b) => b.rem - a.rem || a.i - b.i);
+	for (const { i } of order) {
+		if (left <= 0) break;
+		out[i] += 1;
+		left -= 1;
+	}
+	return out;
+}
+
+/** `42%`, or `<1%` for a real share that rounds to 0. */
+export function formatShare(row: { ms: number; percent: number }): string {
+	return row.percent === 0 && row.ms > 0 ? '<1%' : `${row.percent}%`;
+}
+
+function withShares<T extends { ms: number; percent: number }>(rows: T[]): T[] {
+	const shares = roundShares(rows.map((r) => r.ms));
+	return rows.map((r, i) => ({ ...r, percent: shares[i] }));
 }
 
 export function periodStats(
@@ -599,8 +633,6 @@ export function periodStats(
 		else pairTotals.set(pairKey, { projectId: s.projectId, activityTypeId: actId, ms });
 	}
 
-	const pct = (ms: number) => (totalMs > 0 ? Math.round((ms / totalMs) * 100) : 0);
-
 	const byProject: NamedTotal[] = [...projectTotals.entries()]
 		.map(([id, ms]) => {
 			const p = projectName.get(id);
@@ -609,7 +641,7 @@ export function periodStats(
 				label: p?.name ?? m.common_unknown(),
 				color: p?.color ?? '#64748b',
 				ms,
-				percent: pct(ms)
+				percent: 0
 			};
 		})
 		.sort((a, b) => b.ms - a.ms);
@@ -622,7 +654,7 @@ export function periodStats(
 				label: slice.label,
 				color: slice.color,
 				ms,
-				percent: pct(ms)
+				percent: 0
 			};
 		})
 		.filter(isVisibleActivityRow)
@@ -639,7 +671,7 @@ export function periodStats(
 				activityTypeId: slice.id,
 				activityLabel: slice.label,
 				ms: row.ms,
-				percent: pct(row.ms)
+				percent: 0
 			};
 		})
 		.filter(isVisibleActivityRow)
@@ -647,9 +679,9 @@ export function periodStats(
 
 	return {
 		totalMs,
-		byProject,
-		byActivity,
-		breakdown
+		byProject: withShares(byProject),
+		byActivity: withShares(byActivity),
+		breakdown: withShares(breakdown)
 	};
 }
 
@@ -754,8 +786,6 @@ export function projectPeriodStats(
 	const days = calendarDaysInclusive(start, end, timeZone);
 	const dailyAverageMs = totalMs / days;
 	const sharePercent = allMs > 0 ? Math.round((totalMs / allMs) * 100) : 0;
-	const pct = (ms: number) => (totalMs > 0 ? Math.round((ms / totalMs) * 100) : 0);
-
 	const byActivity: NamedTotal[] = [...activityTotals.entries()]
 		.map(([id, ms]) => {
 			const slice = activitySlice(id, activityById);
@@ -764,7 +794,7 @@ export function projectPeriodStats(
 				label: slice.label,
 				color: slice.color,
 				ms,
-				percent: pct(ms)
+				percent: 0
 			};
 		})
 		.filter(isVisibleActivityRow)
@@ -777,7 +807,7 @@ export function projectPeriodStats(
 		sharePercent,
 		dailyAverageMs,
 		mostProductiveDay,
-		byActivity,
+		byActivity: withShares(byActivity),
 		sessionCount
 	};
 }

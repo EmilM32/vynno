@@ -10,13 +10,21 @@ describe('topNWithOther', () => {
 		const items = Array.from({ length: 25 }, (_, i) => row(`p${i}`, (i + 1) * 10, i + 1));
 		const out = topNWithOther(items);
 		const inputMs = items.reduce((sum, item) => sum + item.ms, 0);
-		const inputPercent = items.reduce((sum, item) => sum + item.percent, 0);
 		expect(out).toHaveLength(7);
 		expect(out.filter((item) => item.id === OTHER_ID)).toHaveLength(1);
 		expect(out.reduce((sum, item) => sum + item.ms, 0)).toBe(inputMs);
-		expect(out.reduce((sum, item) => sum + item.percent, 0)).toBe(inputPercent);
+		expect(out.reduce((sum, item) => sum + item.percent, 0)).toBe(100);
 		const largest = items.reduce((best, item) => (item.ms > best.ms ? item : best));
 		expect(out.some((item) => item.id === largest.id)).toBe(true);
+	});
+
+	it('gives Other the true tail share when every tail item rounds to 0% (321 projects)', () => {
+		const items = Array.from({ length: 321 }, (_, i) => row(`p${i}`, 60_000, 0));
+		const out = topNWithOther(items);
+		const other = out.find((item) => item.id === OTHER_ID)!;
+		// 315 of 321 equal shares = 98.13%.
+		expect(other.percent).toBe(98);
+		expect(out.reduce((sum, item) => sum + item.percent, 0)).toBe(100);
 	});
 
 	it('returns six items unchanged and does not add Other', () => {

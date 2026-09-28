@@ -2,7 +2,7 @@
 	import { resolve } from '$app/paths';
 	import ColorDot from '$lib/components/ui/ColorDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
-	import { isVisibleActivityRow, type BreakdownRow } from '$lib/time/aggregates';
+	import { formatShare, isVisibleActivityRow, type BreakdownRow } from '$lib/time/aggregates';
 	import { formatCompact } from '$lib/time/duration';
 
 	let { rows }: { rows: BreakdownRow[] } = $props();
@@ -66,7 +66,7 @@
 								{formatCompact(row.ms)}
 							</td>
 							<td class="px-4 py-3 text-right font-mono text-code-data text-on-surface-variant">
-								{row.percent}%
+								{formatShare(row)}
 							</td>
 						</tr>
 					{/each}

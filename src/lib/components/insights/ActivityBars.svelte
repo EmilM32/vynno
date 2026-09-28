@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { OTHER_ID, topNWithOther } from '$lib/components/insights/legend';
 	import { m } from '$lib/paraglide/messages.js';
-	import { isVisibleActivityRow, type NamedTotal } from '$lib/time/aggregates';
+	import { formatShare, isVisibleActivityRow, type NamedTotal } from '$lib/time/aggregates';
 	import { formatCompact } from '$lib/time/duration';
 
 	let {
@@ -50,7 +50,7 @@
 								><bdi>{item.label}</bdi></span
 							>
 							<span class="font-mono text-code-label text-on-surface-variant">
-								{formatCompact(item.ms)} · {item.percent}%
+								{formatCompact(item.ms)} · {formatShare(item)}
 							</span>
 						</div>
 						<div class="h-2 w-full overflow-hidden rounded-sm bg-surface-dim">

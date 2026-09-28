@@ -2,6 +2,8 @@ export const LEGEND_CAP = 6;
 export const OTHER_ID = 'other';
 export const OTHER_SLICE_COLOR = 'var(--color-outline)';
 
+import { roundShares } from '$lib/time/aggregates';
+
 export type LegendRow = {
 	id: string;
 	label: string;
@@ -13,7 +15,8 @@ export type LegendRow = {
 /**
  * Top `n` rows by `ms`, plus one Other that holds the rest.
  * `items.length <= n` is returned unchanged (no Other row).
- * Sums of `ms` and `percent` match the input.
+ * `ms` sums match the input; percents are recomputed from `ms` so Other holds the
+ * true tail share and the rows sum to 100 (rounded tail percents are often all 0).
  */
 export function topNWithOther<T extends LegendRow>(items: readonly T[], n = LEGEND_CAP): T[] {
 	if (items.length <= n) return items as T[];
@@ -25,7 +28,9 @@ export function topNWithOther<T extends LegendRow>(items: readonly T[], n = LEGE
 		label: 'Other',
 		color: OTHER_SLICE_COLOR,
 		ms: rest.reduce((sum, item) => sum + item.ms, 0),
-		percent: rest.reduce((sum, item) => sum + item.percent, 0)
+		percent: 0
 	} as T;
-	return [...top, other];
+	const rows = [...top, other];
+	const shares = roundShares(rows.map((item) => item.ms));
+	return rows.map((item, i) => ({ ...item, percent: shares[i] }));
 }

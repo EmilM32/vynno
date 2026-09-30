@@ -186,9 +186,12 @@ test.describe('command palette actions', () => {
 		const resume = recent(dialog).getByRole('option', { name: note });
 		await expect(resume).toHaveAttribute('aria-disabled', 'true');
 		await expect(resume).toContainText('Stop the current session first');
-		await resume.click();
+		// It is the active option; Enter must not start anything or close the palette.
+		await expect(resume).toHaveAttribute('aria-selected', 'true');
+		await page.getByRole('combobox', { name: 'Filter commands' }).press('Enter');
 		await expect(dialog).toBeVisible();
 		await page.keyboard.press('Escape');
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 
 		await stopSession(page);
 	});

@@ -2,6 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-09-07  
+**Amended:** 2026-09-30 (§8)  
 **Deciders:** Project owner
 
 ## Context
@@ -19,6 +20,7 @@ Totals stay client-side from loaded sessions ([api-contract.md](../api-contract.
 5. **KPI row is removed on Insights only.** Total remains the donut centre. `KpiCard` and project-dossier KPIs stay.
 6. **Range is view-local `$state`.** Not URL, not `vynno_prefs`. Leaving `/insights` resets to the current week.
 7. **No API date filter.** Historical windows keep using `ensureThrough`. A `from`/`to` on `GET /sessions` would be a vynno-api contract amendment.
+8. **The donut header compares with the previous period** (amendment, 2026-09-30). One line, `▲ +1.5h vs previous period`, next to "Time by Project". No tile row comes back (§5 stands). The previous window is `previousInsightRange`: the prior grain, cut to the same elapsed span while the range is open, so Wednesday-so-far compares with last Monday to Wednesday. `ensureThrough` reaches back to that window's start, so a custom range can load up to twice its span of history.
 
 ## Consequences
 

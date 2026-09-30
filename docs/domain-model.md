@@ -18,7 +18,7 @@ Types: `src/lib/types/domain.ts`. Wire JSON (DTOs, `archived` instead of `isArch
 | **Session / Time entry** | A continuous timed interval. While running it is the _active session_; when stopped it becomes a historical log entry.                        |
 | **Activity type**        | User-owned category of work. Used as chips and in Insights.                                                                                  |
 | **Tag / label**          | Secondary labels on a focus card. Distinct from project color.                                                                               |
-| **Daily target**         | Optional hours-per-day goal used in Insights deltas. Device cookie `vynno_prefs` (with default project); not an API field.                   |
+| **Daily target**         | Optional hours-per-day goal behind the Timer’s Today progress bar. Device cookie `vynno_prefs` (with default project); not an API field.                   |
 
 ---
 
@@ -126,9 +126,8 @@ User-owned dictionary row. `name` uses the same 1–80 code-point rules as a pro
 | Week hours per project      | Dashboard project cards, Insights |
 | Daily hours Mon–Sun         | Dashboard weekly chart            |
 | Period hours (day / month)  | Project-view hours chart          |
-| Period totals & averages    | Insights KPIs                     |
+| Period total vs previous    | Insights donut header             |
 | Hours by project / activity | Insights charts + table           |
-| Most productive day         | Insights                          |
 | Logs grouped-by-task (day)  | `/logs` Grouped layout            |
 
 ---

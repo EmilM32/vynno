@@ -108,7 +108,7 @@ Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs
 
 1. Header + range control: prev / civil-date label / next, Week | 2 weeks | Month, Custom
 2. Custom: dialog with From / To dates (native `type="date"`). Prev/next shift the active grain; next is disabled on the current window. Range is view-local (resets to the current week on leave).
-3. Time by Project donut (centre total)
+3. Time by Project donut (centre total). The header shows the change vs the same span of the previous period (`▲ +1.5h vs previous period`); no KPI row ([adr/0021](./adr/0021-insights-range.md) §5, §8)
 4. Time by Activity bar — unlabeled sessions are **Unassigned** so bars match the donut; omit buckets that would display as `0s` or `0%` (`formatCompact` floors sub-seconds)
 5. Activity Breakdown table — same Unassigned rows per project; same visibility filter
 6. Mobile: grain + civil label on one line; the donut card is at least 16rem and grows (legend capped at six projects plus Other) so the ring stays visible. Activity height follows content and uses the same cap. Desktop `lg`: the row is at least `h-96`.
@@ -206,7 +206,7 @@ A break is stop, then start again (new session). There is no pause. Grouped logs
 ### E — Analyze period
 
 ```
-[Insights] → select Week or Month → read KPIs + charts + table
+[Insights] → select Week or Month → read charts + table (donut header: vs previous period)
 ```
 
 ### F — Search logs

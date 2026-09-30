@@ -3,16 +3,27 @@
 	import { onMount } from 'svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { OTHER_ID, topNWithOther } from '$lib/components/insights/legend';
-	import { formatHoursMinutes } from '$lib/time/duration';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import { deltaDisplay, formatHoursDecimal, formatHoursMinutes } from '$lib/time/duration';
 	import { formatShare, type NamedTotal } from '$lib/time/aggregates';
 
 	let {
 		items,
-		totalMs
+		totalMs,
+		previousMs
 	}: {
 		items: NamedTotal[];
 		totalMs: number;
+		/** Same span of the previous period; omit to hide the comparison. */
+		previousMs?: number;
 	} = $props();
+
+	const deltaMs = $derived(previousMs == null ? 0 : totalMs - previousMs);
+	const delta = $derived(deltaDisplay(deltaMs));
+	/** The arrow is decorative, so the number carries the sign. */
+	const deltaLabel = $derived(
+		`${delta.icon ? (deltaMs > 0 ? '+' : '\u2212') : ''}${formatHoursDecimal(Math.abs(deltaMs))}`
+	);
 
 	type Slice = NamedTotal;
 
@@ -58,8 +69,20 @@
 	class="vynno-chart flex min-h-64 flex-col rounded-lg border border-outline-variant bg-surface-container p-6 lg:min-h-96"
 	aria-label={m.insights_time_by_project_aria()}
 >
-	<div class="mb-4 flex items-center justify-between">
+	<div class="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
 		<h2 class="text-headline-md text-on-surface">{m.insights_time_by_project()}</h2>
+		{#if previousMs != null}
+			<p
+				class="flex items-center gap-1 text-body-sm text-on-surface-variant"
+				data-testid="insights-vs-previous"
+			>
+				{#if delta.icon}
+					<Icon name={delta.icon} size="xs" class={delta.ink} />
+				{/if}
+				<span class={delta.ink}>{deltaLabel}</span>
+				<span>{m.insights_vs_previous()}</span>
+			</p>
+		{/if}
 	</div>
 
 	<div

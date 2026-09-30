@@ -491,5 +491,17 @@
 	"security_email_changed": "Logujesz się teraz jako {email}. Inne urządzenia zostały wylogowane.",
 	"error_failed_save_prefs": "Nie udało się zapisać preferencji",
 	"error_failed_change_password": "Nie udało się zmienić hasła",
-	"error_failed_change_email": "Nie udało się zmienić adresu e-mail"
+	"error_failed_change_email": "Nie udało się zmienić adresu e-mail",
+	"insights_loading_totals": "Wczytywanie sum…",
+	"error_failed_load_totals": "Nie udało się wczytać sum",
+	"dashboard_heatmap_title": "Ostatnie 12 miesięcy",
+	"dashboard_heatmap_streak": "Seria",
+	"dashboard_heatmap_best": "Rekord",
+	"dashboard_heatmap_active_days": "Aktywne dni",
+	"dashboard_heatmap_total": "Łącznie",
+	"dashboard_heatmap_days": "{count} d",
+	"dashboard_heatmap_summary": "Czas mierzony dzień po dniu w ostatnich 12 miesiącach. Aktywne dni: {active}, łącznie {total}.",
+	"dashboard_heatmap_hint": "Pełny kwadrat to osiągnięty dzienny cel ({target}). Wolny weekend nie przerywa serii.",
+	"dashboard_heatmap_less": "Mniej",
+	"dashboard_heatmap_more": "Więcej"
 }

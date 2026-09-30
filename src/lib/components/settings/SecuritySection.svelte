@@ -213,11 +213,11 @@
 			{#if passwordError}
 				<p class="text-body-sm text-error" role="alert">{passwordError}</p>
 			{/if}
-			<p class="text-body-sm text-primary" role="status">{passwordNotice}</p>
-			<div>
+			<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 				<Button variant="tonal" type="submit" disabled={passwordPending}>
 					{m.security_change_password()}
 				</Button>
+				<p class="text-body-sm text-primary" role="status">{passwordNotice}</p>
 			</div>
 		</form>
 
@@ -279,9 +279,8 @@
 			{#if emailError}
 				<p class="text-body-sm text-error" role="alert">{emailError}</p>
 			{/if}
-			<p class="text-body-sm text-primary" role="status">{emailNotice}</p>
 
-			<div class="flex flex-wrap items-center gap-2">
+			<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 				<Button variant="tonal" type="submit" disabled={emailPending}>
 					{emailStep === 'request' ? m.security_send_code() : m.security_confirm_email()}
 				</Button>
@@ -293,6 +292,7 @@
 						{m.security_use_other_email()}
 					</Button>
 				{/if}
+				<p class="text-body-sm text-primary" role="status">{emailNotice}</p>
 			</div>
 		</form>
 	</div>

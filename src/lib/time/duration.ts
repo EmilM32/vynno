@@ -378,6 +378,23 @@ export function shiftInsightRange(
 	);
 }
 
+/** A range clamped to now: its last day is still going, so it holds partial days. */
+export function isOpenInsightRange(range: InsightRange, timeZone?: string): boolean {
+	return range.end.getTime() < endOfLocalDay(range.end, timeZone).getTime();
+}
+
+/** Inclusive civil dates of a range, for `/stats/days`. */
+export function civilDayRange(
+	range: { start: Date; end: Date },
+	timeZone: string
+): { from: string; to: string; timeZone: string } {
+	return {
+		from: localDateKeyFromDate(range.start, timeZone),
+		to: localDateKeyFromDate(range.end, timeZone),
+		timeZone
+	};
+}
+
 /**
  * The window before `range`, for "vs previous period". While `range` is still open
  * (its end is now, not the end of a day) the previous window is cut to the same
@@ -389,8 +406,7 @@ export function previousInsightRange(
 	timeZone?: string
 ): InsightRange {
 	const prev = shiftInsightRange(range, -1, now, timeZone);
-	const open = range.end.getTime() < endOfLocalDay(range.end, timeZone).getTime();
-	if (!open) return prev;
+	if (!isOpenInsightRange(range, timeZone)) return prev;
 	const cut = prev.start.getTime() + (range.end.getTime() - range.start.getTime());
 	return cut < prev.end.getTime() ? { ...prev, end: new Date(cut) } : prev;
 }

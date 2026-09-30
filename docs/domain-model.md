@@ -119,6 +119,8 @@ User-owned dictionary row. `name` uses the same 1–80 code-point rules as a pro
 
 ### 4.4 Aggregates (computed on the client)
 
+Charts over a past range or a year use server day totals (`GET /stats/days`: stopped sessions summed per local date, project, and activity type). The client adds the live session and shapes every chart. A session counts in full on the local date it started, on both sides.
+
 | Aggregate                   | Used on                           |
 | --------------------------- | --------------------------------- |
 | Today total                 | Dashboard, Timer side panel       |
@@ -129,6 +131,7 @@ User-owned dictionary row. `name` uses the same 1–80 code-point rules as a pro
 | Period total vs previous    | Insights donut header             |
 | Hours by project / activity | Insights charts + table           |
 | Logs grouped-by-task (day)  | `/logs` Grouped layout            |
+| Daily totals, streaks       | Dashboard year heatmap            |
 
 ---
 

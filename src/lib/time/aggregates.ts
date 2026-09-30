@@ -1,6 +1,6 @@
 import { m } from '$lib/paraglide/messages.js';
 import { activityChartColor } from '$lib/time/activity-styles';
-import type { ActivityType, Project, TimeSession } from '$lib/types/domain';
+import type { ActivityType, DayTotal, Project, TimeSession } from '$lib/types/domain';
 
 import {
 	addCalendarMonths,
@@ -672,6 +672,10 @@ function withShares<T extends { ms: number; percent: number }>(rows: T[]): T[] {
 	return rows.map((r, i) => ({ ...r, percent: shares[i] }));
 }
 
+/** Tracked time for one project and activity: a `/stats/days` row without its date. */
+export type TotalRow = Pick<DayTotal, 'projectId' | 'activityTypeId' | 'durationMs'>;
+
+/** Stats from loaded sessions starting in `range` (the live one measured to `now`). */
 export function periodStats(
 	sessions: TimeSession[],
 	projects: Project[],
@@ -679,9 +683,21 @@ export function periodStats(
 	range: { start: Date; end: Date },
 	now = new Date()
 ): PeriodStats {
-	const { start, end } = range;
-	const inRange = sessionsInRange(sessions, start, end);
 	const nowMs = now.getTime();
+	const rows = sessionsInRange(sessions, range.start, range.end).map((s) => ({
+		projectId: s.projectId,
+		activityTypeId: s.activityTypeId,
+		durationMs: sessionElapsedMs(s, nowMs)
+	}));
+	return periodStatsFromTotals(rows, projects, activityTypes);
+}
+
+/** Stats from total rows: server day totals, or {@link periodStats}'s own rows. */
+export function periodStatsFromTotals(
+	rows: readonly TotalRow[],
+	projects: Project[],
+	activityTypes: ActivityType[]
+): PeriodStats {
 	const projectName = new Map(projects.map((p) => [p.id, p]));
 	const activityById = new Map(activityTypes.map((a) => [a.id, a]));
 
@@ -690,20 +706,20 @@ export function periodStats(
 	const activityTotals = new Map<string, number>();
 	const pairTotals = new Map<string, { projectId: string; activityTypeId: string; ms: number }>();
 
-	for (const s of inRange) {
-		const ms = sessionElapsedMs(s, nowMs);
+	for (const row of rows) {
+		const ms = row.durationMs;
 		if (ms <= 0) continue;
 		totalMs += ms;
 
-		projectTotals.set(s.projectId, (projectTotals.get(s.projectId) ?? 0) + ms);
+		projectTotals.set(row.projectId, (projectTotals.get(row.projectId) ?? 0) + ms);
 
-		const actId = s.activityTypeId || UNASSIGNED_ACTIVITY_ID;
+		const actId = row.activityTypeId || UNASSIGNED_ACTIVITY_ID;
 		activityTotals.set(actId, (activityTotals.get(actId) ?? 0) + ms);
 
-		const pairKey = `${s.projectId}::${actId}`;
+		const pairKey = `${row.projectId}::${actId}`;
 		const existing = pairTotals.get(pairKey);
 		if (existing) existing.ms += ms;
-		else pairTotals.set(pairKey, { projectId: s.projectId, activityTypeId: actId, ms });
+		else pairTotals.set(pairKey, { projectId: row.projectId, activityTypeId: actId, ms });
 	}
 
 	const byProject: NamedTotal[] = [...projectTotals.entries()]

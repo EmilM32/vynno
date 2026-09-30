@@ -138,6 +138,18 @@ export class SessionStore {
 	sessions = $state.raw<TimeSession[]>([]);
 	nextCursor = $state<string | null>(null);
 	loadingMore = $state(false);
+
+	/**
+	 * Bumps whenever a session is created, changed, or removed here or in a sibling tab.
+	 * Loading older pages does not bump it. Server-side totals refetch on it.
+	 */
+	revision = $state(0);
+	#revisionCount = 0;
+
+	/** Writes without reading `revision`, so an effect that mutates sessions never depends on it. */
+	#bumpRevision = (): void => {
+		this.revision = ++this.#revisionCount;
+	};
 	projectSessionCounts = $state.raw<Record<string, number>>({});
 	activityTypeSessionCounts = $state.raw<Record<string, number>>({});
 
@@ -461,6 +473,12 @@ export class SessionStore {
 			}
 		}
 	};
+
+	/**
+	 * Every session starting at or after `startedAtMs` is loaded, so totals computed
+	 * here match the server's. Reactive: re-evaluates as pages load.
+	 */
+	coversSince = (startedAtMs: number): boolean => this.#coveredThrough(startedAtMs, null);
 
 	/** Stop an in-flight {@link ensureThrough} before its next `listSessions` call. */
 	cancelDrain = (): void => {
@@ -1238,6 +1256,7 @@ export class SessionStore {
 	};
 
 	#upsertSession = (session: TimeSession): void => {
+		this.#bumpRevision();
 		const idx = this.sessions.findIndex((s) => s.id === session.id);
 		if (idx === -1) {
 			this.#loadedSessionIds.add(session.id);
@@ -1251,6 +1270,7 @@ export class SessionStore {
 	};
 
 	#removeSession = (id: string): void => {
+		this.#bumpRevision();
 		this.sessions = this.sessions.filter((s) => s.id !== id);
 		this.#loadedSessionIds.delete(id);
 		this.#extraSessionIds.delete(id);
@@ -1399,6 +1419,7 @@ export class SessionStore {
 	};
 
 	#mergeActive = (session: TimeSession): void => {
+		this.#bumpRevision();
 		this.#active = session.status === 'active' ? session : null;
 		const idx = this.sessions.findIndex((s) => s.id === session.id);
 		if (idx !== -1) {

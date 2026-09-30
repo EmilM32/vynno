@@ -491,5 +491,17 @@
 	"security_email_changed": "You now sign in with {email}. Other devices were signed out.",
 	"error_failed_save_prefs": "Failed to save preferences",
 	"error_failed_change_password": "Failed to change password",
-	"error_failed_change_email": "Failed to change email"
+	"error_failed_change_email": "Failed to change email",
+	"insights_loading_totals": "Loading totals…",
+	"error_failed_load_totals": "Failed to load totals",
+	"dashboard_heatmap_title": "Last 12 months",
+	"dashboard_heatmap_streak": "Streak",
+	"dashboard_heatmap_best": "Best",
+	"dashboard_heatmap_active_days": "Active days",
+	"dashboard_heatmap_total": "Tracked",
+	"dashboard_heatmap_days": "{count}d",
+	"dashboard_heatmap_summary": "Tracked time per day for the last 12 months: {active} active days, {total} in total.",
+	"dashboard_heatmap_hint": "A full square meets your {target} daily target. A weekend off does not break a streak.",
+	"dashboard_heatmap_less": "Less",
+	"dashboard_heatmap_more": "More"
 }

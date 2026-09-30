@@ -101,6 +101,7 @@ Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 3. **Active Projects** — horizontal cards: color, name, optional progress %, week hours → `/projects/[id]`
 4. **Weekly Overview** — bar chart Mon–Sun. Empty week: “Not enough data yet”. Sub-hour week: Y axis in minutes
 5. **Recent Logs** — compact list + restart (disabled while live). On mobile this block sits after Current Focus, before Active Projects / Weekly Overview
+6. **Last 12 months** — year heatmap from `/stats/days`, shaded against the daily target, with current streak, best streak, active days, and total. Weekends off do not break a streak. Narrow screens clip the oldest weeks. Decision: [adr/0027](./adr/0027-year-heatmap-streaks.md)
 
 ### 3.3 Logs (`/logs`)
 
@@ -124,6 +125,8 @@ Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs
 4. Time by Activity bar — unlabeled sessions are **Unassigned** so bars match the donut; omit buckets that would display as `0s` or `0%` (`formatCompact` floors sub-seconds)
 5. Activity Breakdown table — same Unassigned rows per project; same visibility filter
 6. Mobile: grain + civil label on one line; the donut card is at least 16rem and grows (legend capped at six projects plus Other) so the ring stays visible. Activity height follows content and uses the same cap. Desktop `lg`: the row is at least `h-96`.
+
+7. Data: a range that includes today is computed from loaded sessions (drained to the previous window). A past range reads `/stats/days` unless its sessions are already loaded, so going back a year is one request. While totals load, the charts dim and "Loading totals…" shows.
 
 Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 

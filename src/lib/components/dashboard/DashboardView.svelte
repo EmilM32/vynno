@@ -11,6 +11,7 @@
 	import RecentLogsList from './RecentLogsList.svelte';
 	import TodayTotal from './TodayTotal.svelte';
 	import WeeklyOverview from './WeeklyOverview.svelte';
+	import YearHeatmap from './YearHeatmap.svelte';
 
 	const sessionStore = useSession();
 
@@ -43,5 +44,6 @@
 		<RecentLogsList class="order-3 md:order-5 md:col-span-6" />
 		<ActiveProjects class="order-4 md:order-3 md:col-span-12" />
 		<WeeklyOverview class="order-5 h-64 md:order-4 md:col-span-6 md:h-75" />
+		<YearHeatmap class="order-6 md:col-span-12" />
 	</div>
 </div>

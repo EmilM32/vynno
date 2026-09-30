@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-09-07  
-**Amended:** 2026-09-30 (§8)  
+**Amended:** 2026-09-30 (§8, §9)  
 **Deciders:** Project owner
 
 ## Context
@@ -19,8 +19,10 @@ Totals stay client-side from loaded sessions ([api-contract.md](../api-contract.
 4. **Custom range is a `Dialog` of native `input type="date"`** (`Field` + `Input`). Inclusive civil days in the session timezone. To cannot be after today; From ≤ To; span ≤ 366 days. No calendar widget ([ADR-0018](./0018-atomic-ui-layer.md) extract bar).
 5. **KPI row is removed on Insights only.** Total remains the donut centre. `KpiCard` and project-dossier KPIs stay.
 6. **Range is view-local `$state`.** Not URL, not `vynno_prefs`. Leaving `/insights` resets to the current week.
-7. **No API date filter.** Historical windows keep using `ensureThrough`. A `from`/`to` on `GET /sessions` would be a vynno-api contract amendment.
+7. **No API date filter on sessions.** A range that includes today keeps using `ensureThrough`. Closed ranges read day totals instead (§9).
 8. **The donut header compares with the previous period** (amendment, 2026-09-30). One line, `▲ +1.5h vs previous period`, next to "Time by Project". No tile row comes back (§5 stands). The previous window is `previousInsightRange`: the prior grain, cut to the same elapsed span while the range is open, so Wednesday-so-far compares with last Monday to Wednesday. `ensureThrough` reaches back to that window's start, so a custom range can load up to twice its span of history.
+
+9. **Closed ranges read `/stats/days`** (amendment, 2026-09-30). A range that ended before today, and whose sessions are not already loaded (`SessionStore.coversSince`), sums server day totals for itself and for its previous window. Both are whole days, so no cut is needed. A range that includes today still drains to the previous window's start: the cut to the same time of day (§8) needs the sessions themselves. While new totals load, the last charts stay on screen dimmed with `aria-busy` and "Loading totals…". They refetch after a session write here or in another tab.
 
 ## Consequences
 
@@ -32,7 +34,7 @@ Totals stay client-side from loaded sessions ([api-contract.md](../api-contract.
 
 ### Negative / tradeoffs
 
-- Deep history still pages 15 sessions at a time. Insights shows a quiet “loading earlier sessions” line while `loadingMore` is true.
+- A range that includes today still pages history back to the previous window's start. A long custom range ending today can load up to twice its span. Past ranges no longer page at all.
 - Native date controls look different per OS.
 - Custom is not bookmarkable.
 

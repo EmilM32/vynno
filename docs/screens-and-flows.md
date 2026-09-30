@@ -111,6 +111,7 @@ Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 5. Entries: project color + name, `> note` (one line; expand when truncated), optional ticket / activity chip, time range, duration. Completed rows have Play (hover-reveal on desktop, always visible on mobile) — starts a **new** session now with the same note / project / ticket / activity and goes to Timer. The in-progress row has no Play. Disabled while another session is live (`timer_stop_first`) or the project is archived.
 6. Grouped multi-session headers have the same Play (identity from the newest session in the group). Nested constituent rows keep their own Play.
 7. Add entry / Edit session: form dialog (note, project, activity, ticket, times). Delete: confirm dialog
+8. Untracked gaps: in **Entries** with no search, project or activity filter, a gap of at least 60 minutes between two rows of the same day shows as `2h untracked · 10:00 - 12:00` with **Add entry**, which opens the form prefilled with that span. Shorter breaks stay unmarked (a break is stop, then start: ADR-0024). Time covered by an overlapping row counts as tracked. Hidden while rows are filtered, since a hidden row may cover the gap, and in **Grouped**.
 
 Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs-grouped-view.md](./adr/0023-logs-grouped-view.md).
 

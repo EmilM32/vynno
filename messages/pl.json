@@ -123,6 +123,8 @@
 	"logs_restart_task": "Rozpocznij to zadanie ponownie",
 	"logs_restart_aria": "Rozpocznij {note} ponownie",
 	"logs_in_progress": "W toku",
+	"logs_gap_untracked": "{duration} bez zapisu · {range}",
+	"logs_gap_fill_aria": "Dodaj wpis dla {range}",
 	"logs_form_new": "Ręczny wpis czasu",
 	"logs_form_edit": "Edytuj sesję",
 	"logs_field_note": "Zadanie",

@@ -451,6 +451,37 @@ export function groupSessionsByDate(sessions: TimeSession[], timeZone?: string):
 		.map(([dateKey, list]) => ({ dateKey, sessions: list }));
 }
 
+/** Shorter pauses are ordinary breaks (ADR-0024: a break is stop, then start). */
+export const LONG_GAP_MS = 60 * 60_000;
+
+export type UntrackedGap = { startedAt: string; endedAt: string; ms: number };
+
+/**
+ * Untracked stretches of at least `minMs` between one day's stopped sessions, keyed
+ * by the session that ends the gap. In a newest-first list the gap goes right below
+ * that row. Overlapping sessions count as covered time.
+ */
+export function untrackedGaps(
+	daySessions: readonly TimeSession[],
+	minMs = LONG_GAP_MS
+): Map<string, UntrackedGap> {
+	const gaps = new Map<string, UntrackedGap>();
+	const oldestFirst = daySessions
+		.filter((s) => s.status === 'stopped' && s.endedAt)
+		.sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
+	let coveredUntil: string | null = null;
+	for (const s of oldestFirst) {
+		if (coveredUntil) {
+			const ms = Date.parse(s.startedAt) - Date.parse(coveredUntil);
+			if (ms >= minMs) gaps.set(s.id, { startedAt: coveredUntil, endedAt: s.startedAt, ms });
+		}
+		if (!coveredUntil || Date.parse(s.endedAt!) > Date.parse(coveredUntil)) {
+			coveredUntil = s.endedAt!;
+		}
+	}
+	return gaps;
+}
+
 export type TaskGroup = {
 	key: string;
 	ticketId?: string;

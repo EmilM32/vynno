@@ -21,6 +21,7 @@ import {
 	todayDeltaMs,
 	todayTotalMs,
 	totalForLocalDay,
+	untrackedGaps,
 	hoursScale,
 	histogramScale,
 	periodBucketTotals,
@@ -752,6 +753,49 @@ describe('rangeTotalMs', () => {
 
 	it('is zero for an empty window', () => {
 		expect(rangeTotalMs([], current, FIXED_NOW)).toBe(0);
+	});
+});
+
+describe('untrackedGaps', () => {
+	const span = (id: string, from: [number, number], to: [number, number]) =>
+		makeSession({
+			id,
+			startedAt: localIso(2026, 2, 10, ...from),
+			endedAt: localIso(2026, 2, 10, ...to)
+		});
+
+	it('finds a gap of an hour or more, keyed by the session after it', () => {
+		const gaps = untrackedGaps([span('late', [13, 30], [15, 0]), span('early', [9, 0], [12, 0])]);
+		expect([...gaps.keys()]).toEqual(['late']);
+		expect(gaps.get('late')).toEqual({
+			startedAt: localIso(2026, 2, 10, 12, 0),
+			endedAt: localIso(2026, 2, 10, 13, 30),
+			ms: ms.hours(1, 30)
+		});
+	});
+
+	it('ignores ordinary breaks under an hour', () => {
+		expect(untrackedGaps([span('a', [9, 0], [10, 0]), span('b', [10, 59], [12, 0])]).size).toBe(0);
+	});
+
+	it('treats time covered by an overlapping session as tracked', () => {
+		// "long" covers 9–14, so "short" ending at 10 does not open a gap before 14:30.
+		const gaps = untrackedGaps([
+			span('long', [9, 0], [14, 0]),
+			span('short', [9, 30], [10, 0]),
+			span('after', [14, 30], [16, 0])
+		]);
+		expect(gaps.size).toBe(0);
+	});
+
+	it('skips live rows', () => {
+		const live = makeSession({
+			id: 'live',
+			status: 'active',
+			endedAt: undefined,
+			startedAt: localIso(2026, 2, 10, 15)
+		});
+		expect(untrackedGaps([span('a', [9, 0], [10, 0]), live]).size).toBe(0);
 	});
 });
 

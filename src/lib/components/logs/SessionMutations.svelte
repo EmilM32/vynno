@@ -11,8 +11,11 @@
 	import type { Snippet } from 'svelte';
 	import SessionForm from './SessionForm.svelte';
 
+	/** A span to prefill a new entry with, e.g. an untracked gap. */
+	type EntrySpan = { startedAt: string; endedAt: string };
+
 	type SessionActions = {
-		openCreate: () => void;
+		openCreate: (span?: EntrySpan) => void;
 		openEdit: (session: TimeSession) => void;
 		openDelete: (session: TimeSession) => void;
 	};
@@ -20,12 +23,14 @@
 	let { children }: { children: Snippet<[SessionActions]> } = $props();
 
 	const sessionStore = useSession();
-	let formMode = $state<{ kind: 'create' } | { kind: 'edit'; session: TimeSession } | null>(null);
+	let formMode = $state<
+		{ kind: 'create'; span?: EntrySpan } | { kind: 'edit'; session: TimeSession } | null
+	>(null);
 	let deleteTarget = $state<TimeSession | null>(null);
 	const pending = $derived(sessionStore.pendingAction === 'session');
 
-	function openCreate() {
-		formMode = { kind: 'create' };
+	function openCreate(span?: EntrySpan) {
+		formMode = { kind: 'create', span };
 	}
 
 	function openEdit(session: TimeSession) {
@@ -71,6 +76,7 @@
 				<SessionForm
 					mode={formMode.kind}
 					session={formMode.kind === 'edit' ? formMode.session : undefined}
+					span={formMode.kind === 'create' ? formMode.span : undefined}
 					{pending}
 					onsubmit={formMode.kind === 'create' ? saveCreate : saveEdit}
 					oncancel={() => close()}

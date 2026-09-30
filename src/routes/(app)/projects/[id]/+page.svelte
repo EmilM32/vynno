@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ProjectView from '$lib/components/project/ProjectView.svelte';
+	import PageTitle from '$lib/components/shell/PageTitle.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 
@@ -10,9 +11,7 @@
 	const pageTitle = $derived(project?.name ?? m.error_not_found());
 </script>
 
-<svelte:head>
-	<title>{m.title_app({ page: pageTitle })}</title>
-</svelte:head>
+<PageTitle page={pageTitle} />
 
 {#key params.id}
 	<ProjectView projectId={params.id} />

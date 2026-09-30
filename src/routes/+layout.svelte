@@ -1,6 +1,7 @@
 <script lang="ts">
 	import './layout.css';
 	import { untrack } from 'svelte';
+	import faviconLive from '$lib/assets/favicon-live.svg';
 	import favicon from '$lib/assets/favicon.svg';
 	import { m } from '$lib/paraglide/messages.js';
 	import { authStore } from '$lib/stores/auth.svelte';
@@ -33,6 +34,7 @@
 	});
 
 	const themeColor = $derived(resolveTheme(themeStore.themeId).themeColor);
+	const icon = $derived(session.activeSession ? faviconLive : favicon);
 
 	$effect(() => {
 		persistTimeZoneCookie();
@@ -49,7 +51,7 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" href={icon} />
 	<title>{m.app_name()}</title>
 	<meta name="theme-color" content={themeColor} />
 </svelte:head>

@@ -51,6 +51,10 @@ Each primary route is one responsive page (mobile + desktop).
 
 Default landing: `/login` when signed out; `/dashboard` when signed in. Feature routes require a session cookie.
 
+### Tab title and icon
+
+Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the title becomes `▶ HH:MM:SS · {note} · Vynno` and the favicon gains the live status dot, so a background tab still shows the timer.
+
 ---
 
 ## 3. Screen specifications

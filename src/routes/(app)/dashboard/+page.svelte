@@ -1,10 +1,9 @@
 <script lang="ts">
 	import DashboardView from '$lib/components/dashboard/DashboardView.svelte';
+	import PageTitle from '$lib/components/shell/PageTitle.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 </script>
 
-<svelte:head>
-	<title>{m.title_app({ page: m.title_dashboard() })}</title>
-</svelte:head>
+<PageTitle page={m.title_dashboard()} />
 
 <DashboardView />

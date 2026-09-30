@@ -46,7 +46,6 @@ export interface TimeSession {
 	startedAt: string;
 	/** ISO datetime — set on stop */
 	endedAt?: string;
-	targetDurationMs?: number;
 }
 
 export interface UserProfile {
@@ -107,7 +106,6 @@ export interface StartSessionInput {
 	note: string;
 	ticketId?: string;
 	activityTypeId?: string;
-	targetDurationMs?: number;
 }
 
 export interface UpdateSessionInput {
@@ -117,7 +115,6 @@ export interface UpdateSessionInput {
 	activityTypeId?: string | null;
 	startedAt?: string;
 	endedAt?: string | null;
-	targetDurationMs?: number | null;
 }
 
 export interface CreateManualSessionInput {
@@ -125,7 +122,6 @@ export interface CreateManualSessionInput {
 	note: string;
 	ticketId?: string;
 	activityTypeId?: string;
-	targetDurationMs?: number;
 	startedAt: string;
 	endedAt: string;
 }

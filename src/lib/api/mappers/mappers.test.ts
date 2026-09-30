@@ -9,7 +9,19 @@ import {
 	updateProjectFromDto,
 	updateProjectToDto
 } from './project';
-import { sessionFromDto, sessionToDto, startSessionFromDto, startSessionToDto } from './session';
+import type {
+	CreateManualSessionInput,
+	StartSessionInput,
+	UpdateSessionInput
+} from '$lib/types/domain';
+import {
+	createManualSessionToDto,
+	sessionFromDto,
+	sessionToDto,
+	startSessionFromDto,
+	startSessionToDto,
+	updateSessionToDto
+} from './session';
 
 describe('project mappers', () => {
 	it('maps archived + null optionals onto omitted domain fields', () => {
@@ -71,11 +83,9 @@ describe('session mappers', () => {
 			activityTypeId: 'act-coding',
 			status: 'stopped',
 			startedAt: '2026-03-10T08:00:00.000Z',
-			endedAt: '2026-03-10T09:00:00.000Z',
-			targetDurationMs: null
+			endedAt: '2026-03-10T09:00:00.000Z'
 		});
 		expect(session.ticketId).toBeUndefined();
-		expect(session.targetDurationMs).toBeUndefined();
 		expect(session.activityTypeId).toBe('act-coding');
 	});
 
@@ -99,21 +109,40 @@ describe('session mappers', () => {
 			projectId: 'proj-auth',
 			note: 'Work',
 			ticketId: null,
-			activityTypeId: null,
-			targetDurationMs: null
+			activityTypeId: null
 		});
 		expect(
 			startSessionFromDto({
 				projectId: 'proj-auth',
 				note: 'Work',
 				ticketId: null,
-				activityTypeId: null,
-				targetDurationMs: null
+				activityTypeId: null
 			})
 		).toEqual({
 			projectId: 'proj-auth',
 			note: 'Work'
 		});
+	});
+
+	it('never sends a session target, even from a caller that still passes one', () => {
+		const legacy = { targetDurationMs: 25 * 60_000 };
+		const start = startSessionToDto({
+			projectId: 'proj-auth',
+			note: 'Work',
+			...legacy
+		} as StartSessionInput);
+		const update = updateSessionToDto({ note: 'Work', ...legacy } as UpdateSessionInput);
+		const manual = createManualSessionToDto({
+			projectId: 'proj-auth',
+			note: 'Work',
+			startedAt: '2026-03-10T08:00:00.000Z',
+			endedAt: '2026-03-10T09:00:00.000Z',
+			...legacy
+		} as CreateManualSessionInput);
+
+		expect(start).not.toHaveProperty('targetDurationMs');
+		expect(update).toEqual({ note: 'Work' });
+		expect(manual).not.toHaveProperty('targetDurationMs');
 	});
 });
 

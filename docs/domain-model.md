@@ -36,8 +36,7 @@ User
  └── TimeSession*
       ├── id, projectId, note, ticketId?, activityTypeId?
       ├── status: active | stopped
-      ├── startedAt, endedAt?
-      └── targetDurationMs?   // Timer target presets
+      └── startedAt, endedAt?
 ```
 
 Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`). “Recent tasks” are reconstructed from recent sessions.
@@ -84,17 +83,16 @@ Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`)
 
 ### 4.2 TimeSession
 
-| Field              | Type                  | Notes                                                                                                                                                                     |
-| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`               | string                |                                                                                                                                                                           |
-| `projectId`        | string                | Required                                                                                                                                                                  |
-| `note`             | string                | ≤ 500 code points. Tab, LF, and CR allowed; other Cc and bidi rejected. Empty becomes Untitled. Legacy oversized notes still load; a patch that omits the field succeeds. |
-| `ticketId`         | string?               | ≤ 64 code points. e.g. `DEV-842`. Legacy oversized values still load.                                                                                                     |
-| `activityTypeId`   | string?               |                                                                                                                                                                           |
-| `status`           | `active` \| `stopped` |                                                                                                                                                                           |
-| `startedAt`        | ISO datetime          | `>= 2000-01-01T00:00:00Z`. Instants ≤ now+5min. Microsecond comparison.                                                                                                   |
-| `endedAt`          | ISO datetime?         | Set on stop. Duration ≤ 7 days. A note-only patch of a legacy out-of-bounds row does not recheck bounds.                                                                  |
-| `targetDurationMs` | number?               | Max `9007199254740991`. Set from the Timer target toggle.                                                                                                                 |
+| Field            | Type                  | Notes                                                                                                                                                                     |
+| ---------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`             | string                |                                                                                                                                                                           |
+| `projectId`      | string                | Required                                                                                                                                                                  |
+| `note`           | string                | ≤ 500 code points. Tab, LF, and CR allowed; other Cc and bidi rejected. Empty becomes Untitled. Legacy oversized notes still load; a patch that omits the field succeeds. |
+| `ticketId`       | string?               | ≤ 64 code points. e.g. `DEV-842`. Legacy oversized values still load.                                                                                                     |
+| `activityTypeId` | string?               |                                                                                                                                                                           |
+| `status`         | `active` \| `stopped` |                                                                                                                                                                           |
+| `startedAt`      | ISO datetime          | `>= 2000-01-01T00:00:00Z`. Instants ≤ now+5min. Microsecond comparison.                                                                                                   |
+| `endedAt`        | ISO datetime?         | Set on stop. Duration ≤ 7 days. A note-only patch of a legacy out-of-bounds row does not recheck bounds.                                                                  |
 
 **Derived (UI only):** `durationMs`, `timeRangeLabel` (`09:30 - 11:45`), `durationLabel` (`2h 15m` / `01:42:15` / `<1s` for a stopped duration under 1 second). Stopping a session younger than 1 second deletes it instead of keeping a 0s row.
 
@@ -107,7 +105,7 @@ Same facts as [api-contract.md](./api-contract.md):
 - **Email.** NFC, then lowercase. Domain is IDNA punycode (NFC = NFD, IDN = punycode). Cc or Cf is 400. Local part ≤ 64 octets. Non-ASCII local parts are allowed. Collisions on existing rows are reported, not auto-merged.
 - **Names.** NFC, strip ZW, reject bidi and Cc and U+FFFD, length in code points, 1–80 (display name may be empty). Emoji counts as 1.
 - **Notes and tickets.** Notes ≤ 500 code points (tab, LF, CR allowed). `ticketId` ≤ 64. Legacy oversized values still load; a patch that omits the oversized field succeeds.
-- **Session times.** Microsecond comparison. `startedAt >= 2000-01-01T00:00:00Z`. Instants ≤ now+5min. Duration ≤ 7 days; a live session is measured to now, so its `startedAt` cannot be older than 7 days. Stop after more than 7 days stores `endedAt = startedAt + 7 days`. A note-only patch of a legacy out-of-bounds row does not recheck bounds. `targetDurationMs` max `9007199254740991`.
+- **Session times.** Microsecond comparison. `startedAt >= 2000-01-01T00:00:00Z`. Instants ≤ now+5min. Duration ≤ 7 days; a live session is measured to now, so its `startedAt` cannot be older than 7 days. Stop after more than 7 days stores `endedAt = startedAt + 7 days`. A note-only patch of a legacy out-of-bounds row does not recheck bounds.
 - **Project code.** ASCII, must include a letter or digit. `---` and `ı` are 400. `A-1` is 201.
 - **`rate_limited` (429).** Includes `Retry-After`. Login: 10 failures / 15 min per email (the 11th is 429 even with the correct password until the window passes; success resets the email counter) and 30 failures / 15 min per client IP. Register-code or password-forgot: 5 sends / 10 min per IP (the 6th is 429 and sends no mail). Client IP comes from the BFF, which overwrites `X-Forwarded-For` using `getClientAddress()`. A browser-supplied `X-Forwarded-For` is not the bucket key.
 - **Errors.** `internal_error` is 500 and is not `invalid_body`. Unknown route and wrong method: JSON 404 `not_found`. Body over 2 MB through the BFF: 413 `invalid_body` / `Request body is too large.` Wrong JSON type: 400 `invalid_body`. Malformed JSON and trailing data: 400 `invalid_json`. Unknown fields are rejected on POST and PATCH. Empty `status` means no filter.

@@ -3,22 +3,24 @@ import { firstProjectId, login, uniqueNote, waitForClient } from './helpers';
 
 const HOUR = 3_600_000;
 
-/** A live session that started `hoursAgo` ago: start it, then move its start back. */
-async function startLongSession(page: Page, hoursAgo: number) {
+/**
+ * A live session that started `hoursAgo` ago: start it, then move its start back.
+ * The start is floored to the minute unless `exact`, so `datetime-local` values match.
+ */
+async function startLongSession(page: Page, hoursAgo: number, { exact = false } = {}) {
 	const note = uniqueNote('long');
 	const started = await page.request.post('/v1/sessions', {
 		data: {
 			projectId: await firstProjectId(page),
 			note,
 			ticketId: null,
-			activityTypeId: null,
-			targetDurationMs: null
+			activityTypeId: null
 		}
 	});
 	expect(started.ok()).toBe(true);
 	const { id } = (await started.json()) as { id: string };
 	const startedAt = new Date(Date.now() - hoursAgo * HOUR);
-	startedAt.setSeconds(0, 0);
+	if (!exact) startedAt.setSeconds(0, 0);
 	const moved = await page.request.patch(`/v1/sessions/${id}`, {
 		data: { startedAt: startedAt.toISOString() }
 	});
@@ -88,6 +90,43 @@ test.describe('long session reminder', () => {
 			);
 		await expect(dialog.getByRole('button', { name: 'Stop session' })).toBeDisabled();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+	});
+
+	test('crossing the reminder while open sends one desktop notification', async ({ page }) => {
+		await page.addInitScript(() => {
+			const sent: { title: string; body?: string; tag?: string }[] = [];
+			(window as unknown as { __sent: typeof sent }).__sent = sent;
+			class Recorder {
+				static permission = 'granted';
+				static requestPermission = async () => 'granted';
+				onclick: (() => void) | null = null;
+				constructor(title: string, options: { body?: string; tag?: string } = {}) {
+					sent.push({ title, body: options.body, tag: options.tag });
+				}
+				close() {}
+			}
+			Object.defineProperty(window, 'Notification', { value: Recorder, configurable: true });
+		});
+		await page.goto('/settings');
+		await waitForClient(page);
+		const toggle = page.getByRole('switch', { name: /Desktop notifications/ });
+		await toggle.check();
+		await expect(toggle).toBeChecked();
+
+		// Seconds short of the default 4h, so the crossing happens with the page open;
+		// time already past on load never notifies.
+		const { id, note } = await startLongSession(page, 4 - 10 / 3600, { exact: true });
+		await page.goto('/timer');
+		await waitForClient(page);
+
+		await expect(page.getByTestId('long-session-notice')).toContainText(note, {
+			timeout: 20_000
+		});
+		await expect
+			.poll(() => page.evaluate(() => (window as unknown as { __sent: unknown[] }).__sent))
+			.toEqual([
+				{ title: expect.stringMatching(/^Still running: 4h/), body: note, tag: `vynno-long-${id}` }
+			]);
 	});
 
 	test('can be turned off in Settings', async ({ page }) => {

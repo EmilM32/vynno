@@ -1,22 +1,12 @@
 <script lang="ts">
-	import PeriodToggle from '$lib/components/insights/PeriodToggle.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
-	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
 	import StatusDot, { type StatusDotTone } from '$lib/components/ui/StatusDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { normalizeNote, normalizeTicketId } from '$lib/text/normalize';
-	import {
-		datetimeLocalToIso,
-		formatClock,
-		formatCompact,
-		isoToDatetimeLocal
-	} from '$lib/time/duration';
-
-	/** Focus-block presets; any other target set through the API still shows progress. */
-	const TARGET_PRESETS_MS = [25, 50, 90].map((min) => min * 60_000);
+	import { datetimeLocalToIso, isoToDatetimeLocal } from '$lib/time/duration';
 
 	const sessionStore = useSession();
 
@@ -41,28 +31,6 @@
 		sessionStore.draftNote = note.value;
 		sessionStore.draftTicket = ticket.value;
 		void sessionStore.start();
-	}
-
-	type TargetChoice = 'off' | `${number}`;
-	const targetOptions: { id: TargetChoice; label: string }[] = [
-		{ id: 'off', label: m.timer_target_off() },
-		...TARGET_PRESETS_MS.map((ms) => ({ id: `${ms}` as const, label: formatCompact(ms) }))
-	];
-	const targetMs = $derived(
-		session ? (session.targetDurationMs ?? null) : sessionStore.draftTargetMs
-	);
-	const targetChoice = $derived<TargetChoice>(targetMs == null ? 'off' : `${targetMs}`);
-	const liveTarget = $derived(session && targetMs ? targetMs : null);
-	const targetReached = $derived(liveTarget != null && sessionStore.elapsedMs >= liveTarget);
-
-	function onTargetChange(choice: TargetChoice) {
-		const next = choice === 'off' ? null : Number(choice);
-		if (!session) {
-			sessionStore.draftTargetMs = next;
-			return;
-		}
-		if ((session.targetDurationMs ?? null) === next || pending) return;
-		void sessionStore.updateSession(session.id, { targetDurationMs: next });
 	}
 
 	function onStartedChange(e: Event) {
@@ -115,39 +83,6 @@
 			/>
 		</label>
 	{/if}
-
-	{#if liveTarget != null}
-		<div class="mt-4 flex w-full max-w-70 flex-col gap-1.5" data-testid="timer-target">
-			<ProgressBar
-				value={(sessionStore.elapsedMs / liveTarget) * 100}
-				size="sm"
-				fill={targetReached ? 'secondary' : 'primary'}
-				label={m.timer_target_progress_aria()}
-			/>
-			<p
-				class="text-center font-mono text-code-label {targetReached
-					? 'text-secondary'
-					: 'text-on-surface-variant'}"
-				data-testid="timer-target-status"
-			>
-				{targetReached
-					? m.timer_target_reached({ clock: formatClock(sessionStore.elapsedMs - liveTarget) })
-					: m.timer_target_left({ clock: formatClock(liveTarget - sessionStore.elapsedMs) })}
-			</p>
-		</div>
-	{/if}
-
-	<div class="mt-4 flex items-center gap-2">
-		<span class="font-mono text-code-label text-on-surface-variant uppercase" aria-hidden="true"
-			>{m.timer_target_label()}</span
-		>
-		<PeriodToggle
-			value={targetChoice}
-			options={targetOptions}
-			ariaLabel={m.timer_target_aria()}
-			onchange={onTargetChange}
-		/>
-	</div>
 
 	<div class="mt-6 flex w-full max-w-70 gap-3">
 		{#if isIdle}

@@ -39,6 +39,15 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		});
 	}
 
+	test('dashboard on a phone (heatmap scroll region)', async ({ page }) => {
+		await page.setViewportSize({ width: 390, height: 844 });
+		await login(page);
+		await page.goto('/dashboard');
+		await waitForClient(page);
+		await expect(page.getByTestId('heatmap-active')).not.toHaveText('—');
+		await expectNoViolations(page);
+	});
+
 	test('command palette open', async ({ page }) => {
 		await page.setViewportSize({ width: 390, height: 844 });
 		await login(page);
@@ -55,6 +64,15 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await waitForClient(page);
 		await page.getByRole('button', { name: 'New project' }).click();
 		await expectDialogReady(page, 'New project');
+		await expectNoViolations(page);
+	});
+
+	test('settings security expanded', async ({ page }) => {
+		await login(page);
+		await page.goto('/settings');
+		await waitForClient(page);
+		await page.getByRole('button', { name: 'Security', exact: true }).click();
+		await expect(page.getByRole('region', { name: 'Security' })).toBeVisible();
 		await expectNoViolations(page);
 	});
 

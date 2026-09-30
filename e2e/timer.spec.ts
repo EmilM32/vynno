@@ -59,6 +59,7 @@ test.describe('timer lifecycle', () => {
 			page.getByRole('button', { name: 'Start', exact: true }).click()
 		]);
 		expect(request.postDataJSON()).toMatchObject({ note, activityTypeId: null });
+		expect(request.postDataJSON()).not.toHaveProperty('targetDurationMs');
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	});
 
@@ -159,6 +160,9 @@ test.describe('timer lifecycle', () => {
 		await expect(page.locator('#project-select')).toBeEnabled();
 		await expect(page.locator('#activity-select')).toBeEnabled();
 		await expect(page.getByTestId('timer-started-at')).toBeVisible();
+		// The per-session target was removed on purpose (EMI-147); the daily target stays.
+		await expect(page.getByRole('group', { name: 'Session target' })).toHaveCount(0);
+		await expect(page.getByRole('progressbar', { name: /session target/i })).toHaveCount(0);
 	});
 
 	// The UI swaps Start for Stop, so a second Start is only reachable when the store is stale.
@@ -209,6 +213,7 @@ test.describe('timer lifecycle', () => {
 		expect(body).toMatchObject({ note: patched });
 		expect(body).not.toHaveProperty('status');
 		expect(body).not.toHaveProperty('id');
+		expect(body).not.toHaveProperty('targetDurationMs');
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	});
 
@@ -459,87 +464,5 @@ test.describe('timer note suggestions', () => {
 
 		await task.fill('Earlier');
 		await expect(page.getByRole('listbox', { name: 'Earlier tasks' })).toHaveCount(0);
-	});
-});
-
-test.describe('timer session target', () => {
-	test.beforeEach(async ({ page }) => {
-		await login(page);
-	});
-
-	test('a preset target is posted, shown, and can be cleared while live', async ({ page }) => {
-		await page.goto('/timer');
-		await waitForClient(page);
-		const target = page.getByRole('group', { name: 'Session target' });
-		await target.getByRole('button', { name: '25m' }).click();
-		await expect(target.getByRole('button', { name: '25m' })).toHaveAttribute(
-			'aria-pressed',
-			'true'
-		);
-
-		await page.getByRole('combobox', { name: 'Task description' }).fill(uniqueNote('target'));
-		const [start] = await Promise.all([
-			page.waitForRequest(
-				(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
-			),
-			page.getByRole('button', { name: 'Start', exact: true }).click()
-		]);
-		expect(start.postDataJSON()).toMatchObject({ targetDurationMs: 25 * 60_000 });
-		await expect(page.getByTestId('timer-target-status')).toHaveText(/^00:2\d:\d{2} to target$/);
-		await expect(
-			page.getByRole('progressbar', { name: 'Progress to session target' })
-		).toBeVisible();
-
-		const [patch] = await Promise.all([
-			page.waitForRequest((r) => r.method() === 'PATCH'),
-			target.getByRole('button', { name: 'Off' }).click()
-		]);
-		expect(patch.postDataJSON()).toEqual({ targetDurationMs: null });
-		await expect(page.getByTestId('timer-target')).toHaveCount(0);
-	});
-
-	test('crossing the target shows it and sends one desktop notification', async ({ page }) => {
-		await page.addInitScript(() => {
-			const sent: { title: string; body?: string; tag?: string }[] = [];
-			(window as unknown as { __sent: typeof sent }).__sent = sent;
-			class Recorder {
-				static permission = 'granted';
-				static requestPermission = async () => 'granted';
-				onclick: (() => void) | null = null;
-				constructor(title: string, options: { body?: string; tag?: string } = {}) {
-					sent.push({ title, body: options.body, tag: options.tag });
-				}
-				close() {}
-			}
-			Object.defineProperty(window, 'Notification', { value: Recorder, configurable: true });
-		});
-		await page.goto('/settings');
-		await waitForClient(page);
-		const toggle = page.getByRole('switch', { name: /Desktop notifications/ });
-		await toggle.check();
-		await expect(toggle).toBeChecked();
-
-		const note = uniqueNote('crossing');
-		const started = await page.request.post('/v1/sessions', {
-			data: {
-				projectId: await firstProjectId(page),
-				note,
-				ticketId: null,
-				activityTypeId: null,
-				targetDurationMs: 6_000
-			}
-		});
-		expect(started.ok()).toBe(true);
-		await page.goto('/timer');
-		await waitForClient(page);
-
-		await expect(page.getByTestId('timer-target-status')).toHaveText(/^Target reached · \+/, {
-			timeout: 15_000
-		});
-		await expect
-			.poll(() => page.evaluate(() => (window as unknown as { __sent: unknown[] }).__sent))
-			.toEqual([
-				{ title: '6s target reached', body: note, tag: expect.stringMatching(/^vynno-target-/) }
-			]);
 	});
 });

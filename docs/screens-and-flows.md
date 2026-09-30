@@ -90,8 +90,6 @@ Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the
 | Idle   | Empty or last note; Start (or Start New Session from nav) |
 | Active | Pulsing border/status; live clock; Stop                   |
 
-**Session target.** A `Target` toggle (Off · 25m · 50m · 1h 30m) sits above Start. Idle, it sets the draft (`draftTargetMs`, posted as `targetDurationMs` and restored from the last session like the note). Live, it PATCHes the running session; Off clears it. A live session with a target shows a progress bar and `HH:MM:SS to target`, then `Target reached · +HH:MM:SS`. Crossing the target announces it and, if turned on in Settings, sends one desktop notification (see §3.5). Time already past on page load never alerts.
-
 Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 
 ### 3.2 Dashboard (`/dashboard`)
@@ -101,7 +99,7 @@ Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 3. **Active Projects** — horizontal cards: color, name, optional progress %, week hours → `/projects/[id]`
 4. **Weekly Overview** — bar chart Mon–Sun. Empty week: “Not enough data yet”. Sub-hour week: Y axis in minutes
 5. **Recent Logs** — compact list + restart (disabled while live). On mobile this block sits after Current Focus, before Active Projects / Weekly Overview
-6. **Last 12 months** — year heatmap from `/stats/days`, shaded against the daily target, with current streak, best streak, active days, and total. Weekends off do not break a streak. Narrow screens clip the oldest weeks. Decision: [adr/0027](./adr/0027-year-heatmap-streaks.md)
+6. **Last 12 months** — year heatmap from `/stats/days`, shaded against the daily target, with current streak, best streak, active days, and total. Weekends off do not break a streak. The squares scale with the card (about 10–24px); narrower screens scroll the grid horizontally, starting at the newest week, with the weekday labels pinned left. Decision: [adr/0027](./adr/0027-year-heatmap-streaks.md)
 
 ### 3.3 Logs (`/logs`)
 
@@ -135,7 +133,7 @@ Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 Profile, activity types, daily target, and default project sync to the account. Theme, language, notifications, and the long session reminder stay on this device; the Preferences card says so under its heading.
 
 - Profile (display name, avatar). Save name appears only while the field is dirty. Log out is a separated danger action at the card foot.
-- Security: two forms side by side on desktop, stacked on mobile.
+- Security: collapsed by default on every visit (the heading is the toggle; the open state is not remembered). Expanded, two forms side by side on desktop, stacked on mobile. It stays open through errors and after a change, and a reply that lands while collapsed opens it.
   - **Change password**: current, new, confirm. Success keeps this browser signed in, signs out every other device, and says so. A wrong current password reads "Current password is incorrect." (the session stays).
   - **Change email**: new email + current password → **Send code**; the code field replaces the password field, with **Resend code** and **Use a different email**. **Change email** switches the sign-in email, relabels Profile and the nav, and signs out other devices. The old address gets a notice mail.
 - Appearance (named theme list)

@@ -494,8 +494,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			ticketId: input.ticketId,
 			activityTypeId: input.activityTypeId,
 			status: 'active',
-			startedAt: new Date().toISOString(),
-			targetDurationMs: input.targetDurationMs
+			startedAt: new Date().toISOString()
 		};
 
 		this.#sessions.unshift(session);
@@ -542,10 +541,6 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			if (input.endedAt) session.endedAt = input.endedAt;
 			else delete session.endedAt;
 		}
-		if ('targetDurationMs' in input) {
-			if (input.targetDurationMs != null) session.targetDurationMs = input.targetDurationMs;
-			else delete session.targetDurationMs;
-		}
 		assertSessionTimes(
 			session,
 			Date.now(),
@@ -578,8 +573,7 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			activityTypeId: input.activityTypeId,
 			status: 'stopped',
 			startedAt: input.startedAt,
-			endedAt: input.endedAt,
-			targetDurationMs: input.targetDurationMs
+			endedAt: input.endedAt
 		};
 		assertSessionTimes(session, Date.now());
 		this.#sessions.unshift(session);

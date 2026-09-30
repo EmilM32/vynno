@@ -9,11 +9,12 @@
 	import { totalsByDate, withLiveSession } from '$lib/time/day-totals';
 	import { formatCompact, localDateKeyFromDate } from '$lib/time/duration';
 	import { streaks } from '$lib/time/streaks';
-	import { heatmapModel, heatmapStart, type HeatLevel } from './heatmap';
+	import { HEATMAP_WEEKS, heatmapModel, heatmapStart, type HeatLevel } from './heatmap';
 
 	/**
 	 * A year of tracked time from `/stats/days`, one square per day, shaded against
-	 * the daily target. Narrow screens clip the oldest weeks instead of scrolling.
+	 * the daily target. The squares scale with the card; a card too narrow for the
+	 * smallest squares scrolls, starting at the newest week.
 	 */
 
 	let { class: className = '' }: { class?: string } = $props();
@@ -21,9 +22,6 @@
 	const sessionStore = useSession();
 	const prefsStore = usePrefs();
 	const query = new DayTotalsQuery();
-
-	/** Column pitch: a 10px square plus a 3px gap. Month labels sit on it. */
-	const PITCH_PX = 13;
 
 	const LEVEL_CLASS: Record<HeatLevel, string> = {
 		0: 'bg-surface-container-highest',
@@ -33,6 +31,8 @@
 		4: 'bg-primary'
 	};
 	const LEVELS: HeatLevel[] = [0, 1, 2, 3, 4];
+	/** Month labels this close to the right edge end-align so they never spill past it. */
+	const LAST_WEEKS = HEATMAP_WEEKS - 2;
 
 	const today = $derived(
 		localDateKeyFromDate(new Date(sessionStore.nowMs || Date.now()), sessionStore.timeZone)
@@ -98,7 +98,7 @@
 	aria-labelledby="year-heatmap-title"
 	data-testid="year-heatmap"
 >
-	<div class="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+	<div class="mb-4 flex flex-wrap items-baseline gap-x-6 gap-y-2">
 		<h2 id="year-heatmap-title" class="text-headline-md">{m.dashboard_heatmap_title()}</h2>
 		<dl class="flex flex-wrap gap-x-5 gap-y-1 font-mono text-code-label" aria-busy={!ready}>
 			{#each stats as item (item.id)}
@@ -112,56 +112,56 @@
 		</dl>
 	</div>
 
-	<div class="flex gap-2" aria-busy={!ready}>
+	<!-- Row-reversed so a scrolling card opens on the newest week, with no script. -->
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+	<div
+		class="heatmap-scroll focus-ring flex flex-row-reverse overflow-x-auto rounded"
+		tabindex="0"
+		role="region"
+		aria-label={m.dashboard_heatmap_scroll_aria()}
+		aria-busy={!ready}
+	>
 		<div
-			class="grid shrink-0 grid-rows-[16px_repeat(7,10px)] gap-[3px] font-mono text-[10px] leading-[10px] text-on-surface-variant"
-			aria-hidden="true"
+			class="heatmap-grid shrink-0 font-mono text-[10px] leading-none text-on-surface-variant"
+			style:--weeks={HEATMAP_WEEKS}
+			role="img"
+			aria-label={m.dashboard_heatmap_summary({
+				active: activeDays,
+				total: formatCompact(totalMs)
+			})}
 		>
-			<span></span>
-			{#each weekdayLabels as label, i (i)}
-				<span>{label}</span>
-			{/each}
-		</div>
-		<!-- A year is 686px wide. Narrower, the row reverses so the newest week stays on the
-		     right edge and the oldest weeks are clipped on the left instead of scrolling. -->
-		<div class="@container min-w-0 flex-1 overflow-hidden">
-			<div class="flex @max-[686px]:flex-row-reverse">
-				<div
-					class="shrink-0"
-					role="img"
-					aria-label={m.dashboard_heatmap_summary({
-						active: activeDays,
-						total: formatCompact(totalMs)
-					})}
-				>
-					<div
-						class="relative mb-[3px] h-4 font-mono text-[10px] text-on-surface-variant"
-						aria-hidden="true"
-					>
-						{#each model.months as month (month.date)}
-							<span class="absolute top-0" style:left="{month.week * PITCH_PX}px">
-								{monthFormat.format(dayKeyDate(month.date))}
-							</span>
-						{/each}
-					</div>
-					<div class="grid grid-flow-col grid-rows-7 gap-[3px]" aria-hidden="true">
-						{#each model.weeks as week, w (w)}
-							{#each week as cell (cell.date)}
-								<span
-									class="size-2.5 rounded-[2px] {cell.future
-										? 'invisible'
-										: LEVEL_CLASS[cell.level]}"
-									data-level={cell.future ? undefined : cell.level}
-									data-date={cell.date}
-									title={cell.future
-										? undefined
-										: `${cellFormat.format(dayKeyDate(cell.date))} · ${formatCompact(cell.ms)}`}
-								></span>
-							{/each}
-						{/each}
-					</div>
-				</div>
+			<div class="weekdays sticky left-0 z-1 grid bg-surface-container" aria-hidden="true">
+				<span></span>
+				{#each weekdayLabels as label, i (i)}
+					<span class="self-center">{label}</span>
+				{/each}
 			</div>
+			{#each model.months as month (month.date)}
+				<span
+					class={[
+						'row-start-1 self-end whitespace-nowrap',
+						month.week >= LAST_WEEKS && 'justify-self-end'
+					]}
+					style:grid-column={month.week + 2}
+					aria-hidden="true"
+				>
+					{monthFormat.format(dayKeyDate(month.date))}
+				</span>
+			{/each}
+			{#each model.weeks as week, w (w)}
+				<div class="week grid" style:grid-column={w + 2} aria-hidden="true">
+					{#each week as cell (cell.date)}
+						<span
+							class="rounded-[2px] {cell.future ? 'invisible' : LEVEL_CLASS[cell.level]}"
+							data-level={cell.future ? undefined : cell.level}
+							data-date={cell.date}
+							title={cell.future
+								? undefined
+								: `${cellFormat.format(dayKeyDate(cell.date))} · ${formatCompact(cell.ms)}`}
+						></span>
+					{/each}
+				</div>
+			{/each}
 		</div>
 	</div>
 
@@ -178,3 +178,40 @@
 		</div>
 	</div>
 </section>
+
+<style>
+	.heatmap-scroll {
+		container-type: inline-size;
+	}
+
+	/*
+	 * One grid: a weekday column, then a column per week. A pitch is a square plus the gap
+	 * after it, so the label column and the pitches fill the card exactly. Past the largest
+	 * square the grid stops growing and centres; below the smallest the card scrolls.
+	 */
+	.heatmap-grid {
+		--label-w: 1.75rem;
+		--pitch: clamp(12px, (100cqi - var(--label-w)) / var(--weeks), 30px);
+		--cell: calc(var(--pitch) * 0.8);
+		--gap: calc(var(--pitch) * 0.2);
+		display: grid;
+		grid-template-columns: var(--label-w) repeat(var(--weeks), var(--cell));
+		grid-template-rows: auto repeat(7, var(--cell));
+		gap: var(--gap);
+		margin-inline: auto;
+	}
+
+	/* Covers the gap too, so squares scrolled under it do not peek through. */
+	.weekdays {
+		grid-column: 1;
+		grid-row: 1 / -1;
+		grid-template-rows: subgrid;
+		margin-right: calc(-1 * var(--gap));
+		padding-right: var(--gap);
+	}
+
+	.week {
+		grid-row: 2 / -1;
+		grid-template-rows: subgrid;
+	}
+</style>

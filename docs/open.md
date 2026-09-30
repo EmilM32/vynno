@@ -17,4 +17,4 @@ Live API, cookie auth, SSR, log edit/delete, manual entry, Storybook, local prod
 
 ## Removed on purpose
 
-Per-session target (Timer `Target` toggle, progress, and "target reached" notification): removed in EMI-147; the daily hour target covers the need. The API still carries `targetDurationMs`; the SPA ignores it. Do not re-add without the owner asking.
+Per-session target (Timer `Target` toggle, progress, and "target reached" notification): removed in EMI-147; the daily hour target covers the need. The API dropped `targetDurationMs` as well (EMI-152). Do not re-add without the owner asking.

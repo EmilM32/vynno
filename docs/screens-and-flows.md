@@ -76,7 +76,7 @@ Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the
 
 ### 3.1 Timer (`/timer`)
 
-1. Task input: “What are you working on?” + project picker + optional ticket
+1. Task input: “What are you working on?” + project picker + optional ticket. While idle, typing in the note suggests **Earlier tasks** (distinct project + note, fuzzy on note, ticket, project name and code, up to 6; history back 14 days is loaded on first focus). Picking one restores its note, project, ticket and activity; it does not start. No suggestions while live, so a pick never edits the running session. The ticket field offers recent tickets through a native `datalist`.
 2. Timer card: status, project chip, large `HH:MM:SS`, Start / Stop
 3. Today’s Summary mini stats
 4. Recent Tasks list with restart

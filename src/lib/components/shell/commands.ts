@@ -1,4 +1,4 @@
-import { fuzzyScore } from './fuzzy';
+import { fuzzyScore } from '$lib/text/fuzzy';
 
 export type CommandGroupId = 'actions' | 'recent' | 'projects' | 'navigate';
 

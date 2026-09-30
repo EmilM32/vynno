@@ -6,6 +6,14 @@
 	import { useSession } from '$lib/stores/session.svelte';
 	import { noteRejectMessage, ticketRejectMessage } from '$lib/text/field-error';
 	import { normalizeNote, normalizeTicketId } from '$lib/text/normalize';
+	import { addLocalDays, startOfLocalDay } from '$lib/time/duration';
+	import NoteSuggestions from './NoteSuggestions.svelte';
+	import { matchPastTasks, pastTasks, recentTickets, type PastTask } from './note-suggestions';
+
+	/** How far back the note field looks for earlier tasks the first time it is focused. */
+	const SUGGESTION_HISTORY_DAYS = 14;
+	const SUGGESTIONS_ID = 'task-note-suggestions';
+	const TICKETS_ID = 'task-ticket-suggestions';
 
 	const sessionStore = useSession();
 
@@ -31,8 +39,81 @@
 		return { note: noteResult.value, ticketId: ticketResult.value };
 	}
 
+	// Earlier tasks while idle only: picking one while live would silently edit the live row.
+	let suggestOpen = $state(false);
+	let suggestIndex = $state(-1);
+	let historyRequested = false;
+
+	const history = $derived(pastTasks(sessionStore.sessions, sessionStore.projects));
+	const suggestions = $derived(
+		suggestOpen && !live && !locked
+			? matchPastTasks(history, sessionStore.draftNote, {
+					note: sessionStore.draftNote,
+					projectId: sessionStore.draftProjectId
+				})
+			: []
+	);
+	const activeSuggestionId = $derived(
+		suggestIndex >= 0 && suggestIndex < suggestions.length
+			? `${SUGGESTIONS_ID}-${suggestIndex}`
+			: undefined
+	);
+	const tickets = $derived(recentTickets(sessionStore.sessions));
+
+	function closeSuggestions() {
+		suggestOpen = false;
+		suggestIndex = -1;
+	}
+
+	function pick(task: PastTask) {
+		sessionStore.draftNote = task.note;
+		sessionStore.draftProjectId = task.projectId;
+		sessionStore.draftTicket = task.ticketId ?? '';
+		const activity = task.activityTypeId;
+		sessionStore.draftActivityType =
+			activity && sessionStore.getActivityType(activity) ? activity : '';
+		closeSuggestions();
+	}
+
+	function onNoteFocus() {
+		if (live || historyRequested) return;
+		historyRequested = true;
+		const from = addLocalDays(
+			new Date(sessionStore.nowMs),
+			-SUGGESTION_HISTORY_DAYS,
+			sessionStore.timeZone
+		);
+		void sessionStore.ensureThrough(startOfLocalDay(from, sessionStore.timeZone));
+	}
+
+	function onNoteInput() {
+		suggestOpen = true;
+		suggestIndex = -1;
+	}
+
+	/** Arrow keys, Escape and Enter drive the list while it is showing. */
+	function onSuggestionKey(e: KeyboardEvent): boolean {
+		const count = suggestions.length;
+		if (count === 0) return false;
+		if (e.key === 'ArrowDown') {
+			suggestIndex = suggestIndex < 0 ? 0 : (suggestIndex + 1) % count;
+		} else if (e.key === 'ArrowUp') {
+			suggestIndex = suggestIndex <= 0 ? count - 1 : suggestIndex - 1;
+		} else if (e.key === 'Escape') {
+			closeSuggestions();
+		} else if (e.key === 'Enter' && suggestIndex >= 0) {
+			pick(suggestions[suggestIndex]!);
+		} else {
+			return false;
+		}
+		e.preventDefault();
+		return true;
+	}
+
 	function onKeydown(e: KeyboardEvent) {
+		if (onSuggestionKey(e)) return;
 		if (e.key !== 'Enter' || locked) return;
+		closeSuggestions();
 		e.preventDefault();
 		const draft = applyDraft();
 		if (!draft) return;
@@ -44,6 +125,7 @@
 	}
 
 	function onNoteBlur() {
+		closeSuggestions();
 		if (!live || locked) return;
 		if (!noteResult.ok) return;
 		if (noteResult.value === live.note) {
@@ -113,9 +195,27 @@
 				placeholder={m.timer_task_placeholder()}
 				bind:value={sessionStore.draftNote}
 				disabled={locked}
+				role="combobox"
+				aria-autocomplete="list"
+				aria-expanded={suggestions.length > 0}
+				aria-controls={SUGGESTIONS_ID}
+				aria-activedescendant={activeSuggestionId}
+				autocomplete="off"
 				onkeydown={onKeydown}
+				onfocus={onNoteFocus}
+				oninput={onNoteInput}
 				onblur={onNoteBlur}
 			/>
+			{#if suggestions.length > 0}
+				<NoteSuggestions
+					id={SUGGESTIONS_ID}
+					items={suggestions}
+					activeIndex={suggestIndex}
+					projectOf={sessionStore.getProject}
+					onpick={pick}
+					onhover={(i) => (suggestIndex = i)}
+				/>
+			{/if}
 		</div>
 		{#if noteError}
 			<p class="text-body-sm text-error" role="alert">{noteError}</p>
@@ -174,7 +274,13 @@
 				disabled={locked}
 				onblur={onTicketBlur}
 				autocomplete="off"
+				list={TICKETS_ID}
 			/>
+			<datalist id={TICKETS_ID}>
+				{#each tickets as ticket (ticket)}
+					<option value={ticket}></option>
+				{/each}
+			</datalist>
 			{#if ticketError}
 				<p class="text-body-sm text-error" role="alert">{ticketError}</p>
 			{/if}

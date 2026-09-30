@@ -87,6 +87,6 @@ test.describe('desktop session chip', () => {
 		await expect(page).toHaveURL(/\/timer$/);
 		await expect(desktopNav(page).getByTestId('shell-session-chip')).toHaveCount(0);
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(note);
+		await expect(page.getByRole('combobox', { name: 'Task description' })).toHaveValue(note);
 	});
 });

@@ -73,7 +73,7 @@ test.describe('logs', () => {
 
 		await expect(page).toHaveURL(/\/timer$/);
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(note);
+		await expect(page.getByRole('combobox', { name: 'Task description' })).toHaveValue(note);
 	});
 
 	test('restart is disabled while a session is live', async ({ page }) => {
@@ -162,7 +162,7 @@ test.describe('logs', () => {
 
 		await spaGo(page, 'Timer', '/timer');
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(liveNote);
+		await expect(page.getByRole('combobox', { name: 'Task description' })).toHaveValue(liveNote);
 	});
 
 	test('loads the next page when the list is scrolled', async ({ page }) => {

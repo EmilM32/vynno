@@ -1,7 +1,9 @@
 import { ApiClient, type FetchFn } from '$lib/api/client';
 import { getApiBase } from '$lib/api/config';
 import { ApiError } from '$lib/api/errors';
+import { prefsFromDto, updatePrefsToDto } from '$lib/api/mappers/prefs';
 import { profileFromDto } from '$lib/api/mappers/profile';
+import { dayTotalFromDto } from '$lib/api/mappers/stats';
 import {
 	activityTypeFromDto,
 	createActivityTypeToDto,
@@ -17,24 +19,33 @@ import {
 import { apiPaths } from '$lib/api/paths';
 import { activityTypeDtoSchema, activityTypeListDtoSchema } from '$lib/api/schemas/activity-type';
 import { sessionCountSchema } from '$lib/api/schemas/common';
+import { prefsDtoSchema } from '$lib/api/schemas/prefs';
 import { profileDtoSchema } from '$lib/api/schemas/profile';
 import { projectDtoSchema, projectListDtoSchema } from '$lib/api/schemas/project';
 import { sessionDtoSchema, sessionListDtoSchema } from '$lib/api/schemas/session';
+import { dayTotalListDtoSchema } from '$lib/api/schemas/stats';
 import type {
 	ActivityType,
+	ChangeEmailInput,
+	ChangePasswordInput,
 	CreateActivityTypeInput,
 	CreateManualSessionInput,
 	CreateProjectInput,
+	DayTotal,
+	DayTotalsRange,
 	Project,
 	ProjectListOptions,
+	RequestEmailChangeInput,
 	SessionFilters,
 	SessionPage,
 	StartSessionInput,
 	TimeSession,
 	UpdateActivityTypeInput,
+	UpdatePrefsInput,
 	UpdateProfileInput,
 	UpdateProjectInput,
 	UpdateSessionInput,
+	UserPrefs,
 	UserProfile
 } from '$lib/types/domain';
 import type { TimeTrackingRepository } from './repository';
@@ -155,6 +166,47 @@ export class HttpTimeTrackingRepository implements TimeTrackingRepository {
 			profileDtoSchema
 		);
 		return profileFromDto(dto, this.#base);
+	}
+
+	async getPrefs(): Promise<UserPrefs> {
+		return prefsFromDto(await this.#client.get(apiPaths.mePrefs(), prefsDtoSchema));
+	}
+
+	async updatePrefs(input: UpdatePrefsInput): Promise<UserPrefs> {
+		const dto = await this.#client.patch(
+			apiPaths.mePrefs(),
+			updatePrefsToDto(input),
+			prefsDtoSchema
+		);
+		return prefsFromDto(dto);
+	}
+
+	async changePassword(input: ChangePasswordInput): Promise<void> {
+		await this.#client.postNoContent(apiPaths.authPasswordChange(), {
+			currentPassword: input.currentPassword,
+			newPassword: input.newPassword
+		});
+	}
+
+	async requestEmailChange(input: RequestEmailChangeInput): Promise<void> {
+		await this.#client.postNoContent(apiPaths.authEmailCode(), {
+			email: input.email,
+			password: input.password
+		});
+	}
+
+	async changeEmail(input: ChangeEmailInput): Promise<UserProfile> {
+		const dto = await this.#client.post(
+			apiPaths.authEmailChange(),
+			{ email: input.email, code: input.code },
+			profileDtoSchema
+		);
+		return profileFromDto(dto, this.#base);
+	}
+
+	async listDayTotals(range: DayTotalsRange): Promise<DayTotal[]> {
+		const dto = await this.#client.get(apiPaths.statsDays(range), dayTotalListDtoSchema);
+		return dto.items.map(dayTotalFromDto);
 	}
 
 	async uploadAvatar(file: Blob): Promise<UserProfile> {

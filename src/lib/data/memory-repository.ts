@@ -1,5 +1,8 @@
 import { SESSION_LIST_DEFAULT_LIMIT } from '$lib/api/pagination';
 import type { AppSeed } from '$lib/api/types';
+import { DAILY_TARGET_MAX_MS, DAILY_TARGET_MIN_MS } from '$lib/api/schemas/prefs';
+import { DAY_TOTALS_MAX_DAYS } from '$lib/api/schemas/stats';
+import { isValidEmail, normalizeEmail } from '$lib/auth/validate';
 import {
 	normalizeCode,
 	normalizeProjectFields,
@@ -9,26 +12,40 @@ import {
 } from '$lib/projects/validate';
 import { normalizeName } from '$lib/text/normalize';
 import { isActivityColorToken, type ActivityColorToken } from '$lib/time/activity-styles';
+import { dayTotalsFromSessions } from '$lib/time/day-totals';
 import { checkSessionTimes, type SessionTimesReject } from '$lib/time/session-bounds';
 import type {
 	ActivityType,
+	ChangeEmailInput,
+	ChangePasswordInput,
 	CreateActivityTypeInput,
 	CreateManualSessionInput,
 	CreateProjectInput,
+	DayTotal,
+	DayTotalsRange,
 	Project,
 	ProjectListOptions,
+	RequestEmailChangeInput,
 	SessionFilters,
 	SessionPage,
 	StartSessionInput,
 	TimeSession,
 	UpdateActivityTypeInput,
+	UpdatePrefsInput,
 	UpdateProfileInput,
 	UpdateProjectInput,
 	UpdateSessionInput,
+	UserPrefs,
 	UserProfile
 } from '$lib/types/domain';
 import { DomainError } from './errors';
 import type { TimeTrackingRepository } from './repository';
+
+/** The memory repo has no mailbox: every email change code is this one. */
+export const MEMORY_EMAIL_CODE = '123456';
+
+/** The memory repo's account password, for `changePassword` / `requestEmailChange`. */
+export const MEMORY_PASSWORD = 'memory-password';
 
 function newId(prefix: string): string {
 	return `${prefix}-${crypto.randomUUID().slice(0, 8)}`;
@@ -80,12 +97,16 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	#activityTypes: ActivityType[];
 	#sessions: TimeSession[];
 	#profile: UserProfile;
+	#prefs: UserPrefs;
+	#password = MEMORY_PASSWORD;
+	#pendingEmail: string | null = null;
 
 	constructor(seed: AppSeed) {
 		this.#projects = structuredClone(seed.projects);
 		this.#activityTypes = (seed.activityTypes ?? []).map(cloneActivityType);
 		this.#sessions = seed.sessions.map(cloneSession);
 		this.#profile = { ...seed.profile };
+		this.#prefs = { ...seed.prefs };
 	}
 
 	async listProjects(options: ProjectListOptions = {}): Promise<Project[]> {
@@ -321,6 +342,75 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			avatarUrl: `memory:avatar:${crypto.randomUUID()}`
 		};
 		return { ...this.#profile };
+	}
+
+	async getPrefs(): Promise<UserPrefs> {
+		return { ...this.#prefs };
+	}
+
+	async updatePrefs(input: UpdatePrefsInput): Promise<UserPrefs> {
+		const next = { ...this.#prefs };
+		if ('dailyTargetMs' in input) {
+			const ms = input.dailyTargetMs;
+			if (ms == null) delete next.dailyTargetMs;
+			else if (!Number.isInteger(ms) || ms < DAILY_TARGET_MIN_MS || ms > DAILY_TARGET_MAX_MS) {
+				throw new DomainError('invalid_body', 'dailyTargetMs is out of range.');
+			} else next.dailyTargetMs = ms;
+		}
+		if ('defaultProjectId' in input) {
+			const id = input.defaultProjectId;
+			if (id == null) delete next.defaultProjectId;
+			else {
+				this.#requireProject(id);
+				next.defaultProjectId = id;
+			}
+		}
+		this.#prefs = next;
+		return { ...next };
+	}
+
+	async changePassword(input: ChangePasswordInput): Promise<void> {
+		if (input.newPassword.length < 8 || input.newPassword.length > 128) {
+			throw new DomainError('invalid_body', 'Password must be 8–128 characters.');
+		}
+		if (input.currentPassword !== this.#password) {
+			throw new DomainError('invalid_credentials', 'Current password is incorrect.');
+		}
+		this.#password = input.newPassword;
+	}
+
+	async requestEmailChange(input: RequestEmailChangeInput): Promise<void> {
+		const email = normalizeEmail(input.email);
+		if (!isValidEmail(email)) throw new DomainError('invalid_body', 'Invalid email.');
+		if (email === this.#profile.email) {
+			throw new DomainError('invalid_body', 'That is already your email.');
+		}
+		if (input.password !== this.#password) {
+			throw new DomainError('invalid_credentials', 'Current password is incorrect.');
+		}
+		this.#pendingEmail = email;
+	}
+
+	async changeEmail(input: ChangeEmailInput): Promise<UserProfile> {
+		const email = normalizeEmail(input.email);
+		if (email !== this.#pendingEmail || input.code !== MEMORY_EMAIL_CODE) {
+			throw new DomainError('invalid_code', 'That code is invalid or has expired.');
+		}
+		this.#pendingEmail = null;
+		this.#profile = { ...this.#profile, email };
+		return { ...this.#profile };
+	}
+
+	async listDayTotals(range: DayTotalsRange): Promise<DayTotal[]> {
+		const from = Date.parse(`${range.from}T00:00:00Z`);
+		const to = Date.parse(`${range.to}T00:00:00Z`);
+		if (Number.isNaN(from) || Number.isNaN(to) || to < from) {
+			throw new DomainError('invalid_query', 'Bad date range.');
+		}
+		if ((to - from) / 86_400_000 + 1 > DAY_TOTALS_MAX_DAYS) {
+			throw new DomainError('invalid_query', 'The range must be at most 400 days.');
+		}
+		return dayTotalsFromSessions(this.#sessions, range);
 	}
 
 	async deleteAvatar(): Promise<UserProfile> {

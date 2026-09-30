@@ -16,7 +16,7 @@ A sun/moon toggle or Tailwind `dark:` variants would have to be rewritten when t
 2. Each theme has `id`, `colorScheme` (`light` | `dark` for native controls), `themeColor`, and a Paraglide `labelKey`.
 3. `<html data-theme="<id>">` selects CSS. Palette files set `--dt-*`; `@theme inline` maps those to `--color-*` utilities.
 4. The Settings switcher **iterates `THEMES`**. Adding a theme is a registry row + CSS file.
-5. Persist `themeId` to `localStorage` (`vynno-theme`) and apply it in `app.html` before paint to avoid FOUC. Daily target and default project use a `vynno_prefs` cookie (same first-paint pattern as `vynno_tz`).
+5. Persist `themeId` to `localStorage` (`vynno-theme`) and apply it in `app.html` before paint to avoid FOUC. Theme stays per device. Daily target and default project are account prefs (see the 2026-09-30 amendment).
 6. Do not follow `prefers-color-scheme` in v1 (that would look like a third list item).
 7. Do not use `dark:` / `light:` as the theming mechanism.
 
@@ -30,7 +30,7 @@ A sun/moon toggle or Tailwind `dark:` variants would have to be rewritten when t
 
 ### Negative / tradeoffs
 
-- Theme is `localStorage` for FOUC; daily target and default project are a `vynno_prefs` cookie so layout load can serialize them (see [0011](./0011-ssr-session-state.md)).
+- Theme is `localStorage` for FOUC, so it does not follow the user to another device. That is on purpose (see the amendment).
 - Inline `app.html` script is a small string-match of the storage key, not the TypeScript registry.
 
 ## Alternatives considered
@@ -40,6 +40,12 @@ A sun/moon toggle or Tailwind `dark:` variants would have to be rewritten when t
 | `class="dark"` + `dark:` utilities      | Binary; breaks when a third theme is added.           |
 | `prefers-color-scheme` only             | No explicit user choice; no room for a third palette. |
 | Runtime JS that sets every CSS variable | Duplicates the design tokens outside CSS.             |
+
+## Amendment (2026-09-30)
+
+Daily target and default project moved from the `vynno_prefs` device cookie to the account (`GET` / `PATCH /v1/me/prefs`, vynno-api ADR-0017). The layout seed loads them, so first paint still matches ([0011](./0011-ssr-session-state.md) amendment). An old cookie is copied to an account with no prefs once, then deleted.
+
+Theme stays per device. It must apply before first paint from `app.html`, and a light theme on one machine and dark on another is a feature. Syncing it would flash the device's last theme on load before switching.
 
 ## Related
 

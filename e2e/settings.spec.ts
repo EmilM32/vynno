@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import pkg from '../package.json' with { type: 'json' };
-import { PNG_1X1, login, uniqueNote, waitForClient, type E2EAccount } from './helpers';
+import { e2eOrigin } from './env';
+import { PNG_1X1, login, loginWith, uniqueNote, waitForClient, type E2EAccount } from './helpers';
 
 async function expectTheme(page: Page, id: string) {
 	await expect(page.locator('#ui-theme')).toHaveValue(id);
@@ -83,17 +84,60 @@ test.describe('settings', () => {
 		await expect(remove).toHaveCount(0);
 	});
 
-	test('daily target persists across reload', async ({ page }) => {
+	test('daily target saves to the account and follows it to another browser', async ({
+		page,
+		browser
+	}) => {
 		const input = page.locator('#daily-target');
 		await expect(input).toBeVisible();
 		await expect(
 			page.getByRole('region', { name: 'Preferences' }).getByText('h', { exact: true })
 		).toBeVisible();
 		await input.fill('6');
-		await expect(input).toHaveValue('6');
+		const [req] = await Promise.all([
+			page.waitForResponse(
+				(r) =>
+					r.request().method() === 'PATCH' && /\/v1\/me\/prefs$/.test(new URL(r.url()).pathname)
+			),
+			input.press('Tab')
+		]);
+		expect(req.status()).toBe(200);
+		expect(req.request().postDataJSON()).toEqual({ dailyTargetMs: 6 * 3_600_000 });
 
-		await page.reload();
-		await expect(page.locator('#daily-target')).toHaveValue('6');
+		// A fresh browser has no device state: the value can only come from the account.
+		const other = await browser.newContext({ baseURL: e2eOrigin, locale: 'en-US' });
+		try {
+			const otherPage = await other.newPage();
+			await loginWith(otherPage, account.email, account.password);
+			await otherPage.goto('/settings');
+			await waitForClient(otherPage);
+			await expect(otherPage.locator('#daily-target')).toHaveValue('6');
+		} finally {
+			await other.close();
+		}
+	});
+
+	test('copies an old device prefs cookie to the account once', async ({ page, context }) => {
+		const legacy = { email: account.email, defaultProjectId: '', dailyTargetHours: 5 };
+		await context.addCookies([
+			{
+				name: 'vynno_prefs',
+				value: encodeURIComponent(JSON.stringify(legacy)),
+				url: e2eOrigin
+			}
+		]);
+		const [saved] = await Promise.all([
+			page.waitForResponse(
+				(r) =>
+					r.request().method() === 'PATCH' && /\/v1\/me\/prefs$/.test(new URL(r.url()).pathname)
+			),
+			page.reload()
+		]);
+		expect(saved.request().postDataJSON()).toEqual({ dailyTargetMs: 5 * 3_600_000 });
+		await expect(page.locator('#daily-target')).toHaveValue('5');
+		await expect
+			.poll(async () => (await context.cookies()).some((c) => c.name === 'vynno_prefs'))
+			.toBe(false);
 	});
 
 	test('theme select switches and persists', async ({ page }) => {
@@ -180,7 +224,14 @@ test.describe('settings', () => {
 			}
 		});
 
-		await select.selectOption(nextId);
+		const [saved] = await Promise.all([
+			page.waitForResponse(
+				(r) =>
+					r.request().method() === 'PATCH' && /\/v1\/me\/prefs$/.test(new URL(r.url()).pathname)
+			),
+			select.selectOption(nextId)
+		]);
+		expect(await saved.json()).toMatchObject({ defaultProjectId: nextId });
 		await expect(select).toHaveValue(nextId);
 
 		await page.reload();

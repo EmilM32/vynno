@@ -3,11 +3,13 @@ import { ApiClient, type FetchFn } from './client';
 import { getApiBase } from './config';
 import { ApiError } from './errors';
 import { activityTypeFromDto } from './mappers/activity-type';
+import { prefsFromDto } from './mappers/prefs';
 import { profileFromDto } from './mappers/profile';
 import { projectFromDto } from './mappers/project';
 import { sessionFromDto } from './mappers/session';
 import { apiPaths } from './paths';
 import { activityTypeListDtoSchema } from './schemas/activity-type';
+import { prefsDtoSchema } from './schemas/prefs';
 import { profileDtoSchema } from './schemas/profile';
 import { projectListDtoSchema } from './schemas/project';
 import { SESSION_PAGE_SIZE } from './pagination';
@@ -27,8 +29,9 @@ async function loadActiveSession(client: ApiClient): Promise<TimeSession | null>
 
 export async function loadAppSeed(fetchFn: FetchFn, base = getApiBase()): Promise<AppSeed> {
 	const client = new ApiClient(fetchFn, base);
-	const [profile, projectList, activityList, sessionList, active] = await Promise.all([
+	const [profile, prefs, projectList, activityList, sessionList, active] = await Promise.all([
 		client.get(apiPaths.me(), profileDtoSchema),
+		client.get(apiPaths.mePrefs(), prefsDtoSchema),
 		client.get(apiPaths.projects({ includeArchived: true }), projectListDtoSchema),
 		client.get(apiPaths.activityTypes(), activityTypeListDtoSchema),
 		client.get(apiPaths.sessions({ limit: SESSION_PAGE_SIZE }), sessionListDtoSchema),
@@ -37,6 +40,7 @@ export async function loadAppSeed(fetchFn: FetchFn, base = getApiBase()): Promis
 
 	return {
 		profile: profileFromDto(profile, base),
+		prefs: prefsFromDto(prefs),
 		projects: projectList.items.map(projectFromDto),
 		activityTypes: activityList.items.map(activityTypeFromDto),
 		sessions: sessionList.items.map(sessionFromDto),

@@ -1,4 +1,4 @@
-import type { ProjectListOptions, SessionFilters } from '$lib/types/domain';
+import type { DayTotalsRange, ProjectListOptions, SessionFilters } from '$lib/types/domain';
 
 export const apiPaths = {
 	authLogin: () => '/auth/login',
@@ -7,8 +7,12 @@ export const apiPaths = {
 	authPasswordForgot: () => '/auth/password/forgot',
 	authPasswordReset: () => '/auth/password/reset',
 	authLogout: () => '/auth/logout',
+	authPasswordChange: () => '/auth/password/change',
+	authEmailCode: () => '/auth/email/code',
+	authEmailChange: () => '/auth/email/change',
 	me: () => '/me',
 	meAvatar: () => '/me/avatar',
+	mePrefs: () => '/me/prefs',
 
 	projects: (options: ProjectListOptions = {}) => {
 		const params = new URLSearchParams();
@@ -34,7 +38,13 @@ export const apiPaths = {
 	sessionsActive: () => '/sessions/active',
 	sessionsManual: () => '/sessions/manual',
 	session: (id: string) => `/sessions/${id}`,
-	sessionStop: (id: string) => `/sessions/${id}/stop`
+	sessionStop: (id: string) => `/sessions/${id}/stop`,
+
+	statsDays: (range: DayTotalsRange) =>
+		withQuery(
+			'/stats/days',
+			new URLSearchParams({ from: range.from, to: range.to, timeZone: range.timeZone })
+		)
 } as const;
 
 function withQuery(path: string, params: URLSearchParams): string {

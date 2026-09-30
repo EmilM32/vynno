@@ -59,6 +59,49 @@ export interface UpdateProfileInput {
 	displayName: string;
 }
 
+/** Account-wide settings (`/me/prefs`). Absent = unset; the UI applies its default. */
+export interface UserPrefs {
+	dailyTargetMs?: number;
+	defaultProjectId?: string;
+}
+
+/** Omit leaves a pref unchanged; `null` clears it. */
+export interface UpdatePrefsInput {
+	dailyTargetMs?: number | null;
+	defaultProjectId?: string | null;
+}
+
+export interface ChangePasswordInput {
+	currentPassword: string;
+	newPassword: string;
+}
+
+export interface RequestEmailChangeInput {
+	email: string;
+	password: string;
+}
+
+export interface ChangeEmailInput {
+	email: string;
+	code: string;
+}
+
+/** Inclusive civil dates (`YYYY-MM-DD`) in an IANA zone. */
+export interface DayTotalsRange {
+	from: string;
+	to: string;
+	timeZone: string;
+}
+
+/** Stopped-session time for one local date, project and activity type (`/stats/days`). */
+export interface DayTotal {
+	date: string;
+	projectId: string;
+	activityTypeId?: string;
+	durationMs: number;
+	sessionCount: number;
+}
+
 export interface StartSessionInput {
 	projectId: string;
 	note: string;

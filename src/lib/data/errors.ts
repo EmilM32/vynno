@@ -11,7 +11,10 @@ export type DomainErrorCode =
 	| 'activity_type_has_sessions'
 	| 'invalid_transition'
 	| 'invalid_body'
-	| 'invalid_query';
+	| 'invalid_query'
+	| 'invalid_credentials'
+	| 'invalid_code'
+	| 'email_in_use';
 
 export class DomainError extends Error {
 	readonly code: DomainErrorCode;
@@ -36,7 +39,11 @@ export function statusForCode(code: string): number {
 		case 'project_has_sessions':
 		case 'activity_type_has_sessions':
 		case 'invalid_transition':
+		case 'email_in_use':
 			return 409;
+		case 'invalid_credentials':
+		case 'invalid_code':
+			return 401;
 		case 'invalid_body':
 		case 'invalid_query':
 		case 'invalid_json':

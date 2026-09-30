@@ -1,18 +1,25 @@
 import type {
 	ActivityType,
+	ChangeEmailInput,
+	ChangePasswordInput,
 	CreateActivityTypeInput,
 	CreateManualSessionInput,
 	CreateProjectInput,
+	DayTotal,
+	DayTotalsRange,
 	Project,
 	ProjectListOptions,
+	RequestEmailChangeInput,
 	SessionFilters,
 	SessionPage,
 	StartSessionInput,
 	TimeSession,
 	UpdateActivityTypeInput,
+	UpdatePrefsInput,
 	UpdateProfileInput,
 	UpdateProjectInput,
 	UpdateSessionInput,
+	UserPrefs,
 	UserProfile
 } from '$lib/types/domain';
 
@@ -43,6 +50,15 @@ export interface TimeTrackingRepository {
 	uploadAvatar(file: Blob): Promise<UserProfile>;
 	deleteAvatar(): Promise<UserProfile>;
 
+	getPrefs(): Promise<UserPrefs>;
+	updatePrefs(input: UpdatePrefsInput): Promise<UserPrefs>;
+
+	/** Keeps this session and signs out the others. Wrong current password: `invalid_credentials`. */
+	changePassword(input: ChangePasswordInput): Promise<void>;
+	/** Mails a code to the new address. The email does not change yet. */
+	requestEmailChange(input: RequestEmailChangeInput): Promise<void>;
+	changeEmail(input: ChangeEmailInput): Promise<UserProfile>;
+
 	/** Sessions newest-first. One page; follow nextCursor for more. */
 	listSessions(filters?: SessionFilters): Promise<SessionPage>;
 	getSession(id: string): Promise<TimeSession | undefined>;
@@ -58,4 +74,7 @@ export interface TimeTrackingRepository {
 	updateSession(id: string, input: UpdateSessionInput): Promise<TimeSession>;
 	deleteSession(id: string): Promise<void>;
 	createManualSession(input: CreateManualSessionInput): Promise<TimeSession>;
+
+	/** Stopped-session totals per local date, project and activity type. */
+	listDayTotals(range: DayTotalsRange): Promise<DayTotal[]>;
 }

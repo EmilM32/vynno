@@ -1,39 +1,49 @@
 import { describe, expect, it } from 'vitest';
-import { PrefsStore } from './prefs.svelte';
+import { clampDailyTargetHours, PrefsStore } from './prefs.svelte';
 
 describe('PrefsStore', () => {
-	it('restores stored prefs after profile hydrate', () => {
+	it('applies the account prefs from the seed', () => {
 		const prefs = new PrefsStore();
-		prefs.hydrateProfile({ displayName: 'Alex', email: 'alexdev@vynno.local' });
-		prefs.applyStored({ defaultProjectId: 'proj-b', dailyTargetHours: 6 });
+		prefs.applyPrefs({ defaultProjectId: 'proj-b', dailyTargetMs: 6 * 3_600_000 });
 		expect(prefs.defaultProjectId).toBe('proj-b');
 		expect(prefs.dailyTargetHours).toBe(6);
+		expect(prefs.snapshot()).toEqual({ defaultProjectId: 'proj-b', dailyTargetMs: 6 * 3_600_000 });
 	});
 
-	it('ignores a missing snapshot', () => {
+	it('uses 8 hours and no default project when the account has none', () => {
 		const prefs = new PrefsStore();
-		prefs.hydrateProfile({ displayName: 'Alex', email: 'alexdev@vynno.local' });
-		prefs.applyStored(null);
+		prefs.applyPrefs(undefined);
 		expect(prefs.defaultProjectId).toBe('');
-		expect(prefs.dailyTargetHours).toBe(8);
+		expect(prefs.dailyTargetMs).toBe(8 * 3_600_000);
+		expect(prefs.snapshot()).toEqual({});
 	});
 
-	it('resets device prefs when the signed-in email changes', () => {
+	it('applies a patch: omitted fields stay, null clears', () => {
 		const prefs = new PrefsStore();
-		prefs.hydrateProfile({ displayName: 'Alex', email: 'alex@vynno.local' });
-		prefs.setDefaultProjectId('proj-b');
-		prefs.setDailyTargetHours(5);
-		prefs.hydrateProfile({ displayName: 'Bea', email: 'bea@vynno.local' });
-		expect(prefs.defaultProjectId).toBe('');
+		prefs.applyPrefs({ defaultProjectId: 'proj-b', dailyTargetMs: 6 * 3_600_000 });
+		prefs.applyPatch({ dailyTargetMs: null });
+		expect(prefs.savedDailyTargetMs).toBeUndefined();
 		expect(prefs.dailyTargetHours).toBe(8);
-	});
-
-	it('keeps device prefs when the same profile hydrates again', () => {
-		const prefs = new PrefsStore();
-		prefs.hydrateProfile({ displayName: 'Alex', email: 'alex@vynno.local' });
-		prefs.setDefaultProjectId('proj-b');
-		prefs.hydrateProfile({ displayName: 'Alex Dev', email: 'alex@vynno.local' });
 		expect(prefs.defaultProjectId).toBe('proj-b');
-		expect(prefs.displayName).toBe('Alex Dev');
+		prefs.applyPatch({ defaultProjectId: null, dailyTargetMs: 3_600_000 });
+		expect(prefs.snapshot()).toEqual({ dailyTargetMs: 3_600_000 });
+	});
+
+	it('keeps prefs when the profile hydrates again', () => {
+		const prefs = new PrefsStore();
+		prefs.hydrateProfile({ displayName: 'Alex', email: 'alex@vynno.local' });
+		prefs.applyPrefs({ defaultProjectId: 'proj-b' });
+		prefs.hydrateProfile({ displayName: 'Alex Dev', email: 'alex.new@vynno.local' });
+		expect(prefs.defaultProjectId).toBe('proj-b');
+		expect(prefs.email).toBe('alex.new@vynno.local');
+	});
+});
+
+describe('clampDailyTargetHours', () => {
+	it('clamps to the Settings range and rounds to one decimal', () => {
+		expect(clampDailyTargetHours(0)).toBe(1);
+		expect(clampDailyTargetHours(20)).toBe(16);
+		expect(clampDailyTargetHours(6.26)).toBe(6.3);
+		expect(clampDailyTargetHours(Number.NaN)).toBe(8);
 	});
 });

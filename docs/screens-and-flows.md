@@ -51,6 +51,17 @@ Each primary route is one responsive page (mobile + desktop).
 
 Default landing: `/login` when signed out; `/dashboard` when signed in. Feature routes require a session cookie.
 
+### Command palette (⌘K)
+
+Opened with ⌘K / Ctrl+K, the sidebar **Commands** button, or the mobile top-bar search. One filter, fuzzy and accent-insensitive (`gtl` finds Go to Logs, `zolw` finds Żółw). Groups, in order:
+
+1. **Actions** — Start session (from the Timer draft) or Stop session (hint: live clock).
+2. **Recent Tasks** — up to 8 distinct recent tasks on active projects; runs restart-from-recent. While a session is live they stay listed but disabled with `timer_stop_first`.
+3. **Projects** — Open {name}, matched by name or code, including archived. Listed only once there is a query, capped at 8.
+4. **Go to** — the six routes.
+
+With a query, rows rank inside each group and the group with the best match comes first, so Enter runs the best match. A failed start/stop/restart lands on `/timer`, where the error banner lives.
+
 ### Tab title and icon
 
 Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the title becomes `▶ HH:MM:SS · {note} · Vynno` and the favicon gains the live status dot, so a background tab still shows the timer.

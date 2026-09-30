@@ -832,6 +832,18 @@ export class SessionStore {
 	};
 
 	/**
+	 * Stop the live session, then move its end back to `endedAt` (a forgotten timer).
+	 * The API only accepts a stop time on a stopped row, hence two writes.
+	 */
+	stopAt = async (endedAt: string): Promise<boolean> => {
+		const live = this.activeSession;
+		if (!live) return false;
+		await this.stop();
+		if (this.error || this.activeSession?.id === live.id) return false;
+		return (await this.updateSession(live.id, { endedAt })) != null;
+	};
+
+	/**
 	 * Fold the server's live session into this tab. Another tab or device may have
 	 * started, stopped, edited or deleted it since this tab last looked.
 	 * Background work: a local write in flight wins, and the result is `false`

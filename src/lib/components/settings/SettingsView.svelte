@@ -5,7 +5,9 @@
 	import { goto } from '$app/navigation';
 	import { logoutRequest } from '$lib/api/auth';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { LONG_SESSION_HOURS, longSessionPrefs } from '$lib/stores/long-session.svelte';
 	import { notificationPrefs } from '$lib/stores/notifications.svelte';
+	import { formatCompact } from '$lib/time/duration';
 	import { usePrefs } from '$lib/stores/prefs.svelte';
 	import { useSession } from '$lib/stores/session.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
@@ -251,6 +253,27 @@
 						notificationPrefs.state === 'unsupported'}
 					onchange={onNotificationsChange}
 				/>
+			</Field>
+
+			<Field
+				id="long-session-reminder"
+				label={m.settings_long_session()}
+				hint={m.settings_long_session_hint()}
+				layout="split"
+			>
+				<Select
+					value={longSessionPrefs.hours == null ? 'off' : String(longSessionPrefs.hours)}
+					class="w-full sm:w-32"
+					onchange={(e) => {
+						const value = (e.currentTarget as HTMLSelectElement).value;
+						longSessionPrefs.setHours(value === 'off' ? null : Number(value));
+					}}
+				>
+					<option value="off">{m.settings_long_session_off()}</option>
+					{#each LONG_SESSION_HOURS as hours (hours)}
+						<option value={String(hours)}>{formatCompact(hours * 3_600_000)}</option>
+					{/each}
+				</Select>
 			</Field>
 
 			<ThemeSelect />

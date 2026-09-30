@@ -1112,3 +1112,51 @@ describe('SessionStore session target', () => {
 		expect(store.draftTargetMs).toBeNull();
 	});
 });
+
+describe('SessionStore stopAt', () => {
+	let store: SessionStore;
+
+	afterEach(() => {
+		store?.reset();
+		vi.restoreAllMocks();
+	});
+
+	function openLive() {
+		const seed = {
+			...sampleAppSeed(),
+			sessions: [liveSession({ startedAt: new Date(Date.now() - ms.hours(5)).toISOString() })]
+		};
+		const repo = new MemoryTimeTrackingRepository(seed);
+		store = signedInStore();
+		store.hydrate(seed, { repo, peer: null });
+		return repo;
+	}
+
+	it('stops the live session and moves its end back', async () => {
+		openLive();
+		const endedAt = new Date(Date.now() - ms.hours(1)).toISOString();
+
+		expect(await store.stopAt(endedAt)).toBe(true);
+		expect(store.activeSession).toBeNull();
+		expect(store.sessions.find((s) => s.id === 'live')).toMatchObject({
+			status: 'stopped',
+			endedAt
+		});
+	});
+
+	it('does nothing when idle', async () => {
+		store = signedInStore();
+		store.hydrate(sampleAppSeed(), { peer: null });
+		expect(await store.stopAt(new Date().toISOString())).toBe(false);
+	});
+
+	it('does not patch when the stop fails', async () => {
+		const repo = openLive();
+		vi.spyOn(repo, 'stopSession').mockRejectedValue(new Error('offline'));
+		const update = vi.spyOn(repo, 'updateSession');
+
+		expect(await store.stopAt(new Date(Date.now() - ms.hours(1)).toISOString())).toBe(false);
+		expect(update).not.toHaveBeenCalled();
+		expect(store.activeSession?.id).toBe('live');
+	});
+});

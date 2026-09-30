@@ -62,6 +62,10 @@ Opened with ⌘K / Ctrl+K, the sidebar **Commands** button, or the mobile top-ba
 
 With a query, rows rank inside each group and the group with the best match comes first, so Enter runs the best match. A failed start/stop/restart lands on `/timer`, where the error banner lives.
 
+### Long session reminder
+
+Once one live session runs past the reminder threshold (Settings; default 4h, Off turns it off), every screen shows a notice above the page: `Session running for 5h 12m`, the note, and **Keep going** · **Stop at…** · **Stop now**. Keep going hides it for that session (remembered on this device). Stop at… opens a dialog with a `datetime-local` defaulting to start + threshold (never after now), checked against the API time bounds; it stops the session, then PATCHes `endedAt` (`SessionStore.stopAt`). Crossing the threshold is also announced and, if turned on, sends one desktop notification. The notice is state, so it also shows after a reload or the next morning.
+
 ### Install as an app
 
 `static/manifest.webmanifest` (standalone, starts at `/dashboard`) plus PNG icons in `static/icons/` make the daily URL installable: Chrome's **Install Vynno**, Safari's **Add to Dock**. No service worker; the app still needs the API. Icons are rendered from the brand mark by `node scripts/render-icons.js`.
@@ -130,6 +134,7 @@ Profile and activity types sync to the account. Theme, daily target, and default
 - Language (Paraglide, no URL prefixes)
 - Daily hour target (device cookie `vynno_prefs`; unit shown in the field)
 - Desktop notifications (switch; device-local `localStorage`, plus the browser permission it asks for when turned on). Blocked or unsupported browsers show why and disable the switch.
+- Long session reminder: Off · 2h · 3h · 4h (default) · 6h · 8h. Device-local `localStorage`.
 - Default project
 - Activity types: chip is the row label (compact, not full-bleed); Edit/Delete on the same row; Add / Edit form dialog; Delete confirm
 - About (version as a muted chip) + Log out

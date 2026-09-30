@@ -1,19 +1,14 @@
+import { localStore } from './local-storage';
+
 /**
  * Desktop notifications: a device-local opt-in (like the theme) on top of the
  * browser's own permission. Nothing asks for permission until the user turns
  * this on in Settings.
  */
+
 export const NOTIFICATIONS_STORAGE_KEY = 'vynno-notifications';
 
 export type NotificationState = 'unsupported' | 'off' | 'on' | 'blocked';
-
-function storage(): Storage | null {
-	try {
-		return typeof localStorage === 'undefined' ? null : localStorage;
-	} catch {
-		return null;
-	}
-}
 
 function supported(): boolean {
 	return typeof window !== 'undefined' && 'Notification' in window;
@@ -33,7 +28,7 @@ class NotificationPrefs {
 	/** Read storage and the current permission. Call on the client after mount. */
 	load = (): void => {
 		this.permission = supported() ? Notification.permission : 'unsupported';
-		this.wanted = storage()?.getItem(NOTIFICATIONS_STORAGE_KEY) === 'on';
+		this.wanted = localStore()?.getItem(NOTIFICATIONS_STORAGE_KEY) === 'on';
 	};
 
 	enable = async (): Promise<void> => {
@@ -51,7 +46,7 @@ class NotificationPrefs {
 
 	#persist = (on: boolean): void => {
 		this.wanted = on;
-		const store = storage();
+		const store = localStore();
 		if (!store) return;
 		if (on) store.setItem(NOTIFICATIONS_STORAGE_KEY, 'on');
 		else store.removeItem(NOTIFICATIONS_STORAGE_KEY);

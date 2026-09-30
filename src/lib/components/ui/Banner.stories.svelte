@@ -29,3 +29,14 @@
 		</Banner>
 	{/snippet}
 </Story>
+
+<Story name="Notice">
+	{#snippet template()}
+		<Banner tone="notice">
+			Session running for 4h 12m.
+			{#snippet action()}
+				<Button variant="inline" size="xs" onclick={fn()}>Keep going</Button>
+			{/snippet}
+		</Banner>
+	{/snippet}
+</Story>

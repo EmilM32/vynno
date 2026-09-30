@@ -727,6 +727,20 @@ export function periodStats(
 	};
 }
 
+/** Tracked time in a window: the same total as `periodStats`, without the breakdowns. */
+export function rangeTotalMs(
+	sessions: TimeSession[],
+	range: { start: Date; end: Date },
+	now = new Date()
+): number {
+	const nowMs = now.getTime();
+	let totalMs = 0;
+	for (const s of sessionsInRange(sessions, range.start, range.end)) {
+		totalMs += Math.max(0, sessionElapsedMs(s, nowMs));
+	}
+	return totalMs;
+}
+
 export function sessionsForProject(sessions: TimeSession[], projectId: string): TimeSession[] {
 	return sessions.filter((s) => s.projectId === projectId);
 }

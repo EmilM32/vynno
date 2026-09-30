@@ -31,6 +31,23 @@ test.describe('timer lifecycle', () => {
 		await expect(page.getByTestId('page-header-description')).toHaveCount(0);
 	});
 
+	test('tab title and icon show the running session', async ({ page }) => {
+		const icon = page.locator('link[rel="icon"]');
+		await expect(page).toHaveTitle('Timer · Vynno');
+		const idleIcon = await icon.getAttribute('href');
+
+		const note = uniqueNote('title');
+		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
+
+		await expect(page).toHaveTitle(new RegExp(`^▶ \\d{2}:\\d{2}:\\d{2} · ${note} · Vynno$`));
+		await expect(icon).not.toHaveAttribute('href', idleIcon ?? '');
+
+		await stopSession(page);
+		await expect(page).toHaveTitle('Timer · Vynno');
+		await expect(icon).toHaveAttribute('href', idleIcon ?? '');
+	});
+
 	test('start posts to sessions', async ({ page }) => {
 		const note = uniqueNote('http-start');
 		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
@@ -322,5 +339,65 @@ test.describe('timer today total', () => {
 		await waitForClient(page);
 		await spaGo(page, 'Timer', '/timer');
 		await expect(today).toHaveText(hardLoad!);
+	});
+});
+
+test.describe('timer sync across tabs and devices', () => {
+	test.beforeEach(async ({ page }) => {
+		await login(page);
+		await page.goto('/timer');
+		await waitForClient(page);
+	});
+
+	/** Stop the live session straight through the API, as a phone would. */
+	async function stopFromAnotherDevice(page: Page) {
+		const active = await page.request.get('/v1/sessions/active');
+		expect(active.ok()).toBe(true);
+		const { id } = (await active.json()) as { id: string };
+		const res = await page.request.post(`/v1/sessions/${id}/stop`);
+		expect(res.ok()).toBe(true);
+	}
+
+	test('a second tab follows start and stop', async ({ page, context }) => {
+		const other = await context.newPage();
+		await other.goto('/timer');
+		await waitForClient(other);
+		await expect(other.getByTestId('timer-status')).toHaveText('IDLE');
+
+		const note = uniqueNote('sync-tab');
+		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
+
+		await expect(other.getByTestId('timer-status')).toHaveText('ACTIVE');
+		await expect(other.getByRole('textbox', { name: 'Task description' })).toHaveValue(note);
+
+		await stopSession(page);
+		await expect(other.getByTestId('timer-status')).toHaveText('IDLE');
+		await expect(other.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
+	});
+
+	test('returning to the tab picks up a stop from another device', async ({ page }) => {
+		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('sync-dev'));
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+		await expect(page.getByTestId('timer-elapsed')).not.toHaveText('00:00:00');
+
+		await stopFromAnotherDevice(page);
+		await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+
+		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
+	});
+
+	test('Stop after another device stopped shows idle, not an error', async ({ page }) => {
+		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('sync-race'));
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+		await expect(page.getByTestId('timer-elapsed')).not.toHaveText('00:00:00');
+
+		await stopFromAnotherDevice(page);
+		await page.getByRole('button', { name: 'Stop', exact: true }).click();
+
+		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
+		await expect(page.getByText('Failed to stop')).toHaveCount(0);
 	});
 });

@@ -31,6 +31,7 @@ import {
 	monthShort,
 	parseCivilDay,
 	periodBounds,
+	previousInsightRange,
 	sessionElapsedMs,
 	shiftInsightRange,
 	startOfLocalDay,
@@ -352,6 +353,33 @@ describe('shiftInsightRange', () => {
 		const same = shiftInsightRange(current, 1, FIXED_NOW);
 		expect(same.start.getTime()).toBe(current.start.getTime());
 		expect(same.end.getTime()).toBe(current.end.getTime());
+	});
+});
+
+describe('previousInsightRange', () => {
+	it('cuts an open week to the same span last week', () => {
+		const current = insightRangeForGrain('week', FIXED_NOW, FIXED_NOW);
+		const prev = previousInsightRange(current, FIXED_NOW);
+		expect(prev.start).toEqual(new Date(2026, 2, 2));
+		expect(prev.end).toEqual(new Date(2026, 2, 4, 15, 30));
+	});
+
+	it('uses the whole previous window once the range is closed', () => {
+		const lastWeek = shiftInsightRange(
+			insightRangeForGrain('week', FIXED_NOW, FIXED_NOW),
+			-1,
+			FIXED_NOW
+		);
+		const prev = previousInsightRange(lastWeek, FIXED_NOW);
+		expect(prev.start).toEqual(new Date(2026, 1, 23));
+		expect(prev.end.getTime()).toBe(endOfLocalDay(new Date(2026, 2, 1)).getTime());
+	});
+
+	it('compares an open month with the same span of the month before', () => {
+		const current = insightRangeForGrain('month', FIXED_NOW, FIXED_NOW);
+		const prev = previousInsightRange(current, FIXED_NOW);
+		expect(prev.start).toEqual(new Date(2026, 1, 1));
+		expect(prev.end).toEqual(new Date(2026, 1, 11, 15, 30));
 	});
 });
 

@@ -12,6 +12,7 @@ import {
 	periodStats,
 	projectPeriodStats,
 	projectWeekSummaries,
+	rangeTotalMs,
 	recentStoppedSessions,
 	recentTasks,
 	sessionsForProject,
@@ -29,8 +30,10 @@ import {
 import {
 	customInsightRange,
 	formatStoppedDuration,
+	insightRangeForGrain,
 	localDateKeyFromDate,
-	periodBounds
+	periodBounds,
+	previousInsightRange
 } from './duration';
 
 const projects = [
@@ -721,6 +724,34 @@ describe('periodStats', () => {
 		]);
 		expect(stats.byActivity.some((row) => row.id === 'act-coding')).toBe(false);
 		expect(stats.breakdown.some((row) => row.activityTypeId === 'act-coding')).toBe(false);
+	});
+});
+
+describe('rangeTotalMs', () => {
+	const span = (day: number, fromHour: number, hours: number) =>
+		makeSession({
+			id: `s-${day}-${fromHour}`,
+			startedAt: localIso(2026, 2, day, fromHour),
+			endedAt: localIso(2026, 2, day, fromHour + hours)
+		});
+	const current = insightRangeForGrain('week', FIXED_NOW, FIXED_NOW);
+
+	it('matches the periodStats total', () => {
+		const sessions = [span(9, 9, 3), span(10, 9, 2), span(2, 9, 1)];
+		expect(rangeTotalMs(sessions, current, FIXED_NOW)).toBe(
+			periodStats(sessions, projects, activityTypes, current, FIXED_NOW).totalMs
+		);
+	});
+
+	it('totals the same span of last week for an open week', () => {
+		// Last Mon 2h and Wed 09:00 1h are inside the cut; last Thu 4h is after it.
+		const sessions = [span(2, 9, 2), span(4, 9, 1), span(5, 9, 4), span(9, 9, 3)];
+		const previous = previousInsightRange(current, FIXED_NOW);
+		expect(rangeTotalMs(sessions, previous, FIXED_NOW)).toBe(ms.hours(3));
+	});
+
+	it('is zero for an empty window', () => {
+		expect(rangeTotalMs([], current, FIXED_NOW)).toBe(0);
 	});
 });
 

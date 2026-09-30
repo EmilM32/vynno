@@ -3,8 +3,12 @@
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { periodStats } from '$lib/time/aggregates';
-	import { insightRangeForGrain, type InsightRange } from '$lib/time/duration';
+	import { periodStats, rangeTotalMs } from '$lib/time/aggregates';
+	import {
+		insightRangeForGrain,
+		previousInsightRange,
+		type InsightRange
+	} from '$lib/time/duration';
 	import ActivityBars from './ActivityBars.svelte';
 	import BreakdownTable from './BreakdownTable.svelte';
 	import InsightRangeControl from './InsightRangeControl.svelte';
@@ -29,10 +33,18 @@
 		)
 	);
 
+	const previous = $derived(previousInsightRange(range, now, sessionStore.timeZone));
+
+	const previousMs = $derived(rangeTotalMs(sessionStore.sessions, previous, now));
+
 	// Track only the range: the drain's own commits must not re-run this (EMI-81).
+	// It reaches back to the previous window so "vs previous period" has data.
 	$effect(() => {
-		const startMs = range.start.getTime();
-		untrack(() => void sessionStore.ensureThrough(startMs));
+		const current = range;
+		untrack(() => {
+			const startMs = previousInsightRange(current, now, sessionStore.timeZone).start.getTime();
+			void sessionStore.ensureThrough(startMs);
+		});
 	});
 </script>
 
@@ -48,7 +60,7 @@
 	{/if}
 
 	<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-		<ProjectDonut items={stats.byProject} totalMs={stats.totalMs} />
+		<ProjectDonut items={stats.byProject} totalMs={stats.totalMs} {previousMs} />
 		<ActivityBars items={stats.byActivity} />
 	</div>
 

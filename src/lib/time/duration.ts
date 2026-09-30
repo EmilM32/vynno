@@ -378,6 +378,23 @@ export function shiftInsightRange(
 	);
 }
 
+/**
+ * The window before `range`, for "vs previous period". While `range` is still open
+ * (its end is now, not the end of a day) the previous window is cut to the same
+ * elapsed span, so Wednesday-so-far compares with last Monday to Wednesday.
+ */
+export function previousInsightRange(
+	range: InsightRange,
+	now = new Date(),
+	timeZone?: string
+): InsightRange {
+	const prev = shiftInsightRange(range, -1, now, timeZone);
+	const open = range.end.getTime() < endOfLocalDay(range.end, timeZone).getTime();
+	if (!open) return prev;
+	const cut = prev.start.getTime() + (range.end.getTime() - range.start.getTime());
+	return cut < prev.end.getTime() ? { ...prev, end: new Date(cut) } : prev;
+}
+
 const CIVIL_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /** Start of the civil day `YYYY-MM-DD` in `timeZone` (or host-local). */

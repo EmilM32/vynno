@@ -293,6 +293,34 @@ test.describe('insights', () => {
 		await dossier.settled();
 	});
 
+	test('compares the week so far with the same span last week', async ({ page }) => {
+		const span = pastSpansOnCurrentDay(1)[0]!;
+		const weekEarlier = (d: Date) => new Date(d.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+		const hours = ((span.endedAt.getTime() - span.startedAt.getTime()) / 3_600_000).toFixed(1);
+		const delta = page.getByTestId('insights-vs-previous');
+
+		await seedManualSession(page, {
+			note: uniqueNote('last-week'),
+			startedAt: weekEarlier(span.startedAt),
+			endedAt: weekEarlier(span.endedAt)
+		});
+		await page.reload();
+		await waitForClient(page);
+		await expect(delta).toContainText(
+			`${hours === '0.0' ? '' : '\u2212'}${hours}h vs previous period`
+		);
+
+		await seedManualSession(page, {
+			note: uniqueNote('this-week'),
+			startedAt: span.startedAt.toISOString(),
+			endedAt: span.endedAt.toISOString()
+		});
+		await page.reload();
+		await waitForClient(page);
+		await expect(delta).toHaveText('0.0h vs previous period');
+		await expect(page.getByText('Total Time')).toHaveCount(0);
+	});
+
 	test('custom range dialog validates inverted dates', async ({ page }) => {
 		await page.getByRole('button', { name: 'Custom' }).click();
 		const dialog = page.getByRole('dialog', { name: 'Custom range' });

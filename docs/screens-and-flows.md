@@ -51,6 +51,21 @@ Each primary route is one responsive page (mobile + desktop).
 
 Default landing: `/login` when signed out; `/dashboard` when signed in. Feature routes require a session cookie.
 
+### Command palette (⌘K)
+
+Opened with ⌘K / Ctrl+K, the sidebar **Commands** button, or the mobile top-bar search. One filter, fuzzy and accent-insensitive (`gtl` finds Go to Logs, `zolw` finds Żółw). Groups, in order:
+
+1. **Actions** — Start session (from the Timer draft) or Stop session (hint: live clock).
+2. **Recent Tasks** — up to 8 distinct recent tasks on active projects; runs restart-from-recent. While a session is live they stay listed but disabled with `timer_stop_first`.
+3. **Projects** — Open {name}, matched by name or code, including archived. Listed only once there is a query, capped at 8.
+4. **Go to** — the six routes.
+
+With a query, rows rank inside each group and the group with the best match comes first, so Enter runs the best match. A failed start/stop/restart lands on `/timer`, where the error banner lives.
+
+### Tab title and icon
+
+Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the title becomes `▶ HH:MM:SS · {note} · Vynno` and the favicon gains the live status dot, so a background tab still shows the timer.
+
 ---
 
 ## 3. Screen specifications
@@ -93,7 +108,7 @@ Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs
 
 1. Header + range control: prev / civil-date label / next, Week | 2 weeks | Month, Custom
 2. Custom: dialog with From / To dates (native `type="date"`). Prev/next shift the active grain; next is disabled on the current window. Range is view-local (resets to the current week on leave).
-3. Time by Project donut (centre total)
+3. Time by Project donut (centre total). The header shows the change vs the same span of the previous period (`▲ +1.5h vs previous period`); no KPI row ([adr/0021](./adr/0021-insights-range.md) §5, §8)
 4. Time by Activity bar — unlabeled sessions are **Unassigned** so bars match the donut; omit buckets that would display as `0s` or `0%` (`formatCompact` floors sub-seconds)
 5. Activity Breakdown table — same Unassigned rows per project; same visibility filter
 6. Mobile: grain + civil label on one line; the donut card is at least 16rem and grows (legend capped at six projects plus Other) so the ring stays visible. Activity height follows content and uses the same cap. Desktop `lg`: the row is at least `h-96`.
@@ -191,7 +206,7 @@ A break is stop, then start again (new session). There is no pause. Grouped logs
 ### E — Analyze period
 
 ```
-[Insights] → select Week or Month → read KPIs + charts + table
+[Insights] → select Week or Month → read charts + table (donut header: vs previous period)
 ```
 
 ### F — Search logs

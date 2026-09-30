@@ -58,6 +58,15 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await expectNoViolations(page);
 	});
 
+	test('settings security expanded', async ({ page }) => {
+		await login(page);
+		await page.goto('/settings');
+		await waitForClient(page);
+		await page.getByRole('button', { name: 'Security', exact: true }).click();
+		await expect(page.getByRole('region', { name: 'Security' })).toBeVisible();
+		await expectNoViolations(page);
+	});
+
 	test('activity type form open', async ({ page }) => {
 		await login(page);
 		await page.goto('/settings');

@@ -150,6 +150,8 @@ Live in `src/lib/components/ui/`. Browse them in Storybook under `UI/*`. These o
 
 **`Icon`** — the only place `material-symbols-outlined` appears. Sizes `xs`–`2xl` (14/16/18/20/22/24px); `fill` drives the FILL axis for active nav items and transport glyphs.
 
+**`Disclosure`** — a heading that shows and hides the content under it; the panel stays mounted (`hidden` while closed) so form state survives a toggle. `open` is bindable, closed by default. Used by Settings → Security.
+
 **`Dialog`** / **`ConfirmDialog`** — centered overlay, focus-trapped. **`ActivityChip`** — near-square pill; washed type colour (`bg-*/10` + chromatic ink). `primary-container` / `secondary-container` render as indigo / coral.
 
 **`Field`** — label + optional hint/error. Layouts `stack` (dialogs) and `split` (Settings rows). Sets context so nested `Input` / `Select` inherit `id`, `aria-invalid`, and `aria-describedby`.

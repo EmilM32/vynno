@@ -16,6 +16,74 @@ async function expectSignedOut(page: Page) {
 	await expect(page).toHaveURL(/\/login$/);
 }
 
+/** The Security heading is a disclosure button, collapsed on every visit (EMI-148). */
+function securityToggle(page: Page) {
+	return page.getByRole('button', { name: 'Security', exact: true });
+}
+
+async function openSecurity(page: Page) {
+	const toggle = securityToggle(page);
+	await toggle.click();
+	await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+}
+
+test.describe('settings security disclosure', () => {
+	test.beforeEach(async ({ page }) => {
+		await login(page);
+		await page.goto('/settings');
+		await waitForClient(page);
+	});
+
+	test('is collapsed by default, with its fields out of reach', async ({ page }) => {
+		const toggle = securityToggle(page);
+		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+		const panelId = await toggle.getAttribute('aria-controls');
+		expect(panelId).toBeTruthy();
+		await expect(page.locator(`[id="${panelId}"]`)).toBeAttached();
+		await expect(page.locator(`[id="${panelId}"]`)).toBeHidden();
+		await expect(page.getByRole('textbox', { name: 'Current password' })).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Change password' })).toHaveCount(0);
+
+		await toggle.click();
+		const panel = page.getByRole('region', { name: 'Security' });
+		await expect(panel).toBeVisible();
+		await expect(panel).toHaveAttribute('id', panelId!);
+	});
+
+	test('Enter and Space toggle it and focus stays on the heading button', async ({ page }) => {
+		const toggle = securityToggle(page);
+		await toggle.focus();
+		await page.keyboard.press('Enter');
+		await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+		await expect(toggle).toBeFocused();
+		await expect(page.getByTestId('security-password')).toBeVisible();
+
+		await page.keyboard.press('Space');
+		await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+		await expect(toggle).toBeFocused();
+		await expect(page.getByTestId('security-password')).toBeHidden();
+
+		// Collapsed, Tab moves past the section instead of into its fields.
+		await page.keyboard.press('Tab');
+		const insideSecurity = await page.evaluate(
+			() => !!document.activeElement?.closest('[data-testid="settings-security"]')
+		);
+		expect(insideSecurity).toBe(false);
+	});
+
+	test('keeps half-typed input when collapsed and expanded again', async ({ page }) => {
+		await openSecurity(page);
+		const current = page
+			.getByTestId('security-password')
+			.getByRole('textbox', { name: 'Current password' });
+		await current.fill('half-typed');
+		await securityToggle(page).click();
+		await expect(page.getByTestId('security-password')).toBeHidden();
+		await securityToggle(page).click();
+		await expect(current).toHaveValue('half-typed');
+	});
+});
+
 test.describe('settings security', () => {
 	let account: E2EAccount;
 
@@ -23,6 +91,7 @@ test.describe('settings security', () => {
 		account = await login(page);
 		await page.goto('/settings');
 		await waitForClient(page);
+		await openSecurity(page);
 	});
 
 	test('changes the password, keeps this browser, and signs out the other', async ({
@@ -40,6 +109,7 @@ test.describe('settings security', () => {
 				'Password changed. Other devices were signed out.'
 			);
 			await expect(form.getByRole('textbox', { name: 'Current password' })).toHaveValue('');
+			await expect(securityToggle(page)).toHaveAttribute('aria-expanded', 'true');
 
 			await expectSignedOut(other.page);
 			await page.reload();
@@ -59,6 +129,7 @@ test.describe('settings security', () => {
 		await form.getByRole('textbox', { name: 'Confirm password' }).fill('e2e-new-password');
 		await form.getByRole('button', { name: 'Change password' }).click();
 		await expect(form.getByRole('alert')).toHaveText('Current password is incorrect.');
+		await expect(securityToggle(page)).toHaveAttribute('aria-expanded', 'true');
 
 		// Still signed in: a 401 invalid_credentials is not a lost session.
 		await page.reload();
@@ -74,11 +145,17 @@ test.describe('settings security', () => {
 
 		const code = await waitForMailpitCode(newEmail, { subjectIncludes: 'email change' });
 		await expect(form.getByText(`We sent 6 digits to ${newEmail}.`)).toBeVisible();
+		// Collapsing does not drop the code step.
+		await securityToggle(page).click();
+		await expect(form).toBeHidden();
+		await securityToggle(page).click();
+		await expect(form.getByText(`We sent 6 digits to ${newEmail}.`)).toBeVisible();
 		await form.getByLabel('Confirmation code').fill(code);
 		await form.getByRole('button', { name: 'Change email' }).click();
 		await expect(form.getByRole('status')).toHaveText(
 			`You now sign in with ${newEmail}. Other devices were signed out.`
 		);
+		await expect(securityToggle(page)).toHaveAttribute('aria-expanded', 'true');
 		await expect(page.getByRole('region', { name: 'Profile' })).toContainText(newEmail);
 
 		const other = await browser.newContext({ baseURL: e2eOrigin, locale: 'en-US' });

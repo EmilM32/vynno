@@ -133,7 +133,7 @@ Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 Profile, activity types, daily target, and default project sync to the account. Theme, language, notifications, and the long session reminder stay on this device; the Preferences card says so under its heading.
 
 - Profile (display name, avatar). Save name appears only while the field is dirty. Log out is a separated danger action at the card foot.
-- Security: two forms side by side on desktop, stacked on mobile.
+- Security: collapsed by default on every visit (the heading is the toggle; the open state is not remembered). Expanded, two forms side by side on desktop, stacked on mobile. It stays open through errors and after a change, and a reply that lands while collapsed opens it.
   - **Change password**: current, new, confirm. Success keeps this browser signed in, signs out every other device, and says so. A wrong current password reads "Current password is incorrect." (the session stays).
   - **Change email**: new email + current password → **Send code**; the code field replaces the password field, with **Resend code** and **Use a different email**. **Change email** switches the sign-in email, relabels Profile and the nav, and signs out other devices. The old address gets a notice mail.
 - Appearance (named theme list)

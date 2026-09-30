@@ -22,6 +22,8 @@
 
 5. **The guard extends to fields.** `primitives.guard.test.ts` fails on a raw `<input>` / `<select>` and on visual utilities in `class` on `Field` / `Input` / `Select`. Allowlist entries need a reason.
 
+6. **`Disclosure` is an atom with one call site (2026-09-30, EMI-148).** Settings → Security collapses behind its heading. The owner asked for a reusable piece rather than inline markup, which is a deliberate exception to point 1: the APG wiring (`aria-expanded`, `aria-controls`, a `hidden` panel that keeps its form state, focus staying on the toggle) is the kind of chrome that drifts once a second screen copies it. The toggle is a raw `<button>` inside the primitive, allowlisted: a full-width heading row, not chrome, so no `.press` and no `Button` size scale. Other Settings cards stay open cards.
+
 ## Consequences
 
 ### Positive

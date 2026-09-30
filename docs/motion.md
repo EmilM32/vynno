@@ -93,20 +93,21 @@ Color hovers (`transition-colors` on rows, inputs, nav) stay on Tailwind’s def
 
 ## What ships today
 
-| Surface                                        | Motion                                                                    | Purpose                | Notes                                                    |
-| ---------------------------------------------- | ------------------------------------------------------------------------- | ---------------------- | -------------------------------------------------------- |
-| Active Timer card / TimerView                  | None (solid primary border)                                               | State indication       | Same treatment as Current Focus. No loop.                |
-| Current Focus (Dashboard)                      | None (solid border)                                                       | State indication       | Primary / outline by session status.                     |
-| Live status dot, TopBar record icon            | `today-glow` on `StatusDot tone="live"`; TopBar is a static fill          | State indication       | No blink. Idle stays outline.                            |
-| Sidebar session chip (desktop)                 | Solid primary border; `StatusDot` live                                    | State indication       | Clock digits do not tween.                               |
-| Primary / secondary chrome buttons, bottom nav | `.press` → `scale(0.97)`                                                  | Feedback               | Pointer-down, not click.                                 |
-| Confirm / form dialog                          | `@starting-style` scale 0.96 + opacity, 200ms `--ease-out`, same path out | Prevent jarring change | Origin **center**. Form dialogs share this overlay.      |
-| Page header description                        | `grid-template-rows` + opacity, 200ms `--ease-in-out`                     | Prevent jarring change | Accordion exception: height-family is allowed here only. |
-| List / nav / field hovers                      | `transition-colors`                                                       | Feedback               | Tens/day; keep.                                          |
-| Command palette                                | **None**                                                                  | —                      | Keyboard, 100+/day.                                      |
-| Insights bars, donut, KPIs, clock              | **None**                                                                  | —                      | Functional data.                                         |
-| Route / page content                           | **None**                                                                  | —                      | Core nav.                                                |
-| Error page (`ErrorState`)                      | **None**                                                                  | —                      | Rare, but the job is to get unstuck; no entrance motion. |
+| Surface                                        | Motion                                                                         | Purpose                | Notes                                                        |
+| ---------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------- | ------------------------------------------------------------ |
+| Active Timer card / TimerView                  | None (solid primary border)                                                    | State indication       | Same treatment as Current Focus. No loop.                    |
+| Current Focus (Dashboard)                      | None (solid border)                                                            | State indication       | Primary / outline by session status.                         |
+| Live status dot, TopBar record icon            | `today-glow` on `StatusDot tone="live"`; TopBar is a static fill               | State indication       | No blink. Idle stays outline.                                |
+| Sidebar session chip (desktop)                 | Solid primary border; `StatusDot` live                                         | State indication       | Clock digits do not tween.                                   |
+| Primary / secondary chrome buttons, bottom nav | `.press` → `scale(0.97)`                                                       | Feedback               | Pointer-down, not click.                                     |
+| Confirm / form dialog                          | `@starting-style` scale 0.96 + opacity, 200ms `--ease-out`, same path out      | Prevent jarring change | Origin **center**. Form dialogs share this overlay.          |
+| Page header description                        | `grid-template-rows` + opacity, 200ms `--ease-in-out`                          | Prevent jarring change | Accordion exception: height-family is allowed here only.     |
+| Disclosure (Settings → Security)               | Chevron `rotate(180deg)`, 200ms `--ease-in-out`; panel shows and hides at once | State indication       | No height animation. Reduced motion: no rotation transition. |
+| List / nav / field hovers                      | `transition-colors`                                                            | Feedback               | Tens/day; keep.                                              |
+| Command palette                                | **None**                                                                       | —                      | Keyboard, 100+/day.                                          |
+| Insights bars, donut, KPIs, clock              | **None**                                                                       | —                      | Functional data.                                             |
+| Route / page content                           | **None**                                                                       | —                      | Core nav.                                                    |
+| Error page (`ErrorState`)                      | **None**                                                                       | —                      | Rare, but the job is to get unstuck; no entrance motion.     |
 
 A toast is mentioned in [screens-and-flows.md](./screens-and-flows.md) but does not exist. When it is built, enter and exit the **same edge** with a CSS transition (not keyframes), `translateY(100%)`, `--ease-out`, 200–300ms.
 

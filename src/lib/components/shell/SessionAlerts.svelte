@@ -13,24 +13,11 @@
 	 * The clock only ticks while a live session has something to watch.
 	 */
 	const sessionStore = useSession();
-	const targetWatch = new ThresholdWatch();
 	const longWatch = new ThresholdWatch();
 
 	onMount(() => {
 		notificationPrefs.load();
 		longSessionPrefs.load();
-	});
-
-	$effect(() => {
-		const live = sessionStore.activeSession;
-		const target = live?.targetDurationMs;
-		if (!live || !target) return;
-		if (!targetWatch.crossed(live.id, sessionStore.elapsedMs, target)) return;
-		announce(m.announce_target_reached());
-		notify(m.notify_target_title({ target: formatCompact(target) }), {
-			body: live.note,
-			tag: `vynno-target-${live.id}`
-		});
 	});
 
 	// The banner (LongSessionNotice) covers time already past; this only marks the crossing.

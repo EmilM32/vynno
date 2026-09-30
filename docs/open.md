@@ -14,3 +14,7 @@ What is **not** built yet. If it is not on this list, assume it shipped.
 ## Not open
 
 Live API, cookie auth, SSR, log edit/delete, manual entry, Storybook, local production (`scripts/start`), named themes including light, project CRUD, per-project view, Insights range (grain + custom), tab/device sync, live tab title, action ⌘K palette.
+
+## Removed on purpose
+
+Per-session target (Timer `Target` toggle, progress, and "target reached" notification): removed in EMI-147; the daily hour target covers the need. The API still carries `targetDurationMs`; the SPA ignores it. Do not re-add without the owner asking.

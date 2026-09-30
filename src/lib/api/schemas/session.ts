@@ -2,13 +2,6 @@ import * as v from 'valibot';
 import { normalizeNote, normalizeTicketId } from '$lib/text/normalize';
 import { idSchema, isoDateTimeSchema, listSchema, sessionStatusSchema } from './common';
 
-/** Largest integer JSON numbers round-trip through JS. Above this is `invalid_body`. */
-export const TARGET_DURATION_MAX_MS = 9007199254740991;
-
-const targetDurationRequestSchema = v.nullable(
-	v.pipe(v.number(), v.minValue(0), v.maxValue(TARGET_DURATION_MAX_MS))
-);
-
 /** Request notes. Response `sessionDtoSchema.note` stays unbounded for legacy rows. */
 const noteRequestSchema = v.pipe(
 	v.string(),
@@ -29,8 +22,7 @@ export const sessionDtoSchema = v.object({
 	activityTypeId: v.nullable(idSchema),
 	status: sessionStatusSchema,
 	startedAt: isoDateTimeSchema,
-	endedAt: v.nullable(isoDateTimeSchema),
-	targetDurationMs: v.nullable(v.pipe(v.number(), v.minValue(0)))
+	endedAt: v.nullable(isoDateTimeSchema)
 });
 
 export const sessionListDtoSchema = v.object({
@@ -42,8 +34,7 @@ export const startSessionDtoSchema = v.object({
 	projectId: idSchema,
 	note: noteRequestSchema,
 	ticketId: v.optional(v.nullable(ticketIdRequestSchema)),
-	activityTypeId: v.optional(v.nullable(idSchema)),
-	targetDurationMs: v.optional(targetDurationRequestSchema)
+	activityTypeId: v.optional(v.nullable(idSchema))
 });
 
 export const updateSessionDtoSchema = v.object({
@@ -52,8 +43,7 @@ export const updateSessionDtoSchema = v.object({
 	ticketId: v.optional(v.nullable(ticketIdRequestSchema)),
 	activityTypeId: v.optional(v.nullable(idSchema)),
 	startedAt: v.optional(isoDateTimeSchema),
-	endedAt: v.optional(v.nullable(isoDateTimeSchema)),
-	targetDurationMs: v.optional(targetDurationRequestSchema)
+	endedAt: v.optional(v.nullable(isoDateTimeSchema))
 });
 
 export const createManualSessionDtoSchema = v.object({
@@ -61,7 +51,6 @@ export const createManualSessionDtoSchema = v.object({
 	note: noteRequestSchema,
 	ticketId: v.optional(v.nullable(ticketIdRequestSchema)),
 	activityTypeId: v.optional(v.nullable(idSchema)),
-	targetDurationMs: v.optional(targetDurationRequestSchema),
 	startedAt: isoDateTimeSchema,
 	endedAt: isoDateTimeSchema
 });
@@ -80,8 +69,7 @@ export const sessionSeedItemSchema = v.object({
 	activityTypeId: v.nullable(idSchema),
 	status: sessionStatusSchema,
 	started: sessionSeedStartedSchema,
-	durationMs: v.pipe(v.number(), v.minValue(0)),
-	targetDurationMs: v.optional(v.nullable(v.pipe(v.number(), v.minValue(0))))
+	durationMs: v.pipe(v.number(), v.minValue(0))
 });
 
 export const sessionSeedFileSchema = listSchema(sessionSeedItemSchema);

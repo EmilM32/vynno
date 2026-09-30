@@ -90,8 +90,7 @@ function sameSession(a: TimeSession, b: TimeSession | null): boolean {
 		a.ticketId === b.ticketId &&
 		a.activityTypeId === b.activityTypeId &&
 		a.startedAt === b.startedAt &&
-		a.endedAt === b.endedAt &&
-		a.targetDurationMs === b.targetDurationMs
+		a.endedAt === b.endedAt
 	);
 }
 
@@ -195,8 +194,6 @@ export class SessionStore {
 	/** Empty string = unset; posted as null. */
 	draftActivityType = $state('');
 	draftTicket = $state('');
-	/** Session target in ms; `null` = no target. */
-	draftTargetMs = $state<number | null>(null);
 
 	error = $state<string | null>(null);
 
@@ -252,7 +249,6 @@ export class SessionStore {
 				this.draftNote = recent.note;
 				this.draftActivityType = recent.activityTypeId ?? '';
 				this.draftTicket = recent.ticketId ?? '';
-				this.draftTargetMs = recent.targetDurationMs ?? null;
 			}
 		}
 		this.#normalizeProjectSelection();
@@ -680,23 +676,17 @@ export class SessionStore {
 					: this.draftActivityType || undefined;
 			const ticketId =
 				input && 'ticketId' in input ? input.ticketId : this.draftTicket.trim() || undefined;
-			const targetDurationMs =
-				input && 'targetDurationMs' in input
-					? input.targetDurationMs
-					: (this.draftTargetMs ?? undefined);
 			this.draftProjectId = projectId;
 			this.draftNote = note;
 			this.draftActivityType = activityTypeId ?? '';
 			this.draftTicket = ticketId ?? '';
-			this.draftTargetMs = targetDurationMs ?? null;
 			const sentAt = Date.now();
 			const pressedAt = monotonicMs();
 			const started = await this.#requireRepo().startSession({
 				projectId,
 				note,
 				ticketId,
-				activityTypeId,
-				targetDurationMs
+				activityTypeId
 			});
 			this.#syncServerClock(started.startedAt, sentAt);
 			this.#localStart = { id: started.id, atMs: pressedAt };
@@ -1061,7 +1051,6 @@ export class SessionStore {
 		this.draftProjectId = session.projectId;
 		this.draftActivityType = session.activityTypeId ?? '';
 		this.draftTicket = session.ticketId ?? '';
-		this.draftTargetMs = session.targetDurationMs ?? null;
 	};
 
 	/**
@@ -1477,7 +1466,6 @@ export class SessionStore {
 		this.draftProjectId = '';
 		this.draftActivityType = '';
 		this.draftTicket = '';
-		this.draftTargetMs = null;
 		this.error = null;
 		this.pendingAction = null;
 	};

@@ -1075,57 +1075,6 @@ describe('SessionStore reconcile with other devices', () => {
 	});
 });
 
-describe('SessionStore session target', () => {
-	let store: SessionStore;
-
-	afterEach(() => {
-		store?.reset();
-		vi.restoreAllMocks();
-	});
-
-	it('starts with the draft target and keeps it for the next start', async () => {
-		const repo = new MemoryTimeTrackingRepository(sampleAppSeed());
-		store = signedInStore();
-		store.hydrate(sampleAppSeed(), { repo, peer: null });
-		const start = vi.spyOn(repo, 'startSession');
-
-		store.draftTargetMs = ms.min(50);
-		await store.start({ projectId: 'proj-auth', note: 'Deep work' });
-
-		expect(start).toHaveBeenCalledWith(expect.objectContaining({ targetDurationMs: ms.min(50) }));
-		expect(store.activeSession?.targetDurationMs).toBe(ms.min(50));
-		expect(store.draftTargetMs).toBe(ms.min(50));
-	});
-
-	it('lets an explicit input override the draft target', async () => {
-		const repo = new MemoryTimeTrackingRepository(sampleAppSeed());
-		store = signedInStore();
-		store.hydrate(sampleAppSeed(), { repo, peer: null });
-		store.draftTargetMs = ms.min(50);
-
-		await store.start({ projectId: 'proj-auth', note: 'No target', targetDurationMs: undefined });
-		expect(store.activeSession?.targetDurationMs).toBeUndefined();
-		expect(store.draftTargetMs).toBeNull();
-	});
-
-	it('restores the draft target from the most recent session when idle', () => {
-		store = signedInStore();
-		store.hydrate({
-			...sampleAppSeed(),
-			sessions: [makeSession({ id: 'recent', targetDurationMs: ms.min(25) })]
-		});
-		expect(store.draftTargetMs).toBe(ms.min(25));
-	});
-
-	it('clears the draft target on reset', () => {
-		store = signedInStore();
-		store.hydrate(sampleAppSeed());
-		store.draftTargetMs = ms.min(90);
-		store.reset();
-		expect(store.draftTargetMs).toBeNull();
-	});
-});
-
 describe('SessionStore stopAt', () => {
 	let store: SessionStore;
 

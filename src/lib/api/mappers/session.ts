@@ -22,7 +22,6 @@ export function sessionFromDto(dto: SessionDto): TimeSession {
 	if (dto.ticketId) session.ticketId = dto.ticketId;
 	if (dto.activityTypeId) session.activityTypeId = dto.activityTypeId;
 	if (dto.endedAt) session.endedAt = dto.endedAt;
-	if (dto.targetDurationMs != null) session.targetDurationMs = dto.targetDurationMs;
 	return session;
 }
 
@@ -35,8 +34,7 @@ export function sessionToDto(session: TimeSession): SessionDto {
 		activityTypeId: session.activityTypeId ?? null,
 		status: session.status,
 		startedAt: session.startedAt,
-		endedAt: session.endedAt ?? null,
-		targetDurationMs: session.targetDurationMs ?? null
+		endedAt: session.endedAt ?? null
 	};
 }
 
@@ -45,8 +43,7 @@ export function startSessionToDto(input: StartSessionInput): StartSessionDto {
 		projectId: input.projectId,
 		note: input.note,
 		ticketId: input.ticketId ?? null,
-		activityTypeId: input.activityTypeId ?? null,
-		targetDurationMs: input.targetDurationMs ?? null
+		activityTypeId: input.activityTypeId ?? null
 	};
 }
 
@@ -55,8 +52,7 @@ export function startSessionFromDto(dto: StartSessionDto): StartSessionInput {
 		projectId: dto.projectId,
 		note: dto.note,
 		...(dto.ticketId ? { ticketId: dto.ticketId } : {}),
-		...(dto.activityTypeId ? { activityTypeId: dto.activityTypeId } : {}),
-		...(dto.targetDurationMs != null ? { targetDurationMs: dto.targetDurationMs } : {})
+		...(dto.activityTypeId ? { activityTypeId: dto.activityTypeId } : {})
 	};
 }
 
@@ -68,7 +64,6 @@ export function updateSessionToDto(input: UpdateSessionInput): UpdateSessionDto 
 	if ('activityTypeId' in input) dto.activityTypeId = input.activityTypeId ?? null;
 	if (input.startedAt !== undefined) dto.startedAt = input.startedAt;
 	if ('endedAt' in input) dto.endedAt = input.endedAt ?? null;
-	if ('targetDurationMs' in input) dto.targetDurationMs = input.targetDurationMs ?? null;
 	return dto;
 }
 
@@ -78,7 +73,6 @@ export function createManualSessionToDto(input: CreateManualSessionInput): Creat
 		note: input.note,
 		ticketId: input.ticketId ?? null,
 		activityTypeId: input.activityTypeId ?? null,
-		targetDurationMs: input.targetDurationMs ?? null,
 		startedAt: input.startedAt,
 		endedAt: input.endedAt
 	};

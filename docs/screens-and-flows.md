@@ -90,8 +90,6 @@ Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the
 | Idle   | Empty or last note; Start (or Start New Session from nav) |
 | Active | Pulsing border/status; live clock; Stop                   |
 
-**Session target.** A `Target` toggle (Off · 25m · 50m · 1h 30m) sits above Start. Idle, it sets the draft (`draftTargetMs`, posted as `targetDurationMs` and restored from the last session like the note). Live, it PATCHes the running session; Off clears it. A live session with a target shows a progress bar and `HH:MM:SS to target`, then `Target reached · +HH:MM:SS`. Crossing the target announces it and, if turned on in Settings, sends one desktop notification (see §3.5). Time already past on page load never alerts.
-
 Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 
 ### 3.2 Dashboard (`/dashboard`)

@@ -295,7 +295,6 @@ export async function seedManualSession(
 			note: opts.note,
 			ticketId: opts.ticketId ?? null,
 			activityTypeId: opts.activityTypeId ?? null,
-			targetDurationMs: null,
 			startedAt: opts.startedAt,
 			endedAt: opts.endedAt
 		}

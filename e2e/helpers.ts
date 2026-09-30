@@ -393,7 +393,7 @@ export async function startSession(
 		await waitForClient(page);
 	}
 	await ensureIdle(page);
-	const task = page.getByRole('textbox', { name: 'Task description' });
+	const task = page.getByRole('combobox', { name: 'Task description' });
 	await task.fill(note);
 	if (projectLabel) {
 		await page.locator('#project-select').selectOption({ label: projectLabel });
@@ -410,7 +410,7 @@ export async function startSession(
 				throw new Error(`Could not create activity type (${res.status()} ${await res.text()})`);
 			}
 			await page.reload();
-			await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+			await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 			if (projectLabel) {
 				await page.locator('#project-select').selectOption({ label: projectLabel });
 			}

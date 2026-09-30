@@ -59,7 +59,7 @@ test.describe('cross-screen data', () => {
 		await started;
 
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(noteA);
+		await expect(page.getByRole('combobox', { name: 'Task description' })).toHaveValue(noteA);
 		await expect(page.locator('#project-select option:checked')).toHaveText(projectA);
 		await expect(page.getByTestId('recent-task-restart').first()).toBeDisabled();
 	});

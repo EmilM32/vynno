@@ -146,7 +146,7 @@ test.describe('command palette actions', () => {
 		await page.goto('/timer');
 		await waitForClient(page);
 		const note = uniqueNote('palette');
-		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 
 		const dialog = await openPalette(page);
 		await dialog.getByRole('option', { name: 'Start session' }).click();
@@ -179,7 +179,7 @@ test.describe('command palette actions', () => {
 		await page.getByRole('combobox', { name: 'Filter commands' }).fill(note);
 		await recent(dialog).getByRole('option', { name: note }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(note);
+		await expect(page.getByRole('combobox', { name: 'Task description' })).toHaveValue(note);
 
 		dialog = await openPalette(page);
 		await page.getByRole('combobox', { name: 'Filter commands' }).fill(note);

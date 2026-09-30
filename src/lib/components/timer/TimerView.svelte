@@ -43,7 +43,7 @@
 	{/if}
 
 	<div
-		class="flex flex-col overflow-hidden rounded-lg border bg-surface-container {sessionChrome}"
+		class="flex flex-col rounded-lg border bg-surface-container {sessionChrome}"
 		data-testid="timer-session"
 	>
 		<div class="border-b border-outline-variant px-4 py-3 lg:px-5">

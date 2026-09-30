@@ -37,7 +37,7 @@ User
       ├── id, projectId, note, ticketId?, activityTypeId?
       ├── status: active | stopped
       ├── startedAt, endedAt?
-      └── targetDurationMs?   // domain field; Timer UI not built
+      └── targetDurationMs?   // Timer target presets
 ```
 
 Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`). “Recent tasks” are reconstructed from recent sessions.
@@ -94,7 +94,7 @@ Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`)
 | `status`           | `active` \| `stopped`             |                                |
 | `startedAt`        | ISO datetime                      | `>= 2000-01-01T00:00:00Z`. Instants ≤ now+5min. Microsecond comparison. |
 | `endedAt`          | ISO datetime?                     | Set on stop. Duration ≤ 7 days. A note-only patch of a legacy out-of-bounds row does not recheck bounds. |
-| `targetDurationMs` | number?                           | Max `9007199254740991`. UI not built. |
+| `targetDurationMs` | number?                           | Max `9007199254740991`. Set from the Timer target toggle. |
 
 **Derived (UI only):** `durationMs`, `timeRangeLabel` (`09:30 - 11:45`), `durationLabel` (`2h 15m` / `01:42:15` / `<1s` for a stopped duration under 1 second). Stopping a session younger than 1 second deletes it instead of keeping a 0s row.
 

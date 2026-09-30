@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import {
+	createProject,
 	firstProjectId,
 	login,
 	pastSpansOnCurrentDay,
@@ -37,7 +38,7 @@ test.describe('timer lifecycle', () => {
 		const idleIcon = await icon.getAttribute('href');
 
 		const note = uniqueNote('title');
-		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 
 		await expect(page).toHaveTitle(new RegExp(`^▶ \\d{2}:\\d{2}:\\d{2} · ${note} · Vynno$`));
@@ -50,7 +51,7 @@ test.describe('timer lifecycle', () => {
 
 	test('start posts to sessions', async ({ page }) => {
 		const note = uniqueNote('http-start');
-		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 		const [request] = await Promise.all([
 			page.waitForRequest(
 				(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
@@ -63,7 +64,7 @@ test.describe('timer lifecycle', () => {
 
 	test('start posts ticket', async ({ page }) => {
 		const note = uniqueNote('ticket');
-		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 		await page.getByLabel('Ticket').fill('DEV-9');
 		const [request] = await Promise.all([
 			page.waitForRequest(
@@ -90,7 +91,7 @@ test.describe('timer lifecycle', () => {
 		const body = (await created.json()) as { id: string };
 		await page.reload();
 		const note = uniqueNote('activity');
-		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 		await page.locator('#activity-select').selectOption({ label: 'coding' });
 		const [request] = await Promise.all([
 			page.waitForRequest(
@@ -104,7 +105,7 @@ test.describe('timer lifecycle', () => {
 
 	test('start with note and project (Flow A)', async ({ page }) => {
 		const note = uniqueNote('start');
-		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 		await page.locator('#project-select').selectOption({ label: 'Personal' });
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 
@@ -123,7 +124,7 @@ test.describe('timer lifecycle', () => {
 
 	test('start via Enter key', async ({ page }) => {
 		const note = uniqueNote('enter');
-		const input = page.getByRole('textbox', { name: 'Task description' });
+		const input = page.getByRole('combobox', { name: 'Task description' });
 		await input.fill(note);
 		await input.press('Enter');
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
@@ -131,7 +132,7 @@ test.describe('timer lifecycle', () => {
 
 	test('stop returns to idle (Flow C)', async ({ page }) => {
 		const note = uniqueNote('stop');
-		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		const [stopReq] = await Promise.all([
@@ -144,17 +145,17 @@ test.describe('timer lifecycle', () => {
 
 		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
 		await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
-		await expect(page.getByRole('textbox', { name: 'Task description' })).toBeEnabled();
+		await expect(page.getByRole('combobox', { name: 'Task description' })).toBeEnabled();
 		await expect(page.locator('#project-select')).toBeEnabled();
 		await expect(page.locator('#activity-select')).toBeEnabled();
 		// Draft keeps last finished note
-		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(note);
+		await expect(page.getByRole('combobox', { name: 'Task description' })).toHaveValue(note);
 	});
 
 	test('inputs stay editable while active', async ({ page }) => {
-		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('live-edit'));
+		await page.getByRole('combobox', { name: 'Task description' }).fill(uniqueNote('live-edit'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
-		await expect(page.getByRole('textbox', { name: 'Task description' })).toBeEnabled();
+		await expect(page.getByRole('combobox', { name: 'Task description' })).toBeEnabled();
 		await expect(page.locator('#project-select')).toBeEnabled();
 		await expect(page.locator('#activity-select')).toBeEnabled();
 		await expect(page.getByTestId('timer-started-at')).toBeVisible();
@@ -175,7 +176,7 @@ test.describe('timer lifecycle', () => {
 		});
 		expect(seeded.status()).toBe(201);
 
-		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('second'));
+		await page.getByRole('combobox', { name: 'Task description' }).fill(uniqueNote('second'));
 		const [res] = await Promise.all([
 			page.waitForResponse(
 				(r) => r.request().method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
@@ -185,19 +186,19 @@ test.describe('timer lifecycle', () => {
 		expect(res.status()).toBe(409);
 		expect(await res.json()).toMatchObject({ error: { code: 'session_already_active' } });
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(outOfBand);
+		await expect(page.getByRole('combobox', { name: 'Task description' })).toHaveValue(outOfBand);
 		await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
 		await expect(page.getByRole('alert')).toHaveCount(0);
 	});
 
 	// Contract: UpdateSessionDto must not carry `status` or `id` — stopping is the /stop verb.
 	test('editing a field while live patches the session without status', async ({ page }) => {
-		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('live-patch'));
+		await page.getByRole('combobox', { name: 'Task description' }).fill(uniqueNote('live-patch'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 
 		const patched = uniqueNote('live-patched');
-		const note = page.getByRole('textbox', { name: 'Task description' });
+		const note = page.getByRole('combobox', { name: 'Task description' });
 		const patchReq = page.waitForRequest(
 			(r) => r.method() === 'PATCH' && /\/v1\/sessions\/[^/]+$/.test(new URL(r.url()).pathname)
 		);
@@ -212,13 +213,13 @@ test.describe('timer lifecycle', () => {
 	});
 
 	test('restart from recent task blocked while busy', async ({ page }) => {
-		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('prior'));
+		await page.getByRole('combobox', { name: 'Task description' }).fill(uniqueNote('prior'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		// Held past 1 s so Stop keeps it as a recent task (EMI-73).
 		await stopSession(page);
 
-		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('busy'));
+		await page.getByRole('combobox', { name: 'Task description' }).fill(uniqueNote('busy'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		const play = page.getByTestId('recent-task-restart').first();
@@ -236,7 +237,7 @@ test.describe('timer sub-second stop', () => {
 	}
 
 	async function startFromTimer(page: Page, note: string) {
-		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	}
@@ -315,7 +316,7 @@ for (const viewport of [
 			await page.goto('/timer');
 			await waitForClient(page);
 			await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
-			await expect(page.getByRole('textbox', { name: 'Task description' })).toHaveValue(live);
+			await expect(page.getByRole('combobox', { name: 'Task description' })).toHaveValue(live);
 			await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
 		});
 	});
@@ -365,11 +366,11 @@ test.describe('timer sync across tabs and devices', () => {
 		await expect(other.getByTestId('timer-status')).toHaveText('IDLE');
 
 		const note = uniqueNote('sync-tab');
-		await page.getByRole('textbox', { name: 'Task description' }).fill(note);
+		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 
 		await expect(other.getByTestId('timer-status')).toHaveText('ACTIVE');
-		await expect(other.getByRole('textbox', { name: 'Task description' })).toHaveValue(note);
+		await expect(other.getByRole('combobox', { name: 'Task description' })).toHaveValue(note);
 
 		await stopSession(page);
 		await expect(other.getByTestId('timer-status')).toHaveText('IDLE');
@@ -377,7 +378,7 @@ test.describe('timer sync across tabs and devices', () => {
 	});
 
 	test('returning to the tab picks up a stop from another device', async ({ page }) => {
-		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('sync-dev'));
+		await page.getByRole('combobox', { name: 'Task description' }).fill(uniqueNote('sync-dev'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		await expect(page.getByTestId('timer-elapsed')).not.toHaveText('00:00:00');
@@ -389,7 +390,7 @@ test.describe('timer sync across tabs and devices', () => {
 	});
 
 	test('Stop after another device stopped shows idle, not an error', async ({ page }) => {
-		await page.getByRole('textbox', { name: 'Task description' }).fill(uniqueNote('sync-race'));
+		await page.getByRole('combobox', { name: 'Task description' }).fill(uniqueNote('sync-race'));
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		await expect(page.getByTestId('timer-elapsed')).not.toHaveText('00:00:00');
@@ -399,5 +400,146 @@ test.describe('timer sync across tabs and devices', () => {
 
 		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
 		await expect(page.getByText('Failed to stop')).toHaveCount(0);
+	});
+});
+
+test.describe('timer note suggestions', () => {
+	test.beforeEach(async ({ page }) => {
+		await login(page);
+	});
+
+	test('suggests an earlier task and restores its project, ticket and note', async ({ page }) => {
+		const project = await createProject(page, { name: uniqueNote('Billing'), code: 'BIL' });
+		const note = `Review billing ${uniqueNote('pr')}`;
+		await seedManualSession(page, {
+			note,
+			projectId: project.id,
+			ticketId: 'BIL-7',
+			startedAt: new Date(Date.now() - 3 * 3_600_000).toISOString(),
+			endedAt: new Date(Date.now() - 2 * 3_600_000).toISOString()
+		});
+		await page.goto('/timer');
+		await waitForClient(page);
+
+		const task = page.getByRole('combobox', { name: 'Task description' });
+		const list = page.getByRole('listbox', { name: 'Earlier tasks' });
+		await task.fill('review bil');
+		await expect(list.getByRole('option', { name: note })).toBeVisible();
+
+		await task.press('ArrowDown');
+		await expect(task).toHaveAttribute('aria-activedescendant', /task-note-suggestions-0/);
+		await task.press('Enter');
+		await expect(list).toHaveCount(0);
+		await expect(task).toHaveValue(note);
+		await expect(page.locator('#project-select')).toHaveValue(project.id);
+		await expect(page.getByLabel('Ticket')).toHaveValue('BIL-7');
+		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
+
+		await expect(page.locator('#task-ticket-suggestions option[value="BIL-7"]')).toHaveCount(1);
+
+		await task.fill('review');
+		await expect(list).toBeVisible();
+		await task.press('Escape');
+		await expect(list).toHaveCount(0);
+	});
+
+	test('does not suggest while a session is live', async ({ page }) => {
+		const note = `Earlier ${uniqueNote('task')}`;
+		await seedManualSession(page, {
+			note,
+			startedAt: new Date(Date.now() - 3 * 3_600_000).toISOString(),
+			endedAt: new Date(Date.now() - 2 * 3_600_000).toISOString()
+		});
+		await page.goto('/timer');
+		await waitForClient(page);
+		const task = page.getByRole('combobox', { name: 'Task description' });
+		await task.fill('Something new');
+		await page.getByRole('button', { name: 'Start', exact: true }).click();
+		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
+
+		await task.fill('Earlier');
+		await expect(page.getByRole('listbox', { name: 'Earlier tasks' })).toHaveCount(0);
+	});
+});
+
+test.describe('timer session target', () => {
+	test.beforeEach(async ({ page }) => {
+		await login(page);
+	});
+
+	test('a preset target is posted, shown, and can be cleared while live', async ({ page }) => {
+		await page.goto('/timer');
+		await waitForClient(page);
+		const target = page.getByRole('group', { name: 'Session target' });
+		await target.getByRole('button', { name: '25m' }).click();
+		await expect(target.getByRole('button', { name: '25m' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+
+		await page.getByRole('combobox', { name: 'Task description' }).fill(uniqueNote('target'));
+		const [start] = await Promise.all([
+			page.waitForRequest(
+				(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
+			),
+			page.getByRole('button', { name: 'Start', exact: true }).click()
+		]);
+		expect(start.postDataJSON()).toMatchObject({ targetDurationMs: 25 * 60_000 });
+		await expect(page.getByTestId('timer-target-status')).toHaveText(/^00:2\d:\d{2} to target$/);
+		await expect(
+			page.getByRole('progressbar', { name: 'Progress to session target' })
+		).toBeVisible();
+
+		const [patch] = await Promise.all([
+			page.waitForRequest((r) => r.method() === 'PATCH'),
+			target.getByRole('button', { name: 'Off' }).click()
+		]);
+		expect(patch.postDataJSON()).toEqual({ targetDurationMs: null });
+		await expect(page.getByTestId('timer-target')).toHaveCount(0);
+	});
+
+	test('crossing the target shows it and sends one desktop notification', async ({ page }) => {
+		await page.addInitScript(() => {
+			const sent: { title: string; body?: string; tag?: string }[] = [];
+			(window as unknown as { __sent: typeof sent }).__sent = sent;
+			class Recorder {
+				static permission = 'granted';
+				static requestPermission = async () => 'granted';
+				onclick: (() => void) | null = null;
+				constructor(title: string, options: { body?: string; tag?: string } = {}) {
+					sent.push({ title, body: options.body, tag: options.tag });
+				}
+				close() {}
+			}
+			Object.defineProperty(window, 'Notification', { value: Recorder, configurable: true });
+		});
+		await page.goto('/settings');
+		await waitForClient(page);
+		const toggle = page.getByRole('switch', { name: /Desktop notifications/ });
+		await toggle.check();
+		await expect(toggle).toBeChecked();
+
+		const note = uniqueNote('crossing');
+		const started = await page.request.post('/v1/sessions', {
+			data: {
+				projectId: await firstProjectId(page),
+				note,
+				ticketId: null,
+				activityTypeId: null,
+				targetDurationMs: 6_000
+			}
+		});
+		expect(started.ok()).toBe(true);
+		await page.goto('/timer');
+		await waitForClient(page);
+
+		await expect(page.getByTestId('timer-target-status')).toHaveText(/^Target reached · \+/, {
+			timeout: 15_000
+		});
+		await expect
+			.poll(() => page.evaluate(() => (window as unknown as { __sent: unknown[] }).__sent))
+			.toEqual([
+				{ title: '6s target reached', body: note, tag: expect.stringMatching(/^vynno-target-/) }
+			]);
 	});
 });

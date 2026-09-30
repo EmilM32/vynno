@@ -62,6 +62,14 @@ Opened with ⌘K / Ctrl+K, the sidebar **Commands** button, or the mobile top-ba
 
 With a query, rows rank inside each group and the group with the best match comes first, so Enter runs the best match. A failed start/stop/restart lands on `/timer`, where the error banner lives.
 
+### Long session reminder
+
+Once one live session runs past the reminder threshold (Settings; default 4h, Off turns it off), every screen shows a notice above the page: `Session running for 5h 12m`, the note, and **Keep going** · **Stop at…** · **Stop now**. Keep going hides it for that session (remembered on this device). Stop at… opens a dialog with a `datetime-local` defaulting to start + threshold (never after now), checked against the API time bounds; it stops the session, then PATCHes `endedAt` (`SessionStore.stopAt`). Crossing the threshold is also announced and, if turned on, sends one desktop notification. The notice is state, so it also shows after a reload or the next morning.
+
+### Install as an app
+
+`static/manifest.webmanifest` (standalone, starts at `/dashboard`) plus PNG icons in `static/icons/` make the daily URL installable: Chrome's **Install Vynno**, Safari's **Add to Dock**. No service worker; the app still needs the API. Icons are rendered from the brand mark by `node scripts/render-icons.js`.
+
 ### Tab title and icon
 
 Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the title becomes `▶ HH:MM:SS · {note} · Vynno` and the favicon gains the live status dot, so a background tab still shows the timer.
@@ -72,7 +80,7 @@ Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the
 
 ### 3.1 Timer (`/timer`)
 
-1. Task input: “What are you working on?” + project picker + optional ticket
+1. Task input: “What are you working on?” + project picker + optional ticket. While idle, typing in the note suggests **Earlier tasks** (distinct project + note, fuzzy on note, ticket, project name and code, up to 6; history back 14 days is loaded on first focus). Picking one restores its note, project, ticket and activity; it does not start. No suggestions while live, so a pick never edits the running session. The ticket field offers recent tickets through a native `datalist`.
 2. Timer card: status, project chip, large `HH:MM:SS`, Start / Stop
 3. Today’s Summary mini stats
 4. Recent Tasks list with restart
@@ -82,7 +90,9 @@ Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the
 | Idle   | Empty or last note; Start (or Start New Session from nav) |
 | Active | Pulsing border/status; live clock; Stop                   |
 
-Not built on this screen: session target progress, desktop Quick Command panel. See [open.md](./open.md).
+**Session target.** A `Target` toggle (Off · 25m · 50m · 1h 30m) sits above Start. Idle, it sets the draft (`draftTargetMs`, posted as `targetDurationMs` and restored from the last session like the note). Live, it PATCHes the running session; Off clears it. A live session with a target shows a progress bar and `HH:MM:SS to target`, then `Target reached · +HH:MM:SS`. Crossing the target announces it and, if turned on in Settings, sends one desktop notification (see §3.5). Time already past on page load never alerts.
+
+Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 
 ### 3.2 Dashboard (`/dashboard`)
 
@@ -101,6 +111,8 @@ Not built on this screen: session target progress, desktop Quick Command panel. 
 5. Entries: project color + name, `> note` (one line; expand when truncated), optional ticket / activity chip, time range, duration. Completed rows have Play (hover-reveal on desktop, always visible on mobile) — starts a **new** session now with the same note / project / ticket / activity and goes to Timer. The in-progress row has no Play. Disabled while another session is live (`timer_stop_first`) or the project is archived.
 6. Grouped multi-session headers have the same Play (identity from the newest session in the group). Nested constituent rows keep their own Play.
 7. Add entry / Edit session: form dialog (note, project, activity, ticket, times). Delete: confirm dialog
+8. Untracked gaps: in **Entries** with no search, project or activity filter, a gap of at least 60 minutes between two rows of the same day shows as `2h untracked · 10:00 - 12:00` with **Add entry**, which opens the form prefilled with that span. Shorter breaks stay unmarked (a break is stop, then start: ADR-0024). Time covered by an overlapping row counts as tracked. Hidden while rows are filtered, since a hidden row may cover the gap, and in **Grouped**.
+9. **Export** (header, next to Add entry): a dialog that first loads the rest of the filtered range, then offers **Entries CSV**, **Entries JSON** and **Timesheet CSV** (projects × days in hours, with totals; only for a date range of up to 62 days). It exports exactly the list's rows under the current search and filters, never the live session. Columns are stable snake_case (`date,start,end,duration_minutes,duration_hours,project,project_code,activity,ticket,note,started_at,ended_at`). CSV is RFC 4180 with a UTF-8 BOM; text starting with `= + - @` gets a leading `'` so a spreadsheet does not run it. Files are named `vynno-entries-<from>_<to>.csv` (or `…-all-<today>`).
 
 Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs-grouped-view.md](./adr/0023-logs-grouped-view.md).
 
@@ -123,6 +135,8 @@ Profile and activity types sync to the account. Theme, daily target, and default
 - Appearance (named theme list)
 - Language (Paraglide, no URL prefixes)
 - Daily hour target (device cookie `vynno_prefs`; unit shown in the field)
+- Desktop notifications (switch; device-local `localStorage`, plus the browser permission it asks for when turned on). Blocked or unsupported browsers show why and disable the switch.
+- Long session reminder: Off · 2h · 3h · 4h (default) · 6h · 8h. Device-local `localStorage`.
 - Default project
 - Activity types: chip is the row label (compact, not full-bleed); Edit/Delete on the same row; Add / Edit form dialog; Delete confirm
 - About (version as a muted chip) + Log out

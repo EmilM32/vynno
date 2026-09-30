@@ -7,13 +7,20 @@
 	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { filterSessions, groupSessionsByDate, groupSessionsByTask } from '$lib/time/aggregates';
+	import {
+		filterSessions,
+		groupSessionsByDate,
+		groupSessionsByTask,
+		untrackedGaps
+	} from '$lib/time/aggregates';
 	import {
 		localDateKeyFromDate,
 		logDateRangeForPreset,
 		type LogDatePreset,
 		type LogDateRange
 	} from '$lib/time/duration';
+	import ExportDialog from './ExportDialog.svelte';
+	import LogGap from './LogGap.svelte';
 	import LogGroupRow from './LogGroupRow.svelte';
 	import LogRow from './LogRow.svelte';
 	import LogsFilterBar from './LogsFilterBar.svelte';
@@ -41,6 +48,14 @@
 	let projectIds = $state.raw<string[]>([]);
 	let activityTypeIds = $state.raw<string[]>([]);
 	let layout = $state<LogsLayout>('entries');
+	let exportState = $state<'closed' | 'loading' | 'ready'>('closed');
+
+	/** Load the rest of the filtered range before offering downloads. */
+	async function openExport() {
+		exportState = 'loading';
+		await sessionStore.ensureThrough(range?.start.getTime() ?? null);
+		if (exportState === 'loading') exportState = 'ready';
+	}
 
 	const layoutOptions = $derived([
 		{ id: 'entries' as const, label: m.logs_view_entries() },
@@ -71,6 +86,10 @@
 			!query.trim() &&
 			filterSessions(live ? [live] : [], '', sessionStore.allProjects, listFilter).length > 0
 	);
+	// A search or project/activity filter hides rows, so a gap there may not be untracked.
+	const showGaps = $derived(
+		layout === 'entries' && !query.trim() && !projectIds.length && !activityTypeIds.length
+	);
 	const hasConstraint = $derived(
 		Boolean(query.trim() || range || projectIds.length || activityTypeIds.length)
 	);
@@ -97,7 +116,10 @@
 								<Icon name="search" />
 							{/snippet}
 						</Input>
-						<Button variant="secondary" size="sm" class="shrink-0" onclick={openCreate}>
+						<Button variant="secondary" size="sm" class="shrink-0" onclick={openExport}>
+							{m.logs_export()}
+						</Button>
+						<Button variant="secondary" size="sm" class="shrink-0" onclick={() => openCreate()}>
 							{m.logs_add_entry()}
 						</Button>
 					</div>
@@ -167,17 +189,35 @@
 								{/if}
 							{/each}
 						{:else}
+							{const gaps = $derived(showGaps ? untrackedGaps(group.sessions) : null)}
 							{#each group.sessions as session (session.id)}
+								{const gap = $derived(gaps?.get(session.id))}
 								<LogRow
 									{session}
 									onedit={() => openEdit(session)}
 									ondelete={() => openDelete(session)}
 								/>
+								{#if gap}
+									<LogGap
+										{gap}
+										timeZone={sessionStore.timeZone}
+										onfill={() => openCreate({ startedAt: gap.startedAt, endedAt: gap.endedAt })}
+									/>
+								{/if}
 							{/each}
 						{/if}
 					</div>
 				{/each}
 			{/if}
+
+			<ExportDialog
+				open={exportState !== 'closed'}
+				loaded={exportState === 'ready'}
+				onclose={() => (exportState = 'closed')}
+				sessions={filtered}
+				{range}
+				{now}
+			/>
 
 			{#if sessionStore.nextCursor && !range}
 				<div bind:this={sentinel} class="h-8" data-testid="logs-sentinel" aria-hidden="true"></div>

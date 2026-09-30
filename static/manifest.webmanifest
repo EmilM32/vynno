@@ -1,0 +1,21 @@
+{
+	"id": "/",
+	"name": "Vynno",
+	"short_name": "Vynno",
+	"description": "Vynno is a focus timer — projects, sessions, and a clear week.",
+	"start_url": "/dashboard",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#0b1326",
+	"theme_color": "#0b1326",
+	"icons": [
+		{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+		{ "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+		{
+			"src": "/icons/icon-maskable-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	]
+}

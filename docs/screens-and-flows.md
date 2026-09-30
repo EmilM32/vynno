@@ -62,6 +62,10 @@ Opened with ⌘K / Ctrl+K, the sidebar **Commands** button, or the mobile top-ba
 
 With a query, rows rank inside each group and the group with the best match comes first, so Enter runs the best match. A failed start/stop/restart lands on `/timer`, where the error banner lives.
 
+### Install as an app
+
+`static/manifest.webmanifest` (standalone, starts at `/dashboard`) plus PNG icons in `static/icons/` make the daily URL installable: Chrome's **Install Vynno**, Safari's **Add to Dock**. No service worker; the app still needs the API. Icons are rendered from the brand mark by `node scripts/render-icons.js`.
+
 ### Tab title and icon
 
 Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the title becomes `▶ HH:MM:SS · {note} · Vynno` and the favicon gains the live status dot, so a background tab still shows the timer.

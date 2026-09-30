@@ -5,6 +5,7 @@
 	import { goto } from '$app/navigation';
 	import { logoutRequest } from '$lib/api/auth';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { notificationPrefs } from '$lib/stores/notifications.svelte';
 	import { usePrefs } from '$lib/stores/prefs.svelte';
 	import { useSession } from '$lib/stores/session.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
@@ -60,6 +61,14 @@
 	function onTargetInput(e: Event) {
 		const v = Number((e.currentTarget as HTMLInputElement).value);
 		prefsStore.setDailyTargetHours(v);
+	}
+
+	/** The permission prompt can be refused, so the box shows what actually happened. */
+	async function onNotificationsChange(e: Event) {
+		const box = e.currentTarget as HTMLInputElement;
+		if (box.checked) await notificationPrefs.enable();
+		else notificationPrefs.disable();
+		box.checked = notificationPrefs.state === 'on';
 	}
 
 	function localeDisplayName(locale: Locale): string {
@@ -220,6 +229,28 @@
 						<option value={project.id} dir="auto">{project.name}</option>
 					{/each}
 				</Select>
+			</Field>
+
+			<Field
+				id="desktop-notifications"
+				label={m.settings_notifications()}
+				hint={notificationPrefs.state === 'blocked'
+					? m.settings_notifications_blocked()
+					: notificationPrefs.state === 'unsupported'
+						? m.settings_notifications_unsupported()
+						: m.settings_notifications_hint()}
+				layout="split"
+			>
+				<input
+					id="desktop-notifications"
+					type="checkbox"
+					role="switch"
+					class="size-4 rounded border-outline-variant"
+					checked={notificationPrefs.state === 'on'}
+					disabled={notificationPrefs.state === 'blocked' ||
+						notificationPrefs.state === 'unsupported'}
+					onchange={onNotificationsChange}
+				/>
 			</Field>
 
 			<ThemeSelect />

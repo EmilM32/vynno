@@ -86,7 +86,9 @@ Each screen renders `PageTitle` (`{page} · Vynno`). While a session is live the
 | Idle   | Empty or last note; Start (or Start New Session from nav) |
 | Active | Pulsing border/status; live clock; Stop                   |
 
-Not built on this screen: session target progress, desktop Quick Command panel. See [open.md](./open.md).
+**Session target.** A `Target` toggle (Off · 25m · 50m · 1h 30m) sits above Start. Idle, it sets the draft (`draftTargetMs`, posted as `targetDurationMs` and restored from the last session like the note). Live, it PATCHes the running session; Off clears it. A live session with a target shows a progress bar and `HH:MM:SS to target`, then `Target reached · +HH:MM:SS`. Crossing the target announces it and, if turned on in Settings, sends one desktop notification (see §3.5). Time already past on page load never alerts.
+
+Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 
 ### 3.2 Dashboard (`/dashboard`)
 
@@ -127,6 +129,7 @@ Profile and activity types sync to the account. Theme, daily target, and default
 - Appearance (named theme list)
 - Language (Paraglide, no URL prefixes)
 - Daily hour target (device cookie `vynno_prefs`; unit shown in the field)
+- Desktop notifications (switch; device-local `localStorage`, plus the browser permission it asks for when turned on). Blocked or unsupported browsers show why and disable the switch.
 - Default project
 - Activity types: chip is the row label (compact, not full-bleed); Edit/Delete on the same row; Add / Edit form dialog; Delete confirm
 - About (version as a muted chip) + Log out

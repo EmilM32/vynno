@@ -4,6 +4,7 @@
 	import { m } from '$lib/paraglide/messages.js';
 	import BottomNav from './BottomNav.svelte';
 	import CommandPalette from './CommandPalette.svelte';
+	import SessionAlerts from './SessionAlerts.svelte';
 	import SideNav from './SideNav.svelte';
 	import TopBar from './TopBar.svelte';
 
@@ -44,4 +45,5 @@
 	</div>
 	<BottomNav />
 	<CommandPalette />
+	<SessionAlerts />
 </div>

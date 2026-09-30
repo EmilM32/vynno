@@ -30,9 +30,10 @@ describe('longSessionPrefs', () => {
 	});
 
 	afterEach(() => {
-		vi.unstubAllGlobals();
+		// Reset while the stub is still in place: Node's own localStorage warns when touched.
 		longSessionPrefs.setHours(DEFAULT_LONG_SESSION_HOURS);
 		longSessionPrefs.dismissedId = null;
+		vi.unstubAllGlobals();
 	});
 
 	it('defaults to four hours with nothing stored', () => {

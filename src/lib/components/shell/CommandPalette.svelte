@@ -100,7 +100,7 @@
 					label: task.note,
 					hint: live ? m.timer_stop_first() : (project?.code ?? project?.name ?? ''),
 					keywords: [project?.name, project?.code, task.ticketId].filter(Boolean).join(' '),
-					icon: 'replay',
+					icon: 'play_arrow',
 					disabled: live,
 					run: () => void resume(task)
 				};
@@ -114,7 +114,7 @@
 			label: m.command_open_project({ name: project.name }),
 			hint: project.isArchived ? m.projects_archived_badge() : (project.code ?? ''),
 			keywords: project.code,
-			icon: 'folder',
+			icon: 'folder_managed',
 			run: () => void goto(resolve(`/projects/${encodeURIComponent(project.id)}`))
 		}))
 	);

@@ -19,6 +19,7 @@
 		type LogDatePreset,
 		type LogDateRange
 	} from '$lib/time/duration';
+	import ExportDialog from './ExportDialog.svelte';
 	import LogGap from './LogGap.svelte';
 	import LogGroupRow from './LogGroupRow.svelte';
 	import LogRow from './LogRow.svelte';
@@ -47,6 +48,14 @@
 	let projectIds = $state.raw<string[]>([]);
 	let activityTypeIds = $state.raw<string[]>([]);
 	let layout = $state<LogsLayout>('entries');
+	let exportState = $state<'closed' | 'loading' | 'ready'>('closed');
+
+	/** Load the rest of the filtered range before offering downloads. */
+	async function openExport() {
+		exportState = 'loading';
+		await sessionStore.ensureThrough(range?.start.getTime() ?? null);
+		if (exportState === 'loading') exportState = 'ready';
+	}
 
 	const layoutOptions = $derived([
 		{ id: 'entries' as const, label: m.logs_view_entries() },
@@ -107,6 +116,9 @@
 								<Icon name="search" />
 							{/snippet}
 						</Input>
+						<Button variant="secondary" size="sm" class="shrink-0" onclick={openExport}>
+							{m.logs_export()}
+						</Button>
 						<Button variant="secondary" size="sm" class="shrink-0" onclick={() => openCreate()}>
 							{m.logs_add_entry()}
 						</Button>
@@ -197,6 +209,15 @@
 					</div>
 				{/each}
 			{/if}
+
+			<ExportDialog
+				open={exportState !== 'closed'}
+				loaded={exportState === 'ready'}
+				onclose={() => (exportState = 'closed')}
+				sessions={filtered}
+				{range}
+				{now}
+			/>
 
 			{#if sessionStore.nextCursor && !range}
 				<div bind:this={sentinel} class="h-8" data-testid="logs-sentinel" aria-hidden="true"></div>

@@ -493,6 +493,7 @@
 	"dashboard_heatmap_total": "Tracked",
 	"dashboard_heatmap_days": "{count}d",
 	"dashboard_heatmap_summary": "Tracked time per day for the last 12 months: {active} active days, {total} in total.",
+	"dashboard_heatmap_scroll_aria": "Year grid, newest week on the right",
 	"dashboard_heatmap_hint": "A full square meets your {target} daily target. A weekend off does not break a streak.",
 	"dashboard_heatmap_less": "Less",
 	"dashboard_heatmap_more": "More"

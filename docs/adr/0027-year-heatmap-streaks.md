@@ -17,7 +17,7 @@ Streak counters have a known failure mode. GitHub removed its contribution strea
 3. **Shade against the daily target**, not against the busiest day: under a quarter, under half, under the target, and at or over it. A full square means the target was met, so the colours keep their meaning as the target changes.
 4. **A streak is a run of days with any tracked time. Saturday and Sunday count when tracked but never break a run.** An untracked weekday ends it. Today with nothing tracked yet does not end it: the day is not over.
 5. **Stats row:** current streak, best streak in the window, active days, total tracked. The squares' grid is one `role="img"` with a text summary; each square has a `title` for pointer users.
-6. **Narrow cards clip the oldest weeks** (a container query reverses the row below the grid's 686px width). No horizontal scroller, so there is no focus-less scrolling region.
+6. **The squares scale with the card** (amended 2026-09-30, EMI-149). One grid: a weekday column plus 53 week columns that share the card width, square cells from about 10px to 24px. Wider than that, the grid stops and centres; narrower, the card scrolls horizontally inside a focusable, named region that opens on the newest week (the row is reversed, so no script runs), with the weekday column sticky on the left. Month labels sit on the same columns. The first version clipped the oldest weeks at a fixed 686px grid, which left most of a wide card empty.
 
 ## Consequences
 
@@ -35,13 +35,14 @@ Streak counters have a known failure mode. GitHub removed its contribution strea
 
 ## Alternatives considered
 
-| Option                                   | Why not                                                                               |
-| ---------------------------------------- | ------------------------------------------------------------------------------------- |
-| Every calendar day counts (GitHub style) | Rewards working weekends; the reason GitHub dropped it.                               |
-| Only days that meet the target count     | Punishes a short but real day; the heatmap already shows target days.                 |
-| No streak, heatmap only                  | The owner chose a streak with the weekend rule.                                       |
-| Shade relative to the busiest day        | One long day would wash out every other square.                                       |
-| Horizontal scroll on mobile              | Needs a focusable scroll region; clipping keeps the recent months, which matter most. |
+| Option                                   | Why not                                                                        |
+| ---------------------------------------- | ------------------------------------------------------------------------------ |
+| Every calendar day counts (GitHub style) | Rewards working weekends; the reason GitHub dropped it.                        |
+| Only days that meet the target count     | Punishes a short but real day; the heatmap already shows target days.          |
+| No streak, heatmap only                  | The owner chose a streak with the weekend rule.                                |
+| Shade relative to the busiest day        | One long day would wash out every other square.                                |
+| Clip the oldest weeks (the first §6)     | Left a wide card mostly empty and hid most of the year on a phone.             |
+| Fixed 10px squares                       | Did not use the card width; the owner asked for the grid to fill it (EMI-149). |
 
 ## Related
 

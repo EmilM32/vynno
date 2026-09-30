@@ -99,7 +99,7 @@ Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 3. **Active Projects** — horizontal cards: color, name, optional progress %, week hours → `/projects/[id]`
 4. **Weekly Overview** — bar chart Mon–Sun. Empty week: “Not enough data yet”. Sub-hour week: Y axis in minutes
 5. **Recent Logs** — compact list + restart (disabled while live). On mobile this block sits after Current Focus, before Active Projects / Weekly Overview
-6. **Last 12 months** — year heatmap from `/stats/days`, shaded against the daily target, with current streak, best streak, active days, and total. Weekends off do not break a streak. Narrow screens clip the oldest weeks. Decision: [adr/0027](./adr/0027-year-heatmap-streaks.md)
+6. **Last 12 months** — year heatmap from `/stats/days`, shaded against the daily target, with current streak, best streak, active days, and total. Weekends off do not break a streak. The squares scale with the card (about 10–24px); narrower screens scroll the grid horizontally, starting at the newest week, with the weekday labels pinned left. Decision: [adr/0027](./adr/0027-year-heatmap-streaks.md)
 
 ### 3.3 Logs (`/logs`)
 

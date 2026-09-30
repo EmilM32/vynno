@@ -493,6 +493,7 @@
 	"dashboard_heatmap_total": "Łącznie",
 	"dashboard_heatmap_days": "{count} d",
 	"dashboard_heatmap_summary": "Czas mierzony dzień po dniu w ostatnich 12 miesiącach. Aktywne dni: {active}, łącznie {total}.",
+	"dashboard_heatmap_scroll_aria": "Siatka roku, najnowszy tydzień po prawej",
 	"dashboard_heatmap_hint": "Pełny kwadrat to osiągnięty dzienny cel ({target}). Wolny weekend nie przerywa serii.",
 	"dashboard_heatmap_less": "Mniej",
 	"dashboard_heatmap_more": "Więcej"

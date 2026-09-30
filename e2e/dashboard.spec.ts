@@ -9,7 +9,8 @@ import {
 	spaGo,
 	startSession,
 	stopSession,
-	uniqueNote
+	uniqueNote,
+	waitForClient
 } from './helpers';
 
 test.describe('dashboard', () => {
@@ -53,6 +54,61 @@ test.describe('dashboard', () => {
 		await expect(
 			heatmap.getByRole('img', { name: /last 12 months: 2 active days/ })
 		).toBeAttached();
+	});
+
+	test('year heatmap fills the card on a desktop width', async ({ page }) => {
+		await page.setViewportSize({ width: 1280, height: 800 });
+		await login(page);
+		await page.goto('/dashboard');
+		const heatmap = page.getByRole('region', { name: 'Last 12 months' });
+		const scroller = heatmap.getByRole('region', { name: 'Year grid, newest week on the right' });
+		const grid = heatmap.getByRole('img', { name: /last 12 months/ });
+		await expect(grid).toBeAttached();
+
+		const outer = (await scroller.boundingBox())!;
+		const inner = (await grid.boundingBox())!;
+		expect(Math.abs(inner.x - outer.x)).toBeLessThanOrEqual(1);
+		expect(Math.abs(inner.x + inner.width - (outer.x + outer.width))).toBeLessThanOrEqual(1);
+		expect(await scroller.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+
+		const cell = (await heatmap
+			.locator(`[data-date="${localCivilDay(new Date())}"]`)
+			.boundingBox())!;
+		expect(Math.abs(cell.width - cell.height)).toBeLessThanOrEqual(0.5);
+		expect(cell.width).toBeGreaterThanOrEqual(9.5);
+		expect(cell.width).toBeLessThanOrEqual(24.5);
+	});
+
+	test('year heatmap scrolls inside the card on a phone, newest week first', async ({ page }) => {
+		await page.setViewportSize({ width: 390, height: 844 });
+		await login(page);
+		await page.goto('/dashboard');
+		await waitForClient(page);
+		const heatmap = page.getByRole('region', { name: 'Last 12 months' });
+		const scroller = heatmap.getByRole('region', { name: 'Year grid, newest week on the right' });
+		await scroller.scrollIntoViewIfNeeded();
+		await expect(scroller).toHaveAttribute('tabindex', '0');
+
+		const { overflow, fromNewest } = await scroller.evaluate((el) => ({
+			overflow: el.scrollWidth - el.clientWidth,
+			// Row-reversed: 0 is the newest (right) end, older weeks sit at negative offsets.
+			fromNewest: Math.abs(el.scrollLeft)
+		}));
+		expect(overflow).toBeGreaterThan(0);
+		expect(fromNewest).toBeLessThanOrEqual(1);
+		await expect(heatmap.locator(`[data-date="${localCivilDay(new Date())}"]`)).toBeInViewport();
+		await expect(heatmap.locator('[data-date]').first()).not.toBeInViewport();
+		expect(
+			await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+		).toBeLessThanOrEqual(0);
+
+		// The weekday column sticks to the left edge while the weeks are scrolled.
+		const box = (await scroller.boundingBox())!;
+		const monday = (await heatmap.getByText('Mon', { exact: true }).boundingBox())!;
+		expect(Math.abs(monday.x - box.x)).toBeLessThanOrEqual(1);
+
+		await scroller.evaluate((el) => (el.scrollLeft = -el.scrollWidth));
+		await expect(heatmap.locator('[data-date]').first()).toBeInViewport();
 	});
 
 	test('weekly overview empty state lists the week', async ({ page }) => {

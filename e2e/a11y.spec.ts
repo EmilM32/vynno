@@ -39,6 +39,15 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		});
 	}
 
+	test('dashboard on a phone (heatmap scroll region)', async ({ page }) => {
+		await page.setViewportSize({ width: 390, height: 844 });
+		await login(page);
+		await page.goto('/dashboard');
+		await waitForClient(page);
+		await expect(page.getByTestId('heatmap-active')).not.toHaveText('—');
+		await expectNoViolations(page);
+	});
+
 	test('command palette open', async ({ page }) => {
 		await page.setViewportSize({ width: 390, height: 844 });
 		await login(page);

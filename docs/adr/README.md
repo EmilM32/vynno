@@ -29,6 +29,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0023](./0023-logs-grouped-view.md)           | Logs grouped-by-task layout + expandable notes      | Accepted   |
 | [0024](./0024-session-continuous-interval.md) | Session is a continuous interval (start/stop only)  | Accepted   |
 | [0025](./0025-security-headers.md)            | Security response headers (CSP, frame, referrer)    | Accepted   |
+| [0026](./0026-session-sync.md)                | Keep tabs and devices in step with the server       | Accepted   |
 
 ## Format
 

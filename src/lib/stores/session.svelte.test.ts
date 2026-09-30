@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '$lib/api/errors';
 import { MemoryTimeTrackingRepository } from '$lib/data/memory-repository';
-import { FIXED_NOW, makeProject, makeSession, sampleAppSeed } from '$lib/test/factories';
+import { FIXED_NOW, makeProject, makeSession, ms, sampleAppSeed } from '$lib/test/factories';
+import { createPeerPair } from '$lib/test/peer-pair';
 import { todayTotalMs as aggregateTodayTotalMs } from '$lib/time/aggregates';
 import { startOfYesterday } from '$lib/time/duration';
 import { PrefsStore } from './prefs.svelte';
+import type { SessionPeer } from './session-sync';
 import type { TimeSession } from '$lib/types/domain';
 import { SessionStore } from './session.svelte';
 
@@ -835,5 +837,227 @@ describe('SessionStore sub-second stop', () => {
 		expect(stopSession).toHaveBeenCalledWith('elsewhere');
 		expect(deleteSession).not.toHaveBeenCalled();
 		expect(store.sessions.find((s) => s.id === 'elsewhere')?.status).toBe('stopped');
+	});
+});
+
+const OWNER = 'alexdev@vynno.local';
+
+/** A live row that started an hour ago on the real clock (inside the 7-day live cap). */
+function liveSession(overrides: Partial<TimeSession> = {}): TimeSession {
+	return makeSession({
+		id: 'live',
+		status: 'active',
+		endedAt: undefined,
+		note: 'Going',
+		startedAt: new Date(Date.now() - ms.hours(1)).toISOString(),
+		...overrides
+	});
+}
+
+function signedInStore(owner = OWNER): SessionStore {
+	const prefs = new PrefsStore();
+	prefs.hydrateProfile({ displayName: '', email: owner });
+	return new SessionStore(prefs);
+}
+
+/** Two tabs of one browser: one server, one channel. */
+function twoTabs(seed = sampleAppSeed(), owners: [string, string] = [OWNER, OWNER]) {
+	const repo = new MemoryTimeTrackingRepository(seed);
+	const [peerA, peerB] = createPeerPair();
+	const open = (peer: SessionPeer, owner: string) => {
+		const store = signedInStore(owner);
+		store.hydrate(seed, { repo, peer });
+		return store;
+	};
+	return { repo, a: open(peerA, owners[0]), b: open(peerB, owners[1]) };
+}
+
+describe('SessionStore sync between tabs', () => {
+	let tabs: SessionStore[] = [];
+
+	afterEach(() => {
+		for (const t of tabs) t.reset();
+		tabs = [];
+		vi.restoreAllMocks();
+	});
+
+	function open(...args: Parameters<typeof twoTabs>) {
+		const opened = twoTabs(...args);
+		tabs = [opened.a, opened.b];
+		return opened;
+	}
+
+	it('shows a session started in one tab as live in the other', async () => {
+		const { a, b } = open();
+		await a.start({ projectId: 'proj-auth', note: 'Pairing' });
+
+		expect(b.activeSession?.id).toBe(a.activeSession?.id);
+		expect(b.draftNote).toBe('Pairing');
+		expect(b.error).toBeNull();
+	});
+
+	it('leaves the other tab idle with the stopped row after a stop', async () => {
+		const { a, b } = open({ ...sampleAppSeed(), sessions: [liveSession()] });
+		await a.stop();
+
+		expect(b.activeSession).toBeNull();
+		const row = b.sessions.find((s) => s.id === 'live');
+		expect(row?.status).toBe('stopped');
+		expect(row?.endedAt).toBe(a.sessions.find((s) => s.id === 'live')?.endedAt);
+		expect(b.draftNote).toBe('Going');
+	});
+
+	it('replays edits, deletes and manual entries', async () => {
+		const { a, b } = open();
+		await a.updateSession('sess-today-1', { note: 'Renamed' });
+		await a.deleteSession('sess-yest-1');
+		const manual = await a.createManualSession({
+			projectId: 'proj-auth',
+			note: 'Forgot the timer',
+			startedAt: new Date(Date.now() - ms.hours(3)).toISOString(),
+			endedAt: new Date(Date.now() - ms.hours(2)).toISOString()
+		});
+
+		expect(b.sessions.find((s) => s.id === 'sess-today-1')?.note).toBe('Renamed');
+		expect(b.sessions.some((s) => s.id === 'sess-yest-1')).toBe(false);
+		expect(b.sessions.some((s) => s.id === manual?.id)).toBe(true);
+	});
+
+	it('keeps cached session counts in step with the other tab', async () => {
+		const { a, b } = open();
+		expect(await b.ensureSessionCount('project', 'proj-auth')).toBe(3);
+
+		const manual = await a.createManualSession({
+			projectId: 'proj-auth',
+			note: 'Extra',
+			startedAt: new Date(Date.now() - ms.hours(3)).toISOString(),
+			endedAt: new Date(Date.now() - ms.hours(2)).toISOString()
+		});
+		expect(b.countSessionsForProject('proj-auth')).toBe(4);
+
+		await a.deleteSession(manual!.id);
+		expect(b.countSessionsForProject('proj-auth')).toBe(3);
+	});
+
+	it('updates project and activity type pickers in the other tab', async () => {
+		const { a, b } = open();
+		const project = await a.createProject({ name: 'Billing', color: '#3b82f6', code: 'BILL' });
+		const type = await a.createActivityType({ name: 'review', color: 'primary' });
+
+		expect(b.projects.some((p) => p.id === project?.id)).toBe(true);
+		expect(b.activityTypes.some((t) => t.id === type?.id)).toBe(true);
+
+		await a.archiveProject(project!.id);
+		expect(b.projects.some((p) => p.id === project?.id)).toBe(false);
+		expect(b.allProjects.find((p) => p.id === project?.id)?.isArchived).toBe(true);
+
+		await a.deleteActivityType(type!.id);
+		expect(b.activityTypes.some((t) => t.id === type?.id)).toBe(false);
+	});
+
+	it('ignores changes made under another account', async () => {
+		const { a, b } = open(sampleAppSeed(), [OWNER, 'someone@else.local']);
+		await a.start({ projectId: 'proj-auth', note: 'Mine' });
+
+		expect(b.activeSession).toBeNull();
+	});
+
+	it('stops listening after reset', async () => {
+		const { a, b } = open();
+		b.reset();
+		expect(await a.createProject({ name: 'After', color: '#3b82f6', code: 'AFTR' })).not.toBeNull();
+
+		expect(b.allProjects).toEqual([]);
+	});
+});
+
+describe('SessionStore reconcile with other devices', () => {
+	let store: SessionStore;
+
+	afterEach(() => {
+		store?.reset();
+		vi.restoreAllMocks();
+	});
+
+	function openWith(sessions: TimeSession[]) {
+		const seed = { ...sampleAppSeed(), sessions };
+		const repo = new MemoryTimeTrackingRepository(seed);
+		store = signedInStore();
+		store.hydrate(seed, { repo, peer: null });
+		return repo;
+	}
+
+	it('picks up a session stopped on another device', async () => {
+		const repo = openWith([liveSession()]);
+		const stopped = await repo.stopSession('live');
+
+		expect(await store.reconcileActive()).toBe(true);
+		expect(store.activeSession).toBeNull();
+		expect(store.sessions.find((s) => s.id === 'live')?.endedAt).toBe(stopped.endedAt);
+		expect(store.draftNote).toBe('Going');
+	});
+
+	it('picks up a session started on another device', async () => {
+		const repo = openWith(sampleAppSeed().sessions);
+		await store.ensureSessionCount('project', 'proj-auth');
+		const started = await repo.startSession({ projectId: 'proj-auth', note: 'From phone' });
+
+		await store.reconcileActive();
+		expect(store.activeSession?.id).toBe(started.id);
+		expect(store.draftNote).toBe('From phone');
+		expect(store.countSessionsForProject('proj-auth')).toBe(4);
+	});
+
+	it('adopts edits to the live session from another device', async () => {
+		const repo = openWith([liveSession()]);
+		await repo.updateSession('live', { note: 'Renamed on phone', ticketId: 'DEV-9' });
+
+		await store.reconcileActive();
+		expect(store.activeSession?.note).toBe('Renamed on phone');
+		expect(store.draftTicket).toBe('DEV-9');
+	});
+
+	it('drops a live session deleted on another device', async () => {
+		const repo = openWith([liveSession()]);
+		await repo.deleteSession('live');
+
+		await store.reconcileActive();
+		expect(store.activeSession).toBeNull();
+		expect(store.sessions.some((s) => s.id === 'live')).toBe(false);
+	});
+
+	it('shows idle, not an error, when Stop loses to another device', async () => {
+		const repo = openWith([liveSession()]);
+		await repo.stopSession('live');
+
+		await store.stop();
+		expect(store.error).toBeNull();
+		expect(store.activeSession).toBeNull();
+		expect(store.sessions.find((s) => s.id === 'live')?.status).toBe('stopped');
+	});
+
+	it('reports the failed stop when the server cannot be re-read', async () => {
+		const repo = openWith([liveSession()]);
+		await repo.stopSession('live');
+		vi.spyOn(repo, 'getActiveSession').mockRejectedValue(new Error('offline'));
+
+		await store.stop();
+		expect(store.error).not.toBeNull();
+		expect(store.activeSession?.id).toBe('live');
+	});
+
+	it('lets a local write that lands during the read win', async () => {
+		const repo = openWith([liveSession()]);
+		let release!: (value: TimeSession | null) => void;
+		vi.spyOn(repo, 'getActiveSession').mockReturnValueOnce(
+			new Promise((resolve) => (release = resolve))
+		);
+
+		const reconciling = store.reconcileActive();
+		await store.updateSession('live', { note: 'Typed here' });
+		release(null);
+		await reconciling;
+
+		expect(store.activeSession?.note).toBe('Typed here');
 	});
 });

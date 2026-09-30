@@ -10,6 +10,12 @@ import type { TimeTrackingRepository } from '$lib/data/repository';
 import { m } from '$lib/paraglide/messages.js';
 import { type PrefsStore } from '$lib/stores/prefs.svelte';
 import {
+	createBroadcastPeer,
+	type PeerChange,
+	type PeerMessage,
+	type SessionPeer
+} from '$lib/stores/session-sync';
+import {
 	projectWeekSummaries,
 	recentStoppedSessions,
 	recentTasks,
@@ -46,6 +52,9 @@ const DRAIN_BATCH_PAGES = 5;
  */
 const DISCARD_UNDER_MS = 1000;
 
+/** A tab regaining focus re-reads the live session at most this often. */
+const RECONCILE_MIN_GAP_MS = 5000;
+
 /** Monotonic ms; immune to wall-clock skew and adjustments. */
 function monotonicMs(): number {
 	return performance.now();
@@ -57,10 +66,35 @@ function isSessionAlreadyActive(e: unknown): boolean {
 	return (e instanceof ApiError || e instanceof DomainError) && e.code === 'session_already_active';
 }
 
+/** Stop lost a race with another tab or device that already stopped or deleted the row. */
+function isEndedElsewhere(e: unknown): boolean {
+	return (
+		(e instanceof ApiError || e instanceof DomainError) &&
+		(e.code === 'invalid_transition' || e.code === 'not_found')
+	);
+}
+
+function sameSession(a: TimeSession, b: TimeSession | null): boolean {
+	return (
+		b != null &&
+		a.id === b.id &&
+		a.status === b.status &&
+		a.projectId === b.projectId &&
+		a.note === b.note &&
+		a.ticketId === b.ticketId &&
+		a.activityTypeId === b.activityTypeId &&
+		a.startedAt === b.startedAt &&
+		a.endedAt === b.endedAt &&
+		a.targetDurationMs === b.targetDurationMs
+	);
+}
+
 export type HydrateOptions = {
 	nowMs?: number;
 	timeZone?: string;
 	repo?: TimeTrackingRepository;
+	/** Sibling-tab channel. Defaults to a BroadcastChannel in the browser. */
+	peer?: SessionPeer | null;
 };
 
 /** Session counts live in a `$state.raw` map, so drop a key by rebuilding it. */
@@ -115,6 +149,10 @@ export class SessionStore {
 	/** Session started from this tab and the monotonic time of that Start. */
 	#localStart: { id: string; atMs: number } | null = null;
 	#pageLoading = false;
+	/** Bumped by every local write so a background reconcile can tell it went stale. */
+	#writes = 0;
+	#lastReconcileAt = -Infinity;
+	#peer: SessionPeer | null = null;
 	#countInflight = new SvelteMap<string, Promise<number | undefined>>();
 
 	/** Active (non-archived) projects for pickers. */
@@ -194,6 +232,7 @@ export class SessionStore {
 		if (opts.repo) {
 			this.#repo = opts.repo;
 		}
+		if (opts.peer !== undefined) this.#bindPeer(opts.peer);
 		if (browser) {
 			this.#repo ??= createRepository();
 			this.#bindVisibility();
@@ -464,6 +503,7 @@ export class SessionStore {
 		try {
 			const project = await this.#requireRepo().createProject(input);
 			this.#upsertProject(project);
+			this.#share({ type: 'project', project });
 			// Known-unused without a round-trip; otherwise the delete guard reads
 			// the missing entry as "unknown" and stays blocked until a reload.
 			this.projectSessionCounts = { ...this.projectSessionCounts, [project.id]: 0 };
@@ -482,6 +522,7 @@ export class SessionStore {
 		try {
 			const project = await this.#requireRepo().updateProject(id, input);
 			this.#upsertProject(project);
+			this.#share({ type: 'project', project });
 			return project;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_update_project);
@@ -497,6 +538,7 @@ export class SessionStore {
 		try {
 			const project = await this.#requireRepo().archiveProject(id);
 			this.#upsertProject(project);
+			this.#share({ type: 'project', project });
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_archive_project);
@@ -512,6 +554,7 @@ export class SessionStore {
 		try {
 			const project = await this.#requireRepo().restoreProject(id);
 			this.#upsertProject(project);
+			this.#share({ type: 'project', project });
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_restore_project);
@@ -528,6 +571,7 @@ export class SessionStore {
 			await this.#requireRepo().deleteProject(id);
 			this.#removeProject(id);
 			this.projectSessionCounts = withoutKey(this.projectSessionCounts, id);
+			this.#share({ type: 'project-removed', id });
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_delete_project);
@@ -543,6 +587,7 @@ export class SessionStore {
 		try {
 			const created = await this.#requireRepo().createActivityType(input);
 			this.#upsertActivityType(created);
+			this.#share({ type: 'activity-type', activityType: created });
 			this.activityTypeSessionCounts = { ...this.activityTypeSessionCounts, [created.id]: 0 };
 			return created;
 		} catch (e) {
@@ -562,6 +607,7 @@ export class SessionStore {
 		try {
 			const updated = await this.#requireRepo().updateActivityType(id, input);
 			this.#upsertActivityType(updated);
+			this.#share({ type: 'activity-type', activityType: updated });
 			return updated;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_update_activity_type);
@@ -578,6 +624,7 @@ export class SessionStore {
 			await this.#requireRepo().deleteActivityType(id);
 			this.#removeActivityType(id);
 			this.activityTypeSessionCounts = withoutKey(this.activityTypeSessionCounts, id);
+			this.#share({ type: 'activity-type-removed', id });
 			return true;
 		} catch (e) {
 			this.error = userMessageForError(e, m.error_failed_delete_activity_type);
@@ -615,6 +662,7 @@ export class SessionStore {
 			this.#localStart = { id: started.id, atMs: pressedAt };
 			this.#upsertSession(started);
 			this.#adjustSessionCount(started.projectId, started.activityTypeId, 1);
+			this.#share({ type: 'session', session: started, created: true });
 			announce(m.announce_session_started());
 		} catch (e) {
 			if (isSessionAlreadyActive(e)) {
@@ -670,6 +718,7 @@ export class SessionStore {
 		try {
 			const updated = await this.#requireRepo().updateSession(id, input);
 			this.#upsertSession(updated);
+			this.#share({ type: 'session', session: updated, created: false });
 			if (updated.status === 'active') {
 				this.#applyDraftFromSession(updated);
 			}
@@ -693,6 +742,12 @@ export class SessionStore {
 			if (existing) {
 				this.#adjustSessionCount(existing.projectId, existing.activityTypeId, -1);
 			}
+			this.#share({
+				type: 'session-removed',
+				id,
+				projectId: existing?.projectId,
+				activityTypeId: existing?.activityTypeId
+			});
 			announce(m.announce_session_deleted());
 			return true;
 		} catch (e) {
@@ -710,6 +765,7 @@ export class SessionStore {
 			const created = await this.#requireRepo().createManualSession(input);
 			this.#upsertSession(created);
 			this.#adjustSessionCount(created.projectId, created.activityTypeId, 1);
+			this.#share({ type: 'session', session: created, created: true });
 			announce(m.announce_session_created());
 			return created;
 		} catch (e) {
@@ -727,6 +783,7 @@ export class SessionStore {
 		this.error = null;
 		const local = this.#localStart?.id === s.id ? this.#localStart : null;
 		const localMs = local ? monotonicMs() - local.atMs : null;
+		let endedElsewhere = false;
 		try {
 			const sentAt = Date.now();
 			const stopped = await this.#requireRepo().stopSession(s.id);
@@ -741,15 +798,68 @@ export class SessionStore {
 				await this.#requireRepo().deleteSession(s.id);
 				this.#removeSession(s.id);
 				this.#adjustSessionCount(s.projectId, s.activityTypeId, -1);
+				this.#share({
+					type: 'session-removed',
+					id: s.id,
+					projectId: s.projectId,
+					activityTypeId: s.activityTypeId
+				});
 				return;
 			}
 			this.#applyDraftFromSession(stopped);
 			this.#upsertSession(stopped);
+			this.#share({ type: 'session', session: stopped, created: false });
 			announce(m.announce_session_stopped());
 		} catch (e) {
-			this.error = userMessageForError(e, m.error_failed_stop);
+			if (isEndedElsewhere(e)) endedElsewhere = true;
+			else this.error = userMessageForError(e, m.error_failed_stop);
 		} finally {
 			this.#end();
+		}
+		if (!endedElsewhere) return;
+		// The user wanted it stopped and it is: show the server's version, not an error.
+		if (!(await this.reconcileActive())) this.error = m.error_failed_stop();
+		else if (!this.activeSession) announce(m.announce_session_stopped());
+	};
+
+	/**
+	 * Fold the server's live session into this tab. Another tab or device may have
+	 * started, stopped, edited or deleted it since this tab last looked.
+	 * Background work: a local write in flight wins, and the result is `false`
+	 * only when the server could not be read.
+	 */
+	reconcileActive = async (): Promise<boolean> => {
+		const repo = this.#repo;
+		if (!repo || this.pendingAction) return true;
+		const writes = this.#writes;
+		const stale = () =>
+			this.#repo !== repo || this.#writes !== writes || this.pendingAction != null;
+		const local = this.activeSession;
+		try {
+			const server = await repo.getActiveSession();
+			if (stale()) return true;
+			if (local && local.id !== server?.id) {
+				const ended = await repo.getSession(local.id);
+				if (stale()) return true;
+				if (this.#localStart?.id === local.id) this.#localStart = null;
+				if (ended) {
+					this.#upsertSession(ended);
+					if (!server) this.#applyDraftFromSession(ended);
+				} else {
+					this.#removeSession(local.id);
+					this.#adjustSessionCount(local.projectId, local.activityTypeId, -1);
+				}
+			}
+			if (server && !sameSession(server, local)) {
+				const known = this.#loadedSessionIds.has(server.id);
+				this.#mergeActive(server);
+				this.#applyDraftFromSession(server);
+				if (!known) this.#adjustSessionCount(server.projectId, server.activityTypeId, 1);
+			}
+			this.#syncClock();
+			return true;
+		} catch {
+			return false;
 		}
 	};
 
@@ -805,6 +915,7 @@ export class SessionStore {
 	#begin = (action: 'start' | 'stop' | 'project' | 'profile' | 'activity' | 'session'): boolean => {
 		if (this.pendingAction) return false;
 		this.pendingAction = action;
+		this.#writes += 1;
 		return true;
 	};
 
@@ -906,10 +1017,81 @@ export class SessionStore {
 		if (this.#visibilityBound || typeof document === 'undefined') return;
 		this.#visibilityBound = true;
 		document.addEventListener('visibilitychange', this.#onVisible);
+		if (!this.#peer) this.#bindPeer(createBroadcastPeer());
 	};
 
+	/** Coming back to the tab: fix the clock, then catch up with other devices. */
 	#onVisible = (): void => {
-		if (document.visibilityState === 'visible') this.#syncClock();
+		if (document.visibilityState !== 'visible') return;
+		this.#syncClock();
+		const now = monotonicMs();
+		if (now - this.#lastReconcileAt < RECONCILE_MIN_GAP_MS) return;
+		this.#lastReconcileAt = now;
+		void this.reconcileActive();
+	};
+
+	#bindPeer = (peer: SessionPeer | null): void => {
+		this.#peer?.close();
+		this.#peer = peer;
+		peer?.listen(this.#onPeer);
+	};
+
+	#share = (change: PeerChange): void => {
+		this.#peer?.post({ ...change, owner: this.#prefs.email });
+	};
+
+	/** Replay a sibling tab's write. Mirrors what the local write path does. */
+	#onPeer = (message: PeerMessage): void => {
+		if (!this.#hydrated || message.owner !== this.#prefs.email) return;
+		switch (message.type) {
+			case 'session':
+				this.#applyPeerSession(message.session, message.created);
+				return;
+			case 'session-removed': {
+				const existing = this.sessions.find((s) => s.id === message.id);
+				const projectId = message.projectId ?? existing?.projectId;
+				if (this.#localStart?.id === message.id) this.#localStart = null;
+				this.#removeSession(message.id);
+				if (projectId) {
+					this.#adjustSessionCount(
+						projectId,
+						message.activityTypeId ?? existing?.activityTypeId,
+						-1
+					);
+				}
+				return;
+			}
+			case 'project':
+				this.#upsertProject(message.project);
+				return;
+			case 'project-removed':
+				this.#removeProject(message.id);
+				this.projectSessionCounts = withoutKey(this.projectSessionCounts, message.id);
+				return;
+			case 'activity-type':
+				this.#upsertActivityType(message.activityType);
+				return;
+			case 'activity-type-removed':
+				this.#removeActivityType(message.id);
+				this.activityTypeSessionCounts = withoutKey(this.activityTypeSessionCounts, message.id);
+				return;
+		}
+	};
+
+	#applyPeerSession = (session: TimeSession, created: boolean): void => {
+		const wasActive = this.activeSession;
+		const known = this.#loadedSessionIds.has(session.id);
+		if (this.#localStart?.id === session.id && session.status !== 'active') {
+			this.#localStart = null;
+		}
+		this.#upsertSession(session);
+		if (created && !known) {
+			this.#adjustSessionCount(session.projectId, session.activityTypeId, 1);
+		}
+		// Same draft rules as a local start, edit or stop of the live row.
+		if (session.status === 'active' || wasActive?.id === session.id) {
+			this.#applyDraftFromSession(session);
+		}
 	};
 
 	#upsertById = <T extends { id: string }>(list: T[], item: T): T[] => {
@@ -1137,6 +1319,8 @@ export class SessionStore {
 			document.removeEventListener('visibilitychange', this.#onVisible);
 			this.#visibilityBound = false;
 		}
+		this.#bindPeer(null);
+		this.#lastReconcileAt = -Infinity;
 		this.#repo = null;
 		this.#hydrated = false;
 		this.nowMs = 0;

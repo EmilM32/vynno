@@ -156,3 +156,4 @@ User-owned dictionary row. `name` uses the same 1–80 code-point rules as a pro
 2. **Sessions are mutable.** PATCH and DELETE apply to any row. Status still changes only via stop. Decision: [adr/0024-session-continuous-interval.md](./adr/0024-session-continuous-interval.md).
 3. **Duration precision** — track milliseconds; display as `HH:MM:SS` on Timer and compact `Xh Ym` on lists.
 4. **Single-user.** Identity is the HttpOnly session cookie. No multi-user ownership fields in the UI model.
+5. **Tabs and devices converge.** Sibling tabs replay each other's writes; a tab re-reads the live session when it regains focus, and a Stop that lost a race shows the server's stopped row instead of an error. Decision: [adr/0026-session-sync.md](./adr/0026-session-sync.md).

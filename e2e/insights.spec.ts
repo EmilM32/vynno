@@ -3,9 +3,11 @@ import {
 	createProject,
 	firstProjectId,
 	localCivilDay,
+	localDayAt,
 	login,
 	pastSpansOnCurrentDay,
 	seedManualSession,
+	seedManySessions,
 	uniqueNote,
 	waitForClient
 } from './helpers';
@@ -319,6 +321,46 @@ test.describe('insights', () => {
 		await waitForClient(page);
 		await expect(delta).toHaveText('0.0h vs previous period');
 		await expect(page.getByText('Total Time')).toHaveCount(0);
+	});
+
+	test('an old range reads day totals instead of paging history', async ({ page }, testInfo) => {
+		test.skip(testInfo.project.name === 'mobile', 'network shape, not layout');
+		const projectId = await firstProjectId(page);
+		// More than the SSR page plus one bulk page, all inside the last 30 days, so the
+		// default week's drain stops long before the old session.
+		await seedManySessions(page, { count: 130, projectIds: [projectId], spanMs: 30 * 86_400_000 });
+		const old = localDayAt(60, 10);
+		await seedManualSession(page, {
+			note: uniqueNote('two-months-ago'),
+			projectId,
+			startedAt: old.toISOString(),
+			endedAt: new Date(old.getTime() + 2 * 3_600_000).toISOString()
+		});
+
+		await page.goto('/insights');
+		await waitForClient(page);
+		await page.getByRole('button', { name: 'Custom' }).click();
+		const dialog = page.getByRole('dialog', { name: 'Custom range' });
+		const from = localCivilDay(localDayAt(62));
+		const to = localCivilDay(localDayAt(58));
+		await dialog.getByLabel('From').fill(from);
+		await dialog.getByLabel('To').fill(to);
+		const [totals] = await Promise.all([
+			page.waitForResponse((r) => {
+				const url = new URL(r.url());
+				return (
+					url.pathname === '/v1/stats/days' &&
+					url.searchParams.get('from') === from &&
+					url.searchParams.get('to') === to
+				);
+			}),
+			dialog.getByRole('button', { name: 'Apply' }).click()
+		]);
+		expect(totals.status()).toBe(200);
+		await expect(
+			page.getByRole('img', { name: 'Project distribution, total 02h 00m' })
+		).toBeVisible();
+		await expect(page.getByTestId('insights-charts')).toHaveAttribute('aria-busy', 'false');
 	});
 
 	test('custom range dialog validates inverted dates', async ({ page }) => {

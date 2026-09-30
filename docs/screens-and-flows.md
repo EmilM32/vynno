@@ -101,6 +101,7 @@ Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 3. **Active Projects** — horizontal cards: color, name, optional progress %, week hours → `/projects/[id]`
 4. **Weekly Overview** — bar chart Mon–Sun. Empty week: “Not enough data yet”. Sub-hour week: Y axis in minutes
 5. **Recent Logs** — compact list + restart (disabled while live). On mobile this block sits after Current Focus, before Active Projects / Weekly Overview
+6. **Last 12 months** — year heatmap from `/stats/days`, shaded against the daily target, with current streak, best streak, active days, and total. Weekends off do not break a streak. Narrow screens clip the oldest weeks. Decision: [adr/0027](./adr/0027-year-heatmap-streaks.md)
 
 ### 3.3 Logs (`/logs`)
 
@@ -125,19 +126,24 @@ Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs
 5. Activity Breakdown table — same Unassigned rows per project; same visibility filter
 6. Mobile: grain + civil label on one line; the donut card is at least 16rem and grows (legend capped at six projects plus Other) so the ring stays visible. Activity height follows content and uses the same cap. Desktop `lg`: the row is at least `h-96`.
 
+7. Data: a range that includes today is computed from loaded sessions (drained to the previous window). A past range reads `/stats/days` unless its sessions are already loaded, so going back a year is one request. While totals load, the charts dim and "Loading totals…" shows.
+
 Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
 
 ### 3.5 Settings (`/settings`)
 
-Profile and activity types sync to the account. Theme, daily target, and default project stay on this device (`vynno_prefs`).
+Profile, activity types, daily target, and default project sync to the account. Theme, language, notifications, and the long session reminder stay on this device; the Preferences card says so under its heading.
 
 - Profile (display name, avatar). Save name appears only while the field is dirty. Log out is a separated danger action at the card foot.
+- Security: two forms side by side on desktop, stacked on mobile.
+  - **Change password**: current, new, confirm. Success keeps this browser signed in, signs out every other device, and says so. A wrong current password reads "Current password is incorrect." (the session stays).
+  - **Change email**: new email + current password → **Send code**; the code field replaces the password field, with **Resend code** and **Use a different email**. **Change email** switches the sign-in email, relabels Profile and the nav, and signs out other devices. The old address gets a notice mail.
 - Appearance (named theme list)
 - Language (Paraglide, no URL prefixes)
-- Daily hour target (device cookie `vynno_prefs`; unit shown in the field)
+- Daily hour target (account; 1–16 h, unit shown in the field). Saved on commit (blur, Enter, spinner), not per keystroke.
 - Desktop notifications (switch; device-local `localStorage`, plus the browser permission it asks for when turned on). Blocked or unsupported browsers show why and disable the switch.
 - Long session reminder: Off · 2h · 3h · 4h (default) · 6h · 8h. Device-local `localStorage`.
-- Default project
+- Default project (account). An archived default shows as the first active project; the saved choice is not rewritten.
 - Activity types: chip is the row label (compact, not full-bleed); Edit/Delete on the same row; Add / Edit form dialog; Delete confirm
 - About (version as a muted chip) + Log out
 
@@ -247,15 +253,15 @@ A break is stop, then start again (new session). There is no pause. Grouped logs
 
 ## 5. Cross-screen data dependencies
 
-| Screen       | Reads                                                  | Writes                                             |
-| ------------ | ------------------------------------------------------ | -------------------------------------------------- |
-| Timer        | Active session, recent sessions, **active** projects   | Start/stop                                         |
-| Dashboard    | Aggregates + active session + recent                   | Restart (creates session)                          |
-| Logs         | Stopped sessions, projects (incl. archived for labels) | Search; edit/delete; manual entry                  |
-| Insights     | Aggregates for period                                  | Period toggle only                                 |
-| Projects     | All projects + session counts                          | Create/update/archive/restore/delete               |
-| Project view | One project + its sessions + period aggregates         | Edit / archive / restore; start or restart session |
-| Settings     | Profile / prefs, active projects                       | Daily target, default project, profile, theme      |
+| Screen       | Reads                                                  | Writes                                                         |
+| ------------ | ------------------------------------------------------ | -------------------------------------------------------------- |
+| Timer        | Active session, recent sessions, **active** projects   | Start/stop                                                     |
+| Dashboard    | Aggregates + active session + recent                   | Restart (creates session)                                      |
+| Logs         | Stopped sessions, projects (incl. archived for labels) | Search; edit/delete; manual entry                              |
+| Insights     | Aggregates for period                                  | Period toggle only                                             |
+| Projects     | All projects + session counts                          | Create/update/archive/restore/delete                           |
+| Project view | One project + its sessions + period aggregates         | Edit / archive / restore; start or restart session             |
+| Settings     | Profile / prefs, active projects                       | Daily target, default project, profile, password, email, theme |
 
 ---
 

@@ -30,6 +30,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0024](./0024-session-continuous-interval.md) | Session is a continuous interval (start/stop only)  | Accepted   |
 | [0025](./0025-security-headers.md)            | Security response headers (CSP, frame, referrer)    | Accepted   |
 | [0026](./0026-session-sync.md)                | Keep tabs and devices in step with the server       | Accepted   |
+| [0027](./0027-year-heatmap-streaks.md)        | Dashboard year heatmap and streaks                  | Accepted   |
 
 ## Format
 

@@ -18,6 +18,9 @@ function idleActive(): Response {
 
 function route(url: string, active: Response = idleActive()): Response {
 	if (url.endsWith('/me')) return jsonResponse(sampleProfileDto());
+	if (url.endsWith('/me/prefs')) {
+		return jsonResponse({ dailyTargetMs: 6 * 3_600_000, defaultProjectId: null });
+	}
 	if (url.includes('/projects')) return jsonResponse(sampleProjectListDto());
 	if (url.includes('/activity-types')) return jsonResponse({ items: [] });
 	if (url.includes('/sessions/active')) return active;
@@ -26,11 +29,12 @@ function route(url: string, active: Response = idleActive()): Response {
 }
 
 describe('loadAppSeed', () => {
-	it('fetches me, projects, sessions, and the active session in parallel', async () => {
+	it('fetches me, prefs, projects, sessions, and the active session in parallel', async () => {
 		const fetchFn = vi.fn(async (input: RequestInfo | URL) => route(String(input)));
 
 		const loaded = await loadAppSeed(fetchFn, api);
-		expect(fetchFn).toHaveBeenCalledTimes(5);
+		expect(fetchFn).toHaveBeenCalledTimes(6);
+		expect(loaded.prefs).toEqual({ dailyTargetMs: 6 * 3_600_000 });
 		expect(String(fetchFn.mock.calls.find((c) => String(c[0]).includes('/sessions?'))?.[0])).toBe(
 			`${api}/sessions?limit=15`
 		);
@@ -58,7 +62,9 @@ describe('loadAppSeed', () => {
 			status: 'active',
 			startedAt: '2026-03-11T10:00:00.000Z'
 		});
-		const fetchFn = vi.fn(async (input: RequestInfo | URL) => route(String(input), jsonResponse(dto)));
+		const fetchFn = vi.fn(async (input: RequestInfo | URL) =>
+			route(String(input), jsonResponse(dto))
+		);
 		const loaded = await loadAppSeed(fetchFn, api);
 		expect(loaded.active).toMatchObject({
 			id: 'sess-live',
@@ -85,10 +91,7 @@ describe('loadAppSeed', () => {
 
 	it('fails the whole seed when the active session errors for another reason', async () => {
 		const fetchFn = vi.fn(async (input: RequestInfo | URL) =>
-			route(
-				String(input),
-				jsonResponse({ error: { code: 'http_error', message: 'down' } }, 500)
-			)
+			route(String(input), jsonResponse({ error: { code: 'http_error', message: 'down' } }, 500))
 		);
 		await expect(loadAppSeed(fetchFn, api)).rejects.toMatchObject({
 			status: 500,

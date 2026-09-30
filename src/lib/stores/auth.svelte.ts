@@ -11,11 +11,19 @@ export const AUTH_REMEMBER_KEY = 'vynno-auth-remember';
 function readStoredEmail(): string {
 	if (!browser) return '';
 	try {
-		const remember = localStorage.getItem(AUTH_REMEMBER_KEY) !== '0';
-		const store = remember ? localStorage : sessionStorage;
+		const store = readRemember() ? localStorage : sessionStorage;
 		return store.getItem(AUTH_STORAGE_KEY) ?? '';
 	} catch {
 		return '';
+	}
+}
+
+function readRemember(): boolean {
+	if (!browser) return true;
+	try {
+		return localStorage.getItem(AUTH_REMEMBER_KEY) !== '0';
+	} catch {
+		return true;
 	}
 }
 
@@ -60,6 +68,13 @@ class AuthStore {
 		this.email = email.trim();
 		this.loggedIn = true;
 		persistEmail(this.email, rememberMe);
+	};
+
+	/** The same session under a new sign-in email. Keeps the remember-me choice. */
+	updateEmail = (email: string): void => {
+		if (!this.loggedIn) return;
+		this.email = email.trim();
+		persistEmail(this.email, readRemember());
 	};
 
 	clearSession = (): void => {

@@ -1,7 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '$lib/api/errors';
-import { MemoryTimeTrackingRepository } from '$lib/data/memory-repository';
-import { FIXED_NOW, makeProject, makeSession, ms, sampleAppSeed } from '$lib/test/factories';
+import {
+	MEMORY_EMAIL_CODE,
+	MEMORY_PASSWORD,
+	MemoryTimeTrackingRepository
+} from '$lib/data/memory-repository';
+import { m } from '$lib/paraglide/messages.js';
+import {
+	FIXED_NOW,
+	makeProject,
+	makeSession,
+	ms,
+	PROJECT_IDS,
+	sampleAppSeed
+} from '$lib/test/factories';
 import { createPeerPair } from '$lib/test/peer-pair';
 import { todayTotalMs as aggregateTodayTotalMs } from '$lib/time/aggregates';
 import { startOfYesterday } from '$lib/time/duration';
@@ -278,14 +290,14 @@ describe('SessionStore draft activity', () => {
 		};
 		const prefs = new PrefsStore();
 		prefs.hydrateProfile(seed.profile);
-		prefs.applyStored({ defaultProjectId: 'proj-b', dailyTargetHours: 6 });
+		prefs.applyPrefs({ defaultProjectId: 'proj-b', dailyTargetMs: 6 * 3_600_000 });
 		store = new SessionStore(prefs);
 		store.hydrate(seed);
 		expect(store.draftProjectId).toBe('proj-b');
 		expect(prefs.defaultProjectId).toBe('proj-b');
 	});
 
-	it('falls back to the first active project when the stored default is gone', () => {
+	it('falls back to the first active project without rewriting a stale default', () => {
 		const seed = {
 			...sampleAppSeed(),
 			projects: [
@@ -296,11 +308,12 @@ describe('SessionStore draft activity', () => {
 		};
 		const prefs = new PrefsStore();
 		prefs.hydrateProfile(seed.profile);
-		prefs.applyStored({ defaultProjectId: 'proj-archived', dailyTargetHours: 8 });
+		prefs.applyPrefs({ defaultProjectId: 'proj-archived' });
 		store = new SessionStore(prefs);
 		store.hydrate(seed);
 		expect(store.draftProjectId).toBe('proj-a');
-		expect(prefs.defaultProjectId).toBe('proj-a');
+		expect(store.defaultProjectId).toBe('proj-a');
+		expect(prefs.defaultProjectId).toBe('proj-archived');
 	});
 
 	it('does not start a wall-clock interval on hydrate', () => {
@@ -1158,5 +1171,125 @@ describe('SessionStore stopAt', () => {
 		expect(await store.stopAt(new Date(Date.now() - ms.hours(1)).toISOString())).toBe(false);
 		expect(update).not.toHaveBeenCalled();
 		expect(store.activeSession?.id).toBe('live');
+	});
+});
+
+describe('SessionStore account prefs', () => {
+	let tabs: SessionStore[] = [];
+
+	afterEach(() => {
+		for (const t of tabs) t.reset();
+		tabs = [];
+		vi.restoreAllMocks();
+	});
+
+	function openTwo() {
+		const seed = {
+			...sampleAppSeed(),
+			projects: [
+				makeProject({ id: 'proj-a', name: 'Alpha' }),
+				makeProject({ id: 'proj-b', name: 'Beta' })
+			]
+		};
+		const opened = twoTabs(seed);
+		tabs = [opened.a, opened.b];
+		return opened;
+	}
+
+	it('saves a pref to the account and tells the other tab', async () => {
+		const { a, b, repo } = openTwo();
+		expect(await a.savePrefs({ dailyTargetMs: ms.hours(6), defaultProjectId: 'proj-b' })).toBe(
+			true
+		);
+
+		expect(await repo.getPrefs()).toEqual({
+			dailyTargetMs: ms.hours(6),
+			defaultProjectId: 'proj-b'
+		});
+		expect(b.defaultProjectId).toBe('proj-b');
+		expect(a.error).toBeNull();
+	});
+
+	it('shows the change at once and rolls it back when the server refuses', async () => {
+		const { a, repo } = openTwo();
+		let reject!: (e: unknown) => void;
+		vi.spyOn(repo, 'updatePrefs').mockImplementation(() => new Promise((_, r) => (reject = r)));
+		const saving = a.savePrefs({ defaultProjectId: 'proj-b' });
+		expect(a.defaultProjectId).toBe('proj-b');
+
+		reject(new ApiError(404, 'not_found', 'gone'));
+		expect(await saving).toBe(false);
+		expect(a.defaultProjectId).toBe('proj-a');
+		expect(a.error).not.toBeNull();
+	});
+
+	it('keeps the save made last when replies arrive out of order', async () => {
+		const seed = sampleAppSeed();
+		const repo = new MemoryTimeTrackingRepository(seed);
+		const prefs = new PrefsStore();
+		prefs.hydrateProfile(seed.profile);
+		const store = new SessionStore(prefs);
+		store.hydrate(seed, { repo, peer: null });
+		tabs = [store];
+
+		// The server applies both in order; the replies come back swapped.
+		const replies: (() => void)[] = [];
+		const real = repo.updatePrefs.bind(repo);
+		vi.spyOn(repo, 'updatePrefs').mockImplementation((input) => {
+			const saved = real(input);
+			return new Promise((resolve) => replies.push(() => resolve(saved)));
+		});
+		const first = store.savePrefs({ dailyTargetMs: ms.hours(4) });
+		const second = store.savePrefs({ dailyTargetMs: ms.hours(5) });
+		replies[1]!();
+		await second;
+		replies[0]!();
+		await first;
+
+		expect(prefs.dailyTargetMs).toBe(ms.hours(5));
+		expect(await repo.getPrefs()).toEqual({ dailyTargetMs: ms.hours(5) });
+	});
+
+	it('saves silently when asked', async () => {
+		const { a, repo } = openTwo();
+		vi.spyOn(repo, 'updatePrefs').mockRejectedValue(new Error('offline'));
+		expect(await a.savePrefs({ dailyTargetMs: ms.hours(2) }, { silent: true })).toBe(false);
+		expect(a.error).toBeNull();
+	});
+});
+
+describe('SessionStore account security', () => {
+	let tabs: SessionStore[] = [];
+
+	afterEach(() => {
+		for (const t of tabs) t.reset();
+		tabs = [];
+		vi.restoreAllMocks();
+	});
+
+	it('names a wrong current password instead of the login message', async () => {
+		const { a, b } = twoTabs();
+		tabs = [a, b];
+		const message = await a.changePassword({
+			currentPassword: 'nope',
+			newPassword: 'long-enough-1'
+		});
+		expect(message).toBe(m.security_wrong_password());
+		expect(
+			await a.changePassword({ currentPassword: MEMORY_PASSWORD, newPassword: 'long-enough-1' })
+		).toBeNull();
+	});
+
+	it('changes the email and relabels the other tab', async () => {
+		const { a, b } = twoTabs();
+		tabs = [a, b];
+		const email = 'alex.new@vynno.local';
+		expect(await a.requestEmailChange({ email, password: MEMORY_PASSWORD })).toBeNull();
+		expect(await a.changeEmail({ email, code: '000000' })).toBe(m.error_invalid_code());
+		expect(await a.changeEmail({ email, code: MEMORY_EMAIL_CODE })).toBeNull();
+
+		// Both tabs keep syncing under the new email.
+		await a.start({ projectId: PROJECT_IDS.auth, note: 'After the change' });
+		expect(b.activeSession?.note).toBe('After the change');
 	});
 });

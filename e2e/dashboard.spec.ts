@@ -1,5 +1,16 @@
 import { expect, test } from '@playwright/test';
-import { firstProjectId, login, spaGo, startSession, stopSession, uniqueNote } from './helpers';
+import {
+	firstProjectId,
+	localCivilDay,
+	localDayAt,
+	login,
+	pastSpansOnCurrentDay,
+	seedManualSession,
+	spaGo,
+	startSession,
+	stopSession,
+	uniqueNote
+} from './helpers';
 
 test.describe('dashboard', () => {
 	test('renders core regions', async ({ page }) => {
@@ -12,6 +23,36 @@ test.describe('dashboard', () => {
 		await expect(page.getByRole('region', { name: 'Active projects' })).toBeVisible();
 		await expect(page.getByRole('region', { name: 'Weekly overview' })).toBeVisible();
 		await expect(page.getByText('Recent Logs')).toBeVisible();
+	});
+
+	test('year heatmap shades tracked days and counts the streak', async ({ page }) => {
+		await login(page);
+		const yesterday = localDayAt(1, 10);
+		await seedManualSession(page, {
+			note: uniqueNote('heat-yesterday'),
+			startedAt: yesterday.toISOString(),
+			endedAt: new Date(yesterday.getTime() + 3_600_000).toISOString()
+		});
+		const today = pastSpansOnCurrentDay(1, 30 * 60_000)[0]!;
+		await seedManualSession(page, {
+			note: uniqueNote('heat-today'),
+			startedAt: today.startedAt.toISOString(),
+			endedAt: today.endedAt.toISOString()
+		});
+
+		await page.goto('/dashboard');
+		const heatmap = page.getByRole('region', { name: 'Last 12 months' });
+		await expect(heatmap.getByTestId('heatmap-active')).toHaveText('2');
+		await expect(heatmap.getByTestId('heatmap-streak')).toHaveText('2d');
+		await expect(heatmap.getByTestId('heatmap-best')).toHaveText('2d');
+		// An hour against the default 8h target is the lightest shade.
+		await expect(heatmap.locator(`[data-date="${localCivilDay(yesterday)}"]`)).toHaveAttribute(
+			'data-level',
+			'1'
+		);
+		await expect(
+			heatmap.getByRole('img', { name: /last 12 months: 2 active days/ })
+		).toBeAttached();
 	});
 
 	test('weekly overview empty state lists the week', async ({ page }) => {

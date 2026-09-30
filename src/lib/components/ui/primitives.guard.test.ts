@@ -40,6 +40,8 @@ const RAW_FIELD_ALLOWLIST: Record<string, string> = {
 		'flush command field — parent :focus-within is the indicator',
 	'lib/components/timer/TaskInput.svelte': 'command / quick input — not a form field',
 	'lib/components/settings/SettingsView.svelte': 'hidden file input for avatar',
+	'lib/components/settings/SecuritySection.svelte':
+		'hidden username field so password managers file the new password under this account',
 	'lib/components/auth/LoginView.svelte': 'remember-me checkbox — wait for a third checkbox'
 };
 

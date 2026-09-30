@@ -43,9 +43,13 @@ Do not reintroduce module singletons on the server.
 2. **No shared mutable module state on the server.** Fresh store per request via context; client singleton only after hydrate so the timer survives in-app navigation. `load` stays pure.
 3. **Time contract.** Serialize `nowMs`. First-paint aggregates use seed `nowMs`, not bare `Date.now()` in render paths. Start the live clock only in the browser.
 4. **Timezone contract.** Format SSR-visible times and day keys with the explicit shared `timeZone` (`vynno_tz` cookie, fallback `UTC`). Host-local `getHours()` hydrates wrong.
-5. **Browser-only APIs** (`window`, `document`, `localStorage`, rAF) only inside `$effect`, `onMount`, or `if (browser)` paths that do not change first-paint markup. Layout is CSS breakpoints. Device prefs that *do* affect first paint (timezone, default project, daily target) live in cookies (`vynno_tz`, `vynno_prefs`). `+layout.server.ts` reads them and serializes the snapshot in layout data so SSR HTML and client hydrate match. Do not restore those prefs from `localStorage` or `document.cookie` during `applySeed`.
+5. **Browser-only APIs** (`window`, `document`, `localStorage`, rAF) only inside `$effect`, `onMount`, or `if (browser)` paths that do not change first-paint markup. Layout is CSS breakpoints. Prefs that *do* affect first paint come from layout data: the timezone from the `vynno_tz` cookie, the daily target and default project from the account (`GET /me/prefs` in the seed). `+layout.server.ts` serializes both so SSR HTML and client hydrate match. Do not restore those prefs from `localStorage` or `document.cookie` during `applySeed`.
 6. **Locale parity.** Server and client resolve the same locale for the first document (cookie first — [0007](./0007-i18n-paraglide.md)).
 7. **Verify** cold load of primary routes with a clean console (no hydration warnings) and that mutations in one session do not appear in another request’s HTML.
+
+## Amendment (2026-09-30)
+
+Daily target and default project are account prefs, loaded by `loadAppSeed` with the profile. The `vynno_prefs` cookie is no longer written. `+layout.server.ts` still reads an old one and returns `legacyPrefs` only when the account has no prefs yet; the client PATCHes it once and deletes the cookie. Hydration rule 5 is updated in place.
 
 ## Alternatives considered
 

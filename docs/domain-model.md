@@ -15,10 +15,10 @@ Types: `src/lib/types/domain.ts`. Wire JSON (DTOs, `archived` instead of `isArch
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Project**              | Named container for work. Has a color used in lists and charts.                                                                              |
 | **Task / note**          | Free-text description on a session (“Refactoring Auth Service”). There is no separate Task entity (see [open.md](./open.md)).                |
-| **Session / Time entry** | A continuous timed interval. While running it is the _active session_; when stopped it becomes a historical log entry.                        |
+| **Session / Time entry** | A continuous timed interval. While running it is the _active session_; when stopped it becomes a historical log entry.                       |
 | **Activity type**        | User-owned category of work. Used as chips and in Insights.                                                                                  |
 | **Tag / label**          | Secondary labels on a focus card. Distinct from project color.                                                                               |
-| **Daily target**         | Optional hours-per-day goal behind the Timer’s Today progress bar. Device cookie `vynno_prefs` (with default project); not an API field.                   |
+| **Daily target**         | Optional hours-per-day goal behind the Timer’s Today progress bar. Account pref (`/me/prefs`, with the default project); 8 hours when unset. |
 
 ---
 
@@ -51,14 +51,14 @@ Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`)
                                          (log entry)
 ```
 
-| Rule                      | Description                                                                                                                                                          |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Single active session** | At most one session with status `active`. Starting a second session is forbidden until the current one is stopped (`409 session_already_active`).                    |
-| **Elapsed display**       | For `active`: `now - startedAt`. For `stopped`: `endedAt - startedAt`.                                                                                               |
-| **Stop**                  | Sets `endedAt`, status `stopped`; entry appears in Logs and feeds Dashboard/Insights aggregates. A break is stop, then start a new session.                          |
-| **Restart**               | From recent task/log: creates a **new** session prefilled with same project + note (not resume of a historical entry).                                               |
-| **Idle**                  | No `active` session; Timer shows empty or last description ready to start.                                                                                           |
-| **Mutability**            | PATCH and DELETE apply to any stopped row. Status still changes only via stop.                                                                                       |
+| Rule                      | Description                                                                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Single active session** | At most one session with status `active`. Starting a second session is forbidden until the current one is stopped (`409 session_already_active`). |
+| **Elapsed display**       | For `active`: `now - startedAt`. For `stopped`: `endedAt - startedAt`.                                                                            |
+| **Stop**                  | Sets `endedAt`, status `stopped`; entry appears in Logs and feeds Dashboard/Insights aggregates. A break is stop, then start a new session.       |
+| **Restart**               | From recent task/log: creates a **new** session prefilled with same project + note (not resume of a historical entry).                            |
+| **Idle**                  | No `active` session; Timer shows empty or last description ready to start.                                                                        |
+| **Mutability**            | PATCH and DELETE apply to any stopped row. Status still changes only via stop.                                                                    |
 
 ---
 
@@ -66,14 +66,14 @@ Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`)
 
 ### 4.1 Project
 
-| Field             | Type    | Notes                                                                           |
-| ----------------- | ------- | ------------------------------------------------------------------------------- |
-| `id`              | string  | Stable id                                                                       |
+| Field             | Type    | Notes                                                                                                                                                               |
+| ----------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`              | string  | Stable id                                                                                                                                                           |
 | `name`            | string  | Required. NFC; strip ZW (U+200B, U+200C, U+200D, U+2060, U+FEFF); reject bidi (U+202A–U+202E, U+2066–U+2069), Cc, and U+FFFD. 1–80 code points (emoji counts as 1). |
-| `color`           | string  | Hex from fixed UI palette                                                       |
-| `code`            | string? | ASCII, max 8, must include a letter or digit. `---` and `ı` are 400; `A-1` is 201. Unique when set (case-insensitive). |
-| `progressPercent` | number? | Optional 0–100; set in project create/edit; shown on Dashboard cards            |
-| `isArchived`      | boolean | Hide from pickers; still resolvable via `getProject` for log history            |
+| `color`           | string  | Hex from fixed UI palette                                                                                                                                           |
+| `code`            | string? | ASCII, max 8, must include a letter or digit. `---` and `ı` are 400; `A-1` is 201. Unique when set (case-insensitive).                                              |
+| `progressPercent` | number? | Optional 0–100; set in project create/edit; shown on Dashboard cards                                                                                                |
+| `isArchived`      | boolean | Hide from pickers; still resolvable via `getProject` for log history                                                                                                |
 
 **Lifecycle** (full rules: [adr/0006-project-lifecycle.md](./adr/0006-project-lifecycle.md)):
 
@@ -84,17 +84,17 @@ Sessions carry `projectId` + `note` (and optional `ticketId` / `activityTypeId`)
 
 ### 4.2 TimeSession
 
-| Field              | Type                              | Notes                          |
-| ------------------ | --------------------------------- | ------------------------------ |
-| `id`               | string                            |                                |
-| `projectId`        | string                            | Required                       |
-| `note`             | string                            | ≤ 500 code points. Tab, LF, and CR allowed; other Cc and bidi rejected. Empty becomes Untitled. Legacy oversized notes still load; a patch that omits the field succeeds. |
-| `ticketId`         | string?                           | ≤ 64 code points. e.g. `DEV-842`. Legacy oversized values still load. |
-| `activityTypeId`   | string?                           |                                |
-| `status`           | `active` \| `stopped`             |                                |
-| `startedAt`        | ISO datetime                      | `>= 2000-01-01T00:00:00Z`. Instants ≤ now+5min. Microsecond comparison. |
-| `endedAt`          | ISO datetime?                     | Set on stop. Duration ≤ 7 days. A note-only patch of a legacy out-of-bounds row does not recheck bounds. |
-| `targetDurationMs` | number?                           | Max `9007199254740991`. Set from the Timer target toggle. |
+| Field              | Type                  | Notes                                                                                                                                                                     |
+| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`               | string                |                                                                                                                                                                           |
+| `projectId`        | string                | Required                                                                                                                                                                  |
+| `note`             | string                | ≤ 500 code points. Tab, LF, and CR allowed; other Cc and bidi rejected. Empty becomes Untitled. Legacy oversized notes still load; a patch that omits the field succeeds. |
+| `ticketId`         | string?               | ≤ 64 code points. e.g. `DEV-842`. Legacy oversized values still load.                                                                                                     |
+| `activityTypeId`   | string?               |                                                                                                                                                                           |
+| `status`           | `active` \| `stopped` |                                                                                                                                                                           |
+| `startedAt`        | ISO datetime          | `>= 2000-01-01T00:00:00Z`. Instants ≤ now+5min. Microsecond comparison.                                                                                                   |
+| `endedAt`          | ISO datetime?         | Set on stop. Duration ≤ 7 days. A note-only patch of a legacy out-of-bounds row does not recheck bounds.                                                                  |
+| `targetDurationMs` | number?               | Max `9007199254740991`. Set from the Timer target toggle.                                                                                                                 |
 
 **Derived (UI only):** `durationMs`, `timeRangeLabel` (`09:30 - 11:45`), `durationLabel` (`2h 15m` / `01:42:15` / `<1s` for a stopped duration under 1 second). Stopping a session younger than 1 second deletes it instead of keeping a 0s row.
 
@@ -119,6 +119,8 @@ User-owned dictionary row. `name` uses the same 1–80 code-point rules as a pro
 
 ### 4.4 Aggregates (computed on the client)
 
+Charts over a past range or a year use server day totals (`GET /stats/days`: stopped sessions summed per local date, project, and activity type). The client adds the live session and shapes every chart. A session counts in full on the local date it started, on both sides.
+
 | Aggregate                   | Used on                           |
 | --------------------------- | --------------------------------- |
 | Today total                 | Dashboard, Timer side panel       |
@@ -129,6 +131,7 @@ User-owned dictionary row. `name` uses the same 1–80 code-point rules as a pro
 | Period total vs previous    | Insights donut header             |
 | Hours by project / activity | Insights charts + table           |
 | Logs grouped-by-task (day)  | `/logs` Grouped layout            |
+| Daily totals, streaks       | Dashboard year heatmap            |
 
 ---
 

@@ -27,14 +27,20 @@ import { formatClock, sessionElapsedMs } from '$lib/time/duration';
 import { DEFAULT_TIME_ZONE } from '$lib/time/timezone';
 import type {
 	ActivityType,
+	ChangeEmailInput,
+	ChangePasswordInput,
 	CreateActivityTypeInput,
 	CreateManualSessionInput,
 	CreateProjectInput,
+	DayTotal,
+	DayTotalsRange,
 	Project,
+	RequestEmailChangeInput,
 	SessionPage,
 	StartSessionInput,
 	TimeSession,
 	UpdateActivityTypeInput,
+	UpdatePrefsInput,
 	UpdateProfileInput,
 	UpdateProjectInput,
 	UpdateSessionInput
@@ -102,6 +108,13 @@ function withoutKey(counts: Record<string, number>, id: string): Record<string, 
 	return Object.fromEntries(Object.entries(counts).filter(([key]) => key !== id));
 }
 
+/** On a signed-in credential change, `invalid_credentials` means the current password. */
+function accountErrorMessage(e: unknown, fallback: () => string): string {
+	const code = e instanceof ApiError || e instanceof DomainError ? e.code : null;
+	if (code === 'invalid_credentials') return m.security_wrong_password();
+	return userMessageForError(e, fallback);
+}
+
 /**
  * Session lifecycle + projection of repository data for the UI.
  * Created per server request; cached as a client singleton after hydrate
@@ -125,6 +138,18 @@ export class SessionStore {
 	sessions = $state.raw<TimeSession[]>([]);
 	nextCursor = $state<string | null>(null);
 	loadingMore = $state(false);
+
+	/**
+	 * Bumps whenever a session is created, changed, or removed here or in a sibling tab.
+	 * Loading older pages does not bump it. Server-side totals refetch on it.
+	 */
+	revision = $state(0);
+	#revisionCount = 0;
+
+	/** Writes without reading `revision`, so an effect that mutates sessions never depends on it. */
+	#bumpRevision = (): void => {
+		this.revision = ++this.#revisionCount;
+	};
 	projectSessionCounts = $state.raw<Record<string, number>>({});
 	activityTypeSessionCounts = $state.raw<Record<string, number>>({});
 
@@ -448,6 +473,12 @@ export class SessionStore {
 			}
 		}
 	};
+
+	/**
+	 * Every session starting at or after `startedAtMs` is loaded, so totals computed
+	 * here match the server's. Reactive: re-evaluates as pages load.
+	 */
+	coversSince = (startedAtMs: number): boolean => this.#coveredThrough(startedAtMs, null);
 
 	/** Stop an in-flight {@link ensureThrough} before its next `listSessions` call. */
 	cancelDrain = (): void => {
@@ -888,6 +919,78 @@ export class SessionStore {
 		this.error = null;
 	};
 
+	/**
+	 * The saved default project while it is still active, else the first active one.
+	 * The fallback is not written back: the account keeps what the user chose.
+	 */
+	get defaultProjectId(): string {
+		const saved = this.#prefs.defaultProjectId;
+		return this.projects.some((p) => p.id === saved) ? saved : (this.projects[0]?.id ?? '');
+	}
+
+	/**
+	 * Save account prefs. The change shows at once and rolls back if the server
+	 * refuses it. Overlapping saves apply in the order they were made. `silent`
+	 * skips the error banner (the one-time copy of the old device cookie).
+	 */
+	savePrefs = async (
+		input: UpdatePrefsInput,
+		opts: { silent?: boolean } = {}
+	): Promise<boolean> => {
+		const before = this.#prefs.snapshot();
+		const seq = ++this.#prefsSeq;
+		this.#prefs.applyPatch(input);
+		try {
+			const saved = await this.#requireRepo().updatePrefs(input);
+			if (seq === this.#prefsSeq) this.#prefs.applyPrefs(saved);
+			this.#share({ type: 'prefs', prefs: saved });
+			return true;
+		} catch (e) {
+			if (seq === this.#prefsSeq) this.#prefs.applyPrefs(before);
+			if (!opts.silent) this.error = userMessageForError(e, m.error_failed_save_prefs);
+			return false;
+		}
+	};
+
+	/** `null` on success, else the message to show next to the form. */
+	changePassword = async (input: ChangePasswordInput): Promise<string | null> => {
+		try {
+			await this.#requireRepo().changePassword(input);
+			return null;
+		} catch (e) {
+			return accountErrorMessage(e, m.error_failed_change_password);
+		}
+	};
+
+	/** Sends a code to the new address. `null` on success, else the message to show. */
+	requestEmailChange = async (input: RequestEmailChangeInput): Promise<string | null> => {
+		try {
+			await this.#requireRepo().requestEmailChange(input);
+			return null;
+		} catch (e) {
+			return accountErrorMessage(e, m.error_failed_change_email);
+		}
+	};
+
+	/**
+	 * Confirms the code and switches the sign-in email. Sibling tabs hear about it
+	 * under the old email, since they still filter peer messages by it.
+	 */
+	changeEmail = async (input: ChangeEmailInput): Promise<string | null> => {
+		try {
+			const profile = await this.#requireRepo().changeEmail(input);
+			this.#share({ type: 'profile', profile });
+			this.#prefs.hydrateProfile(profile);
+			return null;
+		} catch (e) {
+			return accountErrorMessage(e, m.error_failed_change_email);
+		}
+	};
+
+	/** Server day totals (stopped sessions only; see `withLiveSession`). */
+	listDayTotals = (range: DayTotalsRange): Promise<DayTotal[]> =>
+		this.#requireRepo().listDayTotals(range);
+
 	updateProfile = async (input: UpdateProfileInput): Promise<boolean> => {
 		if (!this.#begin('profile')) return false;
 		this.error = null;
@@ -944,6 +1047,8 @@ export class SessionStore {
 		this.pendingAction = null;
 	};
 
+	#prefsSeq = 0;
+
 	#requireRepo = (): TimeTrackingRepository => {
 		if (!this.#repo) {
 			throw new Error('Session store has not been hydrated');
@@ -981,14 +1086,8 @@ export class SessionStore {
 	};
 
 	#normalizeProjectSelection = (): void => {
-		const activeIds = new SvelteSet(this.projects.map((p) => p.id));
-		const fallback = this.projects[0]?.id ?? '';
-
-		if (!activeIds.has(this.draftProjectId)) {
-			this.draftProjectId = fallback;
-		}
-		if (!activeIds.has(this.#prefs.defaultProjectId)) {
-			if (fallback) this.#prefs.setDefaultProjectId(fallback);
+		if (!this.projects.some((p) => p.id === this.draftProjectId)) {
+			this.draftProjectId = this.projects[0]?.id ?? '';
 		}
 	};
 
@@ -1097,6 +1196,12 @@ export class SessionStore {
 				this.#removeActivityType(message.id);
 				this.activityTypeSessionCounts = withoutKey(this.activityTypeSessionCounts, message.id);
 				return;
+			case 'prefs':
+				this.#prefs.applyPrefs(message.prefs);
+				return;
+			case 'profile':
+				this.#prefs.hydrateProfile(message.profile);
+				return;
 		}
 	};
 
@@ -1151,6 +1256,7 @@ export class SessionStore {
 	};
 
 	#upsertSession = (session: TimeSession): void => {
+		this.#bumpRevision();
 		const idx = this.sessions.findIndex((s) => s.id === session.id);
 		if (idx === -1) {
 			this.#loadedSessionIds.add(session.id);
@@ -1164,6 +1270,7 @@ export class SessionStore {
 	};
 
 	#removeSession = (id: string): void => {
+		this.#bumpRevision();
 		this.sessions = this.sessions.filter((s) => s.id !== id);
 		this.#loadedSessionIds.delete(id);
 		this.#extraSessionIds.delete(id);
@@ -1312,6 +1419,7 @@ export class SessionStore {
 	};
 
 	#mergeActive = (session: TimeSession): void => {
+		this.#bumpRevision();
 		this.#active = session.status === 'active' ? session : null;
 		const idx = this.sessions.findIndex((s) => s.id === session.id);
 		if (idx !== -1) {

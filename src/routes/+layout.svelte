@@ -5,6 +5,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { m } from '$lib/paraglide/messages.js';
 	import { authStore } from '$lib/stores/auth.svelte';
+	import { clearLegacyPrefsCookie } from '$lib/stores/legacy-prefs';
 	import { createPrefsStore, setPrefs } from '$lib/stores/prefs.svelte';
 	import { createSessionStore, setSession } from '$lib/stores/session.svelte';
 	import { themeStore } from '$lib/theme/theme.svelte';
@@ -21,7 +22,7 @@
 	function applySeed() {
 		if (!data.seed) return;
 		prefs.hydrateProfile(data.seed.profile);
-		prefs.applyStored(data.prefs);
+		prefs.applyPrefs(data.seed.prefs);
 		session.hydrate(data.seed, { nowMs: data.nowMs, timeZone: data.timeZone });
 	}
 
@@ -31,6 +32,21 @@
 
 	$effect.pre(() => {
 		applySeed();
+	});
+
+	// One-time copy of the old `vynno_prefs` device cookie to the account. Kept until
+	// the save succeeds, so a failed copy retries on the next load.
+	let copyingLegacyPrefs = false;
+	$effect(() => {
+		const patch = data.legacyPrefs;
+		if (!patch || copyingLegacyPrefs) return;
+		copyingLegacyPrefs = true;
+		untrack(() => {
+			void session.savePrefs(patch, { silent: true }).then((ok) => {
+				if (ok) clearLegacyPrefsCookie();
+				copyingLegacyPrefs = false;
+			});
+		});
 	});
 
 	const themeColor = $derived(resolveTheme(themeStore.themeId).themeColor);

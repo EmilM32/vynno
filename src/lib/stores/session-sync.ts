@@ -1,4 +1,4 @@
-import type { ActivityType, Project, TimeSession } from '$lib/types/domain';
+import type { ActivityType, Project, TimeSession, UserPrefs, UserProfile } from '$lib/types/domain';
 
 /**
  * A write this tab made, replayed in sibling tabs of the same browser so their
@@ -10,7 +10,9 @@ export type PeerChange =
 	| { type: 'project'; project: Project }
 	| { type: 'project-removed'; id: string }
 	| { type: 'activity-type'; activityType: ActivityType }
-	| { type: 'activity-type-removed'; id: string };
+	| { type: 'activity-type-removed'; id: string }
+	| { type: 'prefs'; prefs: UserPrefs }
+	| { type: 'profile'; profile: UserProfile };
 
 /** `owner` is the signed-in email; a tab ignores changes made under another account. */
 export type PeerMessage = PeerChange & { owner: string };

@@ -8,7 +8,7 @@
 	import { LONG_SESSION_HOURS, longSessionPrefs } from '$lib/stores/long-session.svelte';
 	import { notificationPrefs } from '$lib/stores/notifications.svelte';
 	import { formatCompact } from '$lib/time/duration';
-	import { usePrefs } from '$lib/stores/prefs.svelte';
+	import { clampDailyTargetHours, usePrefs } from '$lib/stores/prefs.svelte';
 	import { useSession } from '$lib/stores/session.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ProfileAvatar from '$lib/components/shell/ProfileAvatar.svelte';
@@ -23,6 +23,7 @@
 	import { nameRejectMessage } from '$lib/text/field-error';
 	import { normalizeName } from '$lib/text/normalize';
 	import ActivityTypesSection from './ActivityTypesSection.svelte';
+	import SecuritySection from './SecuritySection.svelte';
 	import ThemeSelect from './ThemeSelect.svelte';
 
 	const sessionStore = useSession();
@@ -60,9 +61,19 @@
 		await sessionStore.deleteAvatar();
 	}
 
-	function onTargetInput(e: Event) {
-		const v = Number((e.currentTarget as HTMLInputElement).value);
-		prefsStore.setDailyTargetHours(v);
+	/** On commit (blur, Enter, spinner), not per keystroke: each change is a PATCH. */
+	function onTargetChange(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const hours = clampDailyTargetHours(Number(input.value));
+		input.value = String(hours);
+		const ms = Math.round(hours * 3_600_000);
+		if (ms !== prefsStore.dailyTargetMs) void sessionStore.savePrefs({ dailyTargetMs: ms });
+	}
+
+	function onDefaultProjectChange(e: Event) {
+		const id = (e.currentTarget as HTMLSelectElement).value;
+		void sessionStore.savePrefs({ defaultProjectId: id });
+		if (!sessionStore.activeSession) sessionStore.draftProjectId = id;
 	}
 
 	/** The permission prompt can be refused, so the box shows what actually happened. */
@@ -171,6 +182,8 @@
 		</div>
 	</section>
 
+	<SecuritySection />
+
 	<ActivityTypesSection />
 
 	<!-- Preferences -->
@@ -178,9 +191,10 @@
 		class="rounded-lg border border-outline-variant bg-surface-container p-4"
 		aria-labelledby="settings-prefs"
 	>
-		<h2 id="settings-prefs" class="mb-4 text-headline-md text-on-surface">
+		<h2 id="settings-prefs" class="text-headline-md text-on-surface">
 			{m.settings_preferences()}
 		</h2>
+		<p class="mt-1 mb-4 text-body-sm text-on-surface-variant">{m.settings_prefs_scope()}</p>
 		<div class="flex flex-col gap-5">
 			<Field
 				id="daily-target"
@@ -196,7 +210,7 @@
 					max="16"
 					step="0.5"
 					value={prefsStore.dailyTargetHours}
-					oninput={onTargetInput}
+					onchange={onTargetChange}
 					class="w-full sm:w-32"
 				>
 					{#snippet trailing()}
@@ -217,15 +231,9 @@
 				layout="split"
 			>
 				<Select
-					value={prefsStore.defaultProjectId}
+					value={sessionStore.defaultProjectId}
 					class="w-full sm:w-56"
-					onchange={(e) => {
-						const id = (e.currentTarget as HTMLSelectElement).value;
-						prefsStore.setDefaultProjectId(id);
-						if (!sessionStore.activeSession) {
-							sessionStore.draftProjectId = id;
-						}
-					}}
+					onchange={onDefaultProjectChange}
 				>
 					{#each sessionStore.projects as project (project.id)}
 						<option value={project.id} dir="auto">{project.name}</option>

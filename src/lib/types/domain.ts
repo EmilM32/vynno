@@ -92,6 +92,12 @@ export interface DayTotalsRange {
 	timeZone: string;
 }
 
+/** `GET /sessions?from&to`: ISO instants; sessions overlapping `[from, to)`. */
+export interface SessionWindow {
+	from: string;
+	to: string;
+}
+
 /** Stopped-session time for one local date, project and activity type (`/stats/days`). */
 export interface DayTotal {
 	date: string;
@@ -138,6 +144,10 @@ export interface SessionFilters {
 	limit?: number;
 	/** Opaque nextCursor from the previous page. */
 	cursor?: string;
+	/** ISO instant: keep sessions still running or ending after it (`endedAt > from`). */
+	from?: string;
+	/** ISO instant: keep sessions started before it (`startedAt < to`). */
+	to?: string;
 }
 
 export interface ProjectListOptions {

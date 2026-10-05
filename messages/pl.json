@@ -486,6 +486,7 @@
 	"error_failed_change_email": "Nie udało się zmienić adresu e-mail",
 	"insights_loading_totals": "Wczytywanie sum…",
 	"error_failed_load_totals": "Nie udało się wczytać sum",
+	"error_failed_load_sessions": "Nie udało się wczytać sesji",
 	"dashboard_heatmap_title": "Ostatnie 12 miesięcy",
 	"dashboard_heatmap_streak": "Seria",
 	"dashboard_heatmap_best": "Rekord",

@@ -486,6 +486,7 @@
 	"error_failed_change_email": "Failed to change email",
 	"insights_loading_totals": "Loading totals…",
 	"error_failed_load_totals": "Failed to load totals",
+	"error_failed_load_sessions": "Failed to load sessions",
 	"dashboard_heatmap_title": "Last 12 months",
 	"dashboard_heatmap_streak": "Streak",
 	"dashboard_heatmap_best": "Best",

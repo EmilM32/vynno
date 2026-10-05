@@ -57,6 +57,27 @@ describe('MemoryTimeTrackingRepository', () => {
 			expect(second.items[0]!.id).not.toBe(first.items[0]!.id);
 		});
 
+		it('keeps sessions that overlap from / to', async () => {
+			const { items: all } = await repo.listSessions({ limit: 100 });
+			const pick = all[Math.floor(all.length / 2)]!;
+			const started = Date.parse(pick.startedAt);
+			const ended = Date.parse(pick.endedAt!);
+			const overlapping = await repo.listSessions({
+				from: new Date(ended - 1).toISOString(),
+				to: new Date(started + 1).toISOString(),
+				limit: 100
+			});
+			expect(overlapping.items.map((s) => s.id)).toContain(pick.id);
+			for (const s of overlapping.items) {
+				expect(Date.parse(s.startedAt)).toBeLessThan(started + 1);
+				if (s.endedAt) expect(Date.parse(s.endedAt)).toBeGreaterThan(ended - 1);
+			}
+			const after = await repo.listSessions({ from: pick.endedAt!, limit: 100 });
+			expect(after.items.map((s) => s.id)).not.toContain(pick.id);
+			const before = await repo.listSessions({ to: pick.startedAt, limit: 100 });
+			expect(before.items.map((s) => s.id)).not.toContain(pick.id);
+		});
+
 		it('getActiveSession is null when idle', async () => {
 			expect(await repo.getActiveSession()).toBeNull();
 		});

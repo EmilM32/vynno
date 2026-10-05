@@ -345,7 +345,7 @@ test.describe('insights', () => {
 		const to = localCivilDay(localDayAt(58));
 		await dialog.getByLabel('From').fill(from);
 		await dialog.getByLabel('To').fill(to);
-		const [totals] = await Promise.all([
+		const [totals, timeline] = await Promise.all([
 			page.waitForResponse((r) => {
 				const url = new URL(r.url());
 				return (
@@ -354,13 +354,64 @@ test.describe('insights', () => {
 					url.searchParams.get('to') === to
 				);
 			}),
+			// The timeline needs start/end times, so it reads only this window (ADR-0028).
+			page.waitForResponse((r) => {
+				const url = new URL(r.url());
+				return (
+					url.pathname === '/v1/sessions' &&
+					url.searchParams.has('from') &&
+					url.searchParams.has('to') &&
+					!url.searchParams.has('cursor')
+				);
+			}),
 			dialog.getByRole('button', { name: 'Apply' }).click()
 		]);
 		expect(totals.status()).toBe(200);
+		expect(timeline.status()).toBe(200);
 		await expect(
 			page.getByRole('img', { name: 'Project distribution, total 02h 00m' })
 		).toBeVisible();
 		await expect(page.getByTestId('insights-charts')).toHaveAttribute('aria-busy', 'false');
+		const card = page.getByTestId('insights-timeline');
+		await expect(card).toHaveAttribute('aria-busy', 'false');
+		await expect(card.getByText('2h across 1 of 5 days')).toBeVisible();
+	});
+
+	test('timeline card switches between days, projects and rhythm', async ({ page }) => {
+		const span = pastSpansOnCurrentDay(1)[0]!;
+		await seedManualSession(page, {
+			note: uniqueNote('timeline'),
+			startedAt: span.startedAt.toISOString(),
+			endedAt: span.endedAt.toISOString()
+		});
+		await page.reload();
+		await waitForClient(page);
+
+		const card = page.getByRole('region', { name: 'Timeline of logged time' });
+		await expect(card).toBeVisible();
+		const views = card.getByRole('group', { name: 'Timeline view' });
+		await expect(views.getByRole('button', { name: 'Days' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		await expect(card.getByTestId('timeline-bars').locator('path').first()).toBeVisible();
+
+		await views.getByRole('button', { name: 'Rhythm' }).click();
+		await expect(card.getByText('Most focused')).toBeVisible();
+
+		await views.getByRole('button', { name: 'Projects' }).click();
+		await expect(views.getByRole('button', { name: 'Projects' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		await expect(card.getByText('Most focused')).toHaveCount(0);
+
+		const span24 = card.getByRole('group', { name: 'Clock span' });
+		await span24.getByRole('button', { name: '24h' }).click();
+		await expect(span24.getByRole('button', { name: '24h' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
 	});
 
 	test('custom range dialog validates inverted dates', async ({ page }) => {

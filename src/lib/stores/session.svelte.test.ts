@@ -709,6 +709,43 @@ describe('SessionStore history drain', () => {
 	});
 });
 
+describe('SessionStore listSessionsBetween', () => {
+	let store: SessionStore;
+
+	afterEach(() => {
+		store?.reset();
+		vi.restoreAllMocks();
+	});
+
+	it('pages one window with from / to and leaves the history run alone', async () => {
+		const nowMs = Date.UTC(2026, 5, 15, 12, 0, 0);
+		const sessions = Array.from({ length: 250 }, (_, i) =>
+			stoppedSession(`bulk-${String(i).padStart(3, '0')}`, nowMs - i * 60 * 60_000, 30 * 60_000)
+		);
+		const repo = new MemoryTimeTrackingRepository({ ...sampleAppSeed(), sessions });
+		const firstPage = await repo.listSessions({ limit: 15 });
+		store = new SessionStore(new PrefsStore());
+		store.hydrate(
+			{ ...sampleAppSeed(), sessions: firstPage.items, nextCursor: firstPage.nextCursor },
+			{ repo, nowMs, timeZone: 'UTC' }
+		);
+		const listSessions = vi.spyOn(repo, 'listSessions');
+		const from = new Date(nowMs - 200 * 60 * 60_000).toISOString();
+		const to = new Date(nowMs - 40 * 60 * 60_000).toISOString();
+
+		const got = await store.listSessionsBetween({ from, to });
+
+		expect(got).toHaveLength(160);
+		expect(got.every((s) => Date.parse(s.startedAt) < Date.parse(to))).toBe(true);
+		expect(got.every((s) => Date.parse(s.endedAt!) > Date.parse(from))).toBe(true);
+		expect(listSessions).toHaveBeenCalledTimes(2);
+		for (const call of listSessions.mock.calls) {
+			expect(call[0]).toMatchObject({ from, to, limit: 100 });
+		}
+		expect(store.sessions).toHaveLength(15);
+	});
+});
+
 describe('SessionStore lazy session counts', () => {
 	let store: SessionStore;
 

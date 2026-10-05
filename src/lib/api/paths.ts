@@ -31,6 +31,8 @@ export const apiPaths = {
 	sessions: (filters: SessionFilters = {}) => {
 		const params = new URLSearchParams();
 		if (filters.status?.length) params.set('status', filters.status.join(','));
+		if (filters.from) params.set('from', filters.from);
+		if (filters.to) params.set('to', filters.to);
 		if (filters.limit != null) params.set('limit', String(filters.limit));
 		if (filters.cursor) params.set('cursor', filters.cursor);
 		return withQuery('/sessions', params);

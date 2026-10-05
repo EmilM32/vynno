@@ -37,6 +37,7 @@ import type {
 	Project,
 	RequestEmailChangeInput,
 	SessionPage,
+	SessionWindow,
 	StartSessionInput,
 	TimeSession,
 	UpdateActivityTypeInput,
@@ -50,6 +51,9 @@ import { createSubscriber, SvelteDate, SvelteMap, SvelteSet } from 'svelte/react
 
 /** Pages held back before `sessions` is replaced during a bulk drain. */
 const DRAIN_BATCH_PAGES = 5;
+
+/** `listSessionsBetween` stops here (10k sessions), so a runaway window cannot loop. */
+const MAX_WINDOW_PAGES = 100;
 
 /**
  * Sub-second stops are accidental taps; they are deleted instead of stored.
@@ -980,6 +984,29 @@ export class SessionStore {
 	/** Server day totals (stopped sessions only; see `withLiveSession`). */
 	listDayTotals = (range: DayTotalsRange): Promise<DayTotal[]> =>
 		this.#requireRepo().listDayTotals(range);
+
+	/**
+	 * Every session overlapping `[from, to)`, newest first, read with the API window
+	 * (`GET /sessions?from&to`) instead of paging back from the newest session. It does not
+	 * touch `sessions`: a closed Insights range is a side query, not part of the history run.
+	 */
+	listSessionsBetween = async (window: SessionWindow): Promise<TimeSession[]> => {
+		const repo = this.#requireRepo();
+		const out: TimeSession[] = [];
+		let cursor: string | undefined;
+		for (let page = 0; page < MAX_WINDOW_PAGES; page++) {
+			const res = await repo.listSessions({
+				from: window.from,
+				to: window.to,
+				limit: SESSION_BULK_PAGE_SIZE,
+				...(cursor ? { cursor } : {})
+			});
+			out.push(...res.items);
+			if (!res.nextCursor) break;
+			cursor = res.nextCursor;
+		}
+		return out;
+	};
 
 	updateProfile = async (input: UpdateProfileInput): Promise<boolean> => {
 		if (!this.#begin('profile')) return false;

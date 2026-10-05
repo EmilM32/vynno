@@ -115,13 +115,25 @@ describe('HttpTimeTrackingRepository', () => {
 		expect(String(fetchFn.mock.calls[1]?.[0])).toBe(
 			`${api}/sessions?status=stopped&limit=2&cursor=abc`
 		);
+		await repo.listSessions({
+			from: '2026-08-31T22:00:00.000Z',
+			to: '2026-09-07T22:00:00.000Z',
+			limit: 100
+		});
+		expect(String(fetchFn.mock.calls[2]?.[0])).toBe(
+			`${api}/sessions?from=2026-08-31T22%3A00%3A00.000Z&to=2026-09-07T22%3A00%3A00.000Z&limit=100`
+		);
 	});
 
 	it('updates profile and uploads an avatar', async () => {
 		const fetchFn = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
 			const url = String(input);
 			if (url.endsWith('/me') && init?.method === 'PATCH') {
-				return jsonResponse({ displayName: 'Renamed', email: 'alexdev@vynno.local', avatarUrl: null });
+				return jsonResponse({
+					displayName: 'Renamed',
+					email: 'alexdev@vynno.local',
+					avatarUrl: null
+				});
 			}
 			if (url.endsWith('/me/avatar') && init?.method === 'PUT') {
 				return jsonResponse({
@@ -131,7 +143,11 @@ describe('HttpTimeTrackingRepository', () => {
 				});
 			}
 			if (url.endsWith('/me/avatar') && init?.method === 'DELETE') {
-				return jsonResponse({ displayName: 'Renamed', email: 'alexdev@vynno.local', avatarUrl: null });
+				return jsonResponse({
+					displayName: 'Renamed',
+					email: 'alexdev@vynno.local',
+					avatarUrl: null
+				});
 			}
 			return jsonResponse({ error: { code: 'not_found', message: url } }, 404);
 		});

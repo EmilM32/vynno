@@ -428,6 +428,16 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 			list = list.filter((s) => set.has(s.status));
 		}
 
+		// Overlap with [from, to): started before `to`, and ended after `from` or still live.
+		if (filters.from) {
+			const from = Date.parse(filters.from);
+			list = list.filter((s) => !s.endedAt || Date.parse(s.endedAt) > from);
+		}
+		if (filters.to) {
+			const to = Date.parse(filters.to);
+			list = list.filter((s) => Date.parse(s.startedAt) < to);
+		}
+
 		list.sort((a, b) => {
 			const dt = Date.parse(b.startedAt) - Date.parse(a.startedAt);
 			if (dt !== 0) return dt;

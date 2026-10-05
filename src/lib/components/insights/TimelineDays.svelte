@@ -1,11 +1,14 @@
 <script lang="ts">
+	import type { ComponentProps } from 'svelte';
 	import { formatCompact, formatTimeRange } from '$lib/time/duration';
 	import {
+		barAt,
+		colorPaths,
 		dayTotals,
 		formatMinuteOfDay,
+		groupBy,
 		hourTicks,
 		laneCounts,
-		segmentColors,
 		type TimelineDay,
 		type TimelineSegment
 	} from '$lib/time/timeline';
@@ -45,7 +48,6 @@
 	const data = $derived(segments.map((s) => ({ ...s, row: `${s.dateKey}:${s.lane}` })));
 	const totals = $derived(dayTotals(segments));
 	const xTicks = $derived(hourTicks(clock));
-	const colors = $derived(segmentColors(segments));
 	const lanePx = $derived(
 		Math.max(MIN_LANE_PX, Math.min(LANE_PX, MAX_PLOT_PX / Math.max(1, rows.length)))
 	);
@@ -57,6 +59,32 @@
 	function rowLabel(row: string): string {
 		const [key, lane] = row.split(':');
 		return lane === '0' ? dayLabel(key) : '';
+	}
+
+	type Lc = typeof import('$lib/components/charts/lazy-timeline');
+	let chart = $state<ComponentProps<Lc['BarChart']>['context']>();
+
+	const byRow = $derived(groupBy(data, (seg) => seg.row));
+
+	/**
+	 * The tooltip runs in LayerChart's manual mode: its bounds mode adds a hit area per
+	 * session, which undid the single-path drawing (ADR-0028 §7). Plot pixels → the bar.
+	 */
+	function onpointermove(e: PointerEvent) {
+		const ctx = chart;
+		if (!ctx) return;
+		const box = (e.currentTarget as HTMLElement).getBoundingClientRect();
+		const hit = barAt(
+			byRow,
+			rows,
+			(row) => ctx.yScale(row) ?? -1,
+			ctx.yScale.bandwidth?.() ?? 0,
+			(seg) => [ctx.xScale(seg.startMin), ctx.xScale(seg.endMin)],
+			e.clientX - box.left - PAD.left,
+			e.clientY - box.top - PAD.top
+		);
+		if (hit) ctx.tooltip.show(e, hit);
+		else ctx.tooltip.hide();
 	}
 
 	const iso = (ms: number) => new Date(ms).toISOString();
@@ -77,12 +105,19 @@
 	{/each}
 </ul>
 
-<div class="w-full" style:height="{chartHeight}px" aria-hidden="true">
+<div
+	class="w-full"
+	style:height="{chartHeight}px"
+	aria-hidden="true"
+	{onpointermove}
+	onpointerleave={() => chart?.tooltip.hide()}
+>
 	{#if lc}
 		{const BarChart = $derived(lc.BarChart)}
 		{const Text = $derived(lc.Text)}
 		{const Tooltip = $derived(lc.Tooltip)}
 		<BarChart
+			bind:context={chart}
 			class="w-full text-on-surface-variant"
 			height={chartHeight}
 			{data}
@@ -92,9 +127,6 @@
 			xDomain={clock}
 			xNice={false}
 			orientation="horizontal"
-			c="color"
-			cDomain={colors}
-			cRange={colors}
 			bandPadding={BAND_PADDING}
 			padding={PAD}
 			grid={{ x: true, y: false }}
@@ -102,13 +134,41 @@
 			highlight={false}
 			legend={false}
 			props={{
-				bars: { radius: 2, strokeWidth: 1, stroke: 'var(--color-surface-container)' },
 				xAxis: { ticks: xTicks, format: formatMinuteOfDay, tickMarks: false, tickLength: 0 },
 				yAxis: { ticks: yTicks, format: rowLabel, tickMarks: false, tickLength: 0 },
 				grid: { xTicks, x: { stroke: 'var(--color-outline-variant)', opacity: 0.5 } },
-				tooltip: { context: { mode: 'bounds' } }
+				tooltip: { context: { mode: 'manual' } }
 			}}
 		>
+			{#snippet marks({ context })}
+				<!--
+					One path per project colour, not a LayerChart Bar or <rect> per session: two busy
+					months are ~900 bars, and per-bar nodes made the first draw a long main-thread task
+					(ADR-0028 §7). Tooltips are computed from the data, not from these shapes.
+				-->
+				{const bandwidth = $derived(context.yScale.bandwidth?.() ?? 0)}
+				{const paths = $derived(
+					colorPaths(data, (seg) => {
+						const left = context.xScale(seg.startMin);
+						return {
+							x: left,
+							y: context.yScale(seg.row),
+							width: Math.max(1, context.xScale(seg.endMin) - left),
+							height: bandwidth
+						};
+					})
+				)}
+				<g data-testid="timeline-bars" data-count={data.length}>
+					{#each paths as path (path.color)}
+						<path
+							d={path.d}
+							fill={path.color}
+							stroke="var(--color-surface-container)"
+							stroke-width="1"
+						/>
+					{/each}
+				</g>
+			{/snippet}
 			{#snippet aboveMarks({ context })}
 				{const bandwidth = $derived(context.yScale.bandwidth?.() ?? 0)}
 				{#each lanePx >= LABEL_LANE_PX ? days : [] as day (day.key)}

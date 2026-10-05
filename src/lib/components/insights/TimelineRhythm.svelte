@@ -53,12 +53,28 @@
 		Array.from({ length: (clock[1] - clock[0]) / 60 }, (_, i) => clock[0] / 60 + i)
 	);
 	const data = $derived(rows.filter((r) => visibleHours.includes(r.hour)));
-	const series = $derived(
-		keyed.map((p) => ({ key: p.id, label: p.label, color: p.color, value: p.id }))
+	/** Per-day minutes in an hour, all legend entries together (the stack height). */
+	const stackMin = (row: Row) => keyed.reduce((sum, p) => sum + row[p.id], 0);
+	/** Stacked segments, bottom to top in legend order, for the plain-SVG marks below. */
+	const stacks = $derived(
+		data.flatMap((row) => {
+			let y0 = 0;
+			return keyed.flatMap((p) => {
+				const min = row[p.id];
+				if (min <= 0) return [];
+				const seg = {
+					key: `${row.hour}:${p.id}`,
+					hour: row.hour,
+					y0,
+					y1: y0 + min,
+					color: p.color
+				};
+				y0 += min;
+				return [seg];
+			});
+		})
 	);
-	const maxAvg = $derived(
-		Math.max(1, ...rows.map((r) => keyed.reduce((sum, p) => sum + r[p.id], 0)))
-	);
+	const maxAvg = $derived(Math.max(1, ...rows.map(stackMin)));
 	const yMax = $derived(maxAvg <= 15 ? 15 : maxAvg <= 30 ? 30 : 60);
 	const xTicks = $derived(
 		visibleHours.length > 12 ? visibleHours.filter((h) => h % 2 === 0) : visibleHours
@@ -143,7 +159,7 @@
 		<li>
 			{m.insights_rhythm_hour_aria({
 				hour: formatMinuteOfDay(row.hour * 60),
-				minutes: minLabel(keyed.reduce((sum, p) => sum + row[p.id], 0))
+				minutes: minLabel(stackMin(row))
 			})}
 		</li>
 	{/each}
@@ -158,22 +174,40 @@
 			height={CHART_PX}
 			{data}
 			x="hour"
+			y={stackMin}
 			xDomain={visibleHours}
 			yDomain={[0, yMax]}
-			{series}
-			seriesLayout="stack"
 			bandPadding={0.2}
 			padding={{ top: 8, right: 4, bottom: 24, left: 36 }}
 			grid={{ x: false, y: true }}
 			rule={true}
 			legend={false}
 			props={{
-				bars: { radius: 2, strokeWidth: 1, stroke: 'var(--color-surface-container)' },
 				xAxis: { ticks: xTicks, format: hourLabel, tickMarks: false, tickLength: 0 },
 				yAxis: { ticks: [yMax / 2, yMax], format: minLabel, tickMarks: false, tickLength: 0 },
 				grid: { y: { stroke: 'var(--color-outline-variant)', opacity: 0.7 } }
 			}}
 		>
+			{#snippet marks({ context })}
+				<!--
+					Plain rects, not LayerChart's Bars: one Bar component per segment costs about 1 ms
+					to mount, which made the first draw a long main-thread task (ADR-0028 §7).
+				-->
+				{const bandwidth = $derived(context.xScale.bandwidth?.() ?? 0)}
+				{#each stacks as seg (seg.key)}
+					{const top = $derived(context.yScale(seg.y1))}
+					<rect
+						x={context.xScale(seg.hour)}
+						y={top}
+						width={bandwidth}
+						height={Math.max(0, context.yScale(seg.y0) - top)}
+						rx="2"
+						fill={seg.color}
+						stroke="var(--color-surface-container)"
+						stroke-width="1"
+					/>
+				{/each}
+			{/snippet}
 			{#snippet tooltip({ context })}
 				<Tooltip.Root {context}>
 					{#snippet children({ data: row }: { data: Row })}

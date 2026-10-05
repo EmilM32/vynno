@@ -1,11 +1,14 @@
 <script lang="ts">
+	import type { ComponentProps } from 'svelte';
 	import { formatShare } from '$lib/time/aggregates';
 	import { formatCompact, formatTimeRange } from '$lib/time/duration';
 	import {
+		barAt,
+		colorPaths,
 		formatDayKey,
 		formatMonthDay,
+		groupBy,
 		projectTotals,
-		segmentColors,
 		type TimelineDay,
 		type TimelineSegment
 	} from '$lib/time/timeline';
@@ -63,7 +66,6 @@
 		days.flatMap((_, i) => (i % tickStep === 0 ? [i * span + span / 2] : []))
 	);
 	const dayLines = $derived(days.map((_, i) => i * span));
-	const colors = $derived(segmentColors(segments));
 	const chartHeight = $derived(Math.max(1, rows.length) * ROW_PX + PAD.top + PAD.bottom);
 
 	function xTick(x: number): string {
@@ -76,6 +78,32 @@
 	function rowLabel(id: string): string {
 		const name = nameById.get(id) ?? id;
 		return name.length > NAME_CHARS ? `${name.slice(0, NAME_CHARS - 1)}…` : name;
+	}
+
+	type Lc = typeof import('$lib/components/charts/lazy-timeline');
+	let chart = $state<ComponentProps<Lc['BarChart']>['context']>();
+
+	const byRow = $derived(groupBy(data, (seg) => seg.projectId));
+
+	/**
+	 * The tooltip runs in LayerChart's manual mode: its bounds mode adds a hit area per
+	 * session, which undid the single-path drawing (ADR-0028 §7). Plot pixels → the bar.
+	 */
+	function onpointermove(e: PointerEvent) {
+		const ctx = chart;
+		if (!ctx) return;
+		const box = (e.currentTarget as HTMLElement).getBoundingClientRect();
+		const hit = barAt(
+			byRow,
+			rows,
+			(row) => ctx.yScale(row) ?? -1,
+			ctx.yScale.bandwidth?.() ?? 0,
+			(seg) => [ctx.xScale(seg.x0), ctx.xScale(seg.x1)],
+			e.clientX - box.left - PAD.left,
+			e.clientY - box.top - PAD.top
+		);
+		if (hit) ctx.tooltip.show(e, hit);
+		else ctx.tooltip.hide();
 	}
 
 	const iso = (ms: number) => new Date(ms).toISOString();
@@ -96,12 +124,20 @@
 	{/each}
 </ul>
 
-<div class="w-full" style:height="{chartHeight}px" bind:clientWidth={plotWidth} aria-hidden="true">
+<div
+	class="w-full"
+	style:height="{chartHeight}px"
+	bind:clientWidth={plotWidth}
+	aria-hidden="true"
+	{onpointermove}
+	onpointerleave={() => chart?.tooltip.hide()}
+>
 	{#if lc}
 		{const BarChart = $derived(lc.BarChart)}
 		{const Text = $derived(lc.Text)}
 		{const Tooltip = $derived(lc.Tooltip)}
 		<BarChart
+			bind:context={chart}
 			class="w-full text-on-surface-variant"
 			height={chartHeight}
 			{data}
@@ -111,9 +147,6 @@
 			xDomain={domain}
 			xNice={false}
 			orientation="horizontal"
-			c="color"
-			cDomain={colors}
-			cRange={colors}
 			bandPadding={0.3}
 			padding={PAD}
 			grid={{ x: true, y: false }}
@@ -121,13 +154,41 @@
 			highlight={false}
 			legend={false}
 			props={{
-				bars: { radius: 2, strokeWidth: 1, stroke: 'var(--color-surface-container)' },
 				xAxis: { ticks: xTicks, format: xTick, tickMarks: false, tickLength: 0 },
 				yAxis: { format: rowLabel, tickMarks: false, tickLength: 0 },
 				grid: { xTicks: dayLines, x: { stroke: 'var(--color-outline-variant)', opacity: 0.5 } },
-				tooltip: { context: { mode: 'bounds' } }
+				tooltip: { context: { mode: 'manual' } }
 			}}
 		>
+			{#snippet marks({ context })}
+				<!--
+					One path per project colour, not a LayerChart Bar or <rect> per session: two busy
+					months are ~900 bars, and per-bar nodes made the first draw a long main-thread task
+					(ADR-0028 §7). Tooltips are computed from the data, not from these shapes.
+				-->
+				{const bandwidth = $derived(context.yScale.bandwidth?.() ?? 0)}
+				{const paths = $derived(
+					colorPaths(data, (seg) => {
+						const left = context.xScale(seg.x0);
+						return {
+							x: left,
+							y: context.yScale(seg.projectId),
+							width: Math.max(1, context.xScale(seg.x1) - left),
+							height: bandwidth
+						};
+					})
+				)}
+				<g data-testid="timeline-bars" data-count={data.length}>
+					{#each paths as path (path.color)}
+						<path
+							d={path.d}
+							fill={path.color}
+							stroke="var(--color-surface-container)"
+							stroke-width="1"
+						/>
+					{/each}
+				</g>
+			{/snippet}
 			{#snippet aboveMarks({ context })}
 				{const bandwidth = $derived(context.yScale.bandwidth?.() ?? 0)}
 				{#each projects as p (p.id)}

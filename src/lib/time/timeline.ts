@@ -283,27 +283,100 @@ function noonUtc(key: string): Date {
 	return new Date(Date.UTC(y, m - 1, d, 12));
 }
 
+const dayFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * One formatter per locale and style: building an `Intl.DateTimeFormat` costs far more than
+ * formatting with one, and labels are made per session (EMI-59, EMI-194).
+ */
+function dayFormatter(locale: string, style: 'weekday' | 'monthDay'): Intl.DateTimeFormat {
+	const key = `${locale}|${style}`;
+	let dtf = dayFormatters.get(key);
+	if (!dtf) {
+		dtf = new Intl.DateTimeFormat(
+			locale,
+			style === 'weekday'
+				? { weekday: 'short', timeZone: 'UTC' }
+				: { month: 'short', day: 'numeric', timeZone: 'UTC' }
+		);
+		dayFormatters.set(key, dtf);
+	}
+	return dtf;
+}
+
 /** `Mon 6` for a civil date key. Formats at UTC noon so no zone can shift the day. */
 export function formatDayKey(key: string, locale: string): string {
 	const date = noonUtc(key);
-	const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' }).format(
-		date
-	);
-	return `${weekday} ${date.getUTCDate()}`;
+	return `${dayFormatter(locale, 'weekday').format(date)} ${date.getUTCDate()}`;
 }
 
 /** `Mar 9` for a civil date key. */
 export function formatMonthDay(key: string, locale: string): string {
-	return new Intl.DateTimeFormat(locale, {
-		month: 'short',
-		day: 'numeric',
-		timeZone: 'UTC'
-	}).format(noonUtc(key));
+	return dayFormatter(locale, 'monthDay').format(noonUtc(key));
 }
 
-/** Distinct segment colours, for an identity `cDomain`/`cRange` (each bar is its own colour). */
-export function segmentColors(segments: readonly { color: string }[]): string[] {
-	return [...new Set(segments.map((s) => s.color))];
+export type BarRect = { x: number; y: number; width: number; height: number };
+
+const px = (v: number) => String(Math.round(v * 100) / 100);
+
+/**
+ * One SVG path per colour for many bars: a few DOM nodes instead of a component or `<rect>`
+ * per session, which made drawing two busy months a long main-thread task (ADR-0028 §7).
+ * Each bar is a rectangle with corners rounded by up to `radius`; empty bars are skipped.
+ */
+export function colorPaths<T extends { color: string }>(
+	items: readonly T[],
+	rect: (item: T) => BarRect,
+	radius = 2
+): { color: string; d: string }[] {
+	const byColor = new Map<string, string>();
+	for (const item of items) {
+		const { x, y, width: w, height: h } = rect(item);
+		if (!(w > 0 && h > 0)) continue;
+		const r = Math.min(radius, w / 2, h / 2);
+		const a = `a${px(r)},${px(r)} 0 0 1`;
+		const d =
+			`M${px(x + r)},${px(y)}h${px(w - 2 * r)}${a} ${px(r)},${px(r)}v${px(h - 2 * r)}` +
+			`${a} ${px(-r)},${px(r)}h${px(-(w - 2 * r))}${a} ${px(-r)},${px(-r)}` +
+			`v${px(-(h - 2 * r))}${a} ${px(r)},${px(-r)}z`;
+		byColor.set(item.color, (byColor.get(item.color) ?? '') + d);
+	}
+	return [...byColor].map(([color, d]) => ({ color, d }));
+}
+
+/** Items grouped by a key, in their original order. */
+export function groupBy<T>(items: readonly T[], key: (item: T) => string): Map<string, T[]> {
+	const out = new Map<string, T[]>();
+	for (const item of items) {
+		const k = key(item);
+		const list = out.get(k);
+		if (list) list.push(item);
+		else out.set(k, [item]);
+	}
+	return out;
+}
+
+/**
+ * The bar under a pointer at plot pixels (`px`, `py`), for a band-row chart drawn with
+ * `colorPaths`: LayerChart's per-item hit areas would bring back one element per session.
+ * `y` gives a row's top, `bandwidth` its height, and `xOf` a bar's left and right pixels;
+ * like the drawing, a bar is at least one pixel wide.
+ */
+export function barAt<T>(
+	byRow: ReadonlyMap<string, readonly T[]>,
+	rows: readonly string[],
+	y: (row: string) => number,
+	bandwidth: number,
+	xOf: (bar: T) => [number, number],
+	px: number,
+	py: number
+): T | undefined {
+	const row = rows.find((r) => py >= y(r) && py < y(r) + bandwidth);
+	if (row === undefined) return undefined;
+	return byRow.get(row)?.find((bar) => {
+		const [x0, x1] = xOf(bar);
+		return px >= x0 && px <= Math.max(x1, x0 + 1);
+	});
 }
 
 /** Clock ticks every `step` hours across `[lo, hi]` minutes. */

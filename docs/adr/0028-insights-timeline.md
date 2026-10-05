@@ -2,6 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-10-05  
+**Amended:** 2026-10-05 (§7, drawing cost)  
 **Deciders:** Project owner
 
 ## Context
@@ -24,14 +25,21 @@ Four forms were prototyped behind a picker on dev data: Day strips, Project lane
    - A closed range whose sessions are not loaded (`coversSince`) reads its own window, `GET /sessions?from&to`. That is the vynno-api [ADR-0014 amendment of 2026-10-05](https://github.com/EmilM32/vynno-api/blob/main/docs/adr/0014-session-list-pagination.md), shipped as LOGS-RANGE.
    - The window is fetched in pages of 100 by `SessionStore.listSessionsBetween` into a `SessionWindowQuery`. It never joins the newest-first history run.
    - It dims while loading and refetches on `revision`, like the day totals in 0021 §9.
-6. **Ranges over 62 days show Rhythm only**, with a one-line note. Days and Projects draw one SVG bar per session. On the EMI-59 perf run, a year was over 5,000 bars and a 710 ms main-thread task; Rhythm draws 24.
+6. **Ranges over 62 days show Rhythm only**, with a one-line note. A year of individual sessions cannot be read as bars.
    - Days also caps its plot at 720 px. When lanes get thinner than 14 px, it labels one day in seven and drops the per-day totals.
-7. **Charts follow [0013](./0013-charts-layerchart.md):**
-   - Everything is drawn with LayerChart `BarChart`, imported after mount from `charts/lazy-timeline.ts`.
+7. **Bars are drawn by us, not by LayerChart's `Bars`** (amended 2026-10-05, after the EMI-194 perf gate failed on QA).
+   - LayerChart mounts a `Bar` component per bar. Drawing a chart once cost about 0.6–0.8 ms per bar on a fast machine and about 2.5× that on the QA host. A 1-year Rhythm (168 bars) was a 140–400 ms main-thread task; 62 busy days in Projects (~900 bars) were ~620 ms.
+   - Rhythm draws its stacked bars as plain `<rect>`s in BarChart's `marks` snippet.
+   - Days and Projects draw **one `<path>` per project colour** (`colorPaths`).
+   - Tooltips run in LayerChart's `manual` mode. `bounds` mode adds a hit-area element per item. Instead, `barAt` maps the pointer to a bar from the band row and the x scale.
+   - Day labels reuse one `Intl.DateTimeFormat` per locale.
+   - `npm run test:e2e:perf` covers the 1-year range plus Days and Projects on 62 busy days. Each draw must keep the longest main-thread task ≤ 200 ms. `PERF_CPU_THROTTLE=3` checks the margin on a slower CPU.
+8. **Charts follow [0013](./0013-charts-layerchart.md)** for everything else:
+   - LayerChart `BarChart` provides the scales, axes, grid and tooltip, imported after mount from `charts/lazy-timeline.ts`.
    - Scales are linear, with ticks computed in the session time zone. `scaleTime` would tick in the browser's zone.
    - Charts do not animate ([../motion.md](../motion.md)).
    - Each view has an `sr-only` list of what it draws.
-8. **Identity is never colour alone.** Bars use the project hex. Every view also names projects in its legend, axis or tooltip: the 10-colour project palette fails a categorical CVD check (purple / violet, teal / green / cyan).
+9. **Identity is never colour alone.** Bars use the project hex. Every view also names projects in its legend, axis or tooltip: the 10-colour project palette fails a categorical CVD check (purple / violet, teal / green / cyan).
 
 ## Consequences
 

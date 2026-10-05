@@ -3,7 +3,9 @@ import { makeProject, makeSession } from '$lib/test/factories';
 import {
 	dayTotals,
 	fitClockWindow,
+	barAt,
 	clockWindow,
+	colorPaths,
 	formatDayKey,
 	formatMinuteOfDay,
 	hourlyByProject,
@@ -206,5 +208,59 @@ describe('formatting', () => {
 		expect(formatMinuteOfDay(9 * 60 + 5)).toBe('09:05');
 		expect(formatMinuteOfDay(1440)).toBe('24:00');
 		expect(formatDayKey('2026-03-09', 'en')).toBe('Mon 9');
+	});
+});
+
+describe('colorPaths', () => {
+	it('draws every bar of one colour into a single rounded-rect path', () => {
+		const bars = [
+			{ color: '#111', x: 0, w: 10 },
+			{ color: '#222', x: 20, w: 3 },
+			{ color: '#111', x: 40, w: 0.5 }
+		];
+		const paths = colorPaths(bars, (b) => ({ x: b.x, y: 5, width: b.w, height: 8 }), 2);
+		expect(paths.map((p) => p.color)).toEqual(['#111', '#222']);
+		expect(paths[0].d).toBe(
+			'M2,5h6a2,2 0 0 1 2,2v4a2,2 0 0 1 -2,2h-6a2,2 0 0 1 -2,-2v-4a2,2 0 0 1 2,-2z' +
+				'M40.25,5h0a0.25,0.25 0 0 1 0.25,0.25v7.5a0.25,0.25 0 0 1 -0.25,0.25h0a0.25,0.25 0 0 1 -0.25,-0.25v-7.5a0.25,0.25 0 0 1 0.25,-0.25z'
+		);
+		expect(paths[1].d.startsWith('M21.5,5h0')).toBe(true);
+	});
+
+	it('skips empty bars and colours with nothing to draw', () => {
+		const paths = colorPaths([{ color: '#111' }], () => ({ x: 0, y: 0, width: 0, height: 8 }));
+		expect(paths).toEqual([]);
+	});
+});
+
+describe('barAt', () => {
+	const rows = ['mon', 'tue'];
+	const y = (row: string) => (row === 'mon' ? 0 : 20);
+	const bars = new Map([
+		[
+			'mon',
+			[
+				{ id: 'a', x0: 10, x1: 30 },
+				{ id: 'b', x0: 50, x1: 50.2 }
+			]
+		],
+		['tue', [{ id: 'c', x0: 0, x1: 100 }]]
+	]);
+	const at = (px: number, py: number) =>
+		barAt(bars, rows, y, 16, (b) => [b.x0, b.x1], px, py)?.id ?? null;
+
+	it('finds the bar under the pointer in its band row', () => {
+		expect(at(20, 5)).toBe('a');
+		expect(at(60, 25)).toBe('c');
+	});
+
+	it('gives a bar at least one pixel, as drawn', () => {
+		expect(at(50.9, 5)).toBe('b');
+	});
+
+	it('returns nothing between bars, rows or outside the plot', () => {
+		expect(at(40, 5)).toBeNull();
+		expect(at(20, 17)).toBeNull();
+		expect(at(20, -1)).toBeNull();
 	});
 });

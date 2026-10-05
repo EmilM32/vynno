@@ -394,7 +394,7 @@ test.describe('insights', () => {
 			'aria-pressed',
 			'true'
 		);
-		await expect(card.locator('svg rect').first()).toBeVisible();
+		await expect(card.getByTestId('timeline-bars').locator('path').first()).toBeVisible();
 
 		await views.getByRole('button', { name: 'Rhythm' }).click();
 		await expect(card.getByText('Most focused')).toBeVisible();

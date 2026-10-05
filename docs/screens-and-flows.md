@@ -121,12 +121,13 @@ Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs
 2. Custom: dialog with From / To dates (native `type="date"`). Prev/next shift the active grain; next is disabled on the current window. Range is view-local (resets to the current week on leave).
 3. Time by Project donut (centre total). The header shows the change vs the same span of the previous period (`▲ +1.5h vs previous period`); no KPI row ([adr/0021](./adr/0021-insights-range.md) §5, §8)
 4. Time by Activity bar — unlabeled sessions are **Unassigned** so bars match the donut; omit buckets that would display as `0s` or `0%` (`formatCompact` floors sub-seconds)
-5. Activity Breakdown table — same Unassigned rows per project; same visibility filter
-6. Mobile: grain + civil label on one line; the donut card is at least 16rem and grows (legend capped at six projects plus Other) so the ring stays visible. Activity height follows content and uses the same cap. Desktop `lg`: the row is at least `h-96`.
+5. Timeline card — when time was logged. Toggle Days | Projects | Rhythm and Working hours | 24h. Sessions split at local midnight; the live session grows to now. Ranges over 62 days show Rhythm only ([adr/0028](./adr/0028-insights-timeline.md))
+6. Activity Breakdown table — same Unassigned rows per project; same visibility filter
+7. Mobile: grain + civil label on one line; the donut card is at least 16rem and grows (legend capped at six projects plus Other) so the ring stays visible. Activity height follows content and uses the same cap. Desktop `lg`: the row is at least `h-96`.
 
-7. Data: a range that includes today is computed from loaded sessions (drained to the previous window). A past range reads `/stats/days` unless its sessions are already loaded, so going back a year is one request. While totals load, the charts dim and "Loading totals…" shows.
+8. Data: a range that includes today is computed from loaded sessions (drained to the previous window, and at least 7 days before the range for the timeline). A past range reads `/stats/days` unless its sessions are already loaded, so going back a year is one request; the timeline reads that range's sessions with `GET /sessions?from&to`. While totals load, the charts dim and "Loading totals…" shows.
 
-Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md).
+Decision: [adr/0021-insights-range.md](./adr/0021-insights-range.md), [adr/0028-insights-timeline.md](./adr/0028-insights-timeline.md).
 
 ### 3.5 Settings (`/settings`)
 

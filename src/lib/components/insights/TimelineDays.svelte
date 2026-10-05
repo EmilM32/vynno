@@ -1,0 +1,135 @@
+<script lang="ts">
+	import { formatCompact, formatTimeRange } from '$lib/time/duration';
+	import {
+		dayTotals,
+		formatMinuteOfDay,
+		hourTicks,
+		laneCounts,
+		segmentColors,
+		type TimelineDay,
+		type TimelineSegment
+	} from '$lib/time/timeline';
+	import TimelineTooltip from './TimelineTooltip.svelte';
+
+	/** Days × clock: one strip per day, sessions where they fell, overlaps on sub-lanes. */
+	let {
+		lc,
+		segments,
+		days,
+		clock,
+		timeZone,
+		dayLabel
+	}: {
+		lc: typeof import('$lib/components/charts/lazy-timeline') | null;
+		segments: TimelineSegment[];
+		days: TimelineDay[];
+		clock: [number, number];
+		timeZone: string;
+		dayLabel: (key: string) => string;
+	} = $props();
+
+	const LANE_PX = 26;
+	/** Long ranges shrink the lanes instead of growing past this (a year would be ~9,500px). */
+	const MAX_PLOT_PX = 720;
+	const MIN_LANE_PX = 6;
+	/** Below this a lane is too thin for a label beside it. */
+	const LABEL_LANE_PX = 14;
+	const BAND_PADDING = 0.3;
+	const PAD = { top: 4, right: 64, bottom: 24, left: 60 };
+
+	const lanes = $derived(laneCounts(segments));
+	/** One band per lane; a day with overlapping sessions gets more than one. */
+	const rows = $derived(
+		days.flatMap((d) => Array.from({ length: lanes.get(d.key) ?? 1 }, (_, i) => `${d.key}:${i}`))
+	);
+	const data = $derived(segments.map((s) => ({ ...s, row: `${s.dateKey}:${s.lane}` })));
+	const totals = $derived(dayTotals(segments));
+	const xTicks = $derived(hourTicks(clock));
+	const colors = $derived(segmentColors(segments));
+	const lanePx = $derived(
+		Math.max(MIN_LANE_PX, Math.min(LANE_PX, MAX_PLOT_PX / Math.max(1, rows.length)))
+	);
+	const chartHeight = $derived(rows.length * lanePx + PAD.top + PAD.bottom);
+	/** Every day is labelled while lanes are tall enough; otherwise one day in seven. */
+	const labelled = $derived(lanePx >= LABEL_LANE_PX ? days : days.filter((_, i) => i % 7 === 0));
+	const yTicks = $derived(labelled.map((d) => `${d.key}:0`));
+
+	function rowLabel(row: string): string {
+		const [key, lane] = row.split(':');
+		return lane === '0' ? dayLabel(key) : '';
+	}
+
+	const iso = (ms: number) => new Date(ms).toISOString();
+</script>
+
+<ul class="sr-only">
+	{#each days as day (day.key)}
+		<li>
+			{dayLabel(day.key)}: {formatCompact(totals.get(day.key) ?? 0)}
+			<ul>
+				{#each segments.filter((s) => s.dateKey === day.key) as seg (seg.id)}
+					<li>
+						{seg.projectName}, {formatTimeRange(iso(seg.startMs), iso(seg.endMs), timeZone)}
+					</li>
+				{/each}
+			</ul>
+		</li>
+	{/each}
+</ul>
+
+<div class="w-full" style:height="{chartHeight}px" aria-hidden="true">
+	{#if lc}
+		{const BarChart = $derived(lc.BarChart)}
+		{const Text = $derived(lc.Text)}
+		{const Tooltip = $derived(lc.Tooltip)}
+		<BarChart
+			class="w-full text-on-surface-variant"
+			height={chartHeight}
+			{data}
+			x={['startMin', 'endMin']}
+			y="row"
+			yDomain={rows}
+			xDomain={clock}
+			xNice={false}
+			orientation="horizontal"
+			c="color"
+			cDomain={colors}
+			cRange={colors}
+			bandPadding={BAND_PADDING}
+			padding={PAD}
+			grid={{ x: true, y: false }}
+			rule={false}
+			highlight={false}
+			legend={false}
+			props={{
+				bars: { radius: 2, strokeWidth: 1, stroke: 'var(--color-surface-container)' },
+				xAxis: { ticks: xTicks, format: formatMinuteOfDay, tickMarks: false, tickLength: 0 },
+				yAxis: { ticks: yTicks, format: rowLabel, tickMarks: false, tickLength: 0 },
+				grid: { xTicks, x: { stroke: 'var(--color-outline-variant)', opacity: 0.5 } },
+				tooltip: { context: { mode: 'bounds' } }
+			}}
+		>
+			{#snippet aboveMarks({ context })}
+				{const bandwidth = $derived(context.yScale.bandwidth?.() ?? 0)}
+				{#each lanePx >= LABEL_LANE_PX ? days : [] as day (day.key)}
+					{const first = $derived(context.yScale(`${day.key}:0`) ?? 0)}
+					{const last = $derived(
+						context.yScale(`${day.key}:${(lanes.get(day.key) ?? 1) - 1}`) ?? first
+					)}
+					{const ms = $derived(totals.get(day.key) ?? 0)}
+					<!-- Day total in the right padding, centred on its lanes; dropped when lanes are too thin. -->
+					<Text
+						x={context.width + 12}
+						y={(first + last + bandwidth) / 2}
+						value={ms > 0 ? formatCompact(ms) : '—'}
+						verticalAnchor="middle"
+						class="fill-on-surface-variant font-mono text-[11px] tabular-nums"
+					/>
+				{/each}
+			{/snippet}
+			{#snippet tooltip({ context })}
+				<TimelineTooltip {Tooltip} {context} {timeZone} {dayLabel} />
+			{/snippet}
+		</BarChart>
+	{/if}
+</div>

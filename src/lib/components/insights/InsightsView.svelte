@@ -6,6 +6,7 @@
 	import { useSession } from '$lib/stores/session.svelte';
 	import { periodStats, periodStatsFromTotals, rangeTotalMs } from '$lib/time/aggregates';
 	import { withLiveSession } from '$lib/time/day-totals';
+	import { addDaysInTimeZone } from '$lib/time/timezone';
 	import {
 		civilDayRange,
 		insightRangeForGrain,
@@ -17,6 +18,7 @@
 	import BreakdownTable from './BreakdownTable.svelte';
 	import InsightRangeControl from './InsightRangeControl.svelte';
 	import ProjectDonut from './ProjectDonut.svelte';
+	import TimelineCard from './TimelineCard.svelte';
 
 	/**
 	 * A range that includes today is computed from loaded sessions: the history drain
@@ -76,13 +78,17 @@
 	const stale = $derived(currentFromServer && !current.isFor(currentDays));
 
 	// Track only the range: the drain's own commits must not re-run this (EMI-81).
-	// Only open ranges drain; closed ones read totals from the server.
+	// Only open ranges drain; closed ones read totals from the server. The drain also reaches
+	// 7 days before the range, so the timeline sees a session that began earlier and runs into
+	// it (sessions last at most 7 days) even on a short custom range.
 	$effect(() => {
 		const shown = range;
 		untrack(() => {
-			if (!isOpenInsightRange(shown, sessionStore.timeZone)) return;
-			const startMs = previousInsightRange(shown, now, sessionStore.timeZone).start.getTime();
-			void sessionStore.ensureThrough(startMs);
+			const tz = sessionStore.timeZone;
+			if (!isOpenInsightRange(shown, tz)) return;
+			const previousMs = previousInsightRange(shown, now, tz).start.getTime();
+			const reachMs = addDaysInTimeZone(shown.start, -7, tz).getTime();
+			void sessionStore.ensureThrough(Math.min(previousMs, reachMs));
 		});
 	});
 
@@ -128,6 +134,8 @@
 			<ProjectDonut items={stats.byProject} totalMs={stats.totalMs} {previousMs} />
 			<ActivityBars items={stats.byActivity} />
 		</div>
+
+		<TimelineCard {range} />
 
 		<BreakdownTable rows={stats.breakdown} />
 	</div>

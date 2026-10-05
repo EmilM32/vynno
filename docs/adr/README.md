@@ -31,6 +31,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0025](./0025-security-headers.md)            | Security response headers (CSP, frame, referrer)    | Accepted   |
 | [0026](./0026-session-sync.md)                | Keep tabs and devices in step with the server       | Accepted   |
 | [0027](./0027-year-heatmap-streaks.md)        | Dashboard year heatmap and streaks                  | Accepted   |
+| [0028](./0028-insights-timeline.md)           | Insights timeline card (Days, Projects, Rhythm)     | Accepted   |
 
 ## Format
 

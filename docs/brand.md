@@ -60,7 +60,7 @@ CSS prefix `--dt-*` stays until a deliberate token rename. That is not a public-
 
 ## In the product
 
-Settings → **About Vynno** is the in-app home for pronunciation and meaning.
+Settings → **About Vynno** is the in-app home for pronunciation and meaning. Its ▶ button plays a recorded clip, `src/lib/assets/vynno-pronunciation.mp3` (EMI-197).
 
 ## Public rename checklist
 
@@ -69,7 +69,7 @@ How to change the **user-facing** name. This is not a git-repo rename. Decision:
 1. Update this file first (name, pronunciation, tagline, one-liner, spelling).
 2. `messages/en.json` — `app_name`, `title_app`, Settings About strings (`settings_about_*`).
 3. Shell — brand comes from `m.app_name()`. Do not hardcode the name in `nav.ts`.
-4. Settings About copy — must still match this file.
+4. Settings About copy — must still match this file. If the pronunciation changes, replace `src/lib/assets/vynno-pronunciation.mp3` too.
 5. Root `README.md` and `docs/README.md` headings.
 6. `AGENTS.md` opener.
 7. `e2e/navigation.spec.ts` — shell brand assertion.

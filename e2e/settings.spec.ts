@@ -179,6 +179,7 @@ test.describe('settings', () => {
 		await select.selectOption('pl');
 		await expect(page.locator('html')).toHaveAttribute('lang', 'pl');
 		await expect(page.getByRole('heading', { name: 'Ustawienia' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Odtwórz wymowę' })).toBeVisible();
 		await expect(page.locator('#ui-locale')).toHaveValue('pl');
 
 		await page.locator('#ui-locale').selectOption('en');
@@ -191,8 +192,45 @@ test.describe('settings', () => {
 		await expect(about).toBeVisible();
 		await expect(about.getByText('VIN-oh')).toBeVisible();
 		await expect(about.getByText('/ˈvɪn.oʊ/')).toBeVisible();
+		await expect(about.getByRole('button', { name: 'Play pronunciation' })).toBeVisible();
 		await expect(about.getByText(/double n/i)).toBeVisible();
 		await expect(about.getByText(`v${pkg.version}`)).toBeVisible();
+	});
+
+	test('pronunciation clip loads only on click, with no console errors (EMI-197)', async ({
+		page
+	}) => {
+		const isClip = (url: string) =>
+			/^\/_app\/immutable\/assets\/vynno-pronunciation\.[\w-]+\.mp3$/.test(new URL(url).pathname);
+		const clipRequests: string[] = [];
+		const consoleErrors: string[] = [];
+		page.on('request', (r) => {
+			if (r.url().includes('vynno-pronunciation')) clipRequests.push(r.url());
+		});
+		page.on('console', (msg) => {
+			if (msg.type() === 'error' || msg.text().includes('Refused to'))
+				consoleErrors.push(msg.text());
+		});
+
+		await page.reload();
+		await waitForClient(page);
+		await page.waitForLoadState('networkidle');
+		expect(clipRequests).toEqual([]);
+
+		const button = page
+			.getByRole('region', { name: 'About Vynno' })
+			.getByRole('button', { name: 'Play pronunciation' });
+		const [clip] = await Promise.all([
+			page.waitForResponse((r) => isClip(r.url())),
+			button.click()
+		]);
+		// The media loader asks for a byte range, so sirv may answer 206 rather than 200.
+		expect([200, 206]).toContain(clip.status());
+		expect(clip.headers()['content-type']).toMatch(/^audio\/(mpeg|ogg)/);
+
+		await button.click();
+		await expect(button).toBeEnabled();
+		expect(consoleErrors).toEqual([]);
 	});
 
 	test('default project persists across reload', async ({ page }) => {

@@ -23,6 +23,7 @@
 	import { nameRejectMessage } from '$lib/text/field-error';
 	import { normalizeName } from '$lib/text/normalize';
 	import ActivityTypesSection from './ActivityTypesSection.svelte';
+	import PronunciationButton from './PronunciationButton.svelte';
 	import SecuritySection from './SecuritySection.svelte';
 	import ThemeSelect from './ThemeSelect.svelte';
 
@@ -320,9 +321,10 @@
 			<dl class="flex flex-col gap-3">
 				<div>
 					<dt class="text-on-surface-variant">{m.settings_about_pronounced()}</dt>
-					<dd class="flex flex-wrap items-baseline gap-x-2 font-mono text-code-label">
+					<dd class="flex flex-wrap items-center gap-x-2 font-mono text-code-label">
 						<span class="text-on-surface">{m.settings_about_pronunciation()}</span>
 						<span class="text-on-surface-variant" lang="en-fonipa">/ˈvɪn.oʊ/</span>
+						<PronunciationButton />
 					</dd>
 				</div>
 				<div>

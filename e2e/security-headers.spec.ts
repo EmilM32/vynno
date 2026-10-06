@@ -27,6 +27,7 @@ function expectCsp(response: Response | null) {
 	expect(csp).toContain("object-src 'none'");
 	expect(csp).toContain("base-uri 'self'");
 	expect(csp).toContain("default-src 'self'");
+	expect(csp).toContain("media-src 'self'");
 	// Nonce mode: the script source is a per-render nonce, never 'unsafe-inline'.
 	expect(csp).toMatch(/script-src [^;]*'nonce-[\w+/=-]+'/);
 	expect(csp).not.toMatch(/script-src [^;]*'unsafe-inline'/);

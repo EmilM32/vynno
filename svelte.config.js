@@ -53,6 +53,8 @@ const config = {
 				// `data:` covers the inline SVG chevrons in src/routes/layout.css.
 				'img-src': ['self', 'data:'],
 				'font-src': ['self'],
+				// The Settings → About pronunciation clip, a hashed same-origin asset (EMI-197).
+				'media-src': ['self'],
 				'connect-src': ['self'],
 				'object-src': ['none'],
 				'base-uri': ['self'],

@@ -32,7 +32,13 @@
 		<h2 class="text-headline-md">{m.dashboard_recent_logs()}</h2>
 	</div>
 
-	<div class="no-scrollbar flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2">
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+	<div
+		class="no-scrollbar focus-ring flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2"
+		tabindex="0"
+		role="region"
+		aria-label={m.dashboard_recent_logs()}
+	>
 		{#if logs.length === 0}
 			<p class="p-4 text-center text-body-sm text-on-surface-variant">
 				{m.dashboard_no_completed()}

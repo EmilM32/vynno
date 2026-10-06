@@ -22,13 +22,21 @@
 
 	let closing = $state(false);
 	let closeTimer: number | undefined;
+	let releaseTrap: (() => void) | undefined;
 
 	/** Matches `--duration-ui`. Parent stays `open` until this fires so the exit can play. */
 	const EXIT_MS = 200;
 
+	/** Hand the page back (inert off, focus restored) before the exit plays, so input is not lost. */
+	function release() {
+		releaseTrap?.();
+		releaseTrap = undefined;
+	}
+
 	function beginClose(then: () => void) {
 		if (closing) return;
 		closing = true;
+		release();
 		closeTimer = window.setTimeout(() => {
 			closeTimer = undefined;
 			closing = false;
@@ -41,7 +49,7 @@
 	}
 
 	function trapOverlay(node: HTMLElement) {
-		const release = trapFocus(node);
+		releaseTrap = trapFocus(node);
 		const frame = requestAnimationFrame(() => {
 			const target = initialFocus?.() ?? getFocusable(node)[0];
 			target?.focus();
@@ -67,7 +75,11 @@
 {#if open}
 	<div
 		{@attach trapOverlay}
-		class="fixed inset-0 z-100 flex items-center justify-center overscroll-contain px-4"
+		class={[
+			'fixed inset-0 z-100 flex items-center justify-center overscroll-contain px-4',
+			closing && 'pointer-events-none'
+		]}
+		inert={closing}
 	>
 		<!-- Scrim, not chrome: a full-bleed dismiss surface, so it stays a raw button. -->
 		<button

@@ -81,4 +81,20 @@ test.describe('logs export', () => {
 		expect(lines[0]).toBe(`project,project_code,${key},total`);
 		expect(lines.at(-1)).toBe('total,,2.5,2.5');
 	});
+
+	test('typing right after Esc on the dialog lands in the search box (EMI-144)', async ({
+		page
+	}) => {
+		const search = page.getByRole('searchbox', { name: 'Search logs' });
+		const exportButton = page.getByRole('button', { name: 'Export' });
+		await exportButton.click();
+		await expect(page.getByRole('dialog', { name: 'Export logs' })).toBeVisible();
+		await page.keyboard.press('Escape');
+		// The page is handed back as soon as the exit starts, not after it.
+		await expect(exportButton).toBeFocused({ timeout: 100 });
+		await search.fill(tag);
+		await expect(search).toHaveValue(tag);
+		await exportButton.click();
+		await expect(page.getByTestId('logs-export-count')).toHaveText('2');
+	});
 });

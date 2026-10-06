@@ -70,10 +70,14 @@ export function formatHoursMinutes(ms: number): string {
 	return `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m`;
 }
 
-/** Fractional hours for deltas: `1.2h`. */
-export function formatHoursDecimal(ms: number, digits = 1): string {
+/** Fractional hours for deltas in the UI locale: `1.2h` (en), `1,2h` (pl). */
+export function formatHoursDecimal(ms: number, digits = 1, locale = getLocale()): string {
 	const hours = Math.max(0, ms) / 3_600_000;
-	return `${hours.toFixed(digits)}h`;
+	const n = new Intl.NumberFormat(locale, {
+		minimumFractionDigits: digits,
+		maximumFractionDigits: digits
+	}).format(hours);
+	return `${n}h`;
 }
 
 /** Visual treatment for today-vs-yesterday. Matches `formatHoursDecimal` (1 decimal hour). */

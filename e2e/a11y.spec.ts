@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { login, waitForClient } from './helpers';
+import { firstProjectId, login, seedManySessions, waitForClient } from './helpers';
 
 const routes = ['/timer', '/dashboard', '/logs', '/insights', '/projects', '/settings'] as const;
 
@@ -46,6 +46,26 @@ test.describe('WCAG 2.2 AA (axe)', () => {
 		await waitForClient(page);
 		await expect(page.getByTestId('heatmap-active')).not.toHaveText('—');
 		await expectNoViolations(page);
+	});
+
+	test('dashboard Recent Logs that overflows its card (EMI-145)', async ({ page }) => {
+		await page.setViewportSize({ width: 1280, height: 800 });
+		await login(page);
+		const projectId = await firstProjectId(page);
+		await seedManySessions(page, {
+			count: 12,
+			projectIds: [projectId],
+			spanMs: 6 * 60 * 60 * 1000
+		});
+		await page.goto('/dashboard');
+		await waitForClient(page);
+		const list = page.getByRole('region', { name: 'Recent Logs' });
+		await expect(list.getByRole('button', { name: /^Restart/ })).not.toHaveCount(0);
+		expect(await list.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+		await expectNoViolations(page);
+		await list.focus();
+		await page.keyboard.press('End');
+		await expect.poll(() => list.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
 	});
 
 	test('command palette open', async ({ page }) => {

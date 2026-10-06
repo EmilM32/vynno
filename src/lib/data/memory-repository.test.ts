@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FIXED_NOW, PROJECT_IDS, makeSession, sampleAppSeed } from '$lib/test/factories';
 import type { DomainErrorCode } from './errors';
-import { MemoryTimeTrackingRepository } from './memory-repository';
+import { MEMORY_PASSWORD, MemoryTimeTrackingRepository } from './memory-repository';
 
 async function expectCode(promise: Promise<unknown>, code: DomainErrorCode) {
 	await expect(promise).rejects.toMatchObject({ name: 'DomainError', code });
@@ -339,6 +339,24 @@ describe('MemoryTimeTrackingRepository', () => {
 				repo.startSession({ projectId: created.id, note: 'nope' }),
 				'project_archived'
 			);
+		});
+	});
+
+	describe('changePassword', () => {
+		const change = (newPassword: string) =>
+			repo.changePassword({ currentPassword: MEMORY_PASSWORD, newPassword });
+
+		it('accepts 72 bytes and rejects 73 like the API', async () => {
+			await expectCode(change('a'.repeat(73)), 'invalid_body');
+			await expect(change('a'.repeat(72))).resolves.toBeUndefined();
+		});
+
+		it('counts multi-byte characters in bytes', async () => {
+			await expectCode(change('ż€'.repeat(15)), 'invalid_body');
+		});
+
+		it('rejects under 8 code points', async () => {
+			await expectCode(change('short'), 'invalid_body');
 		});
 	});
 });

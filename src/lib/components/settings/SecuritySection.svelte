@@ -4,13 +4,7 @@
 	import Disclosure from '$lib/components/ui/Disclosure.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
-	import {
-		isValidEmail,
-		isValidOTP,
-		normalizeEmail,
-		PASSWORD_MAX,
-		PASSWORD_MIN
-	} from '$lib/auth/validate';
+	import { isValidEmail, isValidOTP, normalizeEmail, passwordFieldError } from '$lib/auth/validate';
 	import { m } from '$lib/paraglide/messages.js';
 	import { authStore } from '$lib/stores/auth.svelte';
 	import { usePrefs } from '$lib/stores/prefs.svelte';
@@ -51,14 +45,6 @@
 		open = true;
 	}
 
-	function passwordLengthError(value: string): string | undefined {
-		if (!value) return m.login_password_required();
-		if (value.length < PASSWORD_MIN || value.length > PASSWORD_MAX) {
-			return m.register_password_length();
-		}
-		return undefined;
-	}
-
 	async function onChangePassword(e: SubmitEvent) {
 		e.preventDefault();
 		if (passwordPending) return;
@@ -66,7 +52,7 @@
 		passwordNotice = '';
 		const errors: typeof passwordErrors = {};
 		if (!currentPassword) errors.current = m.login_password_required();
-		errors.next = passwordLengthError(newPassword);
+		errors.next = passwordFieldError(newPassword);
 		if (!confirmPassword) errors.confirm = m.register_confirm_required();
 		else if (newPassword !== confirmPassword) errors.confirm = m.register_password_mismatch();
 		passwordErrors = errors;

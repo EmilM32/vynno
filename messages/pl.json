@@ -409,6 +409,7 @@
 	"register_resend": "Wyślij kod ponownie",
 	"register_email_format": "Podaj prawidłowy adres e-mail.",
 	"register_password_length": "Hasło musi mieć 8–128 znaków.",
+	"register_password_bytes": "Hasło jest za długie (maks. 72 bajty).",
 	"register_password_mismatch": "Hasła nie są identyczne.",
 	"register_display_name_max": "Nazwa wyświetlana może mieć najwyżej {max} znaków.",
 	"settings_later_account": "Konto / uwierzytelnianie (osobny backend)",

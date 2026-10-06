@@ -5,6 +5,8 @@ import { normalizeName } from '$lib/text/normalize';
 export const EMAIL_MAX = 254;
 export const PASSWORD_MIN = 8;
 export const PASSWORD_MAX = 128;
+/** bcrypt's input limit; the API rejects longer passwords. */
+export const PASSWORD_MAX_BYTES = 72;
 export const DISPLAY_NAME_MAX = 80;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -42,6 +44,24 @@ export function passwordsMatch(password: string, confirm: string): boolean {
 	return password.length > 0 && password === confirm;
 }
 
+export type PasswordReject = 'length' | 'bytes';
+
+/** API rule: 8–128 code points and at most 72 bytes of UTF-8. */
+export function checkPassword(raw: string): PasswordReject | null {
+	const n = [...raw].length;
+	if (n < PASSWORD_MIN || n > PASSWORD_MAX) return 'length';
+	if (new TextEncoder().encode(raw).length > PASSWORD_MAX_BYTES) return 'bytes';
+	return null;
+}
+
+export function passwordFieldError(raw: string): string | undefined {
+	if (!raw) return m.login_password_required();
+	const reject = checkPassword(raw);
+	if (reject === 'length') return m.register_password_length();
+	if (reject === 'bytes') return m.register_password_bytes();
+	return undefined;
+}
+
 export function validateRegisterFieldErrors(
 	input: RegisterFieldValues
 ): Partial<Record<RegisterFieldErrorKey, string>> {
@@ -51,10 +71,8 @@ export function validateRegisterFieldErrors(
 	if (!email) errors.email = m.login_email_required();
 	else if (!isValidEmail(email)) errors.email = m.register_email_format();
 
-	if (!input.password) errors.password = m.login_password_required();
-	else if (input.password.length < PASSWORD_MIN || input.password.length > PASSWORD_MAX) {
-		errors.password = m.register_password_length();
-	}
+	const password = passwordFieldError(input.password);
+	if (password) errors.password = password;
 
 	if (!input.confirm) errors.confirm = m.register_confirm_required();
 	else if (input.password !== input.confirm) errors.confirm = m.register_password_mismatch();
@@ -81,10 +99,8 @@ export function validateResetFieldErrors(input: {
 	if (!email) errors.email = m.login_email_required();
 	else if (!isValidEmail(email)) errors.email = m.register_email_format();
 
-	if (!input.password) errors.password = m.login_password_required();
-	else if (input.password.length < PASSWORD_MIN || input.password.length > PASSWORD_MAX) {
-		errors.password = m.register_password_length();
-	}
+	const password = passwordFieldError(input.password);
+	if (password) errors.password = password;
 
 	if (!input.confirm) errors.confirm = m.register_confirm_required();
 	else if (input.password !== input.confirm) errors.confirm = m.register_password_mismatch();

@@ -409,6 +409,7 @@
 	"register_resend": "Resend code",
 	"register_email_format": "Enter a valid email address.",
 	"register_password_length": "Password must be 8–128 characters.",
+	"register_password_bytes": "Password is too long (max 72 bytes).",
 	"register_password_mismatch": "Passwords do not match.",
 	"register_display_name_max": "Display name can be at most {max} characters.",
 	"settings_later_account": "Account / auth (separate backend)",

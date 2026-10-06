@@ -70,6 +70,8 @@ Unknown route and wrong method: JSON `404` `not_found`.
 
 Body over the BFF 2 MB limit: `413` with envelope code `invalid_body` and message `Request body is too large.` (the BFF emits this).
 
+JSON bodies must be sent with `Content-Type: application/json` (parameters such as `charset` are allowed). Any other or missing type → `400 invalid_body` (`Content-Type must be application/json.`). The API itself caps a JSON body at 64 KiB → `400 invalid_body` (`Request body is too large.`); the avatar upload keeps its own multipart limit.
+
 Wrong JSON type → `400 invalid_body`. Malformed JSON and trailing data → `400 invalid_json`. Unknown fields are rejected on POST and PATCH (`400 invalid_body`). Empty `status` query means no filter.
 
 Example envelope:
@@ -146,7 +148,7 @@ Register is two steps. `POST /auth/register/code` emails a 6-digit code (15 minu
 { "email": "alex@example.com", "password": "a-long-enough-secret", "rememberMe": true }
 ```
 
-Emails are stored NFC, lowercased, domain in IDNA punycode. NFC and NFD are one account. An IDN domain and its punycode form are one stored email. Cc/Cf anywhere → `400 invalid_body`. Local part longer than 64 octets → 400; 64 is accepted. Non-ASCII local parts are allowed. The address is still one address (`net/mail.ParseAddress` equals the whole string) whose domain contains a `.`, 3–254 characters. Unique among accounts. Password: 8–128 characters. Login with a malformed email is `invalid_credentials` (same as unknown email).
+Emails are stored NFC, lowercased, domain in IDNA punycode. NFC and NFD are one account. An IDN domain and its punycode form are one stored email. Cc/Cf anywhere → `400 invalid_body`. Local part longer than 64 octets → 400; 64 is accepted. Non-ASCII local parts are allowed. The address is still one address (`net/mail.ParseAddress` equals the whole string) whose domain contains a `.`, 3–254 characters. Unique among accounts. Password: 8–128 characters and at most 72 bytes of UTF-8 (the bcrypt input limit); longer is `400 invalid_body`. Login with a malformed email is `invalid_credentials` (same as unknown email).
 
 `rememberMe: true` (default) sets cookie `Max-Age` to 30 days. `false` sets a session cookie (cleared when the browser quits). The server still expires the token after 30 days.
 
@@ -158,7 +160,7 @@ Password reset is also two steps. `POST /auth/password/forgot` always returns `2
 { "email": "alex@example.com", "code": "123456", "password": "a-new-long-enough-secret" }
 ```
 
-Wrong, expired, or already-used `code` is `401 invalid_code` (do not distinguish those cases). Send cooldown, send cap, or too many guesses is `429 rate_limited`. Cooldown is 60 seconds per email+purpose; 5 sends per hour; 5 guesses then the challenge is spent and a new send is required. A resend replaces the previous code. Operator seed/reset accounts skip this flow.
+Wrong, expired, or already-used `code` is `401 invalid_code` (do not distinguish those cases). Send cooldown, send cap, or too many guesses is `429 rate_limited`. Cooldown is 60 seconds per email+purpose; 5 sends per hour; 5 guesses then the challenge is spent and a new send is required; concurrent guesses share the same 5. A spent challenge keeps its cooldown and send count. A resend replaces the previous code. Operator seed/reset accounts skip this flow.
 
 Signed in, the password and the email can change without the reset flow. Each keeps the caller's session and deletes every **other** session token for the account.
 
@@ -174,7 +176,7 @@ Email change is two steps, like register. `POST /auth/email/code` `{ "email": "<
 
 Cookie flags: `HttpOnly`, `SameSite=Lax`, `Path=/`, `Secure` when the process is configured for HTTPS.
 
-CORS is locked to the SPA origin(s) and allows credentials. Mutating cookie-backed requests must send an `Origin` (or `Referer`) in that allowlist.
+CORS is locked to the SPA origin(s) and allows credentials. Any request whose `Origin` is outside the allowlist (SPA origins plus the API's public origin) is answered `403` with an empty body, public routes included. Mutating cookie-backed requests must send an `Origin` (or `Referer`) in that allowlist.
 
 Public: `POST /auth/login`, `POST /auth/register`, `POST /auth/register/code`, `POST /auth/password/forgot`, `POST /auth/password/reset`, `GET /avatars/:id`. Every other `/v1` resource requires a session. `GET /healthz` is outside `/v1` and stays public. Operator Swagger UI (`GET /swagger/`, `GET /openapi.json`) is also outside `/v1` and public on this loopback process.
 
@@ -220,7 +222,7 @@ There is no `handle`. Chrome shows `displayName` if non-empty, otherwise the raw
 
 `DELETE /me/avatar` when already null is still `200` with `avatarUrl: null`.
 
-`GET /avatars/:id` is public (no cookie). Success is the raw bytes with `Content-Type` from the stored row and `Cache-Control: public, max-age=31536000, immutable`. Unknown id → `404` `{ "error": { "code": "not_found", "message": "…" } }`.
+`GET /avatars/:id` is public (no cookie). Success is the raw bytes with `Content-Type` from the stored row, `Cache-Control: public, max-age=31536000, immutable`, `X-Content-Type-Options: nosniff`, and `Content-Security-Policy: default-src 'none'; sandbox`. Unknown id → `404` `{ "error": { "code": "not_found", "message": "…" } }`.
 
 ### Preferences
 

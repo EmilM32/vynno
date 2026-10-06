@@ -141,6 +141,12 @@ describe('formatHoursDecimal', () => {
 	it('formats fractional hours', () => {
 		expect(formatHoursDecimal(ms.hours(1) + ms.min(12))).toBe('1.2h');
 	});
+
+	it('uses the locale decimal separator', () => {
+		expect(formatHoursDecimal(ms.hours(1) + ms.min(30), 1, 'en')).toBe('1.5h');
+		expect(formatHoursDecimal(ms.hours(1) + ms.min(30), 1, 'pl')).toBe('1,5h');
+		expect(formatHoursDecimal(0, 1, 'pl')).toBe('0,0h');
+	});
 });
 
 describe('deltaDisplay', () => {

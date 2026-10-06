@@ -2,7 +2,7 @@ import { SESSION_LIST_DEFAULT_LIMIT } from '$lib/api/pagination';
 import type { AppSeed } from '$lib/api/types';
 import { DAILY_TARGET_MAX_MS, DAILY_TARGET_MIN_MS } from '$lib/api/schemas/prefs';
 import { DAY_TOTALS_MAX_DAYS } from '$lib/api/schemas/stats';
-import { isValidEmail, normalizeEmail } from '$lib/auth/validate';
+import { checkPassword, isValidEmail, normalizeEmail } from '$lib/auth/validate';
 import {
 	normalizeCode,
 	normalizeProjectFields,
@@ -370,8 +370,12 @@ export class MemoryTimeTrackingRepository implements TimeTrackingRepository {
 	}
 
 	async changePassword(input: ChangePasswordInput): Promise<void> {
-		if (input.newPassword.length < 8 || input.newPassword.length > 128) {
+		const reject = checkPassword(input.newPassword);
+		if (reject === 'length') {
 			throw new DomainError('invalid_body', 'Password must be 8–128 characters.');
+		}
+		if (reject === 'bytes') {
+			throw new DomainError('invalid_body', 'Password must be at most 72 bytes.');
 		}
 		if (input.currentPassword !== this.#password) {
 			throw new DomainError('invalid_credentials', 'Current password is incorrect.');

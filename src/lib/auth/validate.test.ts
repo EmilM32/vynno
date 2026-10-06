@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+	checkPassword,
 	DISPLAY_NAME_MAX,
 	isValidOTP,
 	isValidRegisterCode,
@@ -30,6 +31,29 @@ describe('passwordsMatch', () => {
 	});
 });
 
+describe('checkPassword', () => {
+	it('enforces 8–128 code points', () => {
+		expect(checkPassword('a'.repeat(7))).toBe('length');
+		expect(checkPassword('a'.repeat(8))).toBeNull();
+		// 4 emoji are 8 UTF-16 units but 4 code points.
+		expect(checkPassword('😀'.repeat(4))).toBe('length');
+		expect(checkPassword('a'.repeat(129))).toBe('length');
+	});
+
+	it('allows 72 bytes of UTF-8 and rejects 73', () => {
+		expect(checkPassword('a'.repeat(72))).toBeNull();
+		expect(checkPassword('a'.repeat(73))).toBe('bytes');
+	});
+
+	it('counts multi-byte characters in bytes', () => {
+		// "ż" is 2 bytes, "€" is 3: 15 pairs are 30 code points and 75 bytes.
+		expect(checkPassword('ż€'.repeat(15))).toBe('bytes');
+		// 18 emoji are 72 bytes; 19 are 76.
+		expect(checkPassword('😀'.repeat(18))).toBeNull();
+		expect(checkPassword('😀'.repeat(19))).toBe('bytes');
+	});
+});
+
 describe('validateRegisterFieldErrors', () => {
 	it('accepts a valid payload', () => {
 		expect(validateRegisterFieldErrors(valid)).toEqual({});
@@ -55,6 +79,17 @@ describe('validateRegisterFieldErrors', () => {
 		expect(
 			validateRegisterFieldErrors({ ...valid, password: 'short', confirm: 'short' }).password
 		).toMatch(/8–128/);
+	});
+
+	it('rejects a password over 72 bytes', () => {
+		const ok = 'a'.repeat(72);
+		const long = 'a'.repeat(73);
+		expect(validateRegisterFieldErrors({ ...valid, password: ok, confirm: ok }).password).toBe(
+			undefined
+		);
+		expect(
+			validateRegisterFieldErrors({ ...valid, password: long, confirm: long }).password
+		).toMatch(/72 bytes/);
 	});
 
 	it('requires confirm and rejects a mismatch', () => {
@@ -112,5 +147,12 @@ describe('validateResetFieldErrors', () => {
 			/required/i
 		);
 		expect(validateResetFieldErrors({ ...reset, confirm: 'other-pass' }).confirm).toMatch(/match/i);
+	});
+
+	it('rejects a password over 72 bytes like register', () => {
+		const long = 'ż€'.repeat(15);
+		expect(validateResetFieldErrors({ ...reset, password: long, confirm: long }).password).toMatch(
+			/72 bytes/
+		);
 	});
 });

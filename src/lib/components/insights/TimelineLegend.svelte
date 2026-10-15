@@ -16,7 +16,7 @@
 </script>
 
 <ul
-	class="flex flex-wrap gap-x-4 gap-y-1.5 max-md:flex-col"
+	class="flex flex-wrap gap-x-4 gap-y-1.5 max-md:flex-col max-md:flex-nowrap"
 	aria-label={m.insights_timeline_legend_aria()}
 >
 	{#each rows as row (row.id)}

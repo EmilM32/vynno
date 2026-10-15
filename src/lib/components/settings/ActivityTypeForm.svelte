@@ -61,7 +61,7 @@
 		<span class="text-body-md text-on-surface">{m.settings_activity_type_color()}</span>
 		<ActivityColorPicker bind:value={color} />
 	</div>
-	<div class="flex flex-wrap justify-end gap-2">
+	<div class="dialog-actions flex flex-wrap justify-end gap-2">
 		<Button variant="secondary" onclick={oncancel}>
 			{m.common_cancel()}
 		</Button>

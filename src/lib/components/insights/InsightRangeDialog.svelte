@@ -65,7 +65,7 @@
 					<Input tone="data" type="date" bind:value={toDay} max={todayKey} class="w-full" />
 				</Field>
 			</div>
-			<div class="flex flex-wrap justify-end gap-2">
+			<div class="dialog-actions flex flex-wrap justify-end gap-2">
 				<Button variant="secondary" onclick={() => close()}>
 					{m.common_cancel()}
 				</Button>

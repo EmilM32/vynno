@@ -50,8 +50,12 @@
 
 	function trapOverlay(node: HTMLElement) {
 		releaseTrap = trapFocus(node);
+		// On touch, focusing a field opens the keyboard over the form (EMI-275): focus the panel
+		// instead, as CommandPalette does. An explicit `initialFocus` still wins.
+		const coarse = window.matchMedia('(pointer: coarse)').matches;
 		const frame = requestAnimationFrame(() => {
-			const target = initialFocus?.() ?? getFocusable(node)[0];
+			const panel = node.querySelector<HTMLElement>('[role="dialog"]');
+			const target = initialFocus?.() ?? (coarse ? panel : getFocusable(node)[0]);
 			target?.focus();
 		});
 		return () => {
@@ -91,12 +95,13 @@
 			onclick={() => beginClose(onclose)}
 		></button>
 		<div
-			class="panel relative z-10 max-h-[min(90dvh,40rem)] w-full overflow-y-auto rounded-lg border border-outline-variant bg-surface-container p-5 shadow-xl {size ===
+			class="panel relative z-10 max-h-[min(90dvh,40rem)] w-full overflow-y-auto rounded-lg border border-outline-variant bg-surface-container p-5 shadow-xl outline-none {size ===
 			'lg'
 				? 'max-w-lg'
 				: 'max-w-md'}"
 			data-closing={closing}
 			role="dialog"
+			tabindex="-1"
 			aria-modal="true"
 			aria-labelledby={titleId}
 			aria-describedby={describedby}
@@ -110,6 +115,20 @@
 {/if}
 
 <style>
+	/*
+	 * Action rows (class `dialog-actions`) stay in view while a long body scrolls (EMI-274).
+	 * The negative offsets cancel the panel's p-5 so the strip spans the panel edge to edge.
+	 */
+	.panel :global(.dialog-actions) {
+		position: sticky;
+		bottom: -1.25rem;
+		z-index: 1;
+		margin-inline: -1.25rem;
+		margin-bottom: -1.25rem;
+		padding: 0.75rem 1.25rem 1.25rem;
+		background: var(--color-surface-container);
+	}
+
 	.scrim {
 		opacity: 1;
 		transition: opacity var(--duration-ui) var(--ease-out);

@@ -122,7 +122,7 @@
 					{m.logs_export_timesheet_hint({ max: TIMESHEET_MAX_DAYS })}
 				</p>
 			{/if}
-			<div class="flex justify-end">
+			<div class="dialog-actions flex justify-end">
 				<Button variant="secondary" onclick={() => close()}>{m.common_cancel()}</Button>
 			</div>
 		</div>

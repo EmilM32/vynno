@@ -116,7 +116,7 @@
 					ariaLabel={m.logs_filter_activities_dialog()}
 				/>
 			</section>
-			<div class="flex flex-wrap items-center justify-end gap-2">
+			<div class="dialog-actions flex flex-wrap items-center justify-end gap-2">
 				<Button variant="quiet" class="mr-auto" onclick={() => clear(close)}>
 					{m.logs_filter_clear()}
 				</Button>

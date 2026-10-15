@@ -117,7 +117,7 @@
 				/>
 			</section>
 			<div class="dialog-actions flex flex-wrap items-center justify-end gap-2">
-				<Button variant="quiet" class="mr-auto" onclick={() => clear(close)}>
+				<Button variant="quiet" class="dialog-actions-aside mr-auto" onclick={() => clear(close)}>
 					{m.logs_filter_clear()}
 				</Button>
 				<Button variant="secondary" onclick={() => close()}>

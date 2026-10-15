@@ -9,6 +9,7 @@
 		formatMonthDay,
 		groupBy,
 		projectTotals,
+		ticksThatFit,
 		type TimelineDay,
 		type TimelineSegment
 	} from '$lib/time/timeline';
@@ -34,12 +35,20 @@
 	} = $props();
 
 	const ROW_PX = 40;
-	const PAD = { top: 4, right: 84, bottom: 24, left: 128 };
 	/** Narrowest drawn bar, so a 10-minute session is still visible on a month. */
 	const MIN_BAR_PX = 3;
-	const NAME_CHARS = 18;
+	/** `Mon 12` in the 10px axis face, plus a gap. */
+	const DAY_LABEL_PX = 48;
 
 	let plotWidth = $state(0);
+	/** Phones: slimmer name and total gutters so the plot keeps most of the card (EMI-276). */
+	const narrow = $derived(plotWidth > 0 && plotWidth < 480);
+	const PAD = $derived(
+		narrow
+			? { top: 4, right: 72, bottom: 24, left: 92 }
+			: { top: 4, right: 84, bottom: 24, left: 128 }
+	);
+	const NAME_CHARS = $derived(narrow ? 12 : 18);
 
 	const projects = $derived(projectTotals(segments));
 	const rows = $derived(projects.map((p) => p.id));
@@ -60,8 +69,14 @@
 			return { ...s, x0, x1: Math.max(x1, x0 + minBar) };
 		})
 	);
-	/** Labels centred in each day column; thinned to about 8 on longer ranges. */
-	const tickStep = $derived(Math.max(1, Math.ceil(days.length / 8)));
+	/** Labels centred in each day column; thinned to about 8, and to what fits the width. */
+	const tickStep = $derived(
+		Math.max(
+			1,
+			Math.ceil(days.length / 8),
+			Math.ceil(days.length / ticksThatFit(plotWidth - PAD.left - PAD.right, DAY_LABEL_PX, 8))
+		)
+	);
 	const xTicks = $derived(
 		days.flatMap((_, i) => (i % tickStep === 0 ? [i * span + span / 2] : []))
 	);

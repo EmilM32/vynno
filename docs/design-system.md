@@ -54,6 +54,8 @@ Project colors are per-project hex from a fixed UI palette (not design-system to
 
 **Rule:** Mobile may scale Inter headlines ~15% down; **keep mono data sizes** for alignment. Button labels are Inter — mono belongs _inside_ a button when the content is a duration or code.
 
+**Exception:** on a coarse pointer, `input`, `select` and `textarea` are at least 16px (`layout.css`). iOS Safari zooms into any smaller focused field and stays zoomed.
+
 ---
 
 ## 4. Layout & spacing

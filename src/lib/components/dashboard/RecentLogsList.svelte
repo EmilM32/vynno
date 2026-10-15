@@ -68,7 +68,7 @@
 								'inline-flex transition-opacity',
 								busy
 									? 'opacity-100'
-									: 'opacity-100 group-focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100'
+									: 'opacity-100 group-focus-within:opacity-100 md:can-hover:opacity-0 md:can-hover:group-hover:opacity-100'
 							]}
 						>
 							<IconButton

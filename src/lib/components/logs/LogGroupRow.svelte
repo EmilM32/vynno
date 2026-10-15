@@ -45,11 +45,12 @@
 	}
 </script>
 
-<div class="flex flex-col gap-2" data-testid="log-group">
+<!-- Container, not viewport: the row needs its own width for the one-line layout (EMI-270). -->
+<div class="@container flex flex-col gap-2" data-testid="log-group">
 	<div
-		class="group flex min-w-0 flex-col gap-2 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline hover:bg-surface-container md:flex-row md:items-center md:gap-6"
+		class="group flex min-w-0 flex-col gap-2 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline hover:bg-surface-container @4xl:flex-row @4xl:items-center @4xl:gap-6"
 	>
-		<div class="flex min-w-0 items-center justify-between gap-3 md:hidden">
+		<div class="flex min-w-0 items-center justify-between gap-3 @4xl:hidden">
 			{#if !hideProject}
 				<div class="flex min-w-0 items-center gap-2">
 					<ColorDot color={project?.color ?? '#64748b'} />
@@ -64,7 +65,7 @@
 		</div>
 
 		{#if !hideProject}
-			<div class="hidden max-w-[25%] min-w-30 shrink-0 md:flex">
+			<div class="hidden max-w-[25%] min-w-30 shrink-0 @4xl:flex">
 				<div class="flex min-w-0 items-center gap-2">
 					<ColorDot color={project?.color ?? '#64748b'} />
 					<span class="truncate text-body-sm text-on-surface" title={project?.name}
@@ -74,7 +75,7 @@
 			</div>
 		{/if}
 
-		<div class="min-w-0 md:flex-1">
+		<div class="min-w-0 @4xl:flex-1">
 			<div class="truncate font-mono text-code-data text-on-surface-variant" title={group.note}>
 				&gt; <bdi>{group.note}</bdi>
 			</div>
@@ -91,13 +92,13 @@
 			</div>
 		</div>
 
-		<div class="hidden font-mono text-code-display whitespace-nowrap text-on-surface md:block">
+		<div class="hidden font-mono text-code-display whitespace-nowrap text-on-surface @4xl:block">
 			{formatStoppedDuration(group.totalMs)}
 		</div>
 
-		<div class="flex shrink-0 items-center justify-end gap-1.5 self-end md:self-center">
+		<div class="flex shrink-0 items-center justify-end gap-1.5 self-end @4xl:self-center">
 			<span
-				class="inline-flex opacity-100 transition-opacity group-focus-within:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+				class="inline-flex opacity-100 transition-opacity group-focus-within:opacity-100 @4xl:can-hover:opacity-0 @4xl:can-hover:group-hover:opacity-100"
 			>
 				<IconButton
 					icon="play_arrow"

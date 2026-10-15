@@ -9,6 +9,9 @@
 @import '../lib/theme/newsprint.css';
 @import '../lib/theme/zen.css';
 
+/* Hover-reveal only where hover exists: touch has none, so the control would stay hidden. */
+@custom-variant can-hover (@media (hover: hover) and (pointer: fine));
+
 @layer base {
 	body {
 		@apply bg-surface font-sans text-body-md text-on-surface antialiased;

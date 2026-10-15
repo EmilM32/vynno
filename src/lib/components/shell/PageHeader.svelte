@@ -73,10 +73,17 @@
 				<div class="mb-2">{@render eyebrow()}</div>
 			{/if}
 			<div class="flex min-w-0 flex-wrap items-center gap-2">
-				{#if leading}
-					<div class="shrink-0">{@render leading()}</div>
-				{/if}
-				<h1 class="min-w-0 truncate text-headline-lg text-on-surface"><bdi>{title}</bdi></h1>
+				<!-- Leading mark and title wrap as one unit; a long title gets two lines on phones (EMI-269). -->
+				<div class="flex min-w-0 items-center gap-2">
+					{#if leading}
+						<div class="shrink-0">{@render leading()}</div>
+					{/if}
+					<h1
+						class="min-w-0 text-headline-lg wrap-break-word text-on-surface max-md:line-clamp-2 md:truncate"
+					>
+						<bdi>{title}</bdi>
+					</h1>
+				</div>
 				{#if titleExtra}
 					<div class="flex min-w-0 flex-wrap items-center gap-2">{@render titleExtra()}</div>
 				{/if}

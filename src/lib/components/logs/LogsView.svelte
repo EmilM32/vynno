@@ -4,6 +4,7 @@
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
@@ -97,8 +98,27 @@
 
 <SessionMutations>
 	{#snippet children({ openCreate, openEdit, openDelete })}
-		<div class="flex w-full flex-col gap-6" data-testid="page-view">
+		<div class="flex w-full flex-col gap-4 md:gap-6" data-testid="page-view">
 			<PageHeader title={m.logs_title()} description={m.logs_subtitle()}>
+				<!-- Phones: Add and Export sit on the title row (as Projects does), search gets the width. -->
+				{#snippet titleExtra()}
+					<span class="flex items-center gap-1 md:hidden">
+						<IconButton
+							icon="add"
+							label={m.logs_add_entry()}
+							variant="bordered"
+							size="sm"
+							onclick={() => openCreate()}
+						/>
+						<IconButton
+							icon="download"
+							label={m.logs_export()}
+							variant="bordered"
+							size="sm"
+							onclick={openExport}
+						/>
+					</span>
+				{/snippet}
 				{#snippet actions()}
 					<div class="flex w-full items-center gap-2">
 						<Input
@@ -116,12 +136,14 @@
 								<Icon name="search" />
 							{/snippet}
 						</Input>
-						<Button variant="secondary" size="sm" class="shrink-0" onclick={openExport}>
-							{m.logs_export()}
-						</Button>
-						<Button variant="secondary" size="sm" class="shrink-0" onclick={() => openCreate()}>
-							{m.logs_add_entry()}
-						</Button>
+						<span class="hidden shrink-0 items-center gap-2 md:flex">
+							<Button variant="secondary" size="sm" onclick={openExport}>
+								{m.logs_export()}
+							</Button>
+							<Button variant="secondary" size="sm" onclick={() => openCreate()}>
+								{m.logs_add_entry()}
+							</Button>
+						</span>
 					</div>
 				{/snippet}
 			</PageHeader>
@@ -165,7 +187,7 @@
 			{:else}
 				{#each groups as group, i (group.dateKey)}
 					{const tasks = $derived(layout === 'grouped' ? groupSessionsByTask(group.sessions) : [])}
-					<div class="flex items-center gap-4 py-2 {i > 0 ? 'mt-6' : ''}">
+					<div class="flex items-center gap-4 py-2 {i > 0 ? 'mt-2 md:mt-6' : ''}">
 						<div
 							class="font-mono text-code-label {group.dateKey === todayKey
 								? 'text-primary'

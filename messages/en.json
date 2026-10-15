@@ -133,6 +133,7 @@
 	"logs_restart_task": "Start this task again",
 	"logs_restart_aria": "Start {note} again",
 	"logs_in_progress": "In progress",
+	"logs_until_now": "now",
 	"logs_gap_untracked": "{duration} untracked · {range}",
 	"logs_gap_fill_aria": "Add entry for {range}",
 	"logs_form_new": "Manual time entry",

@@ -8,7 +8,12 @@
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { formatStoppedDuration, formatTimeRange, sessionElapsedMs } from '$lib/time/duration';
+	import {
+		formatLocalTime,
+		formatStoppedDuration,
+		formatTimeRange,
+		sessionElapsedMs
+	} from '$lib/time/duration';
 	import type { TimeSession } from '$lib/types/domain';
 
 	const sessionStore = useSession();
@@ -30,8 +35,11 @@
 		session.activityTypeId ? sessionStore.getActivityType(session.activityTypeId) : undefined
 	);
 	const duration = $derived(sessionElapsedMs(session));
+	/** A live row reads "12:37 - now", not an open-ended "12:37 - …". */
 	const range = $derived(
-		formatTimeRange(session.startedAt, session.endedAt, sessionStore.timeZone)
+		session.endedAt
+			? formatTimeRange(session.startedAt, session.endedAt, sessionStore.timeZone)
+			: `${formatLocalTime(session.startedAt, sessionStore.timeZone)} - ${m.logs_until_now()}`
 	);
 	const canRestart = $derived(session.status === 'stopped');
 	const busy = $derived(!!sessionStore.activeSession || sessionStore.busy);
@@ -111,11 +119,17 @@
 		class="group flex min-w-0 flex-col gap-2 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline hover:bg-surface-container @4xl:flex-row @4xl:items-center @4xl:gap-6"
 		data-testid="log-row"
 	>
+		<!-- Stacked: project and duration on top; the clock range moves down beside the actions,
+		     so a long project name keeps its room (EMI-269). -->
 		<div class="flex min-w-0 items-center justify-between gap-3 @4xl:hidden">
 			{#if !hideProject}
 				{@render projectIdentity()}
 			{/if}
-			{@render timeCluster('ml-auto', '')}
+			<div
+				class="ml-auto shrink-0 font-mono text-code-data whitespace-nowrap text-on-surface tabular-nums"
+			>
+				{formatStoppedDuration(duration)}
+			</div>
 		</div>
 
 		{#if !hideProject}
@@ -162,8 +176,13 @@
 			{@render timeCluster('', 'min-w-20 text-right text-code-display')}
 		</div>
 
-		{#if canRestart || onedit || ondelete}
-			<div class="flex shrink-0 items-center justify-end gap-1.5">
+		<div class="flex min-w-0 shrink-0 items-center justify-end gap-1.5">
+			<span
+				class="mr-auto font-mono text-code-label whitespace-nowrap text-on-surface-variant tabular-nums @4xl:hidden"
+			>
+				{range}
+			</span>
+			{#if canRestart || onedit || ondelete}
 				{#if canRestart}
 					<span
 						class="inline-flex opacity-100 transition-opacity group-focus-within:opacity-100 @4xl:can-hover:opacity-0 @4xl:can-hover:group-hover:opacity-100"
@@ -230,7 +249,7 @@
 						{/if}
 					</div>
 				{/if}
-			</div>
-		{/if}
+			{/if}
+		</div>
 	</div>
 </div>

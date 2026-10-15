@@ -172,7 +172,7 @@ Non-chrome interactive surfaces are **not** `Button`: dismiss scrims, list rows,
 
 - **SideNav** (desktop): brand + version, nav links with left border active state, CTA, profile
 - **BottomNav** (mobile): six tabs, active filled/tinted
-- **TopBar**: brand, command-palette trigger, live indicator (mobile)
+- **TopBar**: brand, command-palette trigger, Settings, and the live cue (mobile): an idle dot, or while a session runs a chip with the elapsed time that opens Timer
 
 ### Intentionally not extracted
 

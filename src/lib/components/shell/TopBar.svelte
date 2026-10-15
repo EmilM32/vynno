@@ -51,13 +51,28 @@
 				aria-current={settingsActive ? 'page' : undefined}
 				data-testid="shell-settings"
 			/>
-			{#if !onTimer}
+			{#if !onTimer && live}
+				<!-- The one live cue in the bar: elapsed time, a tap away from Timer (EMI-269). -->
+				<a
+					href={resolve('/timer')}
+					class="focus-ring ml-1 inline-flex h-10 items-center gap-2 rounded border border-primary px-2.5 font-mono text-code-data text-on-surface tabular-nums"
+					aria-label={m.shell_session_chip_aria({
+						status: m.shell_session_recording(),
+						elapsed: sessionStore.elapsedLabel,
+						detail: sessionStore.activeProject?.name ?? m.common_unknown()
+					})}
+					data-testid="shell-live-chip"
+				>
+					<StatusDot tone="live" />
+					{sessionStore.elapsedLabel}
+				</a>
+			{:else if !onTimer}
 				<span
 					role="status"
 					class="inline-flex size-10 items-center justify-center"
-					aria-label={live ? m.shell_session_recording() : m.shell_no_active_session()}
+					aria-label={m.shell_no_active_session()}
 				>
-					<StatusDot tone={live ? 'live' : 'idle'} />
+					<StatusDot tone="idle" />
 				</span>
 			{/if}
 		</div>

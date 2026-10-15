@@ -131,15 +131,21 @@
 		{@render centerTotal()}
 	</div>
 
-	<div class="mt-4 grid min-w-0 grid-cols-2 gap-2 border-t border-outline-variant pt-4">
+	<!-- One item per row on phones, so the share is never truncated away (EMI-269). -->
+	<div
+		class="mt-4 grid min-w-0 grid-cols-2 gap-2 border-t border-outline-variant pt-4 max-md:grid-cols-1"
+	>
 		{#each rows as item (item.id)}
 			{#if item.id === OTHER_ID}
 				<div class="flex min-w-0 items-center gap-2">
 					<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
 					<span class="truncate font-mono text-code-label text-on-surface-variant">
 						<bdi>{item.label}</bdi>
-						<span class="text-on-surface-variant">· {formatShare(item)}</span>
 					</span>
+					<span
+						class="shrink-0 font-mono text-code-label whitespace-nowrap text-on-surface-variant max-md:ml-auto"
+						>· {formatShare(item)}</span
+					>
 				</div>
 			{:else}
 				<a
@@ -150,8 +156,11 @@
 					<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
 					<span class="truncate font-mono text-code-label text-on-surface-variant">
 						<bdi>{item.label}</bdi>
-						<span class="text-on-surface-variant">· {formatShare(item)}</span>
 					</span>
+					<span
+						class="shrink-0 font-mono text-code-label whitespace-nowrap text-on-surface-variant max-md:ml-auto"
+						>· {formatShare(item)}</span
+					>
 				</a>
 			{/if}
 		{/each}

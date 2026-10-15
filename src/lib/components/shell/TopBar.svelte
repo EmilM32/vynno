@@ -37,7 +37,7 @@
 		<div class="flex items-center gap-1">
 			<IconButton
 				{@attach bindCommandsBtn}
-				icon="terminal"
+				icon="search"
 				label={m.shell_open_command_palette()}
 				title="⌘K"
 				onclick={() => commandPalette.show(commandsBtn)}

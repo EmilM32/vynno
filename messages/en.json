@@ -106,6 +106,7 @@
 	"dashboard_not_enough_data": "Not enough data yet",
 	"dashboard_today_paren": " (Today)",
 	"dashboard_recent_logs": "Recent Logs",
+	"dashboard_recent_logs_view_all": "View all",
 	"dashboard_no_completed": "No completed sessions yet.",
 	"dashboard_restart_task": "Restart this task",
 	"dashboard_restart_aria": "Restart {note}",

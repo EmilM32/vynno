@@ -73,7 +73,7 @@
 			/>
 
 			{#if preset === 'custom'}
-				<div class="flex flex-wrap justify-end gap-2">
+				<div class="dialog-actions flex flex-wrap justify-end gap-2">
 					<Button variant="secondary" onclick={() => close()}>
 						{m.common_cancel()}
 					</Button>

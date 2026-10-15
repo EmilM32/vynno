@@ -13,7 +13,9 @@ import {
 	projectTotals,
 	sessionWindowForDays,
 	timelineDays,
-	timelineSegments
+	timelineSegments,
+	hourTicks,
+	ticksThatFit
 } from './timeline';
 
 const TZ = 'Europe/Warsaw';
@@ -262,5 +264,26 @@ describe('barAt', () => {
 		expect(at(40, 5)).toBeNull();
 		expect(at(20, 17)).toBeNull();
 		expect(at(20, -1)).toBeNull();
+	});
+});
+
+describe('ticksThatFit', () => {
+	it('fits whole labels across the plot', () => {
+		expect(ticksThatFit(250, 44)).toBe(5);
+		expect(ticksThatFit(900, 44)).toBe(20);
+	});
+
+	it('keeps at least two labels on a tiny plot', () => {
+		expect(ticksThatFit(30, 44)).toBe(2);
+	});
+
+	it('returns the fallback before the plot is measured', () => {
+		expect(ticksThatFit(0, 44)).toBe(13);
+		expect(ticksThatFit(-10, 48, 8)).toBe(8);
+	});
+
+	it('thins hour ticks on a phone-width plot', () => {
+		const ticks = hourTicks([9 * 60, 18 * 60], ticksThatFit(250, 44));
+		expect(ticks.length).toBeLessThanOrEqual(5);
 	});
 });

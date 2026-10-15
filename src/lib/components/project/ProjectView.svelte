@@ -156,7 +156,7 @@
 			{#snippet eyebrow()}
 				<a
 					href={resolve('/projects')}
-					class="focus-ring inline-flex items-center gap-1 text-body-sm text-primary"
+					class="focus-ring touch-target inline-flex items-center gap-1 text-body-sm text-primary"
 				>
 					<Icon name="arrow_back" size="sm" />
 					{m.project_back()}
@@ -217,7 +217,7 @@
 			{#snippet eyebrow()}
 				<a
 					href={resolve('/projects')}
-					class="focus-ring inline-flex items-center gap-1 text-body-sm text-primary"
+					class="focus-ring touch-target inline-flex items-center gap-1 text-body-sm text-primary"
 				>
 					<Icon name="arrow_back" size="sm" />
 					{m.project_back()}

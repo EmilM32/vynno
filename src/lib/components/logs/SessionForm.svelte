@@ -154,7 +154,7 @@
 		<p class="text-body-sm text-error" role="alert">{timeError}</p>
 	{/if}
 
-	<div class="flex flex-wrap justify-end gap-2">
+	<div class="dialog-actions flex flex-wrap justify-end gap-2">
 		<Button variant="secondary" size="sm" onclick={oncancel}>
 			{m.common_cancel()}
 		</Button>

@@ -379,6 +379,15 @@ export function barAt<T>(
 	});
 }
 
+/**
+ * How many axis labels of `labelPx` fit across `plotPx` without touching (EMI-276).
+ * Before the first measure (`plotPx` 0) it returns `fallback`, so SSR keeps the desktop count.
+ */
+export function ticksThatFit(plotPx: number, labelPx: number, fallback = 13): number {
+	if (plotPx <= 0) return fallback;
+	return Math.max(2, Math.floor(plotPx / labelPx));
+}
+
 /** Clock ticks every `step` hours across `[lo, hi]` minutes. */
 export function hourTicks([lo, hi]: [number, number], maxTicks = 13): number[] {
 	const hours = (hi - lo) / 60;

@@ -30,10 +30,10 @@
 </script>
 
 <nav
-	class="fixed top-0 left-0 z-50 hidden h-screen w-sidebar flex-col border-r border-outline-variant bg-surface py-4 md:flex"
+	class="fixed top-0 left-0 z-50 hidden h-dvh w-sidebar flex-col border-r border-outline-variant bg-surface py-4 md:flex"
 	aria-label={m.nav_main_aria()}
 >
-	<div class="mb-8 flex items-center gap-3 px-6">
+	<div class="mb-8 flex items-center gap-3 px-6 [@media(max-height:30rem)]:mb-3">
 		<BrandMark class="size-8 shrink-0 text-primary" />
 		<div>
 			<p class="text-headline-md leading-tight font-bold text-primary">{m.app_name()}</p>
@@ -46,7 +46,8 @@
 		</div>
 	{/if}
 
-	<ul class="flex flex-1 flex-col gap-1 px-3">
+	<!-- Scrolls on short viewports (phone landscape) so the footer stays reachable (EMI-272). -->
+	<ul class="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3">
 		{#each NAV_ITEMS as item (item.href)}
 			{const active = $derived(isNavActive(page.url.pathname, item.href))}
 			<li>

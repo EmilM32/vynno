@@ -316,6 +316,10 @@
 								class="px-4 pt-2 pb-1 font-mono text-[10px] tracking-wider text-on-surface-variant uppercase"
 							>
 								{GROUP_LABEL[group.id]()}
+								{#if group.items.some((c) => c.disabled)}
+									<!-- Phones: the reason once here, not truncated on every row (EMI-269). -->
+									<span class="normal-case sm:hidden">· {m.timer_stop_first()}</span>
+								{/if}
 							</div>
 							{#each group.items as cmd (cmd.id)}
 								{const i = $derived(filtered.indexOf(cmd))}
@@ -350,8 +354,10 @@
 									<bdi class="min-w-0 flex-1 truncate text-body-md">{cmd.label}</bdi>
 									{#if cmd.hint}
 										<bdi
-											class="max-w-[45%] shrink-0 truncate font-mono text-code-label text-on-surface-variant"
-											>{cmd.hint}</bdi
+											class={[
+												'max-w-[45%] shrink-0 truncate font-mono text-code-label text-on-surface-variant',
+												cmd.disabled && 'max-sm:hidden'
+											]}>{cmd.hint}</bdi
 										>
 									{/if}
 								</div>
@@ -360,8 +366,9 @@
 					{/each}
 				{/if}
 			</div>
+			<!-- Keyboard hints mean nothing on touch. -->
 			<div
-				class="border-t border-outline-variant px-3 py-2 font-mono text-[10px] text-on-surface-variant"
+				class="border-t border-outline-variant px-3 py-2 font-mono text-[10px] text-on-surface-variant pointer-coarse:hidden"
 			>
 				{m.command_palette_hints()}
 			</div>

@@ -15,12 +15,17 @@
 	);
 </script>
 
-<ul class="flex flex-wrap gap-x-4 gap-y-1.5" aria-label={m.insights_timeline_legend_aria()}>
+<ul
+	class="flex flex-wrap gap-x-4 gap-y-1.5 max-md:flex-col"
+	aria-label={m.insights_timeline_legend_aria()}
+>
 	{#each rows as row (row.id)}
 		<li class="flex min-w-0 items-center gap-2">
 			<ColorDot color={row.color} size="md" />
 			<span class="truncate text-body-sm text-on-surface"><bdi>{row.label}</bdi></span>
-			<span class="font-mono text-code-label text-on-surface-variant tabular-nums">
+			<span
+				class="shrink-0 font-mono text-code-label whitespace-nowrap text-on-surface-variant tabular-nums max-md:ml-auto"
+			>
 				{formatCompact(row.ms)} · {formatShare(row)}
 			</span>
 		</li>

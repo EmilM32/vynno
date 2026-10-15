@@ -137,7 +137,7 @@
 		{/if}
 	</div>
 
-	<div class="mt-1 flex flex-wrap justify-end gap-2">
+	<div class="dialog-actions mt-1 flex flex-wrap justify-end gap-2">
 		<Button variant="secondary" onclick={oncancel}>
 			{m.common_cancel()}
 		</Button>

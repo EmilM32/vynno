@@ -8,6 +8,7 @@
 		formatMinuteOfDay,
 		groupBy,
 		hourTicks,
+		ticksThatFit,
 		laneCounts,
 		type TimelineDay,
 		type TimelineSegment
@@ -47,7 +48,13 @@
 	);
 	const data = $derived(segments.map((s) => ({ ...s, row: `${s.dateKey}:${s.lane}` })));
 	const totals = $derived(dayTotals(segments));
-	const xTicks = $derived(hourTicks(clock));
+	/** `HH:MM` in the 10px mono axis face, plus a gap. */
+	const HOUR_LABEL_PX = 44;
+
+	let boxWidth = $state(0);
+	const xTicks = $derived(
+		hourTicks(clock, ticksThatFit(boxWidth - PAD.left - PAD.right, HOUR_LABEL_PX))
+	);
 	const lanePx = $derived(
 		Math.max(MIN_LANE_PX, Math.min(LANE_PX, MAX_PLOT_PX / Math.max(1, rows.length)))
 	);
@@ -108,6 +115,7 @@
 <div
 	class="w-full"
 	style:height="{chartHeight}px"
+	bind:clientWidth={boxWidth}
 	aria-hidden="true"
 	{onpointermove}
 	onpointerleave={() => chart?.tooltip.hide()}

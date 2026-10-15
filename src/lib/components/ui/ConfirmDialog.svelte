@@ -60,7 +60,7 @@
 		<p id={messageId} class="text-body-md text-on-surface-variant">
 			{message}
 		</p>
-		<div class="mt-5 flex flex-wrap justify-end gap-2">
+		<div class="dialog-actions mt-5 flex flex-wrap justify-end gap-2">
 			<Button {@attach bindCancel} variant="secondary" onclick={() => close(oncancel)}>
 				{cancelText}
 			</Button>

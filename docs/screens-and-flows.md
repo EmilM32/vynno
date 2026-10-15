@@ -107,7 +107,7 @@ Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 2. Filter row: date (All / Today / Yesterday / Last 7 days / This week / This month / Custom From–To), multi-select projects, multi-select activities. Empty selection = all. View-local (resets on leave). Custom uses native `type="date"`. Desktop shows the three chips. Mobile collapses them into one **Filters** control that opens a dialog with the same facets; **Clear** stays on the bar.
 3. Layout toggle: **Entries** (default) | **Grouped**, on the same row as the filters. View-local; not cleared with filters. Grouped merges same-ticket (else same project + note) sessions inside each day, with count + total duration. Multi-session summaries expand to the constituent rows.
 4. Date separators (`YYYY-MM-DD`)
-5. Entries: project color + name, `> note` (one line; expand when truncated), optional ticket / activity chip, time range, duration. Completed rows have Play (hover-reveal on desktop, always visible on mobile) — starts a **new** session now with the same note / project / ticket / activity and goes to Timer. The in-progress row has no Play. Disabled while another session is live (`timer_stop_first`) or the project is archived.
+5. Entries: project color + name, `> note` (one line; expand when truncated), optional ticket / activity chip, time range, duration. Completed rows have Play (hover-reveal with a mouse, always visible on touch) — starts a **new** session now with the same note / project / ticket / activity and goes to Timer. The in-progress row has no Play. Disabled while another session is live (`timer_stop_first`) or the project is archived. Stacked rows (phone, tablet) keep Play and Edit inline and put Delete behind a `…` menu, as Projects does.
 6. Grouped multi-session headers have the same Play (identity from the newest session in the group). Nested constituent rows keep their own Play.
 7. Add entry / Edit session: form dialog (note, project, activity, ticket, times). Delete: confirm dialog
 8. Untracked gaps: in **Entries** with no search, project or activity filter, a gap of at least 60 minutes between two rows of the same day shows as `2h untracked · 10:00 - 12:00` with **Add entry**, which opens the form prefilled with that span. Shorter breaks stay unmarked (a break is stop, then start: ADR-0024). Time covered by an overlapping row counts as tracked. Hidden while rows are filtered, since a hidden row may cover the gap, and in **Grouped**.
@@ -150,7 +150,7 @@ Profile, activity types, daily target, and default project sync to the account. 
 
 1. Header. Subtitle **Your projects and archives.** (desktop). **New project**: labeled primary on desktop; add icon on the title row on mobile.
 2. Tabs: **Active** | **Archived**, compact under the title so the list sits higher on mobile.
-3. List rows: color swatch, name, code chip, session count, actions. Name/code links to `/projects/[id]`. Mobile: Edit (or Restore) stays visible; Archive/Delete live in a `…` overflow. Desktop: inline Edit / Archive / Delete.
+3. List rows: color swatch, name, code chip, session count, actions. The whole card links to `/projects/[id]` (actions sit above the link). Mobile: Edit (or Restore) stays visible; Archive/Delete live in a `…` overflow. Desktop: inline Edit / Archive / Delete.
 4. New / Edit: form dialog (name, code, optional progress 0–100, color palette)
 5. Hard-delete confirm dialog
 

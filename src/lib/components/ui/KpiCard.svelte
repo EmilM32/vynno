@@ -40,7 +40,7 @@
 
 <div
 	class={[
-		'flex flex-col justify-between rounded-lg border border-outline-variant bg-surface-container p-2 sm:p-4',
+		'flex flex-col rounded-lg border border-outline-variant bg-surface-container p-2 sm:p-4',
 		className
 	]}
 >

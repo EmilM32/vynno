@@ -96,16 +96,17 @@
 
 <svelte:window onpointerdown={onWindowPointer} onkeydown={onWindowKey} />
 
+<!-- The whole card opens the dossier (stretched link); the action groups sit above it (EMI-269). -->
 <li
 	{@attach bindRow}
-	class="relative flex flex-col gap-3 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 sm:flex-row sm:items-center sm:justify-between"
+	class="relative flex items-center justify-between gap-3 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3"
 	data-testid="project-row"
 	data-project-id={project.id}
 >
 	<div class="flex min-w-0 items-start gap-3">
 		<a
 			href={resolve(`/projects/${encodeURIComponent(project.id)}`)}
-			class="focus-ring flex min-w-0 items-start gap-3 rounded-sm"
+			class="focus-ring flex min-w-0 items-start gap-3 rounded-sm after:absolute after:inset-0 after:content-['']"
 			data-testid="project-open"
 		>
 			<ColorDot color={project.color} size="md" class="mt-0.5" />
@@ -188,7 +189,7 @@
 	{/snippet}
 
 	<div
-		class="flex items-center gap-1.5 sm:hidden"
+		class="relative flex shrink-0 items-center gap-1.5 sm:hidden {moreOpen ? 'z-30' : 'z-10'}"
 		role="group"
 		onpointerenter={prefetch}
 		onfocusin={prefetch}
@@ -215,7 +216,7 @@
 					id={menuId}
 					role="menu"
 					aria-label={m.project_more_actions()}
-					class="absolute top-full left-0 z-20 mt-1 flex min-w-36 flex-col gap-1 rounded-DEFAULT border border-outline-variant bg-surface-container p-1 shadow-xl"
+					class="absolute top-full right-0 z-20 mt-1 flex min-w-36 flex-col gap-1 rounded-DEFAULT border border-outline-variant bg-surface-container p-1 shadow-xl"
 				>
 					{#if !archived}
 						{@render archiveBtn(true)}
@@ -227,7 +228,7 @@
 	</div>
 
 	<div
-		class="hidden flex-wrap items-center gap-1.5 sm:flex sm:shrink-0"
+		class="relative z-10 hidden flex-wrap items-center gap-1.5 sm:flex sm:shrink-0"
 		role="group"
 		onpointerenter={prefetch}
 		onfocusin={prefetch}

@@ -150,7 +150,7 @@ Profile, activity types, daily target, and default project sync to the account. 
 
 1. Header. Subtitle **Your projects and archives.** (desktop). **New project**: labeled primary on desktop; add icon on the title row on mobile.
 2. Tabs: **Active** | **Archived**, compact under the title so the list sits higher on mobile.
-3. List rows: color swatch, name, code chip, session count, actions. Name/code links to `/projects/[id]`. Mobile: Edit (or Restore) stays visible; Archive/Delete live in a `…` overflow. Desktop: inline Edit / Archive / Delete.
+3. List rows: color swatch, name, code chip, session count, actions. The whole card links to `/projects/[id]` (actions sit above the link). Mobile: Edit (or Restore) stays visible; Archive/Delete live in a `…` overflow. Desktop: inline Edit / Archive / Delete.
 4. New / Edit: form dialog (name, code, optional progress 0–100, color palette)
 5. Hard-delete confirm dialog
 

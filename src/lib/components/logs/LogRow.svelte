@@ -58,7 +58,32 @@
 		ro.observe(node);
 		return () => ro.disconnect();
 	}
+	let moreOpen = $state(false);
+	let menuEl: HTMLElement | undefined;
+	const menuId = $derived(`${session.id}-log-menu`);
+
+	function bindMenu(node: HTMLElement) {
+		menuEl = node;
+		return () => {
+			if (menuEl === node) menuEl = undefined;
+		};
+	}
+
+	function onWindowPointer(e: PointerEvent) {
+		if (!moreOpen) return;
+		if (e.target instanceof Node && menuEl?.contains(e.target)) return;
+		moreOpen = false;
+	}
+
+	function onWindowKey(e: KeyboardEvent) {
+		if (moreOpen && e.key === 'Escape') {
+			e.preventDefault();
+			moreOpen = false;
+		}
+	}
 </script>
+
+<svelte:window onpointerdown={onWindowPointer} onkeydown={onWindowKey} />
 
 {#snippet projectIdentity()}
 	<div class="flex min-w-0 items-center gap-2">
@@ -164,9 +189,46 @@
 					</Button>
 				{/if}
 				{#if ondelete}
-					<Button variant="danger" size="xs" onclick={ondelete}>
-						{m.logs_delete()}
-					</Button>
+					<span class="hidden @4xl:contents">
+						<Button variant="danger" size="xs" onclick={ondelete}>
+							{m.logs_delete()}
+						</Button>
+					</span>
+					<!-- Stacked rows: Delete waits behind "…" so a thumb cannot hit it by accident (EMI-269). -->
+					<div class="relative @4xl:hidden" {@attach bindMenu}>
+						<IconButton
+							icon="more_horiz"
+							label={m.project_more_actions()}
+							variant="bordered"
+							size="sm"
+							aria-expanded={moreOpen}
+							aria-haspopup="menu"
+							aria-controls={moreOpen ? menuId : undefined}
+							data-testid="log-row-more"
+							onclick={() => (moreOpen = !moreOpen)}
+						/>
+						{#if moreOpen}
+							<div
+								id={menuId}
+								role="menu"
+								aria-label={m.project_more_actions()}
+								class="absolute top-full right-0 z-20 mt-1 flex min-w-32 flex-col gap-1 rounded-DEFAULT border border-outline-variant bg-surface-container p-1 shadow-xl"
+							>
+								<Button
+									variant="danger"
+									size="sm"
+									class="w-full"
+									role="menuitem"
+									onclick={() => {
+										moreOpen = false;
+										ondelete();
+									}}
+								>
+									{m.logs_delete()}
+								</Button>
+							</div>
+						{/if}
+					</div>
 				{/if}
 			</div>
 		{/if}

@@ -39,8 +39,10 @@
 					<th scope="col" class="hidden px-4 py-2 font-medium md:table-cell"
 						>{m.insights_col_activity()}</th
 					>
-					<th scope="col" class="px-4 py-2 font-medium">{m.insights_col_duration()}</th>
-					<th scope="col" class="px-4 py-2 text-right font-medium">%</th>
+					<th scope="col" class="px-4 py-2 font-medium whitespace-nowrap max-md:text-right">
+						{m.insights_col_duration()}
+					</th>
+					<th scope="col" class="hidden px-4 py-2 text-right font-medium md:table-cell">%</th>
 				</tr>
 			</thead>
 			<tbody id={tbodyId}>
@@ -57,8 +59,11 @@
 								? 'border-b border-outline-variant'
 								: ''}"
 						>
-							<!-- Phones: the cell takes the spare width and truncates, so Duration stays in the card;
-								 the hidden Activity column moves under the name so rows stay distinct (EMI-277). -->
+							<!--
+								Phones: two columns (project, duration). The name may take two lines; activity
+								and share follow under it. That line is a pseudo-element, so the text is not in
+								the DOM twice (the Activity and % cells still carry it on desktop).
+							-->
 							<td class="px-4 py-3 max-md:w-full max-md:max-w-0">
 								<a
 									href={resolve(`/projects/${encodeURIComponent(row.projectId)}`)}
@@ -66,23 +71,28 @@
 									aria-label={m.insights_open_project({ name: row.projectName })}
 								>
 									<ColorDot color={row.projectColor} />
-									<span class="truncate"><bdi>{row.projectName}</bdi></span>
+									<span class="min-w-0 wrap-break-word max-md:line-clamp-2 md:truncate"
+										><bdi>{row.projectName}</bdi></span
+									>
 								</a>
 								<p
-									class="mt-0.5 truncate pl-4 font-mono text-code-label text-on-surface-variant md:hidden"
-								>
-									<bdi>{row.activityLabel}</bdi>
-								</p>
+									class="mt-0.5 truncate pl-4 font-mono text-code-label text-on-surface-variant before:content-[attr(data-meta)] md:hidden"
+									data-meta={`${row.activityLabel} · ${formatShare(row)}`}
+								></p>
 							</td>
 							<td
 								class="hidden px-4 py-3 font-mono text-code-label text-on-surface-variant md:table-cell"
 							>
 								<bdi>{row.activityLabel}</bdi>
 							</td>
-							<td class="px-4 py-3 font-mono text-code-data whitespace-nowrap text-on-surface">
+							<td
+								class="px-4 py-3 align-top font-mono text-code-data whitespace-nowrap text-on-surface max-md:text-right md:align-middle"
+							>
 								{formatCompact(row.ms)}
 							</td>
-							<td class="px-4 py-3 text-right font-mono text-code-data text-on-surface-variant">
+							<td
+								class="hidden px-4 py-3 text-right font-mono text-code-data text-on-surface-variant md:table-cell"
+							>
 								{formatShare(row)}
 							</td>
 						</tr>
@@ -93,12 +103,20 @@
 								class="px-4 py-3 font-mono text-code-label text-on-surface-variant max-md:w-full max-md:max-w-0"
 							>
 								{m.insights_breakdown_more({ count: rest.count })}
+								<span
+									class="block before:content-[attr(data-meta)] md:hidden"
+									data-meta={formatShare(rest)}
+								></span>
 							</td>
 							<td class="hidden px-4 py-3 md:table-cell"></td>
-							<td class="px-4 py-3 font-mono text-code-data text-on-surface-variant">
+							<td
+								class="px-4 py-3 align-top font-mono text-code-data whitespace-nowrap text-on-surface-variant max-md:text-right md:align-middle"
+							>
 								{formatCompact(rest.ms)}
 							</td>
-							<td class="px-4 py-3 text-right font-mono text-code-data text-on-surface-variant">
+							<td
+								class="hidden px-4 py-3 text-right font-mono text-code-data text-on-surface-variant md:table-cell"
+							>
 								{formatShare(rest)}
 							</td>
 						</tr>

@@ -129,6 +129,28 @@
 		background: var(--color-surface-container);
 	}
 
+	/*
+	 * Phones: actions share the width in equal, 40px-tall buttons, so short Polish/English labels
+	 * line up and nothing wraps one button alone onto a second row. A secondary action marked
+	 * `dialog-actions-aside` (e.g. Clear filters) takes its own row under them.
+	 */
+	@media (max-width: 39.99rem) {
+		.panel :global(.dialog-actions) {
+			flex-wrap: wrap;
+		}
+
+		.panel :global(.dialog-actions > *) {
+			flex: 1 1 0;
+			min-height: 2.5rem;
+		}
+
+		.panel :global(.dialog-actions > .dialog-actions-aside) {
+			flex-basis: 100%;
+			order: 1;
+			margin: 0;
+		}
+	}
+
 	.scrim {
 		opacity: 1;
 		transition: opacity var(--duration-ui) var(--ease-out);

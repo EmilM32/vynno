@@ -161,7 +161,7 @@
 				id="display-name"
 				label={m.settings_display_name()}
 				error={nameError}
-				class="w-full max-w-[28ch] sm:max-w-[32ch]"
+				class="w-full sm:max-w-[32ch]"
 			>
 				<Input tone="ui" type="text" bind:value={displayNameDraft} class="w-full" />
 			</Field>

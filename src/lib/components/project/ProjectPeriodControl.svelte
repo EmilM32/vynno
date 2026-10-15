@@ -2,6 +2,7 @@
 	import InsightRangeDialog from '$lib/components/insights/InsightRangeDialog.svelte';
 	import PeriodToggle from '$lib/components/insights/PeriodToggle.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { getLocale } from '$lib/paraglide/runtime.js';
@@ -76,38 +77,45 @@
 	}
 </script>
 
+<!-- Phones: presets span the width, the custom range (with its arrows) sits below; no sideways scroll. -->
 <div
-	class="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto"
+	class="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center"
 	data-testid="project-period-control"
 >
-	<PeriodToggle value={preset} options={presetOptions} onchange={setPreset} />
-	<Button
-		variant={isCustom ? 'tonal' : 'secondary'}
-		size="sm"
-		aria-pressed={isCustom}
-		aria-live="polite"
-		data-testid="project-range-label"
-		onclick={openCustom}
-	>
-		{customLabel}
-	</Button>
-	{#if isCustom}
-		<IconButton
-			icon="arrow_back"
-			label={m.insights_range_prev()}
-			variant="ghost"
+	<PeriodToggle value={preset} options={presetOptions} fill onchange={setPreset} />
+	<div class="flex min-w-0 items-center gap-1">
+		{#if isCustom}
+			<IconButton
+				icon="chevron_left"
+				label={m.insights_range_prev()}
+				variant="ghost"
+				size="sm"
+				onclick={() => shift(-1)}
+			/>
+		{/if}
+		<Button
+			variant={isCustom ? 'tonal' : 'secondary'}
 			size="sm"
-			onclick={() => shift(-1)}
-		/>
-		<IconButton
-			icon="arrow_forward"
-			label={m.insights_range_next()}
-			variant="ghost"
-			size="sm"
-			disabled={!canNext}
-			onclick={() => shift(1)}
-		/>
-	{/if}
+			class="min-w-0 flex-1 sm:flex-none"
+			aria-pressed={isCustom}
+			aria-live="polite"
+			data-testid="project-range-label"
+			onclick={openCustom}
+		>
+			<Icon name="calendar_month" size="sm" />
+			<span class="min-w-0 truncate">{customLabel}</span>
+		</Button>
+		{#if isCustom}
+			<IconButton
+				icon="chevron_right"
+				label={m.insights_range_next()}
+				variant="ghost"
+				size="sm"
+				disabled={!canNext}
+				onclick={() => shift(1)}
+			/>
+		{/if}
+	</div>
 </div>
 
 <InsightRangeDialog

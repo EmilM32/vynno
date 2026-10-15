@@ -16,15 +16,27 @@ test.describe('logs chrome', () => {
 		await page.goto('/logs');
 	});
 
-	test('heading is Logs and search sits beside Add entry', async ({ page }) => {
-		await expect(page.getByRole('heading', { name: 'Logs', level: 1 })).toBeVisible();
+	test('heading is Logs; Add entry beside search on desktop, on the title row on phones', async ({
+		page
+	}, testInfo) => {
+		const heading = page.getByRole('heading', { name: 'Logs', level: 1 });
+		await expect(heading).toBeVisible();
 		const search = page.getByRole('searchbox', { name: 'Search logs' });
 		const add = page.getByRole('button', { name: 'Add entry' });
+		await expect(add).toHaveCount(1);
 		const sb = await search.boundingBox();
 		const ab = await add.boundingBox();
 		expect(sb && ab).toBeTruthy();
-		expect(Math.abs(sb!.y - ab!.y)).toBeLessThan(12);
-		expect(ab!.width).toBeLessThan(page.viewportSize()!.width * 0.5);
+		const vw = page.viewportSize()!.width;
+		if (testInfo.project.name === 'mobile') {
+			const hb = await heading.boundingBox();
+			expect(Math.abs(hb!.y + hb!.height / 2 - (ab!.y + ab!.height / 2))).toBeLessThan(12);
+			expect(sb!.width).toBeGreaterThan(vw * 0.8);
+			await expect(page.getByRole('button', { name: 'Export' })).toHaveCount(1);
+		} else {
+			expect(Math.abs(sb!.y - ab!.y)).toBeLessThan(12);
+			expect(ab!.width).toBeLessThan(vw * 0.5);
+		}
 	});
 
 	test('first log is above the fold', async ({ page }) => {

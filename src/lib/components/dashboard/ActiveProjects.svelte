@@ -39,15 +39,15 @@
 				class="focus-ring flex min-w-70 shrink-0 flex-col gap-3 rounded-DEFAULT border border-outline-variant bg-surface-container-low p-3 transition-colors hover:border-outline"
 				data-testid="active-project-card"
 			>
-				<div class="flex items-start justify-between">
-					<div class="flex items-center gap-2">
+				<div class="flex items-start justify-between gap-3">
+					<div class="flex min-w-0 items-center gap-2">
 						<ColorDot color={item.project.color} size="md" />
-						<span class="text-body-md font-medium text-on-surface"
+						<span class="truncate text-body-md font-medium text-on-surface"
 							><bdi>{item.project.name}</bdi></span
 						>
 					</div>
 					{#if item.progressPercent != null}
-						<span class="font-mono text-code-data text-on-surface-variant">{pct}%</span>
+						<span class="shrink-0 font-mono text-code-data text-on-surface-variant">{pct}%</span>
 					{/if}
 				</div>
 				{#if item.progressPercent != null}

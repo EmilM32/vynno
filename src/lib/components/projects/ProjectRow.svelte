@@ -54,7 +54,20 @@
 
 	function bindRow(node: HTMLElement) {
 		rowEl = node;
+		// Touch has no hover to prefetch on, so the count would never load: fetch it once the row
+		// scrolls into view instead. Still lazy, still one request per row actually seen.
+		let io: IntersectionObserver | undefined;
+		if (window.matchMedia('(hover: none)').matches && 'IntersectionObserver' in window) {
+			io = new IntersectionObserver((entries) => {
+				if (entries.some((e) => e.isIntersecting)) {
+					prefetch();
+					io?.disconnect();
+				}
+			});
+			io.observe(node);
+		}
 		return () => {
+			io?.disconnect();
 			if (rowEl === node) rowEl = undefined;
 		};
 	}

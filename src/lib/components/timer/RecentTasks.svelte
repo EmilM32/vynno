@@ -52,7 +52,7 @@
 								class="truncate text-body-md text-on-surface transition-colors group-hover:text-primary group-disabled:group-hover:text-on-surface"
 								><bdi>{item.note}</bdi></span
 							>
-							<span class="font-mono text-code-label text-on-surface-variant">
+							<span class="truncate font-mono text-code-label text-on-surface-variant">
 								<bdi>{project?.name ?? m.common_unknown()}</bdi>
 							</span>
 						</div>

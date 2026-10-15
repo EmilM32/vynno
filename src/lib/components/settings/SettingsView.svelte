@@ -256,7 +256,7 @@
 					id="desktop-notifications"
 					type="checkbox"
 					role="switch"
-					class="size-4 rounded border-outline-variant"
+					class="size-4 rounded border-outline-variant pointer-coarse:size-6"
 					checked={notificationPrefs.state === 'on'}
 					disabled={notificationPrefs.state === 'blocked' ||
 						notificationPrefs.state === 'unsupported'}
@@ -301,7 +301,10 @@
 			</Field>
 
 			<p class="text-body-sm text-on-surface-variant">
-				<a href={resolve('/projects')} class="focus-ring text-primary underline underline-offset-2">
+				<a
+					href={resolve('/projects')}
+					class="focus-ring touch-target text-primary underline underline-offset-2"
+				>
 					{m.settings_manage_projects()}
 				</a>
 				{m.settings_manage_projects_suffix()}

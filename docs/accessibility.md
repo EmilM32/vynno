@@ -51,5 +51,5 @@ Contrast pairs live in `src/lib/a11y/contrast.ts` and are unit-tested.
 ## Known AAA exclusions
 
 - Contrast is AA (4.5:1), not AAA (7:1).
-- Compact rows may be 24×24 (2.5.8) rather than 44×44 (2.5.5).
+- Compact rows may be 24×24 (2.5.8) rather than 44×44 (2.5.5). On a coarse pointer `Button` and `IconButton` (and the `touch-target` links) grow an invisible hit area to 40px (`layout.css`), so dense rows stay dense but are tappable.
 - No sign-language or extended audio descriptions (no media).

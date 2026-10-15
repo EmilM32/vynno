@@ -150,7 +150,7 @@
 	disabled={href ? undefined : disabled}
 	aria-disabled={href && disabled ? 'true' : undefined}
 	class={[
-		'focus-ring inline-flex items-center gap-2 rounded',
+		'focus-ring touch-target inline-flex items-center gap-2 rounded',
 		'disabled:cursor-not-allowed disabled:opacity-60',
 		'aria-disabled:cursor-not-allowed aria-disabled:opacity-60',
 		JUSTIFY[justify],

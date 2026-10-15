@@ -181,3 +181,28 @@
 		font-size: max(16px, 1em);
 	}
 }
+
+/*
+ * Touch hit area (EMI-269): on a coarse pointer, a Button / IconButton smaller than 40px gets an
+ * invisible ::after that grows it to 40px. Text buttons only grow vertically, so neighbours in a
+ * row never steal each other's taps; icon buttons grow both ways. Layered so a `class` position
+ * utility still wins over `relative`.
+ */
+@layer components {
+	@media (pointer: coarse) {
+		.touch-target {
+			position: relative;
+		}
+
+		.touch-target::after {
+			content: '';
+			position: absolute;
+			inset-block: min(0px, calc((100% - 2.5rem) / 2));
+			inset-inline: 0;
+		}
+
+		.touch-target-square::after {
+			inset-inline: min(0px, calc((100% - 2.5rem) / 2));
+		}
+	}
+}

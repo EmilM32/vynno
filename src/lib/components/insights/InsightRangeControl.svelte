@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { getLocale } from '$lib/paraglide/runtime.js';
@@ -53,29 +54,36 @@
 	}
 </script>
 
+<!--
+	Phones: two rows, nothing scrolls sideways. Grains span the width like an iOS segmented
+	control; below them a stepper (‹ range ›) in one frame, then Custom. The label wraps rather
+	than clips (long custom ranges, Polish months). Desktop keeps the single row.
+-->
 <div
-	class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end"
+	class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
 	data-testid="insight-range-control"
 >
-	<div class="flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto">
-		<PeriodToggle value={grain} options={grainOptions} onchange={setGrain} />
-		<div class="flex shrink-0 items-center gap-1">
+	<PeriodToggle value={grain} options={grainOptions} fill onchange={setGrain} />
+	<div class="flex min-w-0 items-stretch gap-2">
+		<div
+			class="flex min-w-0 flex-1 items-center gap-1 max-sm:rounded-DEFAULT max-sm:border max-sm:border-outline-variant max-sm:bg-surface-container-low max-sm:px-1 sm:flex-none"
+		>
 			<IconButton
-				icon="arrow_back"
+				icon="chevron_left"
 				label={m.insights_range_prev()}
 				variant="ghost"
 				size="sm"
 				onclick={() => shift(-1)}
 			/>
 			<span
-				class="min-w-0 font-mono text-code-label text-on-surface tabular-nums"
+				class="min-w-0 flex-1 py-1.5 text-center font-mono text-code-label text-balance text-on-surface tabular-nums sm:flex-none sm:whitespace-nowrap"
 				data-testid="insight-range-label"
 				aria-live="polite"
 			>
 				{label}
 			</span>
 			<IconButton
-				icon="arrow_forward"
+				icon="chevron_right"
 				label={m.insights_range_next()}
 				variant="ghost"
 				size="sm"
@@ -83,15 +91,17 @@
 				onclick={() => shift(1)}
 			/>
 		</div>
+		<Button
+			variant={range.grain === 'custom' ? 'tonal' : 'secondary'}
+			size="sm"
+			class="shrink-0"
+			aria-pressed={range.grain === 'custom'}
+			onclick={openCustom}
+		>
+			<Icon name="calendar_month" size="sm" />
+			{m.insights_range_custom()}
+		</Button>
 	</div>
-	<Button
-		variant={range.grain === 'custom' ? 'tonal' : 'secondary'}
-		size="sm"
-		aria-pressed={range.grain === 'custom'}
-		onclick={openCustom}
-	>
-		{m.insights_range_custom()}
-	</Button>
 </div>
 
 <InsightRangeDialog

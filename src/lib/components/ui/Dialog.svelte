@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getFocusable, trapFocus } from '$lib/a11y/focus-trap';
+	import { cssTimeToMs } from '$lib/theme/css-time';
 	import { m } from '$lib/paraglide/messages.js';
 	import type { Snippet } from 'svelte';
 
@@ -23,9 +24,16 @@
 	let closing = $state(false);
 	let closeTimer: number | undefined;
 	let releaseTrap: (() => void) | undefined;
+	let overlay: HTMLElement | undefined;
 
-	/** Matches `--duration-ui`. Parent stays `open` until this fires so the exit can play. */
-	const EXIT_MS = 200;
+	/** Fallback if the token cannot be read; keep equal to `--duration-ui-exit`. */
+	const EXIT_MS_FALLBACK = 150;
+
+	/** `--duration-ui-exit` in ms, read from CSS so the timer cannot drift from the transition. */
+	function exitMs(): number {
+		const raw = overlay ? getComputedStyle(overlay).getPropertyValue('--duration-ui-exit') : '';
+		return cssTimeToMs(raw) ?? EXIT_MS_FALLBACK;
+	}
 
 	/** Hand the page back (inert off, focus restored) before the exit plays, so input is not lost. */
 	function release() {
@@ -37,11 +45,12 @@
 		if (closing) return;
 		closing = true;
 		release();
+		// Parent stays `open` until this fires so the exit can play.
 		closeTimer = window.setTimeout(() => {
 			closeTimer = undefined;
 			closing = false;
 			then();
-		}, EXIT_MS);
+		}, exitMs());
 	}
 
 	function close(then: () => void = onclose) {
@@ -49,6 +58,7 @@
 	}
 
 	function trapOverlay(node: HTMLElement) {
+		overlay = node;
 		releaseTrap = trapFocus(node);
 		// On touch, focusing a field opens the keyboard over the form (EMI-275): focus the panel
 		// instead, as CommandPalette does. An explicit `initialFocus` still wins.
@@ -59,6 +69,7 @@
 			target?.focus();
 		});
 		return () => {
+			overlay = undefined;
 			cancelAnimationFrame(frame);
 			release();
 			if (closeTimer !== undefined) window.clearTimeout(closeTimer);
@@ -181,6 +192,12 @@
 	.panel[data-closing='true'] {
 		opacity: 0;
 		transform: scale(0.96);
+	}
+
+	/* Exit faster than enter. Beats the reduced-motion `transition` shorthand on specificity. */
+	.scrim[data-closing='true'],
+	.panel[data-closing='true'] {
+		transition-duration: var(--duration-ui-exit);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

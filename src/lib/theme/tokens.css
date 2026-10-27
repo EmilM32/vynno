@@ -113,4 +113,5 @@
 	--duration-press: 160ms;
 	--duration-tooltip: 150ms;
 	--duration-ui: 200ms;
+	--duration-ui-exit: 150ms; /* the system answering — leaves faster than it came */
 }

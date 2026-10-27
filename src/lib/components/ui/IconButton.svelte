@@ -74,7 +74,7 @@
 	aria-disabled={href && disabled ? 'true' : undefined}
 	aria-label={label}
 	class={[
-		'focus-ring touch-target touch-target-square inline-flex items-center justify-center rounded transition-colors',
+		'focus-ring touch-target touch-target-square inline-flex items-center justify-center rounded transition-colors select-none',
 		'disabled:cursor-not-allowed disabled:opacity-60',
 		'aria-disabled:cursor-not-allowed aria-disabled:opacity-60',
 		VARIANT[variant],

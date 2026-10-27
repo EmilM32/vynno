@@ -15,7 +15,7 @@
 			{const active = $derived(isNavActive(page.url.pathname, item.href))}
 			<a
 				href={resolve(item.href)}
-				class="press focus-ring flex min-w-0 flex-1 flex-col items-center justify-center rounded-xl px-1 py-1 {active
+				class="press focus-ring flex min-w-0 flex-1 flex-col items-center justify-center rounded-xl px-1 py-1 select-none {active
 					? 'bg-secondary-container/20 text-primary'
 					: 'text-on-surface-variant hover:text-primary'}"
 				aria-current={active ? 'page' : undefined}

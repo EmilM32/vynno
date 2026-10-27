@@ -8,8 +8,8 @@
 	import { clearLegacyPrefsCookie } from '$lib/stores/legacy-prefs';
 	import { createPrefsStore, setPrefs } from '$lib/stores/prefs.svelte';
 	import { createSessionStore, setSession } from '$lib/stores/session.svelte';
-	import { themeStore } from '$lib/theme/theme.svelte';
-	import { resolveTheme } from '$lib/theme/themes';
+	// Imported for its side effect: the constructor applies the stored theme and its theme-color.
+	import '$lib/theme/theme.svelte';
 	import { persistTimeZoneCookie } from '$lib/time/timezone';
 
 	let { children, data } = $props();
@@ -49,7 +49,6 @@
 		});
 	});
 
-	const themeColor = $derived(resolveTheme(themeStore.themeId).themeColor);
 	const icon = $derived(session.activeSession ? faviconLive : favicon);
 
 	$effect(() => {
@@ -69,7 +68,6 @@
 <svelte:head>
 	<link rel="icon" href={icon} />
 	<title>{m.app_name()}</title>
-	<meta name="theme-color" content={themeColor} />
 </svelte:head>
 
 {@render children()}

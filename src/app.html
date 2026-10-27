@@ -7,6 +7,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
 		<meta name="color-scheme" content="dark light" />
+		<!-- The only theme-color tag: the script below and `applyTheme` both write to it. -->
 		<meta name="theme-color" content="#0b1326" />
 		<link rel="manifest" href="%sveltekit.assets%/manifest.webmanifest" />
 		<link rel="apple-touch-icon" href="%sveltekit.assets%/icons/apple-touch-icon.png" />
@@ -19,6 +20,16 @@
 				var t = localStorage.getItem('vynno-theme') || localStorage.getItem('devtime-theme');
 				if (t && /^[a-z][a-z0-9-]*$/.test(t)) {
 					document.documentElement.setAttribute('data-theme', t);
+					// Status bar before hydration. Must match THEMES[].themeColor (app-html.test.ts).
+					var c = {
+						dark: '#0b1326',
+						light: '#f8f9ff',
+						'deep-dark': '#131313',
+						ember: '#17120e',
+						newsprint: '#f2efe6',
+						zen: '#1c1d21'
+					}[t];
+					if (c) document.querySelector('meta[name="theme-color"]').setAttribute('content', c);
 				}
 			} catch (e) {}
 		</script>

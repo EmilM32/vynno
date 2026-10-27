@@ -18,6 +18,8 @@
 		margin: 0;
 		min-height: 100dvh;
 		touch-action: manipulation;
+		/* Tappable chrome gives its own feedback (`.press`, colour); the OS grey flash doubles it. */
+		-webkit-tap-highlight-color: transparent;
 	}
 
 	::selection {
@@ -58,8 +60,9 @@
 		transform: scale(0.97);
 	}
 
+	/* Same selector as the scale above: a weaker one loses on specificity and the press still scales. */
 	@media (prefers-reduced-motion: reduce) {
-		.press:active {
+		.press:active:not(:disabled) {
 			transform: none;
 		}
 	}

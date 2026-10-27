@@ -155,10 +155,10 @@ Group entrances (stagger 30–80ms) are decorative and must never block input. D
 
 Reduced motion means **fewer and gentler**, not zero.
 
-| Keep                                     | Drop                                |
-| ---------------------------------------- | ----------------------------------- |
-| Color and opacity that aid comprehension | Transform / position / scale        |
-| Press with no scale                      | `.press:active { transform: none }` |
+| Keep                                     | Drop                                                                                           |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Color and opacity that aid comprehension | Transform / position / scale                                                                   |
+| Press with no scale                      | `.press:active:not(:disabled) { transform: none }` (same selector, or it loses on specificity) |
 
 Do not restore a global `* { transition-duration: 0.01ms }` hammer. Scope reduced-motion to the thing that moves.
 

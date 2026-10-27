@@ -155,6 +155,8 @@
 		'aria-disabled:cursor-not-allowed aria-disabled:opacity-60',
 		JUSTIFY[justify],
 		pressClass,
+		// Long-press on touch selects a label; inline/link sit in prose and stay selectable.
+		!INLINE.has(variant) && 'select-none',
 		variantClass,
 		sizeClass,
 		className

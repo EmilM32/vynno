@@ -37,8 +37,9 @@
 	const profileBusy = $derived(sessionStore.pendingAction === 'profile');
 	const nameDirty = $derived(displayNameDraft.trim() !== prefsStore.displayName);
 
-	async function onSaveName() {
-		if (profileBusy) return;
+	async function onSaveName(e: SubmitEvent) {
+		e.preventDefault();
+		if (profileBusy || !nameDirty) return;
 		const name = normalizeName(displayNameDraft, { min: 0, max: DISPLAY_NAME_MAX });
 		if (!name.ok) {
 			nameError = nameRejectMessage(name.reason, DISPLAY_NAME_MAX);
@@ -156,7 +157,11 @@
 		</div>
 		<p class="mt-2 text-body-sm text-on-surface-variant">{m.settings_photo_hint()}</p>
 
-		<div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
+		<form
+			class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end"
+			onsubmit={onSaveName}
+			novalidate
+		>
 			<Field
 				id="display-name"
 				label={m.settings_display_name()}
@@ -166,11 +171,11 @@
 				<Input tone="ui" type="text" bind:value={displayNameDraft} class="w-full" />
 			</Field>
 			{#if nameDirty}
-				<Button variant="tonal" disabled={profileBusy} onclick={onSaveName}>
+				<Button variant="tonal" type="submit" disabled={profileBusy}>
 					{m.settings_save_profile()}
 				</Button>
 			{/if}
-		</div>
+		</form>
 
 		{#if sessionStore.error}
 			<p class="mt-3 text-body-sm text-error" role="alert">{sessionStore.error}</p>

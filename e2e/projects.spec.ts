@@ -228,7 +228,11 @@ test.describe('projects', () => {
 		const row = page.getByTestId('log-row').filter({ hasText: note });
 		await expect(row).toBeVisible();
 		await expect(row.getByRole('button', { name: 'Edit' })).toBeVisible();
-		await expect(row.getByRole('button', { name: 'Delete' })).toBeVisible();
+		// Stacked rows (phones) keep Delete behind "…" (EMI-269); wide rows show it inline.
+		const stacked = await row.getByTestId('log-row-more').isVisible();
+		await expect(
+			stacked ? row.getByTestId('log-row-more') : row.getByRole('button', { name: 'Delete' })
+		).toBeVisible();
 
 		await row.getByRole('button', { name: 'Edit' }).click();
 		const edited = `${note}-renamed`;
@@ -243,11 +247,13 @@ test.describe('projects', () => {
 		await editDialog.getByRole('button', { name: 'Save' }).click();
 		await expect(page.getByTestId('log-row').filter({ hasText: edited })).toBeVisible();
 
-		await page
-			.getByTestId('log-row')
-			.filter({ hasText: edited })
-			.getByRole('button', { name: 'Delete' })
-			.click();
+		const editedRow = page.getByTestId('log-row').filter({ hasText: edited });
+		if (stacked) {
+			await editedRow.getByTestId('log-row-more').click();
+			await editedRow.getByRole('menuitem', { name: 'Delete' }).click();
+		} else {
+			await editedRow.getByRole('button', { name: 'Delete' }).click();
+		}
 		await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
 		await expect(page.getByTestId('log-row').filter({ hasText: edited })).toHaveCount(0);
 	});

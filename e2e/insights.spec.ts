@@ -163,7 +163,7 @@ test.describe('insights', () => {
 		expect(box!.y).toBeLessThan(viewport!.height);
 	});
 
-	test('grain and civil label sit on one line', async ({ page }) => {
+	test('grain and civil label sit on one line, or stack on phones', async ({ page }) => {
 		const period = page.getByRole('group', { name: 'Period' });
 		const label = page.getByTestId('insight-range-label');
 		await expect(period).toBeVisible();
@@ -171,6 +171,11 @@ test.describe('insights', () => {
 		const labelBox = await label.boundingBox();
 		expect(periodBox).toBeTruthy();
 		expect(labelBox).toBeTruthy();
+		if (page.viewportSize()!.width < 640) {
+			// Below `sm` the grains fill their own row and the range steps sit under it.
+			expect(labelBox!.y).toBeGreaterThanOrEqual(periodBox!.y + periodBox!.height);
+			return;
+		}
 		expect(
 			Math.abs(periodBox!.y + periodBox!.height / 2 - (labelBox!.y + labelBox!.height / 2))
 		).toBeLessThan(16);

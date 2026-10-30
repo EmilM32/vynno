@@ -20,9 +20,7 @@
 	});
 
 	const status = $derived(sessionStore.activeSession?.status);
-	const sessionChrome = $derived(
-		status === 'active' ? 'border-primary' : 'border-outline-variant'
-	);
+	const sessionChrome = $derived(status === 'active' ? 'border-primary' : 'border-outline-variant');
 </script>
 
 <div
@@ -43,7 +41,7 @@
 	{/if}
 
 	<div
-		class="flex flex-col rounded-lg border bg-surface-container {sessionChrome}"
+		class="flex flex-col rounded-lg border bg-surface-container transition-[border-color] duration-(--duration-ui) ease-out motion-reduce:transition-none {sessionChrome}"
 		data-testid="timer-session"
 	>
 		<div class="border-b border-outline-variant px-4 py-3 lg:px-5">

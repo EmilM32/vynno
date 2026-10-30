@@ -34,7 +34,7 @@
 		{m.common_today()}
 	</h2>
 	<p
-		class="shrink-0 font-mono text-code-data tracking-tight text-primary"
+		class="shrink-0 font-mono text-code-data tracking-tight text-primary tabular-nums"
 		data-testid="timer-today-total"
 	>
 		{totalLabel}
@@ -43,12 +43,14 @@
 		{#if delta.icon}
 			<Icon name={delta.icon} size="xs" class={delta.ink} />
 		{/if}
-		<span class={delta.ink}>
+		<span class="tabular-nums {delta.ink}">
 			{formatHoursDecimal(deltaAbs)}
 		</span>
 		<span>{m.dashboard_vs_yesterday()}</span>
 	</p>
-	<span class="ml-auto shrink-0 font-mono text-code-label text-on-surface-variant lg:hidden">
+	<span
+		class="ml-auto shrink-0 font-mono text-code-label text-on-surface-variant tabular-nums lg:hidden"
+	>
 		{pct}%
 	</span>
 	<div class="ml-auto hidden max-w-sm min-w-0 flex-1 items-center gap-3 lg:flex">
@@ -59,7 +61,7 @@
 			label={m.timer_today_aria()}
 			class="min-w-16 flex-1"
 		/>
-		<span class="shrink-0 font-mono text-code-label text-on-surface-variant">
+		<span class="shrink-0 font-mono text-code-label text-on-surface-variant tabular-nums">
 			{pct}% · {targetLabel}
 		</span>
 	</div>

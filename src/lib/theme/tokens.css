@@ -115,4 +115,6 @@
 	--duration-tooltip: 150ms;
 	--duration-ui: 200ms;
 	--duration-ui-exit: 150ms; /* the system answering — leaves faster than it came */
+	--duration-sheet: 260ms; /* bottom drawer: travels a screen height, not a 4% scale */
+	--duration-sheet-exit: 200ms;
 }

@@ -77,3 +77,31 @@
 		</OverlayCanvas>
 	{/snippet}
 </Story>
+
+<Story name="Phone (drawer)" globals={{ viewport: { value: 'mobile1', isRotated: false } }}>
+	{#snippet template(args)}
+		<OverlayCanvas initialOpen>
+			{#snippet children({ open, close })}
+				<Dialog
+					{open}
+					title={args.title}
+					size={args.size}
+					onclose={() => {
+						close();
+						args.onclose();
+					}}
+				>
+					{#snippet children({ close })}
+						<p class="text-body-md text-on-surface-variant">
+							Below 40rem the same `Dialog` renders as a bottom `Drawer`.
+						</p>
+						<div class="dialog-actions mt-5 flex justify-end gap-2">
+							<Button variant="secondary" onclick={() => close()}>Cancel</Button>
+							<Button variant="primary" onclick={() => close()}>Save</Button>
+						</div>
+					{/snippet}
+				</Dialog>
+			{/snippet}
+		</OverlayCanvas>
+	{/snippet}
+</Story>

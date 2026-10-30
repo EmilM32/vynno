@@ -154,7 +154,7 @@ Live in `src/lib/components/ui/`. Browse them in Storybook under `UI/*`. These o
 
 **`Disclosure`** — a heading that shows and hides the content under it; the panel stays mounted (`hidden` while closed) so form state survives a toggle. `open` is bindable, closed by default. Used by Settings → Security.
 
-**`Dialog`** / **`ConfirmDialog`** — centered overlay, focus-trapped. **`ActivityChip`** — near-square pill; washed type colour (`bg-*/10` + chromatic ink). `primary-container` / `secondary-container` render as indigo / coral.
+**`Dialog`** / **`ConfirmDialog`** — centered overlay, focus-trapped; below 40rem it renders **`Drawer`** (bottom sheet, drag the handle to dismiss) unless `mobile="dialog"`. **`ActivityChip`** — near-square pill; washed type colour (`bg-*/10` + chromatic ink). `primary-container` / `secondary-container` render as indigo / coral.
 
 **`Field`** — label + optional hint/error. Layouts `stack` (dialogs) and `split` (Settings rows). Sets context so nested `Input` / `Select` inherit `id`, `aria-invalid`, and `aria-describedby`.
 

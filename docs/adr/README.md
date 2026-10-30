@@ -33,6 +33,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0027](./0027-year-heatmap-streaks.md)        | Dashboard year heatmap and streaks                  | Accepted   |
 | [0028](./0028-insights-timeline.md)           | Insights timeline card (Days, Projects, Rhythm)     | Accepted   |
 | [0029](./0029-sidebar-rail.md)                | Collapsible sidebar (icon rail)                     | Accepted   |
+| [0030](./0030-mobile-drawer.md)               | Dialogs become bottom drawers on phones             | Accepted   |
 
 ## Format
 

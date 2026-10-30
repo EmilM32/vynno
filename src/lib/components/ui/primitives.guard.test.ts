@@ -24,6 +24,7 @@ const RAW_BUTTON_ALLOWLIST: Record<string, string> = {
 	'lib/components/ui/Button.svelte': 'the primitive itself',
 	'lib/components/ui/IconButton.svelte': 'the primitive itself',
 	'lib/components/ui/Dialog.svelte': 'full-bleed dismiss scrim, not chrome',
+	'lib/components/ui/Drawer.svelte': 'full-bleed dismiss scrim, not chrome',
 	'lib/components/shell/CommandPalette.svelte': 'full-bleed dismiss scrim, not chrome',
 	'lib/components/timer/RecentTasks.svelte': 'list row — motion.md excludes rows from .press',
 	'lib/components/ui/SwatchPicker.svelte': 'swatch radio — not chrome',

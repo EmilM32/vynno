@@ -5,6 +5,7 @@ import type { AppSeed } from '$lib/api/types';
 import { LEGACY_PREFS_COOKIE, legacyPrefsPatch } from '$lib/stores/legacy-prefs';
 import type { UpdatePrefsInput } from '$lib/types/domain';
 import { resolveTimeZone, TIME_ZONE_COOKIE } from '$lib/time/timezone';
+import { isRailCookie, SIDEBAR_COOKIE } from '$lib/components/shell/sidebar';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ fetch, cookies }) => {
@@ -12,6 +13,7 @@ export const load: LayoutServerLoad = async ({ fetch, cookies }) => {
 	const timeZone = resolveTimeZone(cookies.get(TIME_ZONE_COOKIE));
 	const hasSessionCookie = Boolean(cookies.get(SESSION_COOKIE));
 	const legacyCookie = cookies.get(LEGACY_PREFS_COOKIE);
+	const sidebarCollapsed = isRailCookie(cookies.get(SIDEBAR_COOKIE));
 
 	try {
 		const seed = await loadAppSeed(fetch);
@@ -21,7 +23,15 @@ export const load: LayoutServerLoad = async ({ fetch, cookies }) => {
 			prefs: seed.prefs,
 			projectIds: seed.projects.map((p) => p.id)
 		});
-		return { seed, loggedIn: true, loadError: null as string | null, nowMs, timeZone, legacyPrefs };
+		return {
+			seed,
+			loggedIn: true,
+			loadError: null as string | null,
+			nowMs,
+			timeZone,
+			sidebarCollapsed,
+			legacyPrefs
+		};
 	} catch (e) {
 		if (e instanceof ApiError && (e.status === 401 || e.code === 'unauthorized')) {
 			return {
@@ -30,6 +40,7 @@ export const load: LayoutServerLoad = async ({ fetch, cookies }) => {
 				loadError: null as string | null,
 				nowMs,
 				timeZone,
+				sidebarCollapsed,
 				legacyPrefs: null as UpdatePrefsInput | null
 			};
 		}
@@ -40,6 +51,7 @@ export const load: LayoutServerLoad = async ({ fetch, cookies }) => {
 			loadError,
 			nowMs,
 			timeZone,
+			sidebarCollapsed,
 			legacyPrefs: null as UpdatePrefsInput | null
 		};
 	}

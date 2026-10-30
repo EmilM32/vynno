@@ -8,7 +8,7 @@
 	let { children, data } = $props();
 </script>
 
-<AppShell>
+<AppShell sidebarCollapsed={data.sidebarCollapsed}>
 	{#if data.loadError}
 		<div class="flex min-h-[60vh] flex-col items-center justify-center py-8">
 			<ErrorState

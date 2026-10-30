@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
+	import { untrack, type Snippet } from 'svelte';
 	import { bindAnnouncers } from '$lib/a11y/announce';
 	import { m } from '$lib/paraglide/messages.js';
 	import BottomNav from './BottomNav.svelte';
@@ -8,8 +8,29 @@
 	import SessionAlerts from './SessionAlerts.svelte';
 	import SideNav from './SideNav.svelte';
 	import TopBar from './TopBar.svelte';
+	import { isSidebarToggleKey, writeSidebarCookie } from './sidebar';
 
-	let { children }: { children: Snippet } = $props();
+	let {
+		children,
+		sidebarCollapsed = false
+	}: {
+		children: Snippet;
+		/** First-paint width from the `vynno_sidebar` cookie (ADR-0029). */
+		sidebarCollapsed?: boolean;
+	} = $props();
+
+	let collapsed = $state(untrack(() => sidebarCollapsed));
+
+	function toggleSidebar() {
+		collapsed = !collapsed;
+		writeSidebarCookie(collapsed);
+	}
+
+	function onKeydown(e: KeyboardEvent) {
+		if (!isSidebarToggleKey(e)) return;
+		e.preventDefault();
+		toggleSidebar();
+	}
 
 	let politeEl: HTMLElement | undefined = $state();
 	let assertiveEl: HTMLElement | undefined = $state();
@@ -19,6 +40,8 @@
 		bindAnnouncers(politeEl, assertiveEl);
 	});
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 <a
 	href="#main-content"
@@ -31,8 +54,8 @@
 <div bind:this={assertiveEl} class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 
 <div class="flex h-dvh flex-col bg-surface text-on-surface">
-	<SideNav />
-	<div class="flex min-h-0 flex-1 flex-col md:ml-sidebar">
+	<SideNav {collapsed} ontoggle={toggleSidebar} />
+	<div class="flex min-h-0 flex-1 flex-col {collapsed ? 'md:ml-sidebar-rail' : 'md:ml-sidebar'}">
 		<TopBar />
 		<main
 			id="main-content"

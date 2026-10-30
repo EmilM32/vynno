@@ -5,6 +5,10 @@
 	import StatusDot, { type StatusDotTone } from '$lib/components/ui/StatusDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
+	import { formatCompact } from '$lib/time/duration';
+
+	/** `compact`: the 48px tile in the collapsed sidebar rail (ADR-0029). */
+	let { compact = false }: { compact?: boolean } = $props();
 
 	const sessionStore = useSession();
 
@@ -31,7 +35,20 @@
 	);
 </script>
 
-{#if session}
+{#if session && compact}
+	<a
+		href={resolve('/timer')}
+		class="focus-ring flex h-12 w-12 flex-col items-center justify-center gap-1.5 rounded border transition-colors hover:bg-surface-variant {cardBorder}"
+		aria-label={ariaLabel}
+		data-testid="shell-session-chip"
+	>
+		<StatusDot tone={statusDot} />
+		<span
+			class="font-mono text-[10px] leading-none text-on-surface tabular-nums"
+			data-testid="shell-session-elapsed">{formatCompact(sessionStore.elapsedMs)}</span
+		>
+	</a>
+{:else if session}
 	<a
 		href={resolve('/timer')}
 		class="focus-ring flex w-full flex-col gap-1 rounded border px-3 py-2.5 transition-colors hover:bg-surface-variant {cardBorder}"
@@ -59,6 +76,16 @@
 			{/if}
 		</div>
 	</a>
+{:else if compact}
+	<Button
+		variant="primary"
+		size="sm"
+		href={resolve('/timer')}
+		aria-label={m.nav_start_new_session()}
+		data-testid="shell-session-chip"
+	>
+		<Icon name="play_arrow" />
+	</Button>
 {:else}
 	<Button
 		variant="primary"

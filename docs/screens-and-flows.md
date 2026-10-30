@@ -31,6 +31,7 @@ Each primary route is one responsive page (mobile + desktop).
 
 - Fixed left **sidebar** (~240px): brand, primary nav, session chip (idle = “Start New Session”; live = status + elapsed + project/note), profile footer
 - Main content offset by sidebar width
+- Collapsible to a 72px **icon rail** (click the sidebar's right border, where a handle appears on hover level with the logo, or ⌘B / Ctrl+B). The rail keeps every control: session tile (live dot + elapsed, or a play button), nav icons, Commands, avatar; labels show as tooltips. Remembered per device ([ADR-0029](./adr/0029-sidebar-rail.md))
 
 ### Mobile
 

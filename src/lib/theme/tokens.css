@@ -106,6 +106,7 @@
 	--spacing-margin-desktop: 1.5rem;
 	--spacing-container-max: 75rem;
 	--spacing-sidebar: 15rem;
+	--spacing-sidebar-rail: 4.5rem;
 
 	/* Deliberate motion only — color hovers stay on Tailwind's default `ease`. */
 	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);

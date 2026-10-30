@@ -24,7 +24,7 @@ Navigation structure is shared across viewports: six primary destinations and tw
 
 2. **One route per feature** — not separate `/m/` and `/desktop/` trees. Responsive CSS implements both layouts.
 3. **Root layout** provides document head, theme, and seed hydrate. Feature routes live in the `(app)` group and share:
-   - Desktop: fixed left sidebar (~240px) + main content
+   - Desktop: fixed left sidebar (~240px, collapsible to a 72px rail — [0029](./0029-sidebar-rail.md)) + main content
    - Mobile: top bar + bottom navigation (six primary destinations)
 4. **Default entry:** `/login` when signed out; `/dashboard` when signed in. Redirect `/` → chosen default. Feature routes require a session cookie.
 5. Active nav item derived from the current pathname.

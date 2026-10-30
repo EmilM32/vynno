@@ -357,9 +357,12 @@ export async function seedStoppedSessions(page: Page, count: number) {
 	}
 }
 
-/** Desktop sidebar is `md:flex` (≥768px). Prefer this for SPA nav that keeps store state. */
+/**
+ * Desktop sidebar (≥768px). Prefer this for SPA nav that keeps store state. Keyed on its own
+ * `side-nav` class, not a breakpoint utility: the rail glide swapped `md:flex` for `md:block`.
+ */
 export function desktopNav(page: Page): Locator {
-	return page.locator('nav.md\\:flex[aria-label="Main"]');
+	return page.locator('nav.side-nav[aria-label="Main"]');
 }
 
 /** Mobile bottom bar is `md:hidden`. */

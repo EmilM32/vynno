@@ -38,6 +38,8 @@
 	"settings_long_session_off": "Wyłączone",
 	"shell_open_command_palette": "Otwórz paletę poleceń",
 	"shell_commands": "Polecenia",
+	"shell_sidebar_collapse": "Zwiń menu",
+	"shell_sidebar_expand": "Rozwiń menu",
 	"shell_session_recording": "Sesja w toku",
 	"shell_no_active_session": "Brak aktywnej sesji",
 	"shell_session_chip_aria": "{status}, {elapsed}, {detail}. Otwórz timer.",

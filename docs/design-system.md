@@ -170,7 +170,7 @@ Non-chrome interactive surfaces are **not** `Button`: dismiss scrims, list rows,
 
 ### Shell
 
-- **SideNav** (desktop): brand + version, nav links with left border active state, CTA, profile
+- **SideNav** (desktop): brand + version, nav links with left border active state, CTA, profile. Collapses to a 72px icon rail (`--spacing-sidebar-rail`) from its right border (hover shows a handle by the logo) or ⌘B; rail labels become tooltips ([ADR-0029](./adr/0029-sidebar-rail.md))
 - **BottomNav** (mobile): six tabs, active filled/tinted
 - **TopBar**: brand, command-palette trigger, Settings, and the live cue (mobile): an idle dot, or while a session runs a chip with the elapsed time that opens Timer
 

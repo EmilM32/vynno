@@ -57,7 +57,25 @@
 	{/snippet}
 </Story>
 
+<Story name="Collapsed">
+	{#snippet template()}
+		<StoryProviders>
+			<div class="sb-shell-desktop relative min-h-screen bg-surface">
+				<SideNav collapsed />
+			</div>
+		</StoryProviders>
+	{/snippet}
+</Story>
 
+<Story name="Collapsed, active">
+	{#snippet template()}
+		<StoryProviders seed={liveStorySeed('active')} nowMs={Date.now()}>
+			<div class="sb-shell-desktop relative min-h-screen bg-surface">
+				<SideNav collapsed />
+			</div>
+		</StoryProviders>
+	{/snippet}
+</Story>
 
 <style>
 	.sb-shell-desktop :global(nav) {

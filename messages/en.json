@@ -38,6 +38,8 @@
 	"settings_long_session_off": "Off",
 	"shell_open_command_palette": "Open command palette",
 	"shell_commands": "Commands",
+	"shell_sidebar_collapse": "Collapse menu",
+	"shell_sidebar_expand": "Expand menu",
 	"shell_session_recording": "Session recording",
 	"shell_no_active_session": "No active session",
 	"shell_session_chip_aria": "{status}, {elapsed}, {detail}. Open timer.",

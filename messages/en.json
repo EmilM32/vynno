@@ -70,7 +70,7 @@
 	"timer_proj_prefix": "PROJ: {code}",
 	"timer_start": "Start",
 	"timer_stop": "Stop",
-	"timer_task_placeholder": "What are you working on? (e.g. 'Fixing Bug #402')",
+	"timer_task_placeholder": "What are you working on? (e.g. “Fixing Bug #402”)",
 	"timer_note_suggestions_aria": "Earlier tasks",
 	"timer_task_aria": "Task description",
 	"timer_project_label": "Project",

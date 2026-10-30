@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-10-30  
-**Amended:** 2026-10-30 (§2, toggle placement)  
+**Amended:** 2026-10-30 (§2, toggle placement; §6, the rail glides)  
 **Deciders:** Project owner
 
 ## Context
@@ -24,7 +24,7 @@ The owner kept **Rail**.
 3. **The rail keeps everything.** Brand mark, the session chip, all six nav icons, Commands (search icon) and the profile avatar. Nothing moves to another menu.
 4. **Session chip in the rail.** Live: a 48px bordered tile with the live dot and `formatCompact` elapsed time (`12s`, `45m`, `2h 15m`). Idle: a primary play button. The full status, time and project are in the accessible name and the tooltip.
 5. **Labels become tooltips.** Each rail control gets a tooltip to the right of the rail. The first one waits 400ms; the next one opens at once while warm (300ms). It shows on `:focus-visible` too. The visible label is replaced by an `sr-only` one, so the accessible name does not change.
-6. **No width animation.** The rail and the content snap ([motion.md](../motion.md): width and margin are not animated). The toggle is frequent and often from the keyboard.
+6. **The rail glides ("Glide").** The nav width and the main column's left margin transition together: `--duration-ui` (200ms), `--ease-in-out`, on click and on ⌘B alike. Every rail control keeps one x position (centre 36px) in both states, so icons never move; only the edge does. Labels are always rendered and only change opacity: on collapse they fade out first (40% of the duration), on expand they fade in over the last 60%, so text never squeezes against the moving edge. The session chip and Commands swap between their wide and rail forms (one rendered at a time, so test ids stay unique); the incoming one fades in on the same late timing through `@starting-style`. Reduced motion: everything snaps. This is a named exception to the width/margin rule in [motion.md](../motion.md), like the header accordion.
 7. **Per device, in a cookie.** `vynno_sidebar=rail` is read in `+layout.server.ts`, so SSR renders the right width and markup with no flash. A wide monitor and a laptop can differ. This is not an account pref.
 
 ## Consequences
@@ -37,7 +37,8 @@ The owner kept **Rail**.
 
 ### Negative / tradeoffs
 
-- The content jumps on toggle (no transition).
+- The main column reflows on every frame of the 200ms glide. On a long Logs list that is real layout work; it was judged acceptable for a deliberate, short toggle.
+- ⌘B animates, against the keyboard rule in motion.md. The owner chose it after trying both.
 - In the rail, labels are only in tooltips. A new user has to hover the icons once.
 - The toggle is invisible at rest. It is found by hovering the border, by the `resize` cursor, or through ⌘B. The handle is a raw `<button>` (allowlisted in `primitives.guard.test.ts`): a border strip, not chrome.
 
@@ -47,7 +48,9 @@ The owner kept **Rail**.
 | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Peek** (hide fully, slide over on hover or handle)    | Most room, but the live session disappears and navigating takes two steps (show, then click). The edge hover zone fires by accident.                                  |
 | **Float** (rail that unfolds over the content on hover) | No reflow, but passing the pointer across the rail unfolds it. Hover intent needs a delay, which makes deliberate use feel slow.                                      |
-| Animate the rail width                                  | Width and margin animation are banned outside the header accordion ([motion.md](../motion.md)). The toggle is a keyboard-frequent action, and those don't animate.    |
+| Snap (the first build: no motion)                       | Correct by the motion rules, but the owner found the jump abrupt. Icons also shifted a few pixels between the two layouts.                                            |
+| **Slide** (layout snaps once, then FLIP + clip-path)    | Compositor-only and no per-frame reflow, but on expand a strip of empty background shows at the right edge while the content slides in.                               |
+| **Fade** (width snaps, labels fade in)                  | Stays inside the motion rules, but collapse is still an instant jump, so it only half answers the complaint.                                                          |
 | Toggle in the brand row (first build)                   | In the rail it sat under the logo and pushed the session tile and nav down. The owner did not want it there.                                                          |
 | Toggle as a bordered button on the border ("Edge")      | Always visible and placed well, but a permanent element half over the content edge.                                                                                   |
 | The logo becomes the toggle on hover ("Logo swap")      | Tidy rail, but the expanded chevron appears only on sidebar hover, and two different controls for one action.                                                         |

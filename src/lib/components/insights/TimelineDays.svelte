@@ -38,8 +38,10 @@
 	const MIN_LANE_PX = 6;
 	/** Below this a lane is too thin for a label beside it. */
 	const LABEL_LANE_PX = 14;
-	const BAND_PADDING = 0.3;
-	const PAD = { top: 4, right: 64, bottom: 24, left: 60 };
+	/** Stacked lanes: the label rides in the band padding above the bar (ADR-0028 §10). */
+	const STACKED_LANE_PX = 42;
+	/** Past a month, stacked rows would make the card thousands of pixels tall. */
+	const STACKED_MAX_DAYS = 31;
 
 	const lanes = $derived(laneCounts(segments));
 	/** One band per lane; a day with overlapping sessions gets more than one. */
@@ -52,11 +54,24 @@
 	const HOUR_LABEL_PX = 44;
 
 	let boxWidth = $state(0);
+	/**
+	 * Phones stack the day label and total above the day's first lane, so the clock gets the
+	 * full width instead of ~170px between two gutters (ADR-0028 §10).
+	 */
+	const stacked = $derived(boxWidth > 0 && boxWidth < 480 && days.length <= STACKED_MAX_DAYS);
+	const PAD = $derived(
+		stacked
+			? { top: 6, right: 14, bottom: 24, left: 14 }
+			: { top: 4, right: 64, bottom: 24, left: 60 }
+	);
+	const BAND_PADDING = $derived(stacked ? 0.5 : 0.3);
 	const xTicks = $derived(
 		hourTicks(clock, ticksThatFit(boxWidth - PAD.left - PAD.right, HOUR_LABEL_PX))
 	);
 	const lanePx = $derived(
-		Math.max(MIN_LANE_PX, Math.min(LANE_PX, MAX_PLOT_PX / Math.max(1, rows.length)))
+		stacked
+			? STACKED_LANE_PX
+			: Math.max(MIN_LANE_PX, Math.min(LANE_PX, MAX_PLOT_PX / Math.max(1, rows.length)))
 	);
 	const chartHeight = $derived(rows.length * lanePx + PAD.top + PAD.bottom);
 	/** Every day is labelled while lanes are tall enough; otherwise one day in seven. */
@@ -143,7 +158,9 @@
 			legend={false}
 			props={{
 				xAxis: { ticks: xTicks, format: formatMinuteOfDay, tickMarks: false, tickLength: 0 },
-				yAxis: { ticks: yTicks, format: rowLabel, tickMarks: false, tickLength: 0 },
+				yAxis: stacked
+					? { ticks: [], format: () => '' }
+					: { ticks: yTicks, format: rowLabel, tickMarks: false, tickLength: 0 },
 				grid: { xTicks, x: { stroke: 'var(--color-outline-variant)', opacity: 0.5 } },
 				tooltip: { context: { mode: 'manual' } }
 			}}
@@ -166,6 +183,18 @@
 						};
 					})
 				)}
+				{#if stacked}
+					<!-- A track per lane, so a quiet stretch of the day still reads as that day. -->
+					{#each rows as row (row)}
+						<rect
+							y={context.yScale(row)}
+							width={context.width}
+							height={bandwidth}
+							rx="3"
+							fill="var(--color-surface-container-high)"
+						/>
+					{/each}
+				{/if}
 				<g data-testid="timeline-bars" data-count={data.length}>
 					{#each paths as path (path.color)}
 						<path
@@ -185,14 +214,32 @@
 						context.yScale(`${day.key}:${(lanes.get(day.key) ?? 1) - 1}`) ?? first
 					)}
 					{const ms = $derived(totals.get(day.key) ?? 0)}
-					<!-- Day total in the right padding, centred on its lanes; dropped when lanes are too thin. -->
-					<Text
-						x={context.width + 12}
-						y={(first + last + bandwidth) / 2}
-						value={ms > 0 ? formatCompact(ms) : '—'}
-						verticalAnchor="middle"
-						class="fill-on-surface-variant font-mono text-[11px] tabular-nums"
-					/>
+					{const total = $derived(ms > 0 ? formatCompact(ms) : '—')}
+					{#if stacked}
+						<!-- Day and total on one line in the band padding above the first lane. -->
+						<Text
+							x={0}
+							y={first - 6}
+							value={dayLabel(day.key)}
+							class="fill-on-surface text-[12px] font-medium"
+						/>
+						<Text
+							x={context.width}
+							y={first - 6}
+							textAnchor="end"
+							value={total}
+							class="fill-on-surface-variant font-mono text-[11px] tabular-nums"
+						/>
+					{:else}
+						<!-- Day total in the right padding, centred on its lanes; dropped when lanes are too thin. -->
+						<Text
+							x={context.width + 12}
+							y={(first + last + bandwidth) / 2}
+							value={total}
+							verticalAnchor="middle"
+							class="fill-on-surface-variant font-mono text-[11px] tabular-nums"
+						/>
+					{/if}
 				{/each}
 			{/snippet}
 			{#snippet tooltip({ context })}

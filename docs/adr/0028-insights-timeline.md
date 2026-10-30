@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-10-05  
-**Amended:** 2026-10-05 (§7, drawing cost)  
+**Amended:** 2026-10-05 (§7, drawing cost); 2026-10-30 (§10, phone layout)  
 **Deciders:** Project owner
 
 ## Context
@@ -40,6 +40,13 @@ Four forms were prototyped behind a picker on dev data: Day strips, Project lane
    - Charts do not animate ([../motion.md](../motion.md)).
    - Each view has an `sr-only` list of what it draws.
 9. **Identity is never colour alone.** Bars use the project hex. Every view also names projects in its legend, axis or tooltip: the 10-colour project palette fails a categorical CVD check (purple / violet, teal / green / cyan).
+10. **Phones stack the labels above the bars** (amended 2026-10-30, picked from a prototype of three layouts).
+    - Below 480 px of chart width, the side gutters took most of the card. Projects had ~130 px for a week of day columns, its total ran past the card edge, and Days had ~170 px for the clock.
+    - **Projects** on a phone: a colour dot, the project name and `total · share` sit on one line above each row. The bar spans the full width over a `surface-container-high` track.
+    - **Days** on a phone, up to 31 days: the day label and its total sit above the day's first lane, the same way. Longer ranges keep the side-label layout of §6, since a stacked row is ~42 px and two months would be ~2,600 px tall.
+    - Day ticks on Projects are spaced for the longest Polish label (`niedz. 25`).
+    - The card header uses `p-4` on phones and puts both toggles on one row, with the view toggle filling the remaining width.
+    - Rejected: **panning.** Desktop geometry under a sticky label column, scrolled sideways. Every session stayed readable, but only part of the range was visible at once, and a horizontal gesture inside a vertically scrolling page is easy to miss.
 
 ## Consequences
 

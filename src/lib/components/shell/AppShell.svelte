@@ -20,9 +20,15 @@
 	} = $props();
 
 	let collapsed = $state(untrack(() => sidebarCollapsed));
+	let gliding = $state(false);
+	let glideTimer: ReturnType<typeof setTimeout> | undefined;
 
 	function toggleSidebar() {
 		collapsed = !collapsed;
+		// Outlasts the 200ms glide (`--duration-ui`); see SideNav.
+		gliding = true;
+		clearTimeout(glideTimer);
+		glideTimer = setTimeout(() => (gliding = false), 400);
 		writeSidebarCookie(collapsed);
 	}
 
@@ -54,8 +60,13 @@
 <div bind:this={assertiveEl} class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 
 <div class="flex h-dvh flex-col bg-surface text-on-surface">
-	<SideNav {collapsed} ontoggle={toggleSidebar} />
-	<div class="flex min-h-0 flex-1 flex-col {collapsed ? 'md:ml-sidebar-rail' : 'md:ml-sidebar'}">
+	<SideNav {collapsed} {gliding} ontoggle={toggleSidebar} />
+	<!-- The margin glides with the nav width (ADR-0029 §6). -->
+	<div
+		class="flex min-h-0 flex-1 flex-col transition-[margin-left] duration-(--duration-ui) ease-in-out motion-reduce:transition-none {collapsed
+			? 'md:ml-sidebar-rail'
+			: 'md:ml-sidebar'}"
+	>
 		<TopBar />
 		<main
 			id="main-content"

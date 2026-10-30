@@ -34,21 +34,29 @@
 		dayLabel: (key: string) => string;
 	} = $props();
 
-	const ROW_PX = 40;
 	/** Narrowest drawn bar, so a 10-minute session is still visible on a month. */
 	const MIN_BAR_PX = 3;
-	/** `Mon 12` in the 10px axis face, plus a gap. */
-	const DAY_LABEL_PX = 48;
 
 	let plotWidth = $state(0);
-	/** Phones: slimmer name and total gutters so the plot keeps most of the card (EMI-276). */
-	const narrow = $derived(plotWidth > 0 && plotWidth < 480);
+	/**
+	 * Phones stack the name and total above each bar, so the plot gets the full width
+	 * (ADR-0028 §10). Side gutters left a week ~130px and pushed the total off the card.
+	 */
+	const stacked = $derived(plotWidth > 0 && plotWidth < 480);
 	const PAD = $derived(
-		narrow
-			? { top: 4, right: 72, bottom: 24, left: 92 }
+		stacked
+			? { top: 6, right: 14, bottom: 24, left: 14 }
 			: { top: 4, right: 84, bottom: 24, left: 128 }
 	);
-	const NAME_CHARS = $derived(narrow ? 12 : 18);
+	/** Stacked rows are taller: the label rides in the band padding above the bar. */
+	const ROW_PX = $derived(stacked ? 48 : 40);
+	const BAND_PADDING = $derived(stacked ? 0.55 : 0.3);
+	/** `Mon 12` in the 10px axis face plus a gap; stacked ticks fit Polish `niedz. 25`. */
+	const DAY_LABEL_PX = $derived(stacked ? 64 : 48);
+	/** Stacked: ~6.5px a character at 12px, minus the dot and the ~88px total. */
+	const NAME_CHARS = $derived(
+		stacked ? Math.max(12, Math.floor((plotWidth - PAD.left - PAD.right - 88) / 6.5)) : 18
+	);
 
 	const projects = $derived(projectTotals(segments));
 	const rows = $derived(projects.map((p) => p.id));
@@ -162,7 +170,7 @@
 			xDomain={domain}
 			xNice={false}
 			orientation="horizontal"
-			bandPadding={0.3}
+			bandPadding={BAND_PADDING}
 			padding={PAD}
 			grid={{ x: true, y: false }}
 			rule={false}
@@ -170,7 +178,9 @@
 			legend={false}
 			props={{
 				xAxis: { ticks: xTicks, format: xTick, tickMarks: false, tickLength: 0 },
-				yAxis: { format: rowLabel, tickMarks: false, tickLength: 0 },
+				yAxis: stacked
+					? { ticks: [], format: () => '' }
+					: { format: rowLabel, tickMarks: false, tickLength: 0 },
 				grid: { xTicks: dayLines, x: { stroke: 'var(--color-outline-variant)', opacity: 0.5 } },
 				tooltip: { context: { mode: 'manual' } }
 			}}
@@ -193,6 +203,18 @@
 						};
 					})
 				)}
+				{#if stacked}
+					<!-- A track per row, so a project's quiet days still read as part of its row. -->
+					{#each rows as row (row)}
+						<rect
+							y={context.yScale(row)}
+							width={context.width}
+							height={bandwidth}
+							rx="3"
+							fill="var(--color-surface-container-high)"
+						/>
+					{/each}
+				{/if}
 				<g data-testid="timeline-bars" data-count={data.length}>
 					{#each paths as path (path.color)}
 						<path
@@ -207,13 +229,33 @@
 			{#snippet aboveMarks({ context })}
 				{const bandwidth = $derived(context.yScale.bandwidth?.() ?? 0)}
 				{#each projects as p (p.id)}
-					<Text
-						x={context.width + 12}
-						y={(context.yScale(p.id) ?? 0) + bandwidth / 2}
-						value="{formatCompact(p.ms)} · {formatShare(p)}"
-						verticalAnchor="middle"
-						class="fill-on-surface-variant font-mono text-[11px] tabular-nums"
-					/>
+					{const total = $derived(`${formatCompact(p.ms)} · ${formatShare(p)}`)}
+					{#if stacked}
+						<!-- Name and total on one line in the band padding above the bar. -->
+						{const y = $derived((context.yScale(p.id) ?? 0) - 7)}
+						<circle cx={4} cy={y - 4} r="3.5" fill={p.color} />
+						<Text
+							x={13}
+							{y}
+							value={rowLabel(p.id)}
+							class="fill-on-surface text-[12px] font-medium"
+						/>
+						<Text
+							x={context.width}
+							{y}
+							textAnchor="end"
+							value={total}
+							class="fill-on-surface-variant font-mono text-[11px] tabular-nums"
+						/>
+					{:else}
+						<Text
+							x={context.width + 12}
+							y={(context.yScale(p.id) ?? 0) + bandwidth / 2}
+							value={total}
+							verticalAnchor="middle"
+							class="fill-on-surface-variant font-mono text-[11px] tabular-nums"
+						/>
+					{/if}
 				{/each}
 			{/snippet}
 			{#snippet tooltip({ context })}

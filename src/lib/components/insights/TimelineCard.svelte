@@ -106,14 +106,14 @@
 
 <section
 	class={[
-		'vynno-chart flex flex-col gap-4 rounded-lg border border-outline-variant bg-surface-container p-6 transition-opacity',
+		'vynno-chart flex flex-col gap-4 rounded-lg border border-outline-variant bg-surface-container p-4 transition-opacity sm:p-6',
 		stale && 'opacity-60'
 	]}
 	aria-label={m.insights_timeline_aria()}
 	aria-busy={stale}
 	data-testid="insights-timeline"
 >
-	<div class="flex flex-wrap items-start justify-between gap-3">
+	<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
 		<div class="flex flex-col gap-1">
 			<h2 class="text-headline-md text-on-surface">{m.insights_timeline_title()}</h2>
 			<p class="text-body-sm text-on-surface-variant">
@@ -124,7 +124,22 @@
 				})}
 			</p>
 		</div>
-		<div class="flex flex-wrap items-center gap-2">
+		<!-- Phones: one row, the view toggle filling what the span toggle leaves (ADR-0028 §10). -->
+		<div class="flex items-center gap-2">
+			{#if sessionViews}
+				<div class="min-w-0 flex-1 sm:flex-none">
+					<PeriodToggle
+						bind:value={view}
+						fill
+						ariaLabel={m.insights_timeline_view_aria()}
+						options={[
+							{ id: 'days', label: m.insights_timeline_view_days() },
+							{ id: 'projects', label: m.insights_timeline_view_projects() },
+							{ id: 'rhythm', label: m.insights_timeline_view_rhythm() }
+						]}
+					/>
+				</div>
+			{/if}
 			<PeriodToggle
 				bind:value={span}
 				ariaLabel={m.insights_timeline_span_aria()}
@@ -133,17 +148,6 @@
 					{ id: 'day', label: m.insights_timeline_span_day() }
 				]}
 			/>
-			{#if sessionViews}
-				<PeriodToggle
-					bind:value={view}
-					ariaLabel={m.insights_timeline_view_aria()}
-					options={[
-						{ id: 'days', label: m.insights_timeline_view_days() },
-						{ id: 'projects', label: m.insights_timeline_view_projects() },
-						{ id: 'rhythm', label: m.insights_timeline_view_rhythm() }
-					]}
-				/>
-			{/if}
 		</div>
 	</div>
 

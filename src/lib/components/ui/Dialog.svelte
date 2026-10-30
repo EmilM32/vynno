@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { getFocusable, trapFocus } from '$lib/a11y/focus-trap';
-	import { cssTimeToMs } from '$lib/theme/css-time';
 	import { m } from '$lib/paraglide/messages.js';
 	import type { Snippet } from 'svelte';
-
-	type CloseFn = (then?: () => void) => void;
+	import { MediaQuery } from 'svelte/reactivity';
+	import Drawer from './Drawer.svelte';
+	import { Overlay, type CloseFn } from './overlay.svelte';
 
 	interface Props {
 		open: boolean;
@@ -12,105 +11,74 @@
 		onclose: () => void;
 		describedby?: string;
 		size?: 'md' | 'lg';
+		/** Phones get a bottom `Drawer` by default; `dialog` keeps the centered panel there too. */
+		mobile?: 'drawer' | 'dialog';
 		initialFocus?: () => HTMLElement | undefined;
 		children: Snippet<[{ close: CloseFn }]>;
 	}
 
-	let { open, title, onclose, describedby, size = 'md', initialFocus, children }: Props = $props();
+	let {
+		open,
+		title,
+		onclose,
+		describedby,
+		size = 'md',
+		mobile = 'drawer',
+		initialFocus,
+		children
+	}: Props = $props();
 
 	const id = $props.id();
 	const titleId = $derived(`dialog-title-${id}`);
 
-	let closing = $state(false);
-	let closeTimer: number | undefined;
-	let releaseTrap: (() => void) | undefined;
-	let overlay: HTMLElement | undefined;
+	/** Same phone breakpoint as the `dialog-actions` rules below. */
+	const phone = new MediaQuery('max-width: 39.99rem');
+	const asDrawer = $derived(mobile === 'drawer' && phone.current);
 
-	/** Fallback if the token cannot be read; keep equal to `--duration-ui-exit`. */
-	const EXIT_MS_FALLBACK = 150;
-
-	/** `--duration-ui-exit` in ms, read from CSS so the timer cannot drift from the transition. */
-	function exitMs(): number {
-		const raw = overlay ? getComputedStyle(overlay).getPropertyValue('--duration-ui-exit') : '';
-		return cssTimeToMs(raw) ?? EXIT_MS_FALLBACK;
-	}
-
-	/** Hand the page back (inert off, focus restored) before the exit plays, so input is not lost. */
-	function release() {
-		releaseTrap?.();
-		releaseTrap = undefined;
-	}
-
-	function beginClose(then: () => void) {
-		if (closing) return;
-		closing = true;
-		release();
-		// Parent stays `open` until this fires so the exit can play.
-		closeTimer = window.setTimeout(() => {
-			closeTimer = undefined;
-			closing = false;
-			then();
-		}, exitMs());
-	}
-
-	function close(then: () => void = onclose) {
-		beginClose(then);
-	}
-
-	function trapOverlay(node: HTMLElement) {
-		overlay = node;
-		releaseTrap = trapFocus(node);
-		// On touch, focusing a field opens the keyboard over the form (EMI-275): focus the panel
-		// instead, as CommandPalette does. An explicit `initialFocus` still wins.
-		const coarse = window.matchMedia('(pointer: coarse)').matches;
-		const frame = requestAnimationFrame(() => {
-			const panel = node.querySelector<HTMLElement>('[role="dialog"]');
-			const target = initialFocus?.() ?? (coarse ? panel : getFocusable(node)[0]);
-			target?.focus();
-		});
-		return () => {
-			overlay = undefined;
-			cancelAnimationFrame(frame);
-			release();
-			if (closeTimer !== undefined) window.clearTimeout(closeTimer);
-		};
-	}
+	const overlay = new Overlay(() => ({
+		onclose,
+		initialFocus,
+		exitToken: '--duration-ui-exit',
+		exitFallbackMs: 150
+	}));
 
 	function onKey(e: KeyboardEvent) {
-		if (!open || closing) return;
+		if (!open || asDrawer || overlay.closing) return;
 		if (e.key === 'Escape') {
 			e.preventDefault();
-			beginClose(onclose);
+			overlay.close();
 		}
 	}
 </script>
 
 <svelte:window onkeydown={onKey} />
 
-{#if open}
+{#if asDrawer}
+	<Drawer {open} {title} {onclose} {describedby} {initialFocus} {children} />
+{:else if open}
 	<div
-		{@attach trapOverlay}
+		{@attach overlay.attach}
 		class={[
 			'fixed inset-0 z-100 flex items-center justify-center overscroll-contain px-4',
-			closing && 'pointer-events-none'
+			overlay.closing && 'pointer-events-none'
 		]}
-		inert={closing}
+		inert={overlay.closing}
 	>
 		<!-- Scrim, not chrome: a full-bleed dismiss surface, so it stays a raw button. -->
 		<button
 			type="button"
 			tabindex="-1"
 			class="scrim absolute inset-0 bg-surface-dim/80 backdrop-blur-[2px]"
-			data-closing={closing}
+			data-closing={overlay.closing}
 			aria-label={m.dialog_dismiss_aria()}
-			onclick={() => beginClose(onclose)}
+			onclick={() => overlay.close()}
 		></button>
 		<div
 			class="panel relative z-10 max-h-[min(90dvh,40rem)] w-full overflow-y-auto rounded-lg border border-outline-variant bg-surface-container p-5 shadow-xl outline-none {size ===
 			'lg'
 				? 'max-w-lg'
 				: 'max-w-md'}"
-			data-closing={closing}
+			data-closing={overlay.closing}
 			role="dialog"
 			tabindex="-1"
 			aria-modal="true"
@@ -119,7 +87,7 @@
 		>
 			<h2 id={titleId} class="text-headline-md text-on-surface">{title}</h2>
 			<div class="mt-4">
-				{@render children({ close })}
+				{@render children({ close: overlay.close })}
 			</div>
 		</div>
 	</div>
@@ -141,9 +109,10 @@
 	}
 
 	/*
-	 * Phones: actions share the width in equal, 40px-tall buttons, so short Polish/English labels
-	 * line up and nothing wraps one button alone onto a second row. A secondary action marked
-	 * `dialog-actions-aside` (e.g. Clear filters) takes its own row under them.
+	 * Phones (only with `mobile="dialog"`; otherwise `Drawer` renders): actions share the width in
+	 * equal, 40px-tall buttons, so short Polish/English labels line up and nothing wraps one button
+	 * alone onto a second row. A secondary action marked `dialog-actions-aside` (e.g. Clear filters)
+	 * takes its own row under them.
 	 */
 	@media (max-width: 39.99rem) {
 		.panel :global(.dialog-actions) {

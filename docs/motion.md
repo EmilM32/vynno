@@ -15,12 +15,12 @@ Vynno is a **crisp, dense, keyboard-first focus tracker**. The chrome is IDE-lik
 
 Motion should feel like the interface is listening, not performing. A user who lives in Timer and Dashboard all day should never notice animation as a layer. They should notice that Start pressed, that the confirm dialog came from the middle of the screen, and that the live session is still running.
 
-| This product is                   | This product is not                    |
-| --------------------------------- | -------------------------------------- |
-| Fast, quiet, functional           | Bouncy, staggered, decorative          |
-| A solid border for a live session | Charts that draw themselves            |
-| One overlay that moves (confirm)  | Page transitions, palette choreography |
-| Press feedback on chrome          | Hover scale on every row               |
+| This product is                          | This product is not                    |
+| ---------------------------------------- | -------------------------------------- |
+| Fast, quiet, functional                  | Bouncy, staggered, decorative          |
+| A solid border for a live session        | Charts that draw themselves            |
+| One overlay that moves (dialog / drawer) | Page transitions, palette choreography |
+| Press feedback on chrome                 | Hover scale on every row               |
 
 If a proposed animation would look at home on a marketing site or a consumer habit app, it is the wrong animation.
 
@@ -75,16 +75,18 @@ Do not invent a second curve or duration. Add to this set, or use it.
 --duration-tooltip: 150ms;
 --duration-ui: 200ms; /* dialogs, header collapse */
 --duration-ui-exit: 150ms; /* dialog exit — leaves faster than it came */
+--duration-sheet: 260ms; /* bottom drawer — travels a screen height */
+--duration-sheet-exit: 200ms;
 ```
 
 Defined in `src/lib/theme/tokens.css` (`@theme`).
 
-| Situation                   | Easing                  | Duration                                           |
-| --------------------------- | ----------------------- | -------------------------------------------------- |
-| Entering or exiting         | `--ease-out`            | 200ms in / 150ms out (dialog), 125–160ms (tooltip) |
-| Moving / morphing on screen | `--ease-in-out`         | 200ms                                              |
-| Hover / color change        | Tailwind default `ease` | ~150ms — do not retokenize                         |
-| Press                       | `--ease-out`            | 160ms                                              |
+| Situation                   | Easing                  | Duration                                                                          |
+| --------------------------- | ----------------------- | --------------------------------------------------------------------------------- |
+| Entering or exiting         | `--ease-out`            | 200ms in / 150ms out (dialog), 260ms in / 200ms out (drawer), 125–160ms (tooltip) |
+| Moving / morphing on screen | `--ease-in-out`         | 200ms                                                                             |
+| Hover / color change        | Tailwind default `ease` | ~150ms — do not retokenize                                                        |
+| Press                       | `--ease-out`            | 160ms                                                                             |
 
 **Never `ease-in` on UI.** It delays the moment the user is watching. Built-in CSS `ease-out` is too weak for deliberate motion — use the token.
 
@@ -102,6 +104,7 @@ Color hovers (`transition-colors` on rows, inputs, nav) stay on Tailwind’s def
 | Sidebar session chip (desktop)                 | Solid primary border; `StatusDot` live                                                                                                                       | State indication       | Clock digits do not tween.                                                                                                                                                                       |
 | Primary / secondary chrome buttons, bottom nav | `.press` → `scale(0.97)`                                                                                                                                     | Feedback               | Pointer-down, not click.                                                                                                                                                                         |
 | Confirm / form dialog                          | `@starting-style` scale 0.96 + opacity, 200ms `--ease-out`; same path out at 150ms (`--duration-ui-exit`)                                                    | Prevent jarring change | Origin **center**. Form dialogs share this overlay.                                                                                                                                              |
+| Drawer (every `Dialog` below 40rem)            | `translateY(100%)` → 0 via `@starting-style`, 260ms `--ease-out`; out the same edge at 200ms; follows the finger while the handle row is dragged             | Spatial consistency    | Bottom edge in, bottom edge out. Dismisses past 30% of its height or on a >0.5px/ms flick; otherwise snaps back. Reduced motion: opacity only ([ADR-0030](./adr/0030-mobile-drawer.md)).         |
 | Page header description                        | `grid-template-rows` + opacity, 200ms `--ease-in-out`                                                                                                        | Prevent jarring change | Accordion exception: height-family is allowed here only.                                                                                                                                         |
 | Disclosure (Settings → Security)               | Chevron `rotate(180deg)`, 200ms `--ease-in-out`; panel shows and hides at once                                                                               | State indication       | No height animation. Reduced motion: no rotation transition.                                                                                                                                     |
 | List / nav / field hovers                      | `transition-colors`                                                                                                                                          | Feedback               | Tens/day; keep.                                                                                                                                                                                  |
@@ -123,7 +126,7 @@ Animate **`transform` and `opacity` only.** `width` / `height` / `margin` / `pad
 
 Never `scale(0)`. Start from `scale(0.95–0.97)` plus opacity. Nothing in the real world appears from nothing.
 
-Popovers, menus, and tooltips scale from their **trigger** (`transform-origin` at the source). **Modals stay centered.**
+Popovers, menus, and tooltips scale from their **trigger** (`transform-origin` at the source). **Modals stay centered** on desktop; on phones they are bottom drawers that rise from the edge they sit on.
 
 Exit the way it entered. A dialog that scales in from center scales out to center. A future toast that rises from the bottom leaves through the bottom.
 

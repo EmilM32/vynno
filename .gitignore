@@ -38,6 +38,11 @@ vite.config.ts.timestamp-*
 .agents
 .claude
 .grok
+.codex
+.pi
+.cursor
+.gemini
+.opencode
 # Paraglide
 src/lib/paraglide
 project.inlang/cache/

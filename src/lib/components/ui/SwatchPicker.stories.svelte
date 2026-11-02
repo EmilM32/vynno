@@ -24,6 +24,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/SwatchPicker',
 		component: SwatchPicker,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'Colour radiogroup. Do not use it in a screen directly \u2014 use `ProjectColorPicker` or `ActivityColorPicker`, which know their palette. Rules: [forms.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/forms.md#swatchpicker).'
+				}
+			}
+		},
 		args: {
 			value: PROJECT_COLOR_PALETTE[0],
 			options: hexOptions,

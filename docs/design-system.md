@@ -31,13 +31,13 @@ Read the topic file for the task in front of you. Each one is short on purpose.
 
 ## Where the truth lives
 
-| What                          | File                                                                  |
-| ----------------------------- | --------------------------------------------------------------------- |
-| Semantic colour utilities     | `src/lib/theme/tokens.css` (`@theme inline`)                          |
-| Hex per theme                 | `src/lib/theme/<theme>.css` (`--dt-*`)                                |
-| Type, radius, spacing, ease   | `src/lib/theme/tokens.css` (`@theme`)                                 |
-| Focus, `.press`, touch target | `src/routes/layout.css`                                               |
-| Variant and size unions       | the `export type …Variant` / `…Size` at the top of each `ui/*.svelte` |
-| Live examples                 | Storybook, `UI/*` (`*.stories.svelte` next to each primitive)         |
+| What                          | File                                                                                                                                            |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Semantic colour utilities     | `src/lib/theme/tokens.css` (`@theme inline`)                                                                                                    |
+| Hex per theme                 | `src/lib/theme/<theme>.css` (`--dt-*`)                                                                                                          |
+| Type, radius, spacing, ease   | `src/lib/theme/tokens.css` (`@theme`)                                                                                                           |
+| Focus, `.press`, touch target | `src/routes/layout.css`                                                                                                                         |
+| Variant and size unions       | the `export type …Variant` / `…Size` at the top of each `ui/*.svelte`                                                                           |
+| Live examples                 | Storybook (`npm run storybook`): `Foundations/*` (colours, type, layout, icons, motion), `Patterns` (composed recipes), `UI/*` (each primitive) |
 
 When a doc and a union type disagree, the union type wins and the doc is the bug. Decisions: [ADR-0017](./adr/0017-ui-primitives.md) (primitives), [ADR-0018](./adr/0018-atomic-ui-layer.md) (what is and is not a primitive), [ADR-0008](./adr/0008-named-themes.md) (themes).

@@ -5,6 +5,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/ProgressBar',
 		component: ProgressBar,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'Progress toward a target; `label` is required. `fill`: `primary`, `secondary` when the target is met, or a project hex. Rules: [display.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/display.md#progressbar).'
+				}
+			}
+		},
 		args: {
 			value: 42,
 			label: 'Logged this week',

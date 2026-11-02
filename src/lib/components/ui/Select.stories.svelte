@@ -6,6 +6,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/Select',
 		component: Select,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'A stored setting or form value from fixed options. Switching what the screen shows (period, layout) \u2192 `PeriodToggle` instead. A colour \u2192 the picker wrappers. Rules: [forms.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/forms.md#select).'
+				}
+			}
+		},
 		args: {
 			size: 'md',
 			disabled: false

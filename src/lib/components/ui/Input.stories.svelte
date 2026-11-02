@@ -7,6 +7,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/Input',
 		component: Input,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'Text field. `tone`: `ui` for words (default), `data` for numbers and durations, `code` for codes and ids \u2014 never `font-mono` in `class`. `md` in dialogs and forms; `sm` in Settings split rows and toolbars. Icons go in `leading` / `trailing`. Rules: [forms.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/forms.md#input).'
+				}
+			}
+		},
 		args: {
 			tone: 'ui',
 			size: 'md',

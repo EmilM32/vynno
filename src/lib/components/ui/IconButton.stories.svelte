@@ -6,6 +6,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/IconButton',
 		component: IconButton,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'Icon-only control; `label` is required and becomes the accessible name. `ghost` (default) in rows and toolbars; `bordered` beside bordered Buttons or as a standalone trigger. `sm` 24px in rows, `md` 40px for mobile chrome. Rules: [buttons.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/buttons.md#iconbutton).'
+				}
+			}
+		},
 		args: {
 			icon: 'more_horiz',
 			label: 'More actions',

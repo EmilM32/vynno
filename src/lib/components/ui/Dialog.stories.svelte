@@ -10,7 +10,13 @@
 		component: Dialog,
 		parameters: {
 			layout: 'fullscreen',
-			docs: { story: { inline: false, iframeHeight: 480 } }
+			docs: {
+				story: { inline: false, iframeHeight: 480 },
+				description: {
+					component:
+						'A form or a pick-then-apply step. Becomes a bottom `Drawer` below 40rem automatically. The action row needs class `dialog-actions`; call `close(fn)` so the exit animates. A yes/no decision \u2192 `ConfirmDialog`. Rules: [overlays.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/overlays.md#dialog).'
+				}
+			}
 		},
 		args: {
 			title: 'Rename project',

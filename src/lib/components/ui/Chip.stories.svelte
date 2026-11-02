@@ -5,6 +5,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/Chip',
 		component: Chip,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'`code` (default) for a project code or the app version; `ticket` for a ticket id (pass `title` with the full text). Rules: [display.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/display.md#chip-and-activitychip).'
+				}
+			}
+		},
 		args: {
 			variant: 'code'
 		}

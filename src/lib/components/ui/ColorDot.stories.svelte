@@ -5,6 +5,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/ColorDot',
 		component: ColorDot,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'Project identity, always next to the project name. `sm` 8px circle in lists, `md` 14px square in row headers and legends. Rules: [display.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/display.md#colordot-and-statusdot).'
+				}
+			}
+		},
 		args: {
 			color: '#3b82f6',
 			size: 'sm'

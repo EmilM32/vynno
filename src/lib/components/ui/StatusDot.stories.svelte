@@ -5,6 +5,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/StatusDot',
 		component: StatusDot,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'"A session is running right now" (`live`) or not (`idle`). The only glowing element \u2014 never a generic bullet or project mark. Rules: [display.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/display.md#colordot-and-statusdot).'
+				}
+			}
+		},
 		args: {
 			tone: 'live'
 		}

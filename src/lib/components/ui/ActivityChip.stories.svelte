@@ -6,6 +6,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/ActivityChip',
 		component: ActivityChip,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'An activity type. Takes the whole `ActivityType` and resolves its colour itself \u2014 never build your own activity pill. Rules: [display.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/display.md#chip-and-activitychip).'
+				}
+			}
+		},
 		args: {
 			type: { id: 'act-deep', name: 'Deep Work', color: 'primary' }
 		}

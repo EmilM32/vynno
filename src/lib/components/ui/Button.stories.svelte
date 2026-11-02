@@ -8,6 +8,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/Button',
 		component: Button,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'Any control with a visible text label. Icon-only \u2192 `IconButton`; a whole list row, nav link or swatch is raw markup. Default `secondary`; one `primary` per view; `danger-filled` only via `ConfirmDialog destructive`. `class` takes layout only. Rules: [buttons.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/buttons.md#button).'
+				}
+			}
+		},
 		args: {
 			variant: 'secondary',
 			size: 'md',

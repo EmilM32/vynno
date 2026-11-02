@@ -8,6 +8,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/Disclosure',
 		component: Disclosure,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'A whole card section the user expands in place (Settings \u2192 Security); the panel stays mounted. A row\'s own "show more" is an `IconButton` with `aria-expanded` instead. Rules: [overlays.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/overlays.md#disclosure).'
+				}
+			}
+		},
 		args: {
 			title: 'Security'
 		}

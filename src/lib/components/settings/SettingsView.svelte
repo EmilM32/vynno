@@ -72,8 +72,7 @@
 		if (ms !== prefsStore.dailyTargetMs) void sessionStore.savePrefs({ dailyTargetMs: ms });
 	}
 
-	function onDefaultProjectChange(e: Event) {
-		const id = (e.currentTarget as HTMLSelectElement).value;
+	function onDefaultProjectChange(id: string) {
 		void sessionStore.savePrefs({ defaultProjectId: id });
 		if (!sessionStore.activeSession) sessionStore.draftProjectId = id;
 	}
@@ -105,10 +104,9 @@
 		await goto(resolve('/login'), { invalidateAll: true });
 	}
 
-	function onLocaleChange(e: Event) {
-		const value = (e.currentTarget as HTMLSelectElement).value as Locale;
+	function onLocaleChange(value: string) {
 		if ((locales as readonly string[]).includes(value)) {
-			setLocale(value);
+			setLocale(value as Locale);
 		}
 	}
 </script>
@@ -240,11 +238,8 @@
 					value={sessionStore.defaultProjectId}
 					class="w-full sm:w-56"
 					onchange={onDefaultProjectChange}
-				>
-					{#each sessionStore.projects as project (project.id)}
-						<option value={project.id} dir="auto">{project.name}</option>
-					{/each}
-				</Select>
+					options={sessionStore.projects.map((p) => ({ value: p.id, label: p.name }))}
+				/>
 			</Field>
 
 			<Field
@@ -278,16 +273,15 @@
 				<Select
 					value={longSessionPrefs.hours == null ? 'off' : String(longSessionPrefs.hours)}
 					class="w-full sm:w-32"
-					onchange={(e) => {
-						const value = (e.currentTarget as HTMLSelectElement).value;
-						longSessionPrefs.setHours(value === 'off' ? null : Number(value));
-					}}
-				>
-					<option value="off">{m.settings_long_session_off()}</option>
-					{#each LONG_SESSION_HOURS as hours (hours)}
-						<option value={String(hours)}>{formatCompact(hours * 3_600_000)}</option>
-					{/each}
-				</Select>
+					onchange={(value) => longSessionPrefs.setHours(value === 'off' ? null : Number(value))}
+					options={[
+						{ value: 'off', label: m.settings_long_session_off() },
+						...LONG_SESSION_HOURS.map((hours) => ({
+							value: String(hours),
+							label: formatCompact(hours * 3_600_000)
+						}))
+					]}
+				/>
 			</Field>
 
 			<ThemeSelect />
@@ -298,11 +292,12 @@
 				hint={m.settings_language_hint()}
 				layout="split"
 			>
-				<Select value={getLocale()} onchange={onLocaleChange} class="w-full sm:w-56">
-					{#each locales as locale (locale)}
-						<option value={locale}>{localeDisplayName(locale)}</option>
-					{/each}
-				</Select>
+				<Select
+					value={getLocale()}
+					onchange={onLocaleChange}
+					class="w-full sm:w-56"
+					options={locales.map((locale) => ({ value: locale, label: localeDisplayName(locale) }))}
+				/>
 			</Field>
 
 			<p class="text-body-sm text-on-surface-variant">

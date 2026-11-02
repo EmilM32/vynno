@@ -28,6 +28,8 @@ const RAW_BUTTON_ALLOWLIST: Record<string, string> = {
 	'lib/components/shell/CommandPalette.svelte': 'full-bleed dismiss scrim, not chrome',
 	'lib/components/timer/RecentTasks.svelte': 'list row — motion.md excludes rows from .press',
 	'lib/components/ui/SwatchPicker.svelte': 'swatch radio — not chrome',
+	'lib/components/ui/Select.svelte':
+		'combobox trigger — field chrome (on-border focus, no .press), labelled by <label for> (ADR-0032)',
 	'lib/components/shell/SideNav.svelte':
 		'sidebar border strip that toggles the rail (ADR-0029) — a border line, not chrome',
 	'lib/components/ui/Disclosure.svelte':

@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import {
+	chooseOption,
 	createProject,
+	expectSelected,
 	firstProjectId,
 	login,
 	pastSpansOnCurrentDay,
@@ -28,7 +30,7 @@ test.describe('timer lifecycle', () => {
 		await expect(page.getByLabel('Project')).toBeVisible();
 		await expect(page.getByLabel('Activity')).toBeVisible();
 		await expect(page.getByLabel('Ticket')).toBeVisible();
-		await expect(page.getByLabel('Activity')).toHaveValue('');
+		await expectSelected(page.getByLabel('Activity'), '');
 		await expect(page.getByTestId('page-header-description')).toHaveCount(0);
 	});
 
@@ -93,7 +95,7 @@ test.describe('timer lifecycle', () => {
 		await page.reload();
 		const note = uniqueNote('activity');
 		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
-		await page.locator('#activity-select').selectOption({ label: 'coding' });
+		await chooseOption(page.locator('#activity-select'), { label: 'coding' });
 		const [request] = await Promise.all([
 			page.waitForRequest(
 				(r) => r.method() === 'POST' && /\/v1\/sessions$/.test(new URL(r.url()).pathname)
@@ -107,7 +109,7 @@ test.describe('timer lifecycle', () => {
 	test('start with note and project (Flow A)', async ({ page }) => {
 		const note = uniqueNote('start');
 		await page.getByRole('combobox', { name: 'Task description' }).fill(note);
-		await page.locator('#project-select').selectOption({ label: 'Personal' });
+		await chooseOption(page.locator('#project-select'), { label: 'Personal' });
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
 
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
@@ -436,7 +438,7 @@ test.describe('timer note suggestions', () => {
 		await task.press('Enter');
 		await expect(list).toHaveCount(0);
 		await expect(task).toHaveValue(note);
-		await expect(page.locator('#project-select')).toHaveValue(project.id);
+		await expectSelected(page.locator('#project-select'), project.id);
 		await expect(page.getByLabel('Ticket')).toHaveValue('BIL-7');
 		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
 

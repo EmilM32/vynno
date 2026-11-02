@@ -1,10 +1,22 @@
 import { expect, test, type Page } from '@playwright/test';
 import pkg from '../package.json' with { type: 'json' };
 import { e2eOrigin } from './env';
-import { PNG_1X1, login, loginWith, uniqueNote, waitForClient, type E2EAccount } from './helpers';
+import {
+	PNG_1X1,
+	chooseOption,
+	expectSelected,
+	login,
+	loginWith,
+	optionLabels,
+	optionValues,
+	selectedValue,
+	uniqueNote,
+	waitForClient,
+	type E2EAccount
+} from './helpers';
 
 async function expectTheme(page: Page, id: string) {
-	await expect(page.locator('#ui-theme')).toHaveValue(id);
+	await expectSelected(page.locator('#ui-theme'), id);
 	await expect(page.locator('html')).toHaveAttribute('data-theme', id);
 }
 
@@ -144,7 +156,7 @@ test.describe('settings', () => {
 		const select = page.locator('#ui-theme');
 		await expect(select).toBeVisible();
 		await expectTheme(page, 'dark');
-		await expect(select.locator('option')).toHaveText([
+		expect(await optionLabels(select)).toEqual([
 			'Dark',
 			'Light',
 			'Deep Dark',
@@ -153,36 +165,36 @@ test.describe('settings', () => {
 			'Zen'
 		]);
 
-		await select.selectOption('light');
+		await chooseOption(select, { value: 'light' });
 		await expectTheme(page, 'light');
 
 		await page.reload();
 		await waitForClient(page);
 		await expectTheme(page, 'light');
 
-		await select.selectOption('deep-dark');
+		await chooseOption(select, { value: 'deep-dark' });
 		await expectTheme(page, 'deep-dark');
 
 		await page.reload();
 		await waitForClient(page);
 		await expectTheme(page, 'deep-dark');
 
-		await select.selectOption('dark');
+		await chooseOption(select, { value: 'dark' });
 		await expectTheme(page, 'dark');
 	});
 
 	test('language switch reloads into Polish and back', async ({ page }) => {
 		const select = page.locator('#ui-locale');
 		await expect(select).toBeVisible();
-		await expect(select).toHaveValue('en');
+		await expectSelected(select, 'en');
 
-		await select.selectOption('pl');
+		await chooseOption(select, { value: 'pl' });
 		await expect(page.locator('html')).toHaveAttribute('lang', 'pl');
 		await expect(page.getByRole('heading', { name: 'Ustawienia' })).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Odtwórz wymowę' })).toBeVisible();
-		await expect(page.locator('#ui-locale')).toHaveValue('pl');
+		await expectSelected(page.locator('#ui-locale'), 'pl');
 
-		await page.locator('#ui-locale').selectOption('en');
+		await chooseOption(page.locator('#ui-locale'), { value: 'en' });
 		await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 		await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 	});
@@ -245,13 +257,9 @@ test.describe('settings', () => {
 		await page.reload();
 		const select = page.locator('#default-project');
 		await expect(select).toBeVisible();
-		const current = await select.inputValue();
+		const current = await selectedValue(select);
 		expect(current.length).toBeGreaterThan(0);
-		const otherId = (
-			await select
-				.locator('option')
-				.evaluateAll((opts) => opts.map((o) => (o as HTMLOptionElement).value))
-		).find((id) => id && id !== current);
+		const otherId = (await optionValues(select)).find((id) => id && id !== current);
 		expect(otherId ?? secondId).toBeTruthy();
 		const nextId = otherId ?? secondId;
 
@@ -267,13 +275,13 @@ test.describe('settings', () => {
 				(r) =>
 					r.request().method() === 'PATCH' && /\/v1\/me\/prefs$/.test(new URL(r.url()).pathname)
 			),
-			select.selectOption(nextId)
+			chooseOption(select, { value: nextId })
 		]);
 		expect(await saved.json()).toMatchObject({ defaultProjectId: nextId });
-		await expect(select).toHaveValue(nextId);
+		await expectSelected(select, nextId);
 
 		await page.reload();
-		await expect(page.locator('#default-project')).toHaveValue(nextId);
+		await expectSelected(page.locator('#default-project'), nextId);
 		expect(hydrationErrors).toEqual([]);
 	});
 

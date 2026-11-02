@@ -98,19 +98,21 @@
 
 	<div class="grid gap-4 sm:grid-cols-2">
 		<Field id="session-project" label={m.logs_field_project()}>
-			<Select bind:value={projectId} class="w-full">
-				{#each sessionStore.allProjects as project (project.id)}
-					<option value={project.id} dir="auto">{project.name}</option>
-				{/each}
-			</Select>
+			<Select
+				bind:value={projectId}
+				class="w-full"
+				options={sessionStore.allProjects.map((p) => ({ value: p.id, label: p.name }))}
+			/>
 		</Field>
 		<Field id="session-activity" label={m.logs_field_activity()}>
-			<Select bind:value={activityTypeId} class="w-full">
-				<option value="">{m.logs_activity_none()}</option>
-				{#each sessionStore.activityTypes as type (type.id)}
-					<option value={type.id} dir="auto">{type.name}</option>
-				{/each}
-			</Select>
+			<Select
+				bind:value={activityTypeId}
+				class="w-full"
+				options={[
+					{ value: '', label: m.logs_activity_none() },
+					...sessionStore.activityTypes.map((t) => ({ value: t.id, label: t.name }))
+				]}
+			/>
 		</Field>
 	</div>
 

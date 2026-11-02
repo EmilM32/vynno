@@ -136,6 +136,14 @@
 		void sessionStore.updateSession(live.id, { note: noteResult.value });
 	}
 
+	const projectOptions = $derived(
+		sessionStore.projects.map((p) => ({ value: p.id, label: p.name }))
+	);
+	const activityOptions = $derived([
+		{ value: '', label: m.timer_activity_none() },
+		...sessionStore.activityTypes.map((t) => ({ value: t.id, label: t.name }))
+	]);
+
 	function onProjectChange() {
 		if (!live || locked) return;
 		if (sessionStore.draftProjectId === live.projectId) return;
@@ -233,11 +241,8 @@
 			bind:value={sessionStore.draftProjectId}
 			disabled={locked}
 			onchange={onProjectChange}
-		>
-			{#each sessionStore.projects as project (project.id)}
-				<option value={project.id} dir="auto">{project.name}</option>
-			{/each}
-		</Select>
+			options={projectOptions}
+		/>
 	</div>
 
 	<div class="grid grid-cols-2 gap-3 lg:contents">
@@ -253,12 +258,8 @@
 				disabled={locked}
 				data-testid="activity-select"
 				onchange={onActivityChange}
-			>
-				<option value="">{m.timer_activity_none()}</option>
-				{#each sessionStore.activityTypes as type (type.id)}
-					<option value={type.id} dir="auto">{type.name}</option>
-				{/each}
-			</Select>
+				options={activityOptions}
+			/>
 		</div>
 		<div class="flex min-w-0 flex-col gap-1.5">
 			<label class="font-mono text-code-label text-on-surface-variant" for="task-ticket"

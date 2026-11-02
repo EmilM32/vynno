@@ -79,7 +79,7 @@
 	/* Keyboard focus — two tiers (see docs/accessibility.md).
 	   Chrome (buttons, links, tabs): 2px primary ring with a 1px gap so the
 	   indicator stays visible on primary-filled controls (1.4.11).
-	   Fields (input/select/textarea): on-border treatment, no offset frame. */
+	   Fields (input/select/textarea, Select's combobox trigger): on-border treatment, no offset frame. */
 	a:focus-visible,
 	button:focus-visible,
 	summary:focus-visible,
@@ -96,6 +96,7 @@
 	input:focus-visible,
 	select:focus-visible,
 	textarea:focus-visible,
+	button[role='combobox']:focus-visible,
 	input.focus-ring:focus-visible,
 	select.focus-ring:focus-visible,
 	textarea.focus-ring:focus-visible {
@@ -124,7 +125,7 @@
 		box-shadow: 0 0 8px color-mix(in oklab, var(--color-secondary-fixed) 50%, transparent);
 	}
 
-	/* Native <select> — hide the OS caret and draw an inset chevron.
+	/* Native <select> (Select on a coarse pointer) — hide the OS caret and draw an inset chevron.
 	   Data-URL SVGs cannot use currentColor, so light vs dark stroke is themed. */
 	.native-select {
 		appearance: none;

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { firstProjectId, login, uniqueNote, waitForClient } from './helpers';
+import { chooseOption, firstProjectId, login, uniqueNote, waitForClient } from './helpers';
 
 const HOUR = 3_600_000;
 
@@ -133,7 +133,7 @@ test.describe('long session reminder', () => {
 		await startLongSession(page, 5);
 		await page.goto('/settings');
 		await waitForClient(page);
-		await page.getByLabel(/Long session reminder/).selectOption('off');
+		await chooseOption(page.getByLabel(/Long session reminder/), { value: 'off' });
 		await page.goto('/timer');
 		await waitForClient(page);
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');

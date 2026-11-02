@@ -75,11 +75,15 @@
 				hint="Named palettes, not a light/dark toggle."
 				layout="split"
 			>
-				<Select class="sm:w-56">
-					<option>Dev-Density Dark</option>
-					<option>High-Density Light</option>
-					<option>Deep Dark</option>
-				</Select>
+				<Select
+					class="sm:w-56"
+					value="dark"
+					options={[
+						{ value: 'dark', label: 'Dev-Density Dark' },
+						{ value: 'light', label: 'High-Density Light' },
+						{ value: 'deep-dark', label: 'Deep Dark' }
+					]}
+				/>
 			</Field>
 		</div>
 	{/snippet}

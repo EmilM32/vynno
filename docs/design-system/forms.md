@@ -80,7 +80,23 @@ Sizes: `md` (40px, default — dialogs, login, standalone forms) and `sm` (32px 
 
 ## Select
 
-Native `<select>` with a themed chevron. Same sizes as `Input` (`sm` | `md`). Options are plain `<option>` children.
+One choice from fixed options. Same sizes as `Input` (`sm` | `md`). On a fine pointer it is a themed button + listbox (APG select-only combobox: focus stays on the trigger, arrows / Home / End / typeahead move, Enter / Space / Tab commit, Escape closes without closing a surrounding `Dialog`). On a coarse pointer it renders the native `<select>`, so phones keep the OS picker. Both look the same closed. Decision: [ADR-0032](../adr/0032-custom-select.md).
+
+Props: `options` (`{ value, label, disabled? }[]`), `bind:value` or `value` + `onchange(value)` (receives the string, not an event), `size`, `id`, `name` (submits through a hidden input), `disabled`, `aria-label` (only without a `Field` / `<label for>`), `data-testid`, `class` (layout only), and an optional `option` snippet for row content — a colour dot, an icon — rendered in the list and on the trigger. There are no `<option>` children.
+
+```svelte
+<!-- src/lib/components/settings/SettingsView.svelte -->
+<Field id="default-project" label={m.settings_default_project()} layout="split">
+	<Select
+		value={sessionStore.defaultProjectId}
+		class="w-full sm:w-56"
+		onchange={onDefaultProjectChange}
+		options={sessionStore.projects.map((p) => ({ value: p.id, label: p.name }))}
+	/>
+</Field>
+```
+
+The list is a `popover="manual"` in the top layer, so a scrolling `Dialog` panel does not clip it. It has no enter animation — like a native select, it opens on every change of mind ([motion.md](../motion.md) frequency gate). Do not build a searchable or multi-select variant on top of it; that is a `Combobox`, which does not exist.
 
 ```
 Is it a stored setting or a form value (theme, default project, reminder threshold)?

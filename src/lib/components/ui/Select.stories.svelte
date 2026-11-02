@@ -1,7 +1,8 @@
 <script module lang="ts">
 	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import { PROJECT_COLOR_PALETTE } from '$lib/projects/palette';
 	import Field from './Field.svelte';
-	import Select, { type SelectSize } from './Select.svelte';
+	import Select, { type SelectOption, type SelectSize } from './Select.svelte';
 
 	const { Story } = defineMeta({
 		title: 'UI/Select',
@@ -10,7 +11,7 @@
 			docs: {
 				description: {
 					component:
-						'A stored setting or form value from fixed options. Switching what the screen shows (period, layout) \u2192 `PeriodToggle` instead. A colour \u2192 the picker wrappers. Rules: [forms.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/forms.md#select).'
+						'A stored setting or form value from fixed options. A themed listbox on a fine pointer, the native picker on touch. Switching what the screen shows (period, layout) → `PeriodToggle` instead. A colour → the picker wrappers. Rules: [forms.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/forms.md#select).'
 				}
 			}
 		},
@@ -21,19 +22,21 @@
 	});
 
 	const SIZES: SelectSize[] = ['sm', 'md'];
-</script>
 
-{#snippet options()}
-	<option value="auth">Identity</option>
-	<option value="api">vynno-api</option>
-	<option value="desk">Desktop shell</option>
-{/snippet}
+	const OPTIONS: SelectOption[] = [
+		{ value: 'auth', label: 'Identity' },
+		{ value: 'api', label: 'vynno-api' },
+		{ value: 'desk', label: 'Desktop shell' },
+		{ value: 'legacy', label: 'Legacy importer', disabled: true }
+	];
+
+	const colourOf = (value: string) =>
+		PROJECT_COLOR_PALETTE[OPTIONS.findIndex((o) => o.value === value)];
+</script>
 
 <Story name="Default">
 	{#snippet template(args)}
-		<Select size={args.size} disabled={args.disabled} class="w-56">
-			{@render options()}
-		</Select>
+		<Select size={args.size} disabled={args.disabled} options={OPTIONS} value="api" class="w-56" />
 	{/snippet}
 </Story>
 
@@ -41,9 +44,9 @@
 	{#snippet template()}
 		<div class="flex flex-wrap items-end gap-3">
 			{#each SIZES as size (size)}
-				<Select {size} class="w-48">{@render options()}</Select>
+				<Select {size} options={OPTIONS} value="auth" class="w-48" />
 			{/each}
-			<Select disabled class="w-48">{@render options()}</Select>
+			<Select disabled options={OPTIONS} value="auth" class="w-48" />
 		</div>
 	{/snippet}
 </Story>
@@ -51,7 +54,24 @@
 <Story name="InField">
 	{#snippet template()}
 		<Field id="session-project" label="Project">
-			<Select>{@render options()}</Select>
+			<Select options={OPTIONS} value="desk" />
+		</Field>
+	{/snippet}
+</Story>
+
+<Story name="CustomRow">
+	{#snippet template()}
+		<Field id="session-project-colour" label="Project">
+			<Select options={OPTIONS} value="auth" class="w-56">
+				{#snippet option(o)}
+					<span
+						class="size-2 shrink-0 rounded-full"
+						style:background-color={colourOf(o.value)}
+						aria-hidden="true"
+					></span>
+					<bdi class="min-w-0 truncate">{o.label}</bdi>
+				{/snippet}
+			</Select>
 		</Field>
 	{/snippet}
 </Story>

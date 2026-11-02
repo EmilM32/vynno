@@ -13,7 +13,7 @@ Agent entry: [AGENTS.md](../AGENTS.md). Open work: [open.md](./open.md).
 | [brand.md](./brand.md)                         | Product name, pronunciation, voice, rename checklist                                                 |
 | [domain-model.md](./domain-model.md)           | Entities, session rules, project lifecycle                                                           |
 | [screens-and-flows.md](./screens-and-flows.md) | Screen inventory and user flows                                                                      |
-| [design-system.md](./design-system.md)         | UI rules and primitive inventory (hex lives in CSS)                                                  |
+| [design-system.md](./design-system.md)         | Design system entry: four rules + index of topic files in [design-system/](./design-system/)         |
 | [motion.md](./motion.md)                       | Animation personality, gate, tokens, do/don’t                                                        |
 | [accessibility.md](./accessibility.md)         | WCAG 2.2 AA target, patterns, how to run axe                                                         |
 | [api-contract.md](./api-contract.md)           | REST + JSON DTO contract the SPA speaks                                                              |

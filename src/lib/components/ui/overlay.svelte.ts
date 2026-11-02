@@ -60,6 +60,9 @@ export class Overlay {
 		// instead, as CommandPalette does. An explicit `initialFocus` still wins.
 		const coarse = window.matchMedia('(pointer: coarse)').matches;
 		const frame = requestAnimationFrame(() => {
+			// Focus already moved inside (a click or typing in the first frame): do not pull it
+			// back, or the rest of what is typed lands in the first field.
+			if (node.contains(document.activeElement)) return;
 			const panel = node.querySelector<HTMLElement>('[role="dialog"]');
 			const target = this.#options().initialFocus?.() ?? (coarse ? panel : getFocusable(node)[0]);
 			target?.focus();

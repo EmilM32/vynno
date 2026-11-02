@@ -1,218 +1,43 @@
 # Design System — Vynno
 
-**Status:** Living  
-**Last updated:** 2026-09-11  
-**Hex values live in CSS:** `src/lib/theme/dark.css`, `light.css`, `deep-dark.css`, `ember.css`, `newsprint.css`, `zen.css`. When this doc and the CSS diverge, prefer the CSS unless the change was an intentional product decision. Named themes: [adr/0008-named-themes.md](./adr/0008-named-themes.md).
-
----
-
-## 1. Brand & style
-
-- **Aesthetic:** Minimalist-technical, high information density, terminal / IDE feel
-- **Audience:** Engineers and power users
-- **Mode:** Named color themes (`dark`, `light`, `deep-dark`, `ember`, `newsprint`, `zen`). Not a boolean.
-- **Elevation:** Tonal layers + 1px borders; avoid soft material shadows
-- **Emotion:** Focused productivity, systemic reliability
-
----
-
-## 2. Color
-
-Material-style names are **shared** across themes. Hex lives in the palette CSS files as `--dt-*`; Tailwind utilities (`bg-surface`, `text-primary`) resolve through `@theme inline`. Do not copy hex from this doc into new CSS — copy from an existing palette file.
-
-| Semantic                   | Color                                                                                                                                                                                      |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Active timer / focus       | Primary — sky / electric cyan, amber (`ember`), ink navy (`newsprint`), iris (`zen`). Pulse border on Timer only; Current Focus uses a solid primary / tertiary / outline border by status |
-| Success / active indicator | Green — terminal neon, or sage / pencil green in the low-chroma themes (`secondary`)                                                                                                       |
-| Paused / warning           | Soft amber (`dark`, `light`), lavender (`deep-dark`), rose (`ember`), ochre (`newsprint`) or sand (`zen`) — `tertiary`                                                                     |
-| Stopped / neutral status   | Slate / outline                                                                                                                                                                            |
-| Destructive                | `error` / `error-container`                                                                                                                                                                |
-| Activity extras            | Indigo / coral (`--dt-indigo`, `--dt-coral`). Stored on activity types as `primary-container` / `secondary-container`                                                                      |
-
-**Do not** use `outline`, `outline-variant`, or `*-fixed` tints as small text (they fail 4.5:1 on light). Status ink is `secondary` / `tertiary` / `error`, not `secondary-fixed`.
-
-Project colors are per-project hex from a fixed UI palette (not design-system tokens): blue `#3b82f6`, purple `#8b5cf6`, green `#10b981`, plus primary/secondary/tertiary for charts.
-
----
-
-## 3. Typography
-
-| Family             | Use                                                                                                        |
-| ------------------ | ---------------------------------------------------------------------------------------------------------- |
-| **Inter**          | Labels, headers, instructional UI text. Self-hosted variable latin + latin-ext (`src/lib/theme/fonts.css`) |
-| **JetBrains Mono** | Timestamps, durations, project codes, ticket ids, numerical data, “command” inputs. Same files             |
-
-| Token          | Family         | Size / line / weight                                  |
-| -------------- | -------------- | ----------------------------------------------------- |
-| `headline-lg`  | Inter          | 24px / 32px / 600, letter-spacing -0.02em             |
-| `headline-md`  | Inter          | 18px / 24px / 600, letter-spacing -0.01em             |
-| `body-md`      | Inter          | 14px / 20px / 400                                     |
-| `body-sm`      | Inter          | 12px / 16px / 400                                     |
-| `code-display` | JetBrains Mono | 28px / 32px / 500 (Timer mobile uses larger ~48–80px) |
-| `code-label`   | JetBrains Mono | 13px / 18px / 400                                     |
-| `code-data`    | JetBrains Mono | 14px / 20px / 500                                     |
-
-**Rule:** Mobile may scale Inter headlines ~15% down; **keep mono data sizes** for alignment. Button labels are Inter — mono belongs _inside_ a button when the content is a duration or code.
-
-**Exception:** on a coarse pointer, `input`, `select` and `textarea` are at least 16px (`layout.css`). iOS Safari zooms into any smaller focused field and stays zoomed.
-
----
-
-## 4. Layout & spacing
-
-| Token              | Value                                             |
-| ------------------ | ------------------------------------------------- |
-| Spacing unit       | 4px                                               |
-| Gutter             | 12px                                              |
-| Margin mobile      | 16px                                              |
-| Margin desktop     | 24px                                              |
-| Container max      | 1200px (token kept; not applied to the app shell) |
-| Sidebar width      | 240px                                             |
-| Compact row height | 32–40px                                           |
-
-- Desktop: main column is full remaining width beside the sidebar (24px margin); page headers stick and collapse the subtitle
-- Mobile: single column
-- Prefer density over large empty regions; define regions with 1px borders
-
----
-
-## 5. Shape
-
-| Element              | Radius                                                                |
-| -------------------- | --------------------------------------------------------------------- |
-| Buttons & inputs     | ~4px                                                                  |
-| Cards                | 4px or 8px                                                            |
-| Status pills / chips | ~2px (near-square)                                                    |
-| Full pills           | Avoid for status; use for mobile nav active tab if matching the shell |
-
----
-
-## 6. Elevation (flat terminal)
-
-| Level        | Treatment                                                  |
-| ------------ | ---------------------------------------------------------- |
-| 0 Background | Theme `surface` / `background`                             |
-| 1 Cards      | Slightly lighter fill + `1px` `outline-variant` border     |
-| 2 Modals     | Lighter fill + stronger border; hard shadow only if needed |
-
-Active element: **border color → primary**, not lift/shadow.
-
-Focus is two-tier (always `:focus-visible`):
-
-- **Fields** (`input` / `select` / `textarea`): on-border — `border-color` + 1px `box-shadow` in `primary`. No offset outline.
-- **Chrome** (buttons, links, tabs): 2px `primary` outline, 1px offset (gap keeps the ring visible on primary-filled controls).
-- **Flush / borderless fields** (command palette): parent `:focus-within` recolors the row hairline. Do not put an offset ring on the input.
-
----
-
-## 7. Motion
-
-Personality, the frequency gate, tokens, and do/don’t: **[motion.md](./motion.md)**. That file is the source of truth.
-
-| Effect                | Use                                                |
-| --------------------- | -------------------------------------------------- |
-| Static live-dot glow  | ACTIVE status, recording indicator (`.today-glow`) |
-| Hover row highlight   | Logs, recent tasks (`surface-variant` tint)        |
-| Press scale           | Primary chrome (`.press`)                          |
-| Confirm / form dialog | Centered scale + fade, 200ms                       |
-
----
-
-## 8. Component inventory
-
-### Primitives (built)
-
-Live in `src/lib/components/ui/`. Browse them in Storybook under `UI/*`. These own their chrome classes — `.press`, `.focus-ring`, hover/disabled tokens, radius, and the size scale come from the component, never from the call site. Decisions: [adr/0017-ui-primitives.md](./adr/0017-ui-primitives.md), [adr/0018-atomic-ui-layer.md](./adr/0018-atomic-ui-layer.md).
-
-**`Button`** — renders `<button>`, or `<a>` when given `href`.
-
-| Variant         | Look                                        | `.press` | Used for                          |
-| --------------- | ------------------------------------------- | -------- | --------------------------------- |
-| `primary`       | Solid primary fill                          | yes      | The one main action on a screen   |
-| `neutral`       | Solid neutral fill                          | yes      | Pause / Resume in the transport   |
-| `secondary`     | Bordered, no fill                           | yes      | Row actions, form cancels         |
-| `tonal`         | `primary/10` fill + `primary/30` border     | yes      | An accent action that is not main |
-| `danger`        | Bordered error                              | yes      | Destructive row actions           |
-| `danger-filled` | Solid `error-container`                     | yes      | Destructive confirm in a dialog   |
-| `quiet`         | Borderless, hover tint, inherits ink        | yes      | Quiet chrome (⌘K row, clock)      |
-| `inline`        | Underlined text, inherits ink               | no       | “Dismiss” inside a banner         |
-| `link`          | Underlined text in `primary`                | no       | A text CTA in running copy        |
-| `tab`           | Segment; `selected` drives the active state | no       | Tab strips, segmented controls    |
-
-| Size | Box                     | Type          | Used for                        |
-| ---- | ----------------------- | ------------- | ------------------------------- |
-| `xs` | `min-h-6 px-2 py-1`     | `body-sm`     | Row actions (24px = WCAG 2.5.8) |
-| `sm` | `min-h-8 px-2.5 py-1.5` | `body-sm`     | Compact forms, tabs             |
-| `md` | `min-h-10 px-4 py-2`    | `body-md`     | Default — forms, CTAs, dialogs  |
-| `lg` | `min-h-10 px-4 py-2`    | `headline-md` | Timer transport                 |
-
-`inline` and `link` take the type scale only, not the box metrics — they sit in a sentence.
-
-**`IconButton`** — icon-only, requires `label` (becomes `aria-label`). Variants `ghost` | `bordered`; sizes `sm` (24px) | `md` (40px). Deliberately no `.press` ([motion.md](./motion.md)).
-
-**`Icon`** — the only place `material-symbols-outlined` appears. Sizes `xs`–`2xl` (14/16/18/20/22/24px); `fill` drives the FILL axis for active nav items and transport glyphs.
-
-**`Disclosure`** — a heading that shows and hides the content under it; the panel stays mounted (`hidden` while closed) so form state survives a toggle. `open` is bindable, closed by default. Used by Settings → Security.
-
-**`Dialog`** / **`ConfirmDialog`** — centered overlay, focus-trapped; below 40rem it renders **`Drawer`** (bottom sheet, drag the handle to dismiss) unless `mobile="dialog"`. **`ActivityChip`** — near-square pill; washed type colour (`bg-*/10` + chromatic ink). `primary-container` / `secondary-container` render as indigo / coral.
-
-**`Field`** — label + optional hint/error. Layouts `stack` (dialogs) and `split` (Settings rows). Sets context so nested `Input` / `Select` inherit `id`, `aria-invalid`, and `aria-describedby`.
-
-**`Input`** — owns the `<input>` chrome. Tones `ui` (Inter) / `data` (mono `code-data`) / `code` (mono `code-label`); sizes `sm` / `md`. Optional `leading` / `trailing` snippets own the extra padding. Focus is the global on-border treatment, not `.focus-ring`.
-
-**`Select`** — owns `<select>` plus the inset chevron (`.native-select`). Same surface as `Input tone="code"`.
-
-**`KpiCard`** — label + large mono metric + optional caption. **`ProgressBar`** — thin track; `label` is the accessible name. **`Banner`** — error strip; optional dismiss action. **`Chip`** — `code` (project code), `ticket`. **`ColorDot`** — project identity (`sm` 8px circle, `md` 14px square). **`StatusDot`** — 8px live mark (`live` / `idle`). **`SwatchPicker`** — colour radiogroup; domain wrappers stay in Projects / Settings.
-
-**Rules.** The `class` prop takes layout and colour only; padding, radius, border, background and type scale come from `variant` and `size`. `primitives.guard.test.ts` fails the build on a raw `<button>`, a raw `<input>`/`<select>`, or a visual utility in `class`.
-
-Non-chrome interactive surfaces are **not** `Button`: dismiss scrims, list rows, colour swatches and nav links stay raw markup, allowlisted with a reason in the guard test.
-
-### Shell
-
-- **SideNav** (desktop): brand + version, nav links with left border active state, CTA, profile. Collapses to a 72px icon rail (`--spacing-sidebar-rail`) from its right border (hover shows a handle by the logo) or ⌘B; rail labels become tooltips ([ADR-0029](./adr/0029-sidebar-rail.md))
-- **BottomNav** (mobile): six tabs, active filled/tinted
-- **TopBar**: brand, command-palette trigger, Settings, and the live cue (mobile): an idle dot, or while a session runs a chip with the elapsed time that opens Timer
-
-### Intentionally not extracted
-
-Composed widgets, store-owned screens, and one-off fields. See [ADR-0018](./adr/0018-atomic-ui-layer.md).
-
-- **Command / quick input** — timer `TaskInput` note and the command-palette flush field
-- **Timer card** — largest mono display; solid primary border when active
-- **Log row / project row** — consume `ColorDot`, `Chip`, `ActivityChip`; stay composed
-- **Charts** — donut + bar; LayerChart wrappers; no heavy decoration
-- **Generic card / panel** — padding and header splits vary too much to own
-
----
-
-## 9. Tailwind + named themes
-
-1. Shared type/radius/spacing in `src/lib/theme/tokens.css` (`@theme`).
-2. Color utilities via `@theme inline` → `--dt-*`.
-3. Each palette is `[data-theme='<id>']` in its own CSS file. Default first paint is `data-theme="dark"` on `<html>`.
-4. Switcher iterates `THEMES` in `src/lib/theme/themes.ts` (Settings → Appearance). Not a light/dark toggle.
-5. Theme id is persisted to `localStorage` (`vynno-theme`) to avoid FOUC. It stays per device. Daily target and default project are account prefs (`GET /me/prefs`), loaded with the layout seed so SSR and hydrate agree.
-6. Do **not** use `dark:` / `light:` variants as the theming mechanism.
-
-### Adding another theme
-
-1. Add a `ThemeDefinition` to `THEMES`.
-2. Add `src/lib/theme/<id>.css` with the full `--dt-*` set (copy `dark.css` or `light.css`).
-3. `@import` it from `src/routes/layout.css`.
-4. Add a Paraglide message for `labelKey`.
-5. No switcher or component changes.
-
----
-
-## 10. Accessibility notes
-
-Conformance target: **WCAG 2.2 AA**. Full statement: [accessibility.md](./accessibility.md).
-
-- Maintain contrast of primary text (`on-surface` on `surface`) and secondary text (`on-surface-variant`).
-- Status / recording / today-glow ink is `secondary` (not `secondary-fixed`).
-- Do not rely on color alone for project identity (include name). Color swatches have named accessible labels.
-- Ensure Pause/Stop and other primary mobile actions ≥ 40px where possible; other controls ≥ 24×24 (WCAG 2.5.8).
-- Timer updates: **never** put `aria-live` on the ticking clock. Announce start / stop via `announce()`.
-- Focus is global and two-tier (`:focus-visible`). Do not use `outline-none` without a replacement (`.focus-flush` is only valid when a parent `:focus-within` indicator exists).
-- Dialogs use `trapFocus()`; destructive confirms focus Cancel first.
+**Status:** Living · **Last updated:** 2026-11-02
+
+Dev-Density Dark: a flat, dense, terminal-feeling UI for engineers. Regions are tonal layers split by 1px hairlines, never shadows; numbers are JetBrains Mono, words are Inter. Six named themes swap the palette only — layout, type and components are shared.
+
+Read the topic file for the task in front of you. Each one is short on purpose.
+
+## Four rules that apply to every change
+
+1. **Primitives own chrome.** Every button, icon, input and select goes through `src/lib/components/ui/`. A raw `<button>`, `<input>`, `<select>` or `material-symbols-outlined` span fails `primitives.guard.test.ts`. The `class` prop on a primitive takes layout (flex, width, margin, order, visibility), plus ink colour on `Button variant="quiet"` / `"inline"` and on `Icon` — nowhere else. Plain elements (`<p>`, `<span>`, `<div>`) take any semantic colour. Padding, radius, border, background and type size come from `variant` / `size` / `tone`. Why: one place decides how a control looks, so six themes and the a11y fixes stay in sync. → [buttons.md](./design-system/buttons.md), [forms.md](./design-system/forms.md)
+2. **Semantic colour utilities only.** Write `bg-surface-container`, `text-on-surface-variant`, `border-outline-variant`. Never a hex, never `var(--dt-*)`, never a Tailwind palette colour (`bg-slate-800`, `text-sky-400`), never `dark:` / `light:`. Why: a hex is correct in one theme and wrong in five. The only hex in components is a project's own colour from `src/lib/projects/palette.ts`. → [colors.md](./design-system/colors.md)
+3. **The type scale is closed.** Use `text-headline-lg`, `text-headline-md`, `text-body-md`, `text-body-sm`, `text-code-display`, `text-code-data`, `text-code-label`. Arbitrary sizes are limited to the two micro-label sizes in [typography.md](./design-system/typography.md). → [typography.md](./design-system/typography.md)
+4. **Every user-visible string is a Paraglide message** (`m.some_key()` from `$lib/paraglide/messages.js`, added to both `messages/en.json` and `messages/pl.json`). Never a string literal in markup, including `aria-label` and `label` props. Decision: [ADR-0007](./adr/0007-i18n-paraglide.md).
+
+## Index
+
+| File                                           | Read it when you…                                                       |
+| ---------------------------------------------- | ----------------------------------------------------------------------- |
+| [colors.md](./design-system/colors.md)         | pick a background, text, border or status colour; colour a project      |
+| [typography.md](./design-system/typography.md) | set any text size, or choose Inter vs mono                              |
+| [layout.md](./design-system/layout.md)         | build a card, panel, list row or empty state; pick spacing or radius    |
+| [buttons.md](./design-system/buttons.md)       | add any clickable control or icon (`Button`, `IconButton`, `Icon`)      |
+| [forms.md](./design-system/forms.md)           | add a form field (`Field`, `Input`, `Select`, `SwatchPicker`)           |
+| [overlays.md](./design-system/overlays.md)     | open a dialog, confirm, bottom sheet, or collapsible section            |
+| [display.md](./design-system/display.md)       | show status, a metric, progress, a chip or a banner                     |
+| [shell.md](./design-system/shell.md)           | start a new screen (`PageHeader`, `PageTitle`, `ErrorState`), touch nav |
+| [themes.md](./design-system/themes.md)         | add or change a theme palette                                           |
+| [motion.md](./motion.md)                       | add any transition or animation — run its gate first                    |
+| [accessibility.md](./accessibility.md)         | need the WCAG 2.2 AA target, focus rules, or how to run axe             |
+
+## Where the truth lives
+
+| What                          | File                                                                  |
+| ----------------------------- | --------------------------------------------------------------------- |
+| Semantic colour utilities     | `src/lib/theme/tokens.css` (`@theme inline`)                          |
+| Hex per theme                 | `src/lib/theme/<theme>.css` (`--dt-*`)                                |
+| Type, radius, spacing, ease   | `src/lib/theme/tokens.css` (`@theme`)                                 |
+| Focus, `.press`, touch target | `src/routes/layout.css`                                               |
+| Variant and size unions       | the `export type …Variant` / `…Size` at the top of each `ui/*.svelte` |
+| Live examples                 | Storybook, `UI/*` (`*.stories.svelte` next to each primitive)         |
+
+When a doc and a union type disagree, the union type wins and the doc is the bug. Decisions: [ADR-0017](./adr/0017-ui-primitives.md) (primitives), [ADR-0018](./adr/0018-atomic-ui-layer.md) (what is and is not a primitive), [ADR-0008](./adr/0008-named-themes.md) (themes).

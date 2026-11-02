@@ -7,6 +7,7 @@ import {
 	listProjects,
 	localDayAt,
 	login,
+	optionLabels,
 	seedManualSession,
 	uniqueNote,
 	waitForClient
@@ -87,9 +88,10 @@ test.describe('project archive and restore', () => {
 		// The Timer picker is fed by the non-archived list, so the project is not even offered.
 		await page.goto('/timer');
 		await waitForClient(page);
-		await expect(
-			page.locator('#project-select').locator('option', { hasText: project.name })
-		).toHaveCount(0);
+		const picker = page.locator('#project-select');
+		// Wait for the list to load so the negative check is not vacuous.
+		await expect.poll(async () => (await optionLabels(picker)).length).toBeGreaterThan(0);
+		expect(await optionLabels(picker)).not.toContain(project.name);
 	});
 });
 

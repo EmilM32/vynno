@@ -1,15 +1,20 @@
 import { expect, test, type Page } from '@playwright/test';
-import { spaGo, startSession, stopSession, uniqueNote } from './helpers';
+import {
+	optionLabels,
+	selectedLabel,
+	spaGo,
+	startSession,
+	stopSession,
+	uniqueNote
+} from './helpers';
 
 async function selectedProjectLabel(page: Page): Promise<string> {
-	return page.locator('#project-select').evaluate((el: HTMLSelectElement) => {
-		return el.selectedOptions[0]?.textContent?.trim() ?? '';
-	});
+	return selectedLabel(page.locator('#project-select'));
 }
 
 async function otherProjectLabel(page: Page, current: string): Promise<string | undefined> {
-	const labels = await page.locator('#project-select option').allTextContents();
-	return labels.map((t) => t.trim()).find((t) => t && t !== current);
+	const labels = await optionLabels(page.locator('#project-select'));
+	return labels.find((t) => t && t !== current);
 }
 
 /**
@@ -60,7 +65,7 @@ test.describe('cross-screen data', () => {
 
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 		await expect(page.getByRole('combobox', { name: 'Task description' })).toHaveValue(noteA);
-		await expect(page.locator('#project-select option:checked')).toHaveText(projectA);
+		await expect.poll(() => selectedProjectLabel(page)).toBe(projectA);
 		await expect(page.getByTestId('recent-task-restart').first()).toBeDisabled();
 	});
 

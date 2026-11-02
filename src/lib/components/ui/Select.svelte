@@ -307,6 +307,7 @@
 		aria-activedescendant={open && active >= 0 ? optionId(active) : undefined}
 		data-testid={testid}
 		data-value={value}
+		data-label={selected?.label}
 		class={[
 			'flex items-center gap-2 pr-2 text-left aria-expanded:border-primary',
 			chrome,

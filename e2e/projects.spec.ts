@@ -5,9 +5,11 @@ import {
 	localCivilDay,
 	localDayAt,
 	login,
+	optionLabels,
 	pastSpansOnCurrentDay,
 	seedManualSession,
 	seedManySessions,
+	selectedLabel,
 	spaGo,
 	startSession,
 	stopSession,
@@ -216,9 +218,7 @@ test.describe('projects', () => {
 		const note = uniqueNote('proj-entry');
 		await page.goto('/timer');
 		await startSession(page, note);
-		const projectName = await page.locator('#project-select').evaluate((el: HTMLSelectElement) => {
-			return el.selectedOptions[0]?.textContent?.trim() ?? '';
-		});
+		const projectName = await selectedLabel(page.locator('#project-select'));
 		await stopSession(page);
 
 		await page.goto('/projects');
@@ -268,9 +268,7 @@ test.describe('projects', () => {
 		await expect(page.getByTestId('project-list').getByText(name)).toBeVisible();
 
 		await spaGo(page, 'Timer', '/timer');
-		await expect(page.locator('#project-select').locator('option', { hasText: name })).toHaveCount(
-			1
-		);
+		await expect.poll(() => optionLabels(page.locator('#project-select'))).toContain(name);
 	});
 });
 

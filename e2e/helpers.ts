@@ -443,6 +443,14 @@ export async function selectedValue(select: Locator): Promise<string> {
 	);
 }
 
+export async function selectedLabel(select: Locator): Promise<string> {
+	return select.evaluate((el) =>
+		el instanceof HTMLSelectElement
+			? (el.selectedOptions[0]?.textContent?.trim() ?? '')
+			: ((el as HTMLElement).dataset.label ?? '')
+	);
+}
+
 export async function expectSelected(select: Locator, value: string) {
 	await expect.poll(() => selectedValue(select)).toBe(value);
 }

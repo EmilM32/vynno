@@ -4,7 +4,8 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Chip from '$lib/components/ui/Chip.svelte';
 	import ColorDot from '$lib/components/ui/ColorDot.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
+	import Menu from '$lib/components/ui/Menu.svelte';
+	import MenuItem from '$lib/components/ui/MenuItem.svelte';
 	import type { Project } from '$lib/types/domain';
 	import { formatSessionCount } from './session-count';
 
@@ -48,12 +49,12 @@
 					: m.projects_cannot_delete_last()
 	);
 
+	const archiveReasonId = $derived(!canArchive ? `${project.id}-archive-reason` : undefined);
+	const deleteReasonId = $derived(!canDelete ? `${project.id}-delete-reason` : undefined);
+
 	let moreOpen = $state(false);
-	let rowEl: HTMLElement | undefined = $state();
-	const menuId = $derived(`${project.id}-row-menu`);
 
 	function bindRow(node: HTMLElement) {
-		rowEl = node;
 		// Touch has no hover to prefetch on, so the count would never load: fetch it once the row
 		// scrolls into view instead. Still lazy, still one request per row actually seen.
 		let io: IntersectionObserver | undefined;
@@ -66,10 +67,7 @@
 			});
 			io.observe(node);
 		}
-		return () => {
-			io?.disconnect();
-			if (rowEl === node) rowEl = undefined;
-		};
+		return () => io?.disconnect();
 	}
 
 	function closeMore() {
@@ -79,35 +77,7 @@
 	function prefetch() {
 		onprefetch?.();
 	}
-
-	function toggleMore(e: MouseEvent) {
-		e.stopPropagation();
-		moreOpen = !moreOpen;
-		if (moreOpen) prefetch();
-	}
-
-	function onWindowPointer(e: PointerEvent) {
-		if (!moreOpen) return;
-		const t = e.target;
-		if (t instanceof Node && rowEl?.contains(t)) return;
-		closeMore();
-	}
-
-	function onWindowKey(e: KeyboardEvent) {
-		if (!moreOpen) return;
-		if (e.key === 'Escape') {
-			e.preventDefault();
-			closeMore();
-		}
-	}
-
-	function runAndClose(fn: () => void) {
-		closeMore();
-		fn();
-	}
 </script>
-
-<svelte:window onpointerdown={onWindowPointer} onkeydown={onWindowKey} />
 
 <!-- The whole card opens the dossier (stretched link); the action groups sit above it (EMI-269). -->
 <li
@@ -174,28 +144,24 @@
 			{m.projects_restore()}
 		</Button>
 	{/snippet}
-	{#snippet archiveBtn(inMenu: boolean)}
+	{#snippet archiveBtn()}
 		<Button
 			variant="secondary"
 			size="sm"
-			class={inMenu ? 'w-full' : undefined}
-			role={inMenu ? 'menuitem' : undefined}
-			onclick={() => (inMenu ? runAndClose(onarchive) : onarchive())}
+			onclick={onarchive}
 			disabled={!canArchive || busy}
-			aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
+			aria-describedby={archiveReasonId}
 		>
 			{m.projects_archive()}
 		</Button>
 	{/snippet}
-	{#snippet deleteBtn(inMenu: boolean)}
+	{#snippet deleteBtn()}
 		<Button
 			variant="danger"
 			size="sm"
-			class={inMenu ? 'w-full' : undefined}
-			role={inMenu ? 'menuitem' : undefined}
-			onclick={() => (inMenu ? runAndClose(ondelete) : ondelete())}
+			onclick={ondelete}
 			disabled={!canDelete || busy}
-			aria-describedby={!canDelete ? `${project.id}-delete-reason` : undefined}
+			aria-describedby={deleteReasonId}
 		>
 			{m.projects_delete()}
 		</Button>
@@ -212,32 +178,30 @@
 		{:else}
 			{@render editBtn()}
 		{/if}
-		<div class="relative">
-			<IconButton
-				icon="more_horiz"
-				label={m.project_more_actions()}
-				variant="bordered"
-				size="sm"
-				aria-expanded={moreOpen}
-				aria-haspopup="menu"
-				aria-controls={moreOpen ? menuId : undefined}
-				data-testid="project-row-more"
-				onclick={toggleMore}
-			/>
-			{#if moreOpen}
-				<div
-					id={menuId}
-					role="menu"
-					aria-label={m.project_more_actions()}
-					class="absolute top-full right-0 z-20 mt-1 flex min-w-36 flex-col gap-1 rounded-DEFAULT border border-outline-variant bg-surface-container p-1 shadow-xl"
+		<Menu
+			label={m.project_more_actions()}
+			bind:open={moreOpen}
+			onopen={prefetch}
+			testid="project-row-more"
+		>
+			{#if !archived}
+				<MenuItem
+					onselect={onarchive}
+					disabled={!canArchive || busy}
+					aria-describedby={archiveReasonId}
 				>
-					{#if !archived}
-						{@render archiveBtn(true)}
-					{/if}
-					{@render deleteBtn(true)}
-				</div>
+					{m.projects_archive()}
+				</MenuItem>
 			{/if}
-		</div>
+			<MenuItem
+				tone="danger"
+				onselect={ondelete}
+				disabled={!canDelete || busy}
+				aria-describedby={deleteReasonId}
+			>
+				{m.projects_delete()}
+			</MenuItem>
+		</Menu>
 	</div>
 
 	<div
@@ -250,9 +214,9 @@
 			{@render restoreBtn()}
 		{:else}
 			{@render editBtn()}
-			{@render archiveBtn(false)}
+			{@render archiveBtn()}
 		{/if}
-		{@render deleteBtn(false)}
+		{@render deleteBtn()}
 	</div>
 	{#if !archived && !canArchive}
 		<span id={`${project.id}-archive-reason`} class="sr-only"

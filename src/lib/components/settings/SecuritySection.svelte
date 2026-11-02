@@ -163,7 +163,10 @@
 				onsubmit={onChangePassword}
 				data-testid="security-password"
 			>
-				<h3 id="security-password-title" class="text-label-caps text-on-surface-variant uppercase">
+				<h3
+					id="security-password-title"
+					class="text-body-sm tracking-wider text-on-surface-variant uppercase"
+				>
 					{m.security_password_title()}
 				</h3>
 				<!-- Lets password managers file the new password under this account. -->
@@ -223,7 +226,10 @@
 				onsubmit={onEmailSubmit}
 				data-testid="security-email"
 			>
-				<h3 id="security-email-title" class="text-label-caps text-on-surface-variant uppercase">
+				<h3
+					id="security-email-title"
+					class="text-body-sm tracking-wider text-on-surface-variant uppercase"
+				>
 					{m.security_email_title()}
 				</h3>
 				<Field id="security-new-email" label={m.security_new_email()} error={emailErrors.email}>

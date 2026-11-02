@@ -65,7 +65,7 @@
 						<ColorDot color={project?.color ?? '#64748b'} />
 						<div class="flex min-w-0 flex-col">
 							<span class="truncate text-body-sm text-on-surface"><bdi>{log.note}</bdi></span>
-							<span class="truncate font-mono text-code-label text-[10px] text-on-surface-variant">
+							<span class="truncate text-body-sm text-on-surface-variant">
 								<bdi>{project?.name ?? m.common_unknown()}</bdi>
 							</span>
 						</div>

@@ -35,6 +35,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0029](./0029-sidebar-rail.md)                | Collapsible sidebar (icon rail)                     | Accepted   |
 | [0030](./0030-mobile-drawer.md)               | Dialogs become bottom drawers on phones             | Accepted   |
 | [0031](./0031-menu-primitive.md)              | Overflow action menus use the `Menu` primitive      | Accepted   |
+| [0032](./0032-custom-select.md)               | `Select` is a themed listbox, native on touch       | Accepted   |
 
 ## Format
 

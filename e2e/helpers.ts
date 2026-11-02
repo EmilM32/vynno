@@ -381,6 +381,72 @@ export async function spaGo(page: Page, label: string, href: string) {
 	await expect(page).toHaveURL(new RegExp(`${href}$`));
 }
 
+/**
+ * `Select` is a native `<select>` on a coarse pointer and a combobox + listbox otherwise
+ * (ADR-0032). These work on either, so specs do not care which project they run in.
+ */
+async function isNative(select: Locator): Promise<boolean> {
+	return select.evaluate((el) => el instanceof HTMLSelectElement);
+}
+
+async function openList(select: Locator): Promise<Locator> {
+	if ((await select.getAttribute('aria-expanded')) !== 'true') await select.click();
+	const id = await select.getAttribute('aria-controls');
+	if (!id) throw new Error('Select did not open its listbox');
+	return select.page().locator(`[id="${id}"]`);
+}
+
+export async function chooseOption(select: Locator, by: { value: string } | { label: string }) {
+	if (await isNative(select)) {
+		await select.selectOption(by);
+		return;
+	}
+	const list = await openList(select);
+	const option =
+		'value' in by
+			? list.locator(`[role="option"][data-value="${by.value}"]`)
+			: list.getByRole('option', { name: by.label, exact: true });
+	await option.click();
+}
+
+export async function optionLabels(select: Locator): Promise<string[]> {
+	if (await isNative(select)) {
+		return select
+			.locator('option')
+			.evaluateAll((opts) => opts.map((o) => o.textContent?.trim() ?? ''));
+	}
+	const list = await openList(select);
+	const labels = await list
+		.getByRole('option')
+		.evaluateAll((opts) => opts.map((o) => o.textContent?.trim() ?? ''));
+	await select.press('Escape');
+	return labels;
+}
+
+export async function optionValues(select: Locator): Promise<string[]> {
+	if (await isNative(select)) {
+		return select
+			.locator('option')
+			.evaluateAll((opts) => opts.map((o) => (o as HTMLOptionElement).value));
+	}
+	const list = await openList(select);
+	const values = await list
+		.getByRole('option')
+		.evaluateAll((opts) => opts.map((o) => (o as HTMLElement).dataset.value ?? ''));
+	await select.press('Escape');
+	return values;
+}
+
+export async function selectedValue(select: Locator): Promise<string> {
+	return select.evaluate((el) =>
+		el instanceof HTMLSelectElement ? el.value : ((el as HTMLElement).dataset.value ?? '')
+	);
+}
+
+export async function expectSelected(select: Locator, value: string) {
+	await expect.poll(() => selectedValue(select)).toBe(value);
+}
+
 export async function startSession(
 	page: Page,
 	note: string,
@@ -398,12 +464,10 @@ export async function startSession(
 	const task = page.getByRole('combobox', { name: 'Task description' });
 	await task.fill(note);
 	if (projectLabel) {
-		await page.locator('#project-select').selectOption({ label: projectLabel });
+		await chooseOption(page.locator('#project-select'), { label: projectLabel });
 	}
 	if (activityType) {
-		const existing = await page
-			.locator('#activity-select option')
-			.evaluateAll((opts) => opts.map((o) => (o as HTMLOptionElement).textContent?.trim() ?? ''));
+		const existing = await optionLabels(page.locator('#activity-select'));
 		if (!existing.includes(activityType)) {
 			const res = await page.request.post('/v1/activity-types', {
 				data: { name: activityType, color: 'secondary' }
@@ -414,10 +478,10 @@ export async function startSession(
 			await page.reload();
 			await page.getByRole('combobox', { name: 'Task description' }).fill(note);
 			if (projectLabel) {
-				await page.locator('#project-select').selectOption({ label: projectLabel });
+				await chooseOption(page.locator('#project-select'), { label: projectLabel });
 			}
 		}
-		await page.locator('#activity-select').selectOption({ label: activityType });
+		await chooseOption(page.locator('#activity-select'), { label: activityType });
 	}
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
 	await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');

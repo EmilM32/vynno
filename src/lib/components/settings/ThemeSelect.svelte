@@ -10,10 +10,6 @@
 		const fn = messages[theme.labelKey];
 		return typeof fn === 'function' ? (fn as () => string)() : theme.id;
 	}
-
-	function applyFromSelect(e: Event) {
-		themeStore.setTheme((e.currentTarget as HTMLSelectElement).value);
-	}
 </script>
 
 <Field
@@ -24,12 +20,8 @@
 >
 	<Select
 		value={themeStore.themeId}
-		onchange={applyFromSelect}
-		oninput={applyFromSelect}
+		onchange={(id) => themeStore.setTheme(id)}
 		class="w-full sm:w-56"
-	>
-		{#each THEMES as theme (theme.id)}
-			<option value={theme.id}>{themeLabel(theme)}</option>
-		{/each}
-	</Select>
+		options={THEMES.map((theme) => ({ value: theme.id, label: themeLabel(theme) }))}
+	/>
 </Field>

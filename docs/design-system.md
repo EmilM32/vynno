@@ -22,7 +22,7 @@ Read the topic file for the task in front of you. Each one is short on purpose.
 | [layout.md](./design-system/layout.md)         | build a card, panel, list row or empty state; pick spacing or radius    |
 | [buttons.md](./design-system/buttons.md)       | add any clickable control or icon (`Button`, `IconButton`, `Icon`)      |
 | [forms.md](./design-system/forms.md)           | add a form field (`Field`, `Input`, `Select`, `SwatchPicker`)           |
-| [overlays.md](./design-system/overlays.md)     | open a dialog, confirm, bottom sheet, or collapsible section            |
+| [overlays.md](./design-system/overlays.md)     | open a dialog, confirm, bottom sheet, "…" menu, or collapsible section  |
 | [display.md](./design-system/display.md)       | show status, a metric, progress, a chip or a banner                     |
 | [shell.md](./design-system/shell.md)           | start a new screen (`PageHeader`, `PageTitle`, `ErrorState`), touch nav |
 | [themes.md](./design-system/themes.md)         | add or change a theme palette                                           |

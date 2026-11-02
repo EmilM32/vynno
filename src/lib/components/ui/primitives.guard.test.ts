@@ -177,7 +177,7 @@ describe('UI primitives guard', () => {
 		const offenders: string[] = [];
 
 		for (const { path, source } of files) {
-			for (const tag of ['Button', 'IconButton', 'Field', 'Input', 'Select']) {
+			for (const tag of ['Button', 'IconButton', 'Field', 'Input', 'Select', 'Menu']) {
 				for (const value of classAttrsOn(source, tag)) {
 					const hits = bannedUtilitiesIn(value);
 					if (hits.length > 0) {
@@ -191,6 +191,19 @@ describe('UI primitives guard', () => {
 			offenders,
 			'`class` on a primitive is for layout and colour only. Padding, radius, border, ' +
 				'background and type scale come from `variant` and `size`.'
+		).toEqual([]);
+	});
+
+	it('builds every action menu with Menu', () => {
+		const offenders = files
+			.filter(({ path }) => !/^lib\/components\/ui\/Menu(Item)?\.svelte$/.test(path))
+			.filter(({ source }) => /role=["']menu(item)?["']/.test(source))
+			.map(({ path }) => path);
+
+		expect(
+			offenders,
+			'Hand-built action menu found. Use $lib/components/ui/Menu.svelte with MenuItem — ' +
+				'it owns the popover chrome, outside-click, Escape and focus return.'
 		).toEqual([]);
 	});
 

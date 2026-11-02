@@ -34,6 +34,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0028](./0028-insights-timeline.md)           | Insights timeline card (Days, Projects, Rhythm)     | Accepted   |
 | [0029](./0029-sidebar-rail.md)                | Collapsible sidebar (icon rail)                     | Accepted   |
 | [0030](./0030-mobile-drawer.md)               | Dialogs become bottom drawers on phones             | Accepted   |
+| [0031](./0031-menu-primitive.md)              | Overflow action menus use the `Menu` primitive      | Accepted   |
 
 ## Format
 

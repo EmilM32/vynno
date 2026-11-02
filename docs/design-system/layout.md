@@ -34,13 +34,13 @@ Prefer density. A screen should show more rows, not more whitespace; regions are
 
 Flat. Depth is a lighter surface plus a 1px border, never a shadow.
 
-| Level | Treatment                                                         |
-| ----- | ----------------------------------------------------------------- |
-| 0     | Page — `bg-surface` (already on `<body>`)                         |
-| 1     | Card — `bg-surface-container border border-outline-variant`       |
-| 2     | Overlay — `Dialog` / `Drawer` / `CommandPalette` own their shadow |
+| Level | Treatment                                                                  |
+| ----- | -------------------------------------------------------------------------- |
+| 0     | Page — `bg-surface` (already on `<body>`)                                  |
+| 1     | Card — `bg-surface-container border border-outline-variant`                |
+| 2     | Overlay — `Dialog` / `Drawer` / `Menu` / `CommandPalette` own their shadow |
 
-`shadow-*` appears only inside overlay primitives. Never add one to a card, row or button. An active element changes its border to `border-primary` — it does not lift.
+`shadow-*` appears only inside overlay primitives — `Dialog`, `Drawer`, `Menu` (its popover is `shadow-xl`) and `CommandPalette` — and in the `NoteSuggestions` listbox, which floats over the Timer form the same way. Never add one to a card, row or button. An active element changes its border to `border-primary` — it does not lift.
 
 ## Recipes
 

@@ -5,6 +5,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/Icon',
 		component: Icon,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'Decorative or status glyph. Only names in the self-hosted subset render \u2014 see Foundations/Icons. Size through `size`, never `text-[Npx]`. Rules: [buttons.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/buttons.md#icon).'
+				}
+			}
+		},
 		args: {
 			name: 'play_arrow',
 			size: 'md',

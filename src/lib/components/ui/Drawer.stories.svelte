@@ -16,7 +16,7 @@
 				story: { inline: false, iframeHeight: 640 },
 				description: {
 					component:
-						'Bottom sheet. `Dialog` renders it below 40rem, so every modal is a drawer on phones without opting in (`mobile="dialog"` opts out). Drag the handle row down, tap the scrim, or press Escape to dismiss.'
+						'Bottom sheet. `Dialog` renders it below 40rem, so every modal is a drawer on phones without opting in (`mobile="dialog"` opts out). Drag the handle row down, tap the scrim, or press Escape to dismiss. Never use it directly in a screen — use `Dialog`. Rules: [overlays.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/overlays.md).'
 				}
 			}
 		},

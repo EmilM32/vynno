@@ -7,6 +7,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/Banner',
 		component: Banner,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'A store error affecting the whole screen (`error`, role alert) or a polite notice (`notice`). Field errors go on `Field`; a failed submit or a screen\'s own failed query is an inline `role="alert"` line. Rules: [display.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/display.md#banner).'
+				}
+			}
+		},
 		args: {
 			tone: 'error'
 		}

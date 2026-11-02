@@ -7,6 +7,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/Field',
 		component: Field,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'Wraps every form `Input` / `Select`: label, hint, error, and the aria wiring through context. `stack` (default) in dialogs and forms; `split` for one-setting rows in Settings cards. Rules: [forms.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/forms.md#field).'
+				}
+			}
+		},
 		args: {
 			id: 'story-field',
 			label: 'Project name'

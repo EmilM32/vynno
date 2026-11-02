@@ -5,6 +5,14 @@
 	const { Story } = defineMeta({
 		title: 'UI/KpiCard',
 		component: KpiCard,
+		parameters: {
+			docs: {
+				description: {
+					component:
+						'One headline number with a label. `valueTone="primary"` for the single headline metric in a row; lay several out in `grid grid-cols-2 gap-gutter md:grid-cols-3`. Rules: [display.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/display.md#kpicard).'
+				}
+			}
+		},
 		args: {
 			label: 'Total time',
 			value: '12h 40m',

@@ -12,7 +12,13 @@
 		component: ConfirmDialog,
 		parameters: {
 			layout: 'fullscreen',
-			docs: { story: { inline: false, iframeHeight: 480 } }
+			docs: {
+				story: { inline: false, iframeHeight: 480 },
+				description: {
+					component:
+						'One yes/no decision with no input. Every irreversible delete goes through it with `destructive` \u2014 the confirm becomes `danger-filled` and Cancel gets focus. Rules: [overlays.md](https://github.com/EmilM32/vynno/blob/main/docs/design-system/overlays.md#confirmdialog).'
+				}
+			}
 		},
 		args: {
 			title: 'Stop session?',

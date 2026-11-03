@@ -153,6 +153,10 @@
 		/* Tall back cards would rise above the top one: clip the top edge only, keep focus rings. */
 		clip-path: inset(-4px -24px -48px -24px);
 	}
+	/* Stacked rows are inert, so no focus ring needs the top slack: clip flush with the top card. */
+	.stack[data-stacked] {
+		clip-path: inset(0 -24px -48px -24px);
+	}
 	.stack[data-moving] {
 		transition: height calc(var(--duration-stack) + var(--steps) * var(--stagger-stack))
 			var(--ease-out);

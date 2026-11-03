@@ -27,6 +27,8 @@ const RAW_BUTTON_ALLOWLIST: Record<string, string> = {
 	'lib/components/ui/Drawer.svelte': 'full-bleed dismiss scrim, not chrome',
 	'lib/components/shell/CommandPalette.svelte': 'full-bleed dismiss scrim, not chrome',
 	'lib/components/timer/RecentTasks.svelte': 'list row — motion.md excludes rows from .press',
+	'lib/components/logs/LogDayStack.svelte':
+		'full-surface hit area over a stacked day, out of the tab order — the chevron IconButton is the control (ADR-0035)',
 	'lib/components/ui/SwatchPicker.svelte': 'swatch radio — not chrome',
 	'lib/components/ui/Select.svelte':
 		'combobox trigger — field chrome (on-border focus, no .press), labelled by <label for> (ADR-0032)',

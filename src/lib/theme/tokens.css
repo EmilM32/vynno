@@ -117,4 +117,6 @@
 	--duration-ui-exit: 150ms; /* the system answering — leaves faster than it came */
 	--duration-sheet: 260ms; /* bottom drawer: travels a screen height, not a 4% scale */
 	--duration-sheet-exit: 200ms;
+	--duration-stack: 260ms; /* Logs day stack (ADR-0035): one card's slide */
+	--stagger-stack: 30ms; /* delay per card, three steps at most */
 }

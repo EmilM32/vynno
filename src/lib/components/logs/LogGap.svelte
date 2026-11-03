@@ -21,6 +21,7 @@
 <div
 	class="flex items-center gap-3 py-1 font-mono text-code-label text-on-surface-variant"
 	data-testid="log-gap"
+	data-stack-skip
 >
 	<div class="flex-1 border-t border-dotted border-outline-variant" aria-hidden="true"></div>
 	<span>{m.logs_gap_untracked({ duration: formatCompact(gap.ms), range })}</span>

@@ -38,6 +38,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0032](./0032-custom-select.md)               | `Select` is a themed listbox, native on touch       | Accepted   |
 | [0033](./0033-date-picker.md)                 | `DatePicker` is a calendar popover, native on touch | Accepted   |
 | [0034](./0034-page-header-toolbar.md)         | `PageHeader` is a toolbar row with live context     | Accepted   |
+| [0035](./0035-logs-day-stack.md)              | Logs days collapse into a card stack                | Accepted   |
 
 ## Format
 

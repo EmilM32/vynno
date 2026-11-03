@@ -17,10 +17,12 @@
 	import {
 		localDateKeyFromDate,
 		logDateRangeForPreset,
+		sessionElapsedMs,
 		type LogDatePreset,
 		type LogDateRange
 	} from '$lib/time/duration';
 	import ExportDialog from './ExportDialog.svelte';
+	import LogDayStack from './LogDayStack.svelte';
 	import LogGap from './LogGap.svelte';
 	import LogGroupRow from './LogGroupRow.svelte';
 	import LogRow from './LogRow.svelte';
@@ -187,17 +189,14 @@
 			{:else}
 				{#each groups as group, i (group.dateKey)}
 					{const tasks = $derived(layout === 'grouped' ? groupSessionsByTask(group.sessions) : [])}
-					<div class="flex items-center gap-4 py-2 {i > 0 ? 'mt-2 md:mt-6' : ''}">
-						<div
-							class="font-mono text-code-label {group.dateKey === todayKey
-								? 'text-primary'
-								: 'text-on-surface-variant'}"
-						>
-							{group.dateKey}
-						</div>
-						<div class="flex-1 border-t border-dashed border-outline-variant"></div>
-					</div>
-					<div class="space-y-2">
+					<LogDayStack
+						dateKey={group.dateKey}
+						today={group.dateKey === todayKey}
+						first={i === 0}
+						cards={layout === 'grouped' ? tasks.length : group.sessions.length}
+						sessions={group.sessions.length}
+						totalMs={group.sessions.reduce((sum, s) => sum + sessionElapsedMs(s), 0)}
+					>
 						{#if layout === 'grouped'}
 							{#each tasks as task (task.key)}
 								{#if task.sessions.length === 1}
@@ -228,7 +227,7 @@
 								{/if}
 							{/each}
 						{/if}
-					</div>
+					</LogDayStack>
 				{/each}
 			{/if}
 

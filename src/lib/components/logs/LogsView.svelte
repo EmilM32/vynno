@@ -21,6 +21,7 @@
 	import LogGroupRow from './LogGroupRow.svelte';
 	import LogRow from './LogRow.svelte';
 	import LogsFilterBar from './LogsFilterBar.svelte';
+	import LogsLoadingMore from './LogsLoadingMore.svelte';
 	import SessionMutations from './SessionMutations.svelte';
 
 	type LogsLayout = 'entries' | 'grouped';
@@ -220,6 +221,10 @@
 				{range}
 				{now}
 			/>
+
+			{#if sessionStore.loadingMore && !range}
+				<LogsLoadingMore />
+			{/if}
 
 			{#if sessionStore.nextCursor && !range}
 				<div bind:this={sentinel} class="h-8" data-testid="logs-sentinel" aria-hidden="true"></div>

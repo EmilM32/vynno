@@ -5,15 +5,26 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
-	import { periodBounds, startOfYesterday } from '$lib/time/duration';
+	import { isoWeekNumber } from '$lib/time/civil-days';
+	import {
+		localDateKeyFromDate,
+		periodBounds,
+		startOfYesterday,
+		weekdayDayMonthShort
+	} from '$lib/time/duration';
 	import ActiveProjects from './ActiveProjects.svelte';
 	import CurrentFocus from './CurrentFocus.svelte';
 	import RecentLogsList from './RecentLogsList.svelte';
+	import SessionHeaderChip from './SessionHeaderChip.svelte';
 	import TodayTotal from './TodayTotal.svelte';
 	import WeeklyOverview from './WeeklyOverview.svelte';
 	import YearHeatmap from './YearHeatmap.svelte';
 
 	const sessionStore = useSession();
+
+	const now = $derived(new Date(sessionStore.nowMs));
+	const dateLabel = $derived(weekdayDayMonthShort(now, undefined, sessionStore.timeZone));
+	const week = $derived(isoWeekNumber(localDateKeyFromDate(now, sessionStore.timeZone)));
 
 	onMount(() => {
 		const now = new Date(sessionStore.nowMs);
@@ -24,8 +35,20 @@
 	});
 </script>
 
-<div class="flex flex-col gap-gutter" data-testid="page-view">
-	<PageHeader title={m.dashboard_title()} description={m.dashboard_subtitle()} />
+<div class="flex flex-col gap-gutter md:gap-6" data-testid="page-view">
+	<PageHeader
+		title={m.dashboard_title()}
+		actions={sessionStore.activeSession ? sessionChip : undefined}
+		actionsClass="max-md:hidden"
+	>
+		{#snippet meta()}
+			{dateLabel} · {m.dashboard_week_number({ week })}
+		{/snippet}
+	</PageHeader>
+
+	{#snippet sessionChip()}
+		<SessionHeaderChip />
+	{/snippet}
 
 	{#if sessionStore.error}
 		<Banner>

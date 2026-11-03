@@ -22,3 +22,11 @@ export function isoWeekday(n: number): number {
 export function dayKeyDate(key: string): Date {
 	return new Date(`${key}T12:00:00Z`);
 }
+
+/** ISO 8601 week number (weeks start Monday; week 1 holds the year's first Thursday). */
+export function isoWeekNumber(key: string): number {
+	const n = dayNumber(key);
+	const thursday = n - isoWeekday(n) + 3;
+	const yearStart = dayNumber(`${dayKey(thursday).slice(0, 4)}-01-01`);
+	return Math.floor((thursday - yearStart) / 7) + 1;
+}

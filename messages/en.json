@@ -99,7 +99,7 @@
 	"timer_today_target": "Daily target",
 	"timer_today_of_target": "{logged} of {target}",
 	"dashboard_title": "Dashboard",
-	"dashboard_subtitle": "Today’s total, current focus, and this week.",
+	"dashboard_week_number": "wk {week}",
 	"dashboard_today_total": "Today's Total",
 	"dashboard_vs_yesterday": "vs yesterday",
 	"dashboard_current_focus": "Current Focus",

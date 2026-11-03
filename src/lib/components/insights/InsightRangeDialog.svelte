@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
+	import DatePicker from '$lib/components/ui/DatePicker.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import {
 		customInsightRange,
@@ -59,10 +59,10 @@
 		>
 			<div class="grid gap-4 sm:grid-cols-2">
 				<Field id="insight-range-from" label={m.insights_range_from()}>
-					<Input tone="data" type="date" bind:value={fromDay} max={todayKey} class="w-full" />
+					<DatePicker bind:value={fromDay} max={todayKey} class="w-full" />
 				</Field>
 				<Field id="insight-range-to" label={m.insights_range_to()} error={errorText}>
-					<Input tone="data" type="date" bind:value={toDay} max={todayKey} class="w-full" />
+					<DatePicker bind:value={toDay} max={todayKey} class="w-full" />
 				</Field>
 			</div>
 			<div class="dialog-actions flex flex-wrap justify-end gap-2">

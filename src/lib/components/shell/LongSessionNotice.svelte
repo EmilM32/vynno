@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Banner from '$lib/components/ui/Banner.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import DatePicker from '$lib/components/ui/DatePicker.svelte';
 	import Dialog from '$lib/components/ui/Dialog.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { getLocale } from '$lib/paraglide/runtime.js';
 	import { defaultStopAtMs, longSessionPrefs } from '$lib/stores/long-session.svelte';
@@ -127,9 +127,8 @@
 				hint={live ? m.long_session_started({ time: startedLabel(live.startedAt) }) : ''}
 				error={timeError || submitError}
 			>
-				<Input
-					tone="data"
-					type="datetime-local"
+				<DatePicker
+					mode="datetime"
 					bind:value={finishedAt}
 					min={live ? isoToDatetimeLocal(live.startedAt) : undefined}
 					class="w-full"

@@ -9,6 +9,7 @@ import {
 	pastSpansOnCurrentDay,
 	seedManualSession,
 	seedStoppedSessions,
+	setDate,
 	spaGo,
 	startSession,
 	stopSession,
@@ -286,8 +287,8 @@ test.describe('logs filters', () => {
 		await page.getByTestId('logs-filter-dates').click();
 		const dialog = page.getByRole('dialog', { name: 'Date range' });
 		await dialog.getByRole('button', { name: 'Custom' }).click();
-		await dialog.getByLabel('From').fill(localCivilDay(localDayAt(20)));
-		await dialog.getByLabel('To').fill(localCivilDay(localDayAt(17)));
+		await setDate(dialog.getByLabel('From'), localCivilDay(localDayAt(20)));
+		await setDate(dialog.getByLabel('To'), localCivilDay(localDayAt(17)));
 		await dialog.getByRole('button', { name: 'Apply' }).click();
 
 		const rows = page.getByTestId('log-row');
@@ -516,17 +517,28 @@ test.describe('logs entry validation', () => {
 			.getByTestId('session-form');
 		const start = form.getByLabel('Start', { exact: true });
 		const end = form.getByLabel('End', { exact: true });
+		// Native input on a coarse pointer, DatePicker trigger otherwise (ADR-0033).
+		const bound = (which: 'min' | 'max') =>
+			start.evaluate(
+				(el, attr) =>
+					el instanceof HTMLInputElement
+						? el.getAttribute(attr)
+						: (el as HTMLElement).dataset[attr],
+				which
+			);
 		// `min` is the local wall time of the 2000-01-01T00:00Z bound (1999-12-31 west of UTC).
-		expect(await start.evaluate((el: HTMLInputElement) => new Date(el.min).toISOString())).toBe(
-			'2000-01-01T00:00:00.000Z'
-		);
-		await expect(start).toHaveAttribute('max', /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
+		expect(new Date((await bound('min')) ?? '').toISOString()).toBe('2000-01-01T00:00:00.000Z');
+		expect(await bound('max')).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
 
+		// The calendar blocks future days, so the future is later today. The form allows
+		// now + 5 min, so this needs a few minutes of the day left.
+		const now = new Date();
+		test.skip(now.getHours() === 23 && now.getMinutes() >= 50, 'too close to midnight');
 		const posts = watchManualPosts(page);
-		const tomorrow = localCivilDay(localDayAt(-1));
+		const today = localCivilDay(now);
 		await form.getByLabel('Task').fill(uniqueNote('future'));
-		await start.fill(`${tomorrow}T09:00`);
-		await end.fill(`${tomorrow}T10:00`);
+		await setDate(start, `${today}T23:58`);
+		await setDate(end, `${today}T23:59`);
 		await form.getByRole('button', { name: 'Add', exact: true }).click();
 		await expect(form.getByRole('alert')).toHaveText('Start and end cannot be in the future.');
 		await expect(page.getByText('Failed to add session')).toHaveCount(0);

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
+	import DatePicker from '$lib/components/ui/DatePicker.svelte';
 	import Field from '$lib/components/ui/Field.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
@@ -129,9 +130,8 @@
 
 	<div class="grid gap-4 sm:grid-cols-2">
 		<Field id="session-started" label={m.logs_field_started()}>
-			<Input
-				tone="code"
-				type="datetime-local"
+			<DatePicker
+				mode="datetime"
 				bind:value={startedLocal}
 				min={minLocal}
 				max={maxLocal}
@@ -140,9 +140,8 @@
 		</Field>
 		{#if !live}
 			<Field id="session-ended" label={m.logs_field_ended()}>
-				<Input
-					tone="code"
-					type="datetime-local"
+				<DatePicker
+					mode="datetime"
 					bind:value={endedLocal}
 					min={minLocal}
 					max={maxLocal}

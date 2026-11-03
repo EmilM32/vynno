@@ -2,6 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-09-08  
+**Amended:** 2026-11-03 (§2 — calendar picker, [ADR-0033](./0033-date-picker.md))  
 **Deciders:** Project owner
 
 ## Context
@@ -13,7 +14,7 @@
 ## Decision
 
 1. **Logs filters are opt-in facets on the list.** Date range, one-or-more projects, one-or-more activity types. Empty selection means all. Combined with search by AND. Default is unbounded — same as before this change.
-2. **Date presets plus Custom.** All (default), Today, Yesterday, Last 7 days, This week (Monday-aligned), This month, Custom. Custom is native `input type="date"` From / To, inclusive civil days in the session timezone, same validation as Insights (From ≤ To, no future days, span ≤ 366). No calendar widget ([ADR-0018](./0018-atomic-ui-layer.md)).
+2. **Date presets plus Custom.** All (default), Today, Yesterday, Last 7 days, This week (Monday-aligned), This month, Custom. Custom is two `DatePicker`s From / To (native `input type="date"` until [ADR-0033](./0033-date-picker.md)), inclusive civil days in the session timezone, same validation as Insights (From ≤ To, no future days, span ≤ 366). The calendar is the `DatePicker` primitive ([ADR-0033](./0033-date-picker.md)).
 3. **A session matches a date range by `startedAt`.** Same rule as `sessionsInRange` and the `YYYY-MM-DD` group headers.
 4. **Range is view-local `$state`.** Not URL, not `vynno_prefs`. Leaving the screen resets to All / all projects / all activities.
 5. **No API date or facet filter.** Bounded dates call `ensureThrough(range.start)`. Unbounded keeps the infinite-scroll sentinel. A `from`/`to` (or project/activity query) on `GET /sessions` would be a vynno-api contract amendment.
@@ -31,7 +32,7 @@
 
 - Deep history still pages 15 sessions at a time. A bounded range shows “Loading earlier sessions…” while `loadingMore` is true.
 - Project/activity filters without a date bound apply to the loaded window; the sentinel still pages if it is on screen.
-- Native date controls look different per OS.
+- Native date controls look different per OS (resolved on desktop by [ADR-0033](./0033-date-picker.md)).
 - Filters are not bookmarkable.
 - On viewports below `md`, `/logs` collapses the three chips into one Filters control that drafts date + project + activity and Apply-commits them. Desktop chips and named-preset immediate apply are unchanged. The project dossier still shows the activity chip.
 

@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page, type Request } from '@playwright/test';
-import { createProject, localCivilDay, login, seedManySessions } from './helpers';
+import { createProject, localCivilDay, login, seedManySessions, setDate } from './helpers';
 
 /**
  * Long-range history drain (EMI-59). Opt-in: `npm run test:e2e:perf`
@@ -54,8 +54,8 @@ test.describe('history drain', { tag: '@perf' }, () => {
 		await expectLongTaskObserver(page);
 		await page.getByRole('button', { name: 'Custom' }).click();
 		const dialog = page.getByRole('dialog', { name: 'Custom range' });
-		await dialog.getByLabel('From').fill(localCivilDay(new Date(Date.now() - YEAR_MS)));
-		await dialog.getByLabel('To').fill(localCivilDay(new Date()));
+		await setDate(dialog.getByLabel('From'), localCivilDay(new Date(Date.now() - YEAR_MS)));
+		await setDate(dialog.getByLabel('To'), localCivilDay(new Date()));
 		const insights = await measureDrain(page, () =>
 			dialog.getByRole('button', { name: 'Apply' }).click()
 		);
@@ -63,8 +63,8 @@ test.describe('history drain', { tag: '@perf' }, () => {
 		// The timeline's per-session views (Days, Projects) take ranges up to 62 days (ADR-0028).
 		// History is loaded now, so this measures drawing them, not paging.
 		await page.getByRole('button', { name: 'Custom' }).click();
-		await dialog.getByLabel('From').fill(localCivilDay(new Date(Date.now() - 61 * DAY_MS)));
-		await dialog.getByLabel('To').fill(localCivilDay(new Date()));
+		await setDate(dialog.getByLabel('From'), localCivilDay(new Date(Date.now() - 61 * DAY_MS)));
+		await setDate(dialog.getByLabel('To'), localCivilDay(new Date()));
 		const timeline = page.getByTestId('insights-timeline');
 		const timelineDays = await measureDraw(page, timeline, 'Days', () =>
 			dialog.getByRole('button', { name: 'Apply' }).click()

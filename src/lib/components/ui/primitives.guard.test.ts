@@ -30,6 +30,8 @@ const RAW_BUTTON_ALLOWLIST: Record<string, string> = {
 	'lib/components/ui/SwatchPicker.svelte': 'swatch radio — not chrome',
 	'lib/components/ui/Select.svelte':
 		'combobox trigger — field chrome (on-border focus, no .press), labelled by <label for> (ADR-0032)',
+	'lib/components/ui/DatePicker.svelte':
+		'field trigger (on-border focus, no .press, labelled by <label for>) and calendar day cells — not chrome (ADR-0033)',
 	'lib/components/shell/SideNav.svelte':
 		'sidebar border strip that toggles the rail (ADR-0029) — a border line, not chrome',
 	'lib/components/ui/Disclosure.svelte':
@@ -43,6 +45,7 @@ const RAW_BUTTON_ALLOWLIST: Record<string, string> = {
 const RAW_FIELD_ALLOWLIST: Record<string, string> = {
 	'lib/components/ui/Input.svelte': 'the primitive itself',
 	'lib/components/ui/Select.svelte': 'the primitive itself',
+	'lib/components/ui/DatePicker.svelte': 'hidden input that submits `value` with a form, as Select',
 	'lib/components/shell/CommandPalette.svelte':
 		'flush command field — parent :focus-within is the indicator',
 	'lib/components/timer/TaskInput.svelte': 'command / quick input — not a form field',

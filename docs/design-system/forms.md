@@ -1,8 +1,8 @@
 # Forms
 
-`Field`, `Input`, `Select`, `SwatchPicker` in `src/lib/components/ui/`. A raw `<input>` or `<select>` fails `primitives.guard.test.ts` unless allowlisted with a reason.
+`Field`, `Input`, `Select`, `DatePicker`, `SwatchPicker` in `src/lib/components/ui/`. A raw `<input>` or `<select>` fails `primitives.guard.test.ts` unless allowlisted with a reason.
 
-**What does not exist:** there is no `Textarea`, `Checkbox`, `Radio`, `Toggle`/`Switch`, `Combobox` or `DatePicker` primitive, and no textarea anywhere in the app. Do not build a look-alike out of buttons. If a form needs one of these beyond the pattern below, stop and say so — it is a new primitive (with a story and a guard entry), not a one-off.
+**What does not exist:** there is no `Textarea`, `Checkbox`, `Radio`, `Toggle`/`Switch`, or `Combobox` primitive, and no textarea anywhere in the app. Do not build a look-alike out of buttons. If a form needs one of these beyond the pattern below, stop and say so — it is a new primitive (with a story and a guard entry), not a one-off.
 
 **An on/off setting** is the one exception, and it has an existing pattern: a native `<input type="checkbox" role="switch">` inside a `Field layout="split"` (`SettingsView`, desktop notifications). `Field`'s `<label for>` labels it. Never fake a switch with two `tab` buttons — it is one boolean, not a choice between views. The raw input needs its file in `RAW_FIELD_ALLOWLIST`.
 
@@ -106,6 +106,23 @@ Is it a stored setting or a form value (theme, default project, reminder thresho
 A colour → SwatchPicker (via its domain wrapper).
 
 ```
+
+## DatePicker
+
+A date (`mode="date"`, default, value `YYYY-MM-DD`) or a date and time (`mode="datetime"`, value `YYYY-MM-DDTHH:MM`, host-local) — the same strings as a native `input type="date" | "datetime-local"`, so `isoToDatetimeLocal` / `datetimeLocalToIso` and the range validators work unchanged. Never write `Input type="date"` or `type="datetime-local"`. On a fine pointer it is a field-shaped trigger and a calendar popover (APG date picker dialog: focus moves into the grid, arrows / Home / End / PageUp / PageDown move, Enter picks, Escape closes without closing a surrounding `Dialog`). On a coarse pointer it renders the native input, so phones keep the OS picker. Decision: [ADR-0033](../adr/0033-date-picker.md).
+
+Props: `mode`, `bind:value` or `value` + `onchange(value)` (receives the string, not an event), `min` / `max` (same format as `value`; days outside cannot be picked), `size` (`sm` | `md`, as `Input`), `id`, `name` (submits through a hidden input), `disabled`, `aria-label` (only without a `Field` / `<label for>`), `data-testid`, `class` (layout only).
+
+`date` commits when a day is picked. `datetime` keeps a draft: the day and the `HH` : `MM` fields edit it, **Done** commits. So `onchange` fires once per decision — safe for a call site that saves on change (`TimerCard`).
+
+```svelte
+<!-- src/lib/components/insights/InsightRangeDialog.svelte -->
+<Field id="insight-range-from" label={m.insights_range_from()}>
+	<DatePicker bind:value={fromDay} max={todayKey} class="w-full" />
+</Field>
+```
+
+Like `Select`, the panel is a `popover="manual"` in the top layer with no enter animation. Ranges are two pickers (From / To), not one range calendar — see the rejected options in ADR-0033. In e2e, use `setDate` / `expectDate` / `dateValue` from `e2e/helpers.ts`, never `.fill()`.
 
 ## SwatchPicker
 

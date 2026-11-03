@@ -2,7 +2,7 @@
 
 **Status:** Accepted  
 **Date:** 2026-09-07  
-**Amended:** 2026-09-30 (§8, §9), 2026-10-05 (§7)  
+**Amended:** 2026-09-30 (§8, §9), 2026-10-05 (§7), 2026-11-03 (§4 — calendar picker, [ADR-0033](./0033-date-picker.md))  
 **Deciders:** Project owner
 
 ## Context
@@ -16,7 +16,7 @@ Totals stay client-side from loaded sessions ([api-contract.md](../api-contract.
 1. **Insights period is an `InsightRange`** (`grain` + `start` + `end`), not “current `PeriodKind`.” Grains: Week, 2 weeks (Monday-aligned 14 days), Month, Custom. `periodBounds('week' | 'month', now)` stays for Dashboard and the project dossier.
 2. **The civil range is visible chrome.** A locale-formatted label always sits next to prev / next. Open periods still clamp `end` to now for aggregation; the label for week / 2-week / month is the full civil period (Mon–Sun, two Mon–Suns, calendar month).
 3. **Prev / next shift one grain.** Next is disabled when the window already includes today. Switching a grain snaps to the window of that grain that contains today.
-4. **Custom range is a `Dialog` of native `input type="date"`** (`Field` + `Input`). Inclusive civil days in the session timezone. To cannot be after today; From ≤ To; span ≤ 366 days. No calendar widget ([ADR-0018](./0018-atomic-ui-layer.md) extract bar).
+4. **Custom range is a `Dialog` of two `DatePicker`s** (`Field` + `DatePicker`; native `input type="date"` until [ADR-0033](./0033-date-picker.md)). Inclusive civil days in the session timezone. To cannot be after today; From ≤ To; span ≤ 366 days. The calendar is the `DatePicker` primitive ([ADR-0033](./0033-date-picker.md)).
 5. **KPI row is removed on Insights only.** Total remains the donut centre. `KpiCard` and project-dossier KPIs stay.
 6. **Range is view-local `$state`.** Not URL, not `vynno_prefs`. Leaving `/insights` resets to the current week.
 7. **No API date filter on sessions.** A range that includes today keeps using `ensureThrough`. Closed ranges read day totals instead (§9). _Amended 2026-10-05:_ `GET /sessions` now takes `from` / `to`. Insights uses it only for the timeline card on a closed range, which needs start and end times ([0028](./0028-insights-timeline.md)). Totals still come from loaded sessions or `/stats/days`.
@@ -35,7 +35,7 @@ Totals stay client-side from loaded sessions ([api-contract.md](../api-contract.
 ### Negative / tradeoffs
 
 - A range that includes today still pages history back to the previous window's start. A long custom range ending today can load up to twice its span. Past ranges no longer page through history; the timeline reads only their own window ([0028](./0028-insights-timeline.md)).
-- Native date controls look different per OS.
+- Native date controls look different per OS (resolved on desktop by [ADR-0033](./0033-date-picker.md)).
 - Custom is not bookmarkable.
 
 ## Alternatives considered

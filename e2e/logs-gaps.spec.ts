@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { localDayAt, login, seedManualSession, uniqueNote, waitForClient } from './helpers';
+import {
+	expectDate,
+	localDayAt,
+	login,
+	seedManualSession,
+	uniqueNote,
+	waitForClient
+} from './helpers';
 
 /** `datetime-local` value for a local Date. */
 function localInput(d: Date): string {
@@ -33,12 +40,8 @@ test.describe('logs untracked gaps', () => {
 
 		await gaps.first().getByRole('button', { name: 'Add entry for 10:00 - 12:00' }).click();
 		const dialog = page.getByRole('dialog', { name: 'Manual time entry' });
-		await expect(dialog.getByLabel('Start', { exact: true })).toHaveValue(
-			localInput(localDayAt(1, 10))
-		);
-		await expect(dialog.getByLabel('End', { exact: true })).toHaveValue(
-			localInput(localDayAt(1, 12))
-		);
+		await expectDate(dialog.getByLabel('Start', { exact: true }), localInput(localDayAt(1, 10)));
+		await expectDate(dialog.getByLabel('End', { exact: true }), localInput(localDayAt(1, 12)));
 
 		await dialog.getByLabel('Task').fill(uniqueNote('filled'));
 		await dialog.getByRole('button', { name: 'Add' }).click();

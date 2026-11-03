@@ -455,6 +455,62 @@ export async function expectSelected(select: Locator, value: string) {
 	await expect.poll(() => selectedValue(select)).toBe(value);
 }
 
+/**
+ * `DatePicker` is a native date input on a coarse pointer and a calendar popover otherwise
+ * (ADR-0033). These take the native value (`YYYY-MM-DD` or `YYYY-MM-DDTHH:MM`) on either.
+ * On the popover they drive the calendar the way a keyboard user would.
+ */
+function civilDays(day: string): number {
+	const [y = 1970, m = 1, d = 1] = day.split('-').map(Number);
+	return Date.UTC(y, m - 1, d) / 86_400_000;
+}
+
+export async function setDate(field: Locator, value: string) {
+	if (await field.evaluate((el) => el instanceof HTMLInputElement)) {
+		await field.fill(value);
+		return;
+	}
+	const page = field.page();
+	if ((await field.getAttribute('aria-expanded')) !== 'true') await field.click();
+	const panel = page.locator('[popover][role="dialog"]');
+	await expect(panel).toBeVisible();
+	const focused = () =>
+		page.evaluate(() => (document.activeElement as HTMLElement).dataset.day ?? '');
+	const target = value.slice(0, 10);
+	for (let guard = 0; guard < 60; guard++) {
+		const at = await focused();
+		if (!at) throw new Error('DatePicker grid did not take focus');
+		const months =
+			(Number(target.slice(0, 4)) - Number(at.slice(0, 4))) * 12 +
+			(Number(target.slice(5, 7)) - Number(at.slice(5, 7)));
+		if (months === 0) break;
+		const year = Math.abs(months) >= 12 ? 'Shift+' : '';
+		await page.keyboard.press(`${year}${months < 0 ? 'PageUp' : 'PageDown'}`);
+	}
+	const days = civilDays(target) - civilDays(await focused());
+	for (let i = 0; i < Math.abs(days); i++) {
+		await page.keyboard.press(days < 0 ? 'ArrowLeft' : 'ArrowRight');
+	}
+	await expect.poll(focused).toBe(target);
+	await page.keyboard.press('Enter');
+	if (value.length > 10) {
+		await panel.getByLabel('Hours').fill(value.slice(11, 13));
+		await panel.getByLabel('Minutes').fill(value.slice(14, 16));
+		await panel.getByRole('button', { name: 'Done' }).click();
+	}
+	await expect(panel).toBeHidden();
+}
+
+export async function dateValue(field: Locator): Promise<string> {
+	return field.evaluate((el) =>
+		el instanceof HTMLInputElement ? el.value : ((el as HTMLElement).dataset.value ?? '')
+	);
+}
+
+export async function expectDate(field: Locator, value: string) {
+	await expect.poll(() => dateValue(field)).toBe(value);
+}
+
 export async function startSession(
 	page: Page,
 	note: string,

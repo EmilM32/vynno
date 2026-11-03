@@ -1,5 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
-import { chooseOption, firstProjectId, login, uniqueNote, waitForClient } from './helpers';
+import {
+	chooseOption,
+	expectDate,
+	firstProjectId,
+	login,
+	setDate,
+	uniqueNote,
+	waitForClient
+} from './helpers';
 
 const HOUR = 3_600_000;
 
@@ -62,7 +70,7 @@ test.describe('long session reminder', () => {
 		const local = new Date(expected.getTime() - expected.getTimezoneOffset() * 60_000)
 			.toISOString()
 			.slice(0, 16);
-		await expect(finished).toHaveValue(local);
+		await expectDate(finished, local);
 
 		await dialog.getByRole('button', { name: 'Stop session' }).click();
 		await expect(page.getByTestId('timer-status')).toHaveText('IDLE');
@@ -83,11 +91,10 @@ test.describe('long session reminder', () => {
 		await page.getByTestId('long-session-notice').getByRole('button', { name: 'Stop at…' }).click();
 		const dialog = page.getByRole('dialog', { name: 'Stop the session at' });
 		const before = new Date(startedAt.getTime() - HOUR);
-		await dialog
-			.getByLabel('Finished at')
-			.fill(
-				new Date(before.getTime() - before.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
-			);
+		await setDate(
+			dialog.getByLabel('Finished at'),
+			new Date(before.getTime() - before.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
+		);
 		await expect(dialog.getByRole('button', { name: 'Stop session' })).toBeDisabled();
 		await expect(page.getByTestId('timer-status')).toHaveText('ACTIVE');
 	});

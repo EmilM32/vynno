@@ -427,8 +427,8 @@ test.describe('insights', () => {
 
 		const from = dialog.getByLabel('From');
 		const to = dialog.getByLabel('To');
-		await from.fill('2026-03-11');
-		await to.fill('2026-03-01');
+		await setDate(from, '2026-03-11');
+		await setDate(to, '2026-03-01');
 		await expect(dialog.getByText('From must be on or before To.')).toBeVisible();
 		await expect(dialog.getByRole('button', { name: 'Apply' })).toBeDisabled();
 

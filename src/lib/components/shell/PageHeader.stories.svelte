@@ -41,12 +41,21 @@
 	{/snippet}
 </Story>
 
-<Story name="CompactOnScroll">
+<Story name="WithMeta">
+	{#snippet template(args)}
+		<PageHeader {...args} title="Dashboard" description="">
+			{#snippet meta()}Tue, Nov 3 · wk 45{/snippet}
+		</PageHeader>
+	{/snippet}
+</Story>
+
+<Story name="HairlineOnScroll">
 	{#snippet template(args)}
 		<div id="main-content" class="h-72 overflow-y-auto rounded-lg border border-outline-variant">
 			<PageHeader {...args} />
 			<div class="h-[120vh] px-4 py-6 text-body-sm text-on-surface-variant">
-				Scroll this pane on a desktop-width canvas. The subtitle collapses when the header pins.
+				Scroll this pane on a desktop-width canvas. The hairline appears once content scrolls under
+				the pinned row.
 			</div>
 		</div>
 	{/snippet}

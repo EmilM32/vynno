@@ -68,7 +68,7 @@ test.describe('desktop layout', () => {
 		});
 	}
 
-	test('header stays pinned and hides the description when scrolled', async ({ page }) => {
+	test('header stays pinned and rules itself off only when scrolled', async ({ page }) => {
 		await login(page);
 		await seedStoppedSessions(page, 16);
 		await page.goto('/logs');
@@ -76,22 +76,24 @@ test.describe('desktop layout', () => {
 		const title = page.getByRole('heading', { name: 'Logs', level: 1 });
 		const description = page.getByTestId('page-header-description');
 		const search = page.getByRole('searchbox', { name: 'Search logs' });
+		const border = () => header.evaluate((el) => getComputedStyle(el).borderBottomColor);
 
 		await expect(header).toHaveAttribute('data-compact', 'false');
 		await expect(description).toBeVisible();
 		await expect(title).toBeInViewport();
+		await expect.poll(border).toBe('rgba(0, 0, 0, 0)');
 
 		await scrollMain(page, 400);
 
 		await expect(header).toHaveAttribute('data-compact', 'true');
 		await expect(title).toBeInViewport();
 		await expect(search).toBeInViewport();
-		await expect(description).toBeHidden();
+		await expect(description).toBeVisible();
+		await expect.poll(border).not.toBe('rgba(0, 0, 0, 0)');
 
 		await scrollMain(page, 0);
 
 		await expect(header).toHaveAttribute('data-compact', 'false');
-		await expect(description).toBeVisible();
 	});
 
 	/**
@@ -129,18 +131,19 @@ test.describe('desktop layout', () => {
 	test('timer session is a full-width instrument with a today rail', async ({ page }) => {
 		await login(page);
 		await page.goto('/timer');
-		const header = page.getByTestId('page-header');
+		// The header bleeds to the shell edges (ADR-0034); the view is the content column.
+		const view = page.getByTestId('page-view');
 		const session = page.getByTestId('timer-session');
 		const today = page.getByTestId('timer-today-summary');
 
 		await expect(today).toBeVisible();
 		await expect(today.getByTestId('timer-today-total')).toBeVisible();
 
-		const headerBox = await header.boundingBox();
+		const viewBox = await view.boundingBox();
 		const sessionBox = await session.boundingBox();
-		expect(headerBox).toBeTruthy();
+		expect(viewBox).toBeTruthy();
 		expect(sessionBox).toBeTruthy();
-		expect(Math.abs(sessionBox!.x - headerBox!.x)).toBeLessThan(2);
-		expect(Math.abs(sessionBox!.width - headerBox!.width)).toBeLessThan(2);
+		expect(Math.abs(sessionBox!.x - viewBox!.x)).toBeLessThan(2);
+		expect(Math.abs(sessionBox!.width - viewBox!.width)).toBeLessThan(2);
 	});
 });

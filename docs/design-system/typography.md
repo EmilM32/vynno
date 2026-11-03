@@ -2,15 +2,15 @@
 
 ## The scale (closed)
 
-| Utility             | Family         | Size / line / weight   | Use                                                                                         |
-| ------------------- | -------------- | ---------------------- | ------------------------------------------------------------------------------------------- |
-| `text-headline-lg`  | Inter          | 24 / 32 / 600, −0.02em | Page title (`PageHeader` sets it — do not set it yourself)                                  |
-| `text-headline-md`  | Inter          | 18 / 24 / 600, −0.01em | Card and section headings (`text-headline-md text-on-surface`). `Dialog` sets its own title |
-| `text-body-md`      | Inter          | 14 / 20 / 400          | Default body. `<body>` already has it                                                       |
-| `text-body-sm`      | Inter          | 12 / 16 / 400          | Hints, captions, secondary lines, compact buttons                                           |
-| `text-code-display` | JetBrains Mono | 28 / 32 / 500          | The big number in `KpiCard` (≥ `sm`); large durations                                       |
-| `text-code-data`    | JetBrains Mono | 14 / 20 / 500          | Durations, counts, times in rows and inputs                                                 |
-| `text-code-label`   | JetBrains Mono | 13 / 18 / 400          | Project codes, ids, dates, mono meta                                                        |
+| Utility             | Family         | Size / line / weight   | Use                                                                                       |
+| ------------------- | -------------- | ---------------------- | ----------------------------------------------------------------------------------------- |
+| `text-headline-lg`  | Inter          | 24 / 32 / 600, −0.02em | No screen uses it since page titles moved to `headline-md` (ADR-0034)                     |
+| `text-headline-md`  | Inter          | 18 / 24 / 600, −0.01em | Page title (`PageHeader` sets it), card and section headings. `Dialog` sets its own title |
+| `text-body-md`      | Inter          | 14 / 20 / 400          | Default body. `<body>` already has it                                                     |
+| `text-body-sm`      | Inter          | 12 / 16 / 400          | Hints, captions, secondary lines, compact buttons                                         |
+| `text-code-display` | JetBrains Mono | 28 / 32 / 500          | The big number in `KpiCard` (≥ `sm`); large durations                                     |
+| `text-code-data`    | JetBrains Mono | 14 / 20 / 500          | Durations, counts, times in rows and inputs                                               |
+| `text-code-label`   | JetBrains Mono | 13 / 18 / 400          | Project codes, ids, dates, mono meta                                                      |
 
 `text-code-*` sets the size only — always pair it with `font-mono`. Never use Tailwind's `text-xs`/`text-sm`/`text-lg`…: they are off-scale and ignore the line heights above.
 

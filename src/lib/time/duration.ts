@@ -181,6 +181,16 @@ export function weekdayShort(d: Date, locale = getLocale(), timeZone?: string): 
 	return new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone }).format(d);
 }
 
+/** `wt., 3 lis` / `Tue, Nov 3` — the dashboard header's date. */
+export function weekdayDayMonthShort(d: Date, locale = getLocale(), timeZone?: string): string {
+	return new Intl.DateTimeFormat(locale, {
+		weekday: 'short',
+		day: 'numeric',
+		month: 'short',
+		timeZone
+	}).format(d);
+}
+
 export function weekdayLong(d: Date, locale = getLocale(), timeZone?: string): string {
 	return new Intl.DateTimeFormat(locale, { weekday: 'long', timeZone }).format(d);
 }

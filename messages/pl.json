@@ -99,7 +99,7 @@
 	"timer_today_target": "Dzienny cel",
 	"timer_today_of_target": "{logged} z {target}",
 	"dashboard_title": "Pulpit",
-	"dashboard_subtitle": "Suma z dzisiaj, bieżące skupienie i ten tydzień.",
+	"dashboard_week_number": "tydz. {week}",
 	"dashboard_today_total": "Suma z dzisiaj",
 	"dashboard_vs_yesterday": "vs wczoraj",
 	"dashboard_current_focus": "Bieżące skupienie",

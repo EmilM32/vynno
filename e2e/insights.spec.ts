@@ -8,6 +8,7 @@ import {
 	pastSpansOnCurrentDay,
 	seedManualSession,
 	seedManySessions,
+	setDate,
 	uniqueNote,
 	waitForClient
 } from './helpers';
@@ -288,8 +289,8 @@ test.describe('insights', () => {
 		await waitForClient(page);
 		await page.getByRole('button', { name: 'Custom' }).click();
 		const dialog = page.getByRole('dialog', { name: 'Custom range' });
-		await dialog.getByLabel('From').fill(localCivilDay(new Date(Date.now() - 70 * 86_400_000)));
-		await dialog.getByLabel('To').fill(localCivilDay(new Date()));
+		await setDate(dialog.getByLabel('From'), localCivilDay(new Date(Date.now() - 70 * 86_400_000)));
+		await setDate(dialog.getByLabel('To'), localCivilDay(new Date()));
 		await dialog.getByRole('button', { name: 'Apply' }).click();
 		await insights.settled();
 
@@ -348,8 +349,8 @@ test.describe('insights', () => {
 		const dialog = page.getByRole('dialog', { name: 'Custom range' });
 		const from = localCivilDay(localDayAt(62));
 		const to = localCivilDay(localDayAt(58));
-		await dialog.getByLabel('From').fill(from);
-		await dialog.getByLabel('To').fill(to);
+		await setDate(dialog.getByLabel('From'), from);
+		await setDate(dialog.getByLabel('To'), to);
 		const [totals, timeline] = await Promise.all([
 			page.waitForResponse((r) => {
 				const url = new URL(r.url());

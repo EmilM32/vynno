@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
+	import DatePicker from '$lib/components/ui/DatePicker.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
 	import StatusDot, { type StatusDotTone } from '$lib/components/ui/StatusDot.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { useSession } from '$lib/stores/session.svelte';
@@ -33,9 +33,9 @@
 		void sessionStore.start();
 	}
 
-	function onStartedChange(e: Event) {
+	function onStartedChange(local: string) {
 		if (!session || pending) return;
-		const iso = datetimeLocalToIso((e.currentTarget as HTMLInputElement).value);
+		const iso = datetimeLocalToIso(local);
 		if (!iso || iso === session.startedAt) return;
 		void sessionStore.updateSession(session.id, { startedAt: iso });
 	}
@@ -70,18 +70,21 @@
 		{/if}
 	</div>
 	{#if session}
-		<label class="mt-3 flex items-center gap-2 font-mono text-code-label text-on-surface-variant">
-			<span>{m.timer_started_at()}</span>
-			<Input
-				type="datetime-local"
-				tone="code"
+		<div class="mt-3 flex items-center gap-2">
+			<label for="timer-started-at" class="font-mono text-code-label text-on-surface-variant">
+				{m.timer_started_at()}
+			</label>
+			<DatePicker
+				mode="datetime"
 				size="sm"
+				id="timer-started-at"
 				value={isoToDatetimeLocal(session.startedAt)}
+				max={isoToDatetimeLocal(new Date().toISOString())}
 				onchange={onStartedChange}
 				disabled={pending}
 				data-testid="timer-started-at"
 			/>
-		</label>
+		</div>
 	{/if}
 
 	<div class="mt-6 flex w-full max-w-70 gap-3">

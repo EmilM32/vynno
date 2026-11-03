@@ -21,8 +21,9 @@ function renderForm() {
 	}).body;
 }
 
+/** `DatePicker` triggers — SSR renders the fine-pointer branch (ADR-0033). */
 function datetimeInputs(body: string): string[] {
-	return body.match(/<input[^>]*type="datetime-local"[^>]*>/g) ?? [];
+	return body.match(/<button[^>]*aria-haspopup="dialog"[^>]*>/g) ?? [];
 }
 
 describe('SessionForm time inputs', () => {
@@ -37,8 +38,8 @@ describe('SessionForm time inputs', () => {
 		const min = isoToDatetimeLocal('2000-01-01T00:00:00.000Z');
 		const max = isoToDatetimeLocal('2026-09-28T12:05:00.000Z');
 		for (const input of inputs) {
-			expect(input).toContain(`min="${min}"`);
-			expect(input).toContain(`max="${max}"`);
+			expect(input).toContain(`data-min="${min}"`);
+			expect(input).toContain(`data-max="${max}"`);
 		}
 	});
 });

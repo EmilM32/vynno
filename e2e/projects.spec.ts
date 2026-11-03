@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import {
 	createProject,
+	dateValue,
 	firstProjectId,
 	localCivilDay,
 	localDayAt,
@@ -10,6 +11,7 @@ import {
 	seedManualSession,
 	seedManySessions,
 	selectedLabel,
+	setDate,
 	spaGo,
 	startSession,
 	stopSession,
@@ -122,8 +124,8 @@ test.describe('projects', () => {
 
 		const from = dialog.getByLabel('From');
 		const to = dialog.getByLabel('To');
-		await from.fill('2026-03-11');
-		await to.fill('2026-03-01');
+		await setDate(from, '2026-03-11');
+		await setDate(to, '2026-03-01');
 		await expect(dialog.getByText('From must be on or before To.')).toBeVisible();
 		await expect(dialog.getByRole('button', { name: 'Apply' })).toBeDisabled();
 
@@ -131,8 +133,8 @@ test.describe('projects', () => {
 		const fromDay = localDayAt(3);
 		const ymd = (d: Date) =>
 			`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-		await from.fill(ymd(fromDay));
-		await to.fill(ymd(today));
+		await setDate(from, ymd(fromDay));
+		await setDate(to, ymd(today));
 		await dialog.getByRole('button', { name: 'Apply' }).click();
 		await expect(dialog).toBeHidden();
 
@@ -238,12 +240,12 @@ test.describe('projects', () => {
 		const edited = `${note}-renamed`;
 		const editDialog = page.getByRole('dialog', { name: 'Edit session' });
 		await editDialog.getByLabel('Task').fill(edited);
-		const startVal = await editDialog.getByLabel('Start').inputValue();
+		const startVal = await dateValue(editDialog.getByLabel('Start'));
 		const [datePart, timePart] = startVal.split('T');
 		const [hh, mm] = timePart.split(':').map(Number);
 		const laterMin = mm + 5;
 		const endTime = `${String(hh + Math.floor(laterMin / 60)).padStart(2, '0')}:${String(laterMin % 60).padStart(2, '0')}`;
-		await editDialog.getByLabel('End').fill(`${datePart}T${endTime}`);
+		await setDate(editDialog.getByLabel('End'), `${datePart}T${endTime}`);
 		await editDialog.getByRole('button', { name: 'Save' }).click();
 		await expect(page.getByTestId('log-row').filter({ hasText: edited })).toBeVisible();
 
@@ -318,8 +320,8 @@ test.describe('project entries filters', () => {
 
 		await page.getByTestId('project-range-label').click();
 		const dialog = page.getByRole('dialog', { name: 'Custom range' });
-		await dialog.getByLabel('From').fill(localCivilDay(localDayAt(40)));
-		await dialog.getByLabel('To').fill(localCivilDay(localDayAt(40)));
+		await setDate(dialog.getByLabel('From'), localCivilDay(localDayAt(40)));
+		await setDate(dialog.getByLabel('To'), localCivilDay(localDayAt(40)));
 		await dialog.getByRole('button', { name: 'Apply' }).click();
 		await expect(dialog).toBeHidden();
 		await expect(rows.filter({ hasText: olderNote })).toBeVisible();

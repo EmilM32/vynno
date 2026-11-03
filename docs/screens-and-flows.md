@@ -65,7 +65,7 @@ With a query, rows rank inside each group and the group with the best match come
 
 ### Long session reminder
 
-Once one live session runs past the reminder threshold (Settings; default 4h, Off turns it off), every screen shows a notice above the page: `Session running for 5h 12m`, the note, and **Keep going** · **Stop at…** · **Stop now**. Keep going hides it for that session (remembered on this device). Stop at… opens a dialog with a `datetime-local` defaulting to start + threshold (never after now), checked against the API time bounds; it stops the session, then PATCHes `endedAt` (`SessionStore.stopAt`). Crossing the threshold is also announced and, if turned on, sends one desktop notification. The notice is state, so it also shows after a reload or the next morning.
+Once one live session runs past the reminder threshold (Settings; default 4h, Off turns it off), every screen shows a notice above the page: `Session running for 5h 12m`, the note, and **Keep going** · **Stop at…** · **Stop now**. Keep going hides it for that session (remembered on this device). Stop at… opens a dialog with a date-and-time `DatePicker` defaulting to start + threshold (never after now), checked against the API time bounds; it stops the session, then PATCHes `endedAt` (`SessionStore.stopAt`). Crossing the threshold is also announced and, if turned on, sends one desktop notification. The notice is state, so it also shows after a reload or the next morning.
 
 ### Install as an app
 
@@ -105,7 +105,7 @@ Not built on this screen: desktop Quick Command panel. See [open.md](./open.md).
 ### 3.3 Logs (`/logs`)
 
 1. Title **Logs**, subtitle **Session history.** (hidden on mobile). Desktop: grep-style search + **Export** + **Add entry** (secondary) on one row. Mobile: **Add entry** and **Export** are icon buttons on the title row; search takes the full width.
-2. Filter row: date (All / Today / Yesterday / Last 7 days / This week / This month / Custom From–To), multi-select projects, multi-select activities. Empty selection = all. View-local (resets on leave). Custom uses native `type="date"`. Desktop shows the three chips. Mobile collapses them into one **Filters** control that opens a dialog with the same facets; **Clear** stays on the bar.
+2. Filter row: date (All / Today / Yesterday / Last 7 days / This week / This month / Custom From–To), multi-select projects, multi-select activities. Empty selection = all. View-local (resets on leave). Custom uses two `DatePicker`s. Desktop shows the three chips. Mobile collapses them into one **Filters** control that opens a dialog with the same facets; **Clear** stays on the bar.
 3. Layout toggle: **Entries** (default) | **Grouped**, on the same row as the filters. View-local; not cleared with filters. Grouped merges same-ticket (else same project + note) sessions inside each day, with count + total duration. Multi-session summaries expand to the constituent rows.
 4. Date separators (`YYYY-MM-DD`)
 5. Entries: project color + name, `> note` (one line; expand when truncated), optional ticket / activity chip, time range, duration. Completed rows have Play (hover-reveal with a mouse, always visible on touch) — starts a **new** session now with the same note / project / ticket / activity and goes to Timer. The in-progress row has no Play. Disabled while another session is live (`timer_stop_first`) or the project is archived. Stacked rows (phone, tablet) keep Play and Edit inline and put Delete behind a `…` menu, as Projects does.
@@ -119,7 +119,7 @@ Decision: [adr/0022-logs-filters.md](./adr/0022-logs-filters.md), [adr/0023-logs
 ### 3.4 Insights (`/insights`)
 
 1. Header + range control: prev / civil-date label / next, Week | 2 weeks | Month, Custom
-2. Custom: dialog with From / To dates (native `type="date"`). Prev/next shift the active grain; next is disabled on the current window. Range is view-local (resets to the current week on leave).
+2. Custom: dialog with From / To `DatePicker`s. Prev/next shift the active grain; next is disabled on the current window. Range is view-local (resets to the current week on leave).
 3. Time by Project donut (centre total). The header shows the change vs the same span of the previous period (`▲ +1.5h vs previous period`); no KPI row ([adr/0021](./adr/0021-insights-range.md) §5, §8)
 4. Time by Activity bar — unlabeled sessions are **Unassigned** so bars match the donut; omit buckets that would display as `0s` or `0%` (`formatCompact` floors sub-seconds)
 5. Timeline card — when time was logged. Toggle Days | Projects | Rhythm and Working hours | 24h. Sessions split at local midnight; the live session grows to now. Ranges over 62 days show Rhythm only ([adr/0028](./adr/0028-insights-timeline.md))

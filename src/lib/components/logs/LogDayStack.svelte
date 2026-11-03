@@ -10,8 +10,7 @@
 
 	/**
 	 * One Logs day: the date header and its rows, which collapse into a card stack.
-	 * Children are the day's rows in order; a child with `data-stack-skip` (a gap
-	 * line) is not a card and fades out instead of stacking.
+	 * Children are the day's rows in order, one card each.
 	 */
 	let {
 		dateKey,
@@ -49,17 +48,13 @@
 	function measure(node: HTMLElement) {
 		const items = [...node.children] as HTMLElement[];
 		full = node.offsetHeight;
-		let card = -1;
-		for (const [i, el] of items.entries()) {
-			const skip = el.hasAttribute('data-stack-skip');
-			if (!skip) card += 1;
-			const c = Math.max(card, 0);
-			if (c === 0 && !skip) topHeight = el.offsetHeight;
+		for (const [c, el] of items.entries()) {
+			if (c === 0) topHeight = el.offsetHeight;
 			el.style.setProperty('--k', String(Math.min(c, DEPTH)));
 			el.style.setProperty('--i', String(Math.min(c, DEPTH + 1)));
-			el.style.setProperty('--o', String(skip ? 0 : (OPACITY[c] ?? 0)));
+			el.style.setProperty('--o', String(OPACITY[c] ?? 0));
 			el.style.setProperty('--bottom', `${el.offsetTop + el.offsetHeight}px`);
-			el.style.zIndex = String(items.length - i);
+			el.style.zIndex = String(items.length - c);
 		}
 	}
 

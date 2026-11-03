@@ -23,15 +23,12 @@
 	let {
 		mode,
 		session,
-		span,
 		pending = false,
 		onsubmit,
 		oncancel
 	}: {
 		mode: 'create' | 'edit';
 		session?: TimeSession;
-		/** Create only: start and end to prefill instead of the last hour. */
-		span?: { startedAt: string; endedAt: string };
 		pending?: boolean;
 		onsubmit: (values: CreateManualSessionInput | UpdateSessionInput) => void;
 		oncancel: () => void;
@@ -51,13 +48,11 @@
 	const openedAtMs = sessionStore.serverNowMs();
 	// svelte-ignore state_referenced_locally
 	let startedLocal = $state(
-		isoToDatetimeLocal(
-			session?.startedAt ?? span?.startedAt ?? new Date(openedAtMs - 60 * 60_000).toISOString()
-		)
+		isoToDatetimeLocal(session?.startedAt ?? new Date(openedAtMs - 60 * 60_000).toISOString())
 	);
 	// svelte-ignore state_referenced_locally
 	let endedLocal = $state(
-		isoToDatetimeLocal(session?.endedAt ?? span?.endedAt ?? new Date(openedAtMs).toISOString())
+		isoToDatetimeLocal(session?.endedAt ?? new Date(openedAtMs).toISOString())
 	);
 	let timeError = $state<string | null>(null);
 	let noteError = $state('');

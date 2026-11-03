@@ -46,12 +46,13 @@
 		class="w-full"
 	>
 		{#snippet trailing()}
-			<!-- form id does not exist: this must not be the form's default Enter button. -->
+			<!-- form id does not exist: this must not be the form's default Enter button.
+			     Inset by the input's 1px border so the hover fill never paints over it. -->
 			<IconButton
 				icon={visible ? 'visibility_off' : 'visibility'}
 				label={visible ? hideLabel : showLabel}
 				form="vynno-unassociated"
-				class="absolute inset-y-0 right-0"
+				class="absolute inset-y-px right-px"
 				aria-pressed={visible}
 				onclick={() => (visible = !visible)}
 			/>

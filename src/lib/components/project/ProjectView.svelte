@@ -179,6 +179,7 @@
 			{const busyProject = $derived(sessionStore.pendingAction === 'project')}
 			<Button
 				variant="secondary"
+				size="sm"
 				onclick={() => {
 					sessionStore.clearError();
 					editing = true;
@@ -191,6 +192,7 @@
 			{#if archived}
 				<Button
 					variant="secondary"
+					size="sm"
 					onclick={() => void sessionStore.restoreProject(project.id)}
 					disabled={busyProject}
 				>
@@ -199,6 +201,7 @@
 			{:else}
 				<Button
 					variant="secondary"
+					size="sm"
 					onclick={() => void sessionStore.archiveProject(project.id)}
 					disabled={!canArchive || busyProject}
 					aria-describedby={!canArchive ? `${project.id}-archive-reason` : undefined}
@@ -253,6 +256,7 @@
 						{#if !archived}
 							<Button
 								variant="primary"
+								size="sm"
 								onclick={openTimer}
 								disabled={startDisabled}
 								title={otherLive ? m.error_stop_before_start() : undefined}

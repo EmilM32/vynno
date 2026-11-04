@@ -3,6 +3,7 @@
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { formatStoppedDuration } from '$lib/time/duration';
+	import { setDayStackContext } from './day-stack-context';
 
 	/** Cards that peek out behind the top one when the day is stacked (ADR-0035). */
 	const DEPTH = 2;
@@ -43,6 +44,12 @@
 	const summary = $derived(
 		m.logs_day_summary({ n: sessions, duration: formatStoppedDuration(totalMs) })
 	);
+
+	setDayStackContext({
+		get stacked() {
+			return stacked;
+		}
+	});
 
 	/** Writes each row's stack position as CSS variables; the transforms live in the stylesheet. */
 	function measure(node: HTMLElement) {
@@ -101,15 +108,12 @@
 		</span>
 	{/if}
 	<div class="ml-2 flex-1 border-t border-dashed border-outline-variant"></div>
-	{#if stackable}
-		<span
-			class="summary absolute right-0 bg-surface pl-3 font-mono text-code-label text-on-surface-variant tabular-nums"
-			data-shown={stacked || undefined}
-			aria-hidden={!stacked}
-		>
-			{summary}
-		</span>
-	{/if}
+	<span
+		class="ml-2 font-mono text-code-label text-on-surface-variant tabular-nums"
+		data-testid="log-day-summary"
+	>
+		{summary}
+	</span>
 </div>
 
 <div
@@ -185,14 +189,6 @@
 	}
 	.chevron[data-stacked] :global(button > *) {
 		transform: rotate(-90deg);
-	}
-
-	.summary {
-		opacity: 0;
-		transition: opacity var(--duration-stack) var(--ease-out);
-	}
-	.summary[data-shown] {
-		opacity: 1;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

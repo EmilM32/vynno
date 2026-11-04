@@ -484,7 +484,8 @@
 			{#if timed}
 				<div class="-mx-3 border-t border-outline-variant"></div>
 				<div class="flex items-center gap-2">
-					<span class="text-body-sm text-on-surface-variant">{m.date_picker_time()}</span>
+					<!-- pl-3 lines the label up with the first column's text (PO / 26), not the panel edge. -->
+					<span class="pl-3 text-body-sm text-on-surface-variant">{m.date_picker_time()}</span>
 					<Input
 						tone="data"
 						size="sm"

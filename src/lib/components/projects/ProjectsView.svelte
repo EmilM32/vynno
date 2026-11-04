@@ -136,7 +136,13 @@
 			/>
 		{/snippet}
 		{#snippet actions()}
-			<Button variant="primary" class="shrink-0" onclick={openCreate} data-testid="new-project">
+			<Button
+				variant="primary"
+				size="sm"
+				class="shrink-0"
+				onclick={openCreate}
+				data-testid="new-project"
+			>
 				{m.projects_new()}
 			</Button>
 		{/snippet}

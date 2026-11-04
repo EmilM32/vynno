@@ -9,6 +9,7 @@
 	import type { TaskGroup } from '$lib/time/aggregates';
 	import { formatStoppedDuration } from '$lib/time/duration';
 	import type { TimeSession } from '$lib/types/domain';
+	import { getDayStackContext } from './day-stack-context';
 	import LogRow from './LogRow.svelte';
 
 	const sessionStore = useSession();
@@ -31,7 +32,12 @@
 	const busy = $derived(!!sessionStore.activeSession || sessionStore.busy);
 	const archived = $derived(Boolean(project?.isArchived));
 	const restartDisabled = $derived(busy || archived);
-	let open = $state(false);
+	const day = getDayStackContext();
+	/** Closed again whenever the day stacks or opens, or its sessions would stretch the top card. The chevron overrides it. */
+	let open = $derived.by(() => {
+		void day?.stacked;
+		return false;
+	});
 
 	async function restart() {
 		if (!newest) return;

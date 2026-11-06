@@ -546,5 +546,6 @@
 	"dashboard_heatmap_readout_met": "target met",
 	"dashboard_heatmap_readout_empty": "nothing tracked",
 	"insights_donut_share": "{name} · {share}",
-	"insights_timeline_needle_days": "days with a session {count}/{days}"
+	"insights_timeline_needle_days": "days with a session {count}/{days}",
+	"shell_brand_home": "Vynno — Dashboard"
 }

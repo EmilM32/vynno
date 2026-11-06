@@ -546,5 +546,6 @@
 	"dashboard_heatmap_readout_met": "cel osiągnięty",
 	"dashboard_heatmap_readout_empty": "nic nie zarejestrowano",
 	"insights_donut_share": "{name} · {share}",
-	"insights_timeline_needle_days": "dni z sesją {count}/{days}"
+	"insights_timeline_needle_days": "dni z sesją {count}/{days}",
+	"shell_brand_home": "Vynno — Pulpit"
 }

@@ -68,14 +68,22 @@
 	data-gliding={gliding || undefined}
 >
 	<div class="flex h-full flex-col overflow-hidden py-4">
-		<div class="mb-8 flex items-center gap-3 px-5 [@media(max-height:30rem)]:mb-3">
-			<BrandMark class="size-8 shrink-0 text-primary" />
-			<p
-				class="rail-label text-headline-md leading-tight font-bold whitespace-nowrap text-primary"
-				aria-hidden={collapsed || undefined}
+		<div class="mb-8 px-5 [@media(max-height:30rem)]:mb-3">
+			<!-- The brand is the way home: a link to Dashboard, named for the collapsed rail too. -->
+			<a
+				href={resolve('/dashboard')}
+				class="focus-ring -my-1 flex items-center gap-3 rounded py-1"
+				aria-label={m.shell_brand_home()}
+				data-testid="brand-home"
 			>
-				{m.app_name()}
-			</p>
+				<BrandMark class="size-8 shrink-0 text-primary" />
+				<p
+					class="rail-label text-headline-md leading-tight font-bold whitespace-nowrap text-primary"
+					aria-hidden={collapsed || undefined}
+				>
+					{m.app_name()}
+				</p>
+			</a>
 		</div>
 
 		{#if showSessionChip}

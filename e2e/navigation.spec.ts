@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { desktopNav, login, mobileNav } from './helpers';
+import { desktopNav, login, mobileNav, waitForClient } from './helpers';
 
 const tabRoutes = [
 	{ href: '/timer', label: 'Timer' },
@@ -24,6 +24,15 @@ test.describe('navigation', () => {
 		} else {
 			await expect(desktopNav(page).getByText('Vynno', { exact: true })).toBeVisible();
 		}
+	});
+
+	test('the brand links home to Dashboard', async ({ page }) => {
+		await login(page);
+		await page.goto('/logs');
+		await waitForClient(page);
+		// Both shells render it; the one the viewport shows is the visible one.
+		await page.getByTestId('brand-home').filter({ visible: true }).click();
+		await expect(page).toHaveURL(/\/dashboard$/);
 	});
 
 	test('primary nav reaches all six routes', async ({ page }, testInfo) => {

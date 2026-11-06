@@ -26,7 +26,9 @@
 	{#if session}
 		<div class="mb-4 flex min-w-0 items-center justify-between gap-3">
 			<div class="flex min-w-0 items-center gap-2">
-				<h2 class="shrink-0 text-body-sm tracking-wider text-on-surface-variant uppercase">
+				<h2
+					class="shrink-0 font-mono text-code-label tracking-wider text-on-surface-variant uppercase"
+				>
 					{m.dashboard_current_focus()}
 				</h2>
 				{#if session.ticketId}
@@ -67,7 +69,7 @@
 		</div>
 	{:else}
 		<div class="mb-4 flex items-center justify-between">
-			<h2 class="text-body-sm tracking-wider text-on-surface-variant uppercase">
+			<h2 class="font-mono text-code-label tracking-wider text-on-surface-variant uppercase">
 				{m.dashboard_current_focus()}
 			</h2>
 		</div>

@@ -66,7 +66,7 @@
 		<CurrentFocus class="order-2 md:col-span-8" />
 		<RecentLogsList class="order-3 md:order-5 md:col-span-6" />
 		<ActiveProjects class="order-4 md:order-3 md:col-span-12" />
-		<WeeklyOverview class="order-5 h-64 md:order-4 md:col-span-6 md:h-75" />
+		<WeeklyOverview showTarget class="order-5 h-64 md:order-4 md:col-span-6 md:h-75" />
 		<YearHeatmap class="order-6 md:col-span-12" />
 	</div>
 </div>

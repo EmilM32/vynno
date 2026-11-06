@@ -13,6 +13,7 @@
 		type TimelineDay,
 		type TimelineSegment
 	} from '$lib/time/timeline';
+	import { m } from '$lib/paraglide/messages.js';
 	import TimelineTooltip from './TimelineTooltip.svelte';
 
 	/** Days × clock: one strip per day, sessions where they fell, overlaps on sub-lanes. */
@@ -92,10 +93,55 @@
 	 * The tooltip runs in LayerChart's manual mode: its bounds mode adds a hit area per
 	 * session, which undid the single-path drawing (ADR-0028 §7). Plot pixels → the bar.
 	 */
+	/*
+	 * Clock needle (Majer style, ADR-0037): a 1px line under the pointer across every day, and a
+	 * readout under the chart naming that minute. The line is written straight to its style;
+	 * Svelte hears only about the minute, and only when it changes.
+	 */
+	let needleEl: HTMLDivElement | undefined = $state();
+	let needleMin = $state<number | null>(null);
+
+	const segsByDay = $derived(groupBy(segments, (seg) => seg.dateKey));
+	const daysWithTime = $derived(days.filter((d) => segsByDay.has(d.key)).length);
+	const daysAtNeedle = $derived.by(() => {
+		const at = needleMin;
+		if (at == null) return 0;
+		return days.filter((d) =>
+			(segsByDay.get(d.key) ?? []).some((seg) => seg.startMin <= at && seg.endMin > at)
+		).length;
+	});
+	const readoutKey = $derived(
+		needleMin == null
+			? `${formatMinuteOfDay(clock[0])}–${formatMinuteOfDay(clock[1])}`
+			: formatMinuteOfDay(needleMin)
+	);
+
+	function moveNeedle(px: number, plotWidth: number, invert: (px: number) => number) {
+		if (!needleEl) return;
+		if (px < 0 || px > plotWidth) {
+			hideNeedle();
+			return;
+		}
+		needleEl.style.transform = `translate3d(${Math.round(px)}px, 0, 0)`;
+		needleEl.style.opacity = '1';
+		const minute = Math.min(clock[1] - 1, Math.max(clock[0], Math.floor(invert(px))));
+		if (needleMin !== minute) needleMin = minute;
+	}
+
+	function hideNeedle() {
+		if (needleEl) needleEl.style.opacity = '0';
+		if (needleMin !== null) needleMin = null;
+	}
+
 	function onpointermove(e: PointerEvent) {
 		const ctx = chart;
 		if (!ctx) return;
 		const box = (e.currentTarget as HTMLElement).getBoundingClientRect();
+		if (e.pointerType !== 'touch') {
+			moveNeedle(e.clientX - box.left - PAD.left, box.width - PAD.left - PAD.right, (px) =>
+				Number(ctx.xScale.invert?.(px) ?? clock[0])
+			);
+		}
 		const hit = barAt(
 			byRow,
 			rows,
@@ -128,13 +174,23 @@
 </ul>
 
 <div
-	class="w-full"
+	class="tl-plot relative w-full"
 	style:height="{chartHeight}px"
 	bind:clientWidth={boxWidth}
 	aria-hidden="true"
 	{onpointermove}
-	onpointerleave={() => chart?.tooltip.hide()}
+	onpointerleave={() => {
+		chart?.tooltip.hide();
+		hideNeedle();
+	}}
 >
+	<div
+		bind:this={needleEl}
+		class="tl-needle pointer-events-none absolute w-px bg-primary"
+		style:left="{PAD.left}px"
+		style:top="{PAD.top}px"
+		style:height="{Math.max(0, chartHeight - PAD.top - PAD.bottom)}px"
+	></div>
 	{#if lc}
 		{const BarChart = $derived(lc.BarChart)}
 		{const Text = $derived(lc.Text)}
@@ -248,3 +304,34 @@
 		</BarChart>
 	{/if}
 </div>
+
+<!-- Readout: the clock window at rest, the needle's minute under the pointer. -->
+<p
+	class="mt-1 font-mono text-body-sm tabular-nums"
+	aria-hidden="true"
+	data-testid="timeline-needle"
+>
+	<span class="text-primary">{readoutKey + ': '}</span><span class="text-on-surface"
+		>{m.insights_timeline_needle_days({
+			count: needleMin == null ? daysWithTime : daysAtNeedle,
+			days: days.length
+		})}</span
+	>
+</p>
+
+<style>
+	/*
+	 * Majer roles → Vynno tokens
+	 * accent: primary (needle, readout key) · ink-muted: on-surface-variant · data-face: font-mono
+	 * The needle follows the pointer with no travel; only its fade is a transition.
+	 */
+	.tl-plot {
+		cursor: crosshair;
+	}
+
+	.tl-needle {
+		opacity: 0;
+		transition: opacity var(--duration-ui-exit) ease;
+		will-change: transform;
+	}
+</style>

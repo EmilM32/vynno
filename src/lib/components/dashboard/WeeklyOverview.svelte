@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { thinHistogramTicks } from '$lib/components/charts/histogramTicks';
 	import { m } from '$lib/paraglide/messages.js';
+	import { usePrefs } from '$lib/stores/prefs.svelte';
 	import { useSession } from '$lib/stores/session.svelte';
 	import { histogramScale, type WeekDayTotal } from '$lib/time/aggregates';
 	import { formatCompact } from '$lib/time/duration';
@@ -13,6 +14,7 @@
 		barColor,
 		heading,
 		ariaLabel,
+		showTarget = false,
 		class: className
 	}: {
 		days?: WeekDayTotal[];
@@ -20,10 +22,16 @@
 		barColor?: string;
 		heading?: string;
 		ariaLabel?: string;
+		/**
+		 * Draw the daily target across the bars. Only for days of all tracked time (Dashboard):
+		 * a project's share of a day is not measured against the whole-day target.
+		 */
+		showTarget?: boolean;
 		class?: string;
 	} = $props();
 
 	const sessionStore = useSession();
+	const prefsStore = usePrefs();
 
 	/**
 	 * LayerChart pulls ~12 render-blocking CSS chunks and most of this route's hydration work.
@@ -49,13 +57,21 @@
 	const regionLabel = $derived(ariaLabel ?? m.dashboard_weekly_overview_aria());
 	const maxMs = $derived(Math.max(0, ...days.map((d) => d.ms)));
 	const empty = $derived(maxMs === 0);
-	const scale = $derived(histogramScale(maxMs));
-	const chartData = $derived(
-		days.map((d) => ({
-			...d,
-			value: scale.unit === 'min' ? d.ms / 60_000 : d.ms / 3_600_000
-		}))
-	);
+	const targetMs = $derived(showTarget ? prefsStore.dailyTargetMs : 0);
+	/**
+	 * The scale reaches past the target too, so the distance to it reads at its real size.
+	 * The +1ms lifts the ceiling one step above a target on a whole hour, so the dashed line
+	 * never sits on the top edge of the plot.
+	 */
+	const scale = $derived(histogramScale(Math.max(maxMs, targetMs > 0 ? targetMs + 1 : 0)));
+	const toValue = (ms: number) => (scale.unit === 'min' ? ms / 60_000 : ms / 3_600_000);
+	const chartData = $derived(days.map((d) => ({ ...d, value: toValue(d.ms) })));
+	/** Days so far this week (up to today) that reached the target. */
+	const elapsed = $derived.by(() => {
+		const today = days.findIndex((d) => d.isToday);
+		return today === -1 ? days : days.slice(0, today + 1);
+	});
+	const metDays = $derived(elapsed.filter((d) => d.ms >= targetMs).length);
 	const unitLabel = $derived(scale.unit === 'min' ? m.dashboard_minutes() : m.dashboard_hours());
 	const fillToday = $derived(barColor ?? 'var(--color-primary)');
 	const fillOther = $derived(
@@ -134,6 +150,23 @@
 					grid: { x: false, y: { stroke: 'var(--color-outline-variant)', opacity: 0.7 } }
 				}}
 			>
+				{#snippet aboveMarks({ context })}
+					{#if targetMs > 0}
+						{const y = $derived(Math.round(context.yScale(toValue(targetMs))) + 0.5)}
+						<!-- Dashed: the target is measured, not built (Majer style). -->
+						<line
+							x1="0"
+							x2={context.width}
+							y1={y}
+							y2={y}
+							stroke="var(--color-primary)"
+							stroke-width="1"
+							stroke-dasharray="4 3"
+							vector-effect="non-scaling-stroke"
+							data-testid="weekly-target-line"
+						/>
+					{/if}
+				{/snippet}
 				{#snippet tooltip({ context })}
 					<Tooltip.Root {context}>
 						{#snippet children({ data }: { data: ChartPoint })}
@@ -147,4 +180,14 @@
 			</BarChart>
 		{/if}
 	</div>
+
+	{#if targetMs > 0 && !empty}
+		<p class="mt-5 shrink-0 font-mono text-body-sm tabular-nums" data-testid="weekly-target">
+			<span class="text-primary">{m.dashboard_weekly_target_key()}</span>
+			<span class="text-on-surface">{formatCompact(targetMs)}</span>
+			<span class="text-on-surface-variant"
+				>// {m.dashboard_weekly_target_met({ met: metDays, days: elapsed.length })}</span
+			>
+		</p>
+	{/if}
 </section>

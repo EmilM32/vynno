@@ -115,6 +115,8 @@
 	"dashboard_weekly_overview": "Przegląd tygodnia",
 	"dashboard_weekly_overview_aria": "Przegląd tygodnia",
 	"dashboard_hours": "Godziny",
+	"dashboard_weekly_target_key": "cel:",
+	"dashboard_weekly_target_met": "dni z celem {met}/{days}",
 	"dashboard_minutes": "Minuty",
 	"dashboard_not_enough_data": "Za mało danych",
 	"dashboard_today_paren": " (dziś)",
@@ -536,8 +538,14 @@
 	"dashboard_heatmap_total": "Łącznie",
 	"dashboard_heatmap_days": "{count} d",
 	"dashboard_heatmap_summary": "Czas mierzony dzień po dniu w ostatnich 12 miesiącach. Aktywne dni: {active}, łącznie {total}.",
-	"dashboard_heatmap_scroll_aria": "Siatka roku, najnowszy tydzień po prawej",
+	"dashboard_heatmap_scroll_aria": "Siatka roku, najnowszy tydzień po prawej. Strzałki odczytują jeden dzień.",
 	"dashboard_heatmap_hint": "Pełny kwadrat to osiągnięty dzienny cel ({target}). Wolny weekend nie przerywa serii.",
 	"dashboard_heatmap_less": "Mniej",
-	"dashboard_heatmap_more": "Więcej"
+	"dashboard_heatmap_more": "Więcej",
+	"dashboard_heatmap_readout_share": "{share} celu",
+	"dashboard_heatmap_readout_met": "cel osiągnięty",
+	"dashboard_heatmap_readout_empty": "nic nie zarejestrowano",
+	"insights_donut_share": "{name} · {share}",
+	"insights_timeline_needle_days": "dni z sesją {count}/{days}",
+	"shell_brand_home": "Vynno — Pulpit"
 }

@@ -30,10 +30,15 @@
 	class="sticky top-0 z-40 w-full border-b border-outline-variant bg-surface pt-[env(safe-area-inset-top,0px)] md:hidden"
 >
 	<div class="flex h-14 w-full items-center justify-between px-4">
-		<div class="flex items-center gap-2">
+		<a
+			href={resolve('/dashboard')}
+			class="focus-ring -my-2 flex items-center gap-2 rounded py-2"
+			aria-label={m.shell_brand_home()}
+			data-testid="brand-home"
+		>
 			<BrandMark class="size-6 shrink-0 text-primary" />
 			<span class="text-headline-md font-bold text-primary">{m.app_name()}</span>
-		</div>
+		</a>
 		<div class="flex items-center gap-1">
 			<IconButton
 				{@attach bindCommandsBtn}

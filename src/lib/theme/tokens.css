@@ -119,4 +119,5 @@
 	--duration-sheet-exit: 200ms;
 	--duration-stack: 260ms; /* Logs day stack (ADR-0035): one card's slide */
 	--stagger-stack: 30ms; /* delay per card, three steps at most */
+	--duration-travel: 240ms; /* a highlight frame gliding between list rows (ADR-0036) */
 }

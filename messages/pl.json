@@ -120,6 +120,7 @@
 	"dashboard_today_paren": " (dziś)",
 	"dashboard_recent_logs": "Ostatnie wpisy",
 	"dashboard_recent_logs_view_all": "Zobacz wszystkie",
+	"dashboard_recent_logs_readout_key": "zakres",
 	"dashboard_no_completed": "Brak zakończonych sesji.",
 	"dashboard_restart_task": "Wznów to zadanie",
 	"dashboard_restart_aria": "Wznów {note}",

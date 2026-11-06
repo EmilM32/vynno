@@ -111,6 +111,31 @@ test.describe('dashboard', () => {
 		await expect(heatmap.locator('[data-date]').first()).toBeInViewport();
 	});
 
+	test('year heatmap reads one day from the keyboard (ADR-0037)', async ({ page }) => {
+		await login(page);
+		const today = pastSpansOnCurrentDay(1, 30 * 60_000)[0]!;
+		await seedManualSession(page, {
+			note: uniqueNote('heat-readout'),
+			startedAt: today.startedAt.toISOString(),
+			endedAt: today.endedAt.toISOString()
+		});
+		await page.goto('/dashboard');
+		await waitForClient(page);
+
+		const heatmap = page.getByRole('region', { name: 'Last 12 months' });
+		const scroller = heatmap.getByRole('region', { name: /Year grid/ });
+		const readout = heatmap.getByTestId('heatmap-readout');
+
+		await scroller.focus();
+		await page.keyboard.press('End');
+		// 30 minutes against the default 8h target.
+		await expect(readout).toContainText('30m // 6% of target');
+		await expect(readout).toHaveAttribute('aria-live', 'polite');
+
+		await page.keyboard.press('Escape');
+		await expect(readout).toHaveText('');
+	});
+
 	test('weekly overview empty state lists the week', async ({ page }) => {
 		await login(page);
 		await page.goto('/dashboard');

@@ -21,7 +21,7 @@
 	]}
 >
 	<div class="mb-1 md:mb-2">
-		<h2 class="text-body-sm tracking-wider text-on-surface-variant uppercase">
+		<h2 class="font-mono text-code-label tracking-wider text-on-surface-variant uppercase">
 			{m.dashboard_today_total()}
 		</h2>
 	</div>

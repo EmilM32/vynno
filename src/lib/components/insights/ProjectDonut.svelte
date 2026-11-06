@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { onMount } from 'svelte';
+	import { onMount, type ComponentProps } from 'svelte';
 	import { m } from '$lib/paraglide/messages.js';
 	import { OTHER_ID, topNWithOther } from '$lib/components/insights/legend';
 	import Icon from '$lib/components/ui/Icon.svelte';
@@ -50,6 +50,32 @@
 	onMount(async () => {
 		lc = await import('$lib/components/charts/lazy-pie');
 	});
+
+	/*
+	 * Slice readout (Majer style, ADR-0037): the slice under the pointer, or the legend row under
+	 * the pointer or focus, takes over the centre in the same frame, and the other slices dim
+	 * through LayerChart's own series highlight. No floating tooltip.
+	 */
+	type Lc = typeof import('$lib/components/charts/lazy-pie');
+	let chart = $state<ComponentProps<Lc['PieChart']>['context']>();
+	let legendId = $state<string | null>(null);
+	const pointedId = $derived((chart?.tooltip.data as Slice | null | undefined)?.id ?? null);
+	const activeId = $derived(legendId ?? pointedId);
+	const active = $derived(activeId ? rows.find((r) => r.id === activeId) : undefined);
+
+	// Sync into LayerChart's own state, which dims every arc but the highlighted one.
+	$effect(() => {
+		if (chart) chart.series.highlightKey = activeId;
+	});
+
+	function legendOn(id: string) {
+		return {
+			onpointerenter: () => (legendId = id),
+			onpointerleave: () => (legendId = null),
+			onfocus: () => (legendId = id),
+			onblur: () => (legendId = null)
+		};
+	}
 </script>
 
 {#snippet centerTotal()}
@@ -57,10 +83,20 @@
 		<div
 			class="flex aspect-square h-[58%] max-h-full flex-col items-center justify-center text-center"
 		>
-			<span class="font-mono text-xl font-medium whitespace-nowrap text-on-surface tabular-nums"
-				>{formatHoursMinutes(totalMs)}</span
+			<span
+				class="font-mono text-xl font-medium whitespace-nowrap text-on-surface tabular-nums"
+				data-testid="donut-centre-value">{formatHoursMinutes(active ? active.ms : totalMs)}</span
 			>
-			<span class="font-mono text-code-label text-on-surface-variant">{m.insights_total()}</span>
+			<span
+				class="max-w-full truncate px-2 font-mono text-code-label text-on-surface-variant"
+				data-testid="donut-centre-label"
+			>
+				{#if active}
+					<bdi>{m.insights_donut_share({ name: active.label, share: formatShare(active) })}</bdi>
+				{:else}
+					{m.insights_total()}
+				{/if}
+			</span>
 		</div>
 	</div>
 {/snippet}
@@ -98,8 +134,8 @@
 			</div>
 		{:else if lc}
 			{const PieChart = $derived(lc.PieChart)}
-			{const Tooltip = $derived(lc.Tooltip)}
 			<PieChart
+				bind:context={chart}
 				class="w-full"
 				height={chartPx}
 				data={rows}
@@ -112,20 +148,8 @@
 				legend={false}
 				padding={8}
 			>
-				{#snippet tooltip({ context })}
-					<Tooltip.Root {context}>
-						{#snippet children({ data }: { data: Slice })}
-							<Tooltip.Header value={data.label} color={data.color} />
-							<Tooltip.List>
-								<Tooltip.Item
-									label={m.insights_total()}
-									value="{formatHoursMinutes(data.ms)} · {formatShare(data)}"
-									color={data.color}
-								/>
-							</Tooltip.List>
-						{/snippet}
-					</Tooltip.Root>
-				{/snippet}
+				<!-- The centre is the readout; the tooltip context still tracks the pointed slice. -->
+				{#snippet tooltip()}{/snippet}
 			</PieChart>
 		{/if}
 		{@render centerTotal()}
@@ -137,7 +161,7 @@
 	>
 		{#each rows as item (item.id)}
 			{#if item.id === OTHER_ID}
-				<div class="flex min-w-0 items-center gap-2">
+				<div class="flex min-w-0 items-center gap-2" {...legendOn(item.id)}>
 					<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
 					<span class="truncate font-mono text-code-label text-on-surface-variant">
 						<bdi>{item.label}</bdi>
@@ -152,6 +176,7 @@
 					href={resolve(`/projects/${encodeURIComponent(item.id)}`)}
 					class="focus-ring flex min-w-0 items-center gap-2 rounded-sm"
 					aria-label={m.insights_open_project({ name: item.label })}
+					{...legendOn(item.id)}
 				>
 					<div class="h-3 w-3 shrink-0 rounded-sm" style:background-color={item.color}></div>
 					<span class="truncate font-mono text-code-label text-on-surface-variant">

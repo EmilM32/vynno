@@ -40,6 +40,7 @@ Lightweight ADRs for the Vynno **frontend** repository.
 | [0034](./0034-page-header-toolbar.md)         | `PageHeader` is a toolbar row with live context     | Accepted   |
 | [0035](./0035-logs-day-stack.md)              | Logs days collapse into a card stack                | Accepted   |
 | [0036](./0036-recent-logs-hover-frame.md)     | Recent Logs hover: a travelling frame               | Accepted   |
+| [0037](./0037-chart-pointer-readouts.md)      | Chart pointer readouts: heatmap, donut, needle      | Accepted   |
 
 ## Format
 

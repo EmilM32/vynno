@@ -115,6 +115,8 @@
 	"dashboard_weekly_overview": "Weekly Overview",
 	"dashboard_weekly_overview_aria": "Weekly overview",
 	"dashboard_hours": "Hours",
+	"dashboard_weekly_target_key": "target:",
+	"dashboard_weekly_target_met": "days on target {met}/{days}",
 	"dashboard_minutes": "Minutes",
 	"dashboard_not_enough_data": "Not enough data yet",
 	"dashboard_today_paren": " (Today)",

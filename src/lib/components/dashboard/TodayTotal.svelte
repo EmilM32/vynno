@@ -16,7 +16,7 @@
 
 <div
 	class={[
-		'relative flex flex-col overflow-hidden rounded-lg border border-outline-variant bg-surface-container px-4 py-3 md:p-4',
+		'flex flex-col rounded-lg border border-outline-variant bg-surface-container px-4 py-3 md:p-4',
 		className
 	]}
 >
@@ -38,32 +38,5 @@
 			</span>
 			<span>{m.dashboard_vs_yesterday()}</span>
 		</div>
-	</div>
-	<div
-		class="pointer-events-none absolute right-0 bottom-0 hidden opacity-10 md:block"
-		aria-hidden="true"
-	>
-		<svg
-			fill="none"
-			height="80"
-			viewBox="0 0 120 80"
-			width="120"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<path d="M0 80L80 0H120V80H0Z" fill="url(#paint0_linear_today)"></path>
-			<defs>
-				<linearGradient
-					gradientUnits="userSpaceOnUse"
-					id="paint0_linear_today"
-					x1="60"
-					x2="60"
-					y1="0"
-					y2="80"
-				>
-					<stop stop-color="var(--color-primary)"></stop>
-					<stop offset="1" stop-color="var(--color-primary)" stop-opacity="0"></stop>
-				</linearGradient>
-			</defs>
-		</svg>
 	</div>
 </div>

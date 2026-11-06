@@ -24,6 +24,9 @@
 	} = $props();
 
 	const CHART_PX = 260;
+	/** Unique per instance: two Rhythm charts on a page must not share one `<pattern>`. */
+	const uid = $props.id();
+	const hatchId = `rhythm-peak-${uid}`;
 
 	const projects = $derived(projectTotals(segments));
 	const keyed = $derived(
@@ -94,6 +97,10 @@
 		}
 		return { from: at * 60, to: (at + 2) * 60, share: totalMin ? best / totalMin : 0 };
 	});
+	/** The peak's hours that fall inside the clock window — the one hatched band on the chart. */
+	const peakHours = $derived(
+		totalMin > 0 ? [peak.from / 60, peak.from / 60 + 1].filter((h) => visibleHours.includes(h)) : []
+	);
 
 	const beforeNoon = $derived(
 		totalMin ? hourly.slice(0, 12).reduce((sum, h) => sum + h.totalMin, 0) / totalMin : 0
@@ -127,7 +134,10 @@
 
 <dl class="grid grid-cols-1 gap-3 sm:grid-cols-3">
 	<div class="flex flex-col gap-0.5 rounded-DEFAULT bg-surface-container-low px-3 py-2">
-		<dt class="text-body-sm text-on-surface-variant">{m.insights_rhythm_peak()}</dt>
+		<dt class="flex items-center gap-1.5 text-body-sm text-on-surface-variant">
+			<span class="peak-swatch size-2.5 shrink-0 rounded-[2px]" aria-hidden="true"></span>
+			{m.insights_rhythm_peak()}
+		</dt>
 		<dd class="font-mono text-on-surface tabular-nums">
 			{formatMinuteOfDay(peak.from)}–{formatMinuteOfDay(peak.to)}
 			<span class="text-code-label text-on-surface-variant"
@@ -188,6 +198,42 @@
 				grid: { y: { stroke: 'var(--color-outline-variant)', opacity: 0.7 } }
 			}}
 		>
+			{#snippet belowMarks({ context })}
+				<!--
+					The peak window as one hatched band behind the bars (Majer style: hatching marks one
+					area). It spans whole band steps, so the strokes show in the gaps beside the bars.
+				-->
+				{#if peakHours.length > 0}
+					{const bandwidth = $derived(context.xScale.bandwidth?.() ?? 0)}
+					{const step = $derived(
+						visibleHours.length > 1
+							? context.xScale(visibleHours[1]) - context.xScale(visibleHours[0])
+							: bandwidth
+					)}
+					{const inset = $derived((step - bandwidth) / 2)}
+					{const x0 = $derived(context.xScale(peakHours[0]) - inset)}
+					<defs>
+						<pattern
+							id={hatchId}
+							width="6"
+							height="6"
+							patternUnits="userSpaceOnUse"
+							patternTransform="rotate(45)"
+						>
+							<line x1="0" y1="0" x2="0" y2="6" stroke="var(--color-primary)" stroke-width="1" />
+						</pattern>
+					</defs>
+					<rect
+						x={x0}
+						y="0"
+						width={step * peakHours.length}
+						height={context.height}
+						fill="url(#{hatchId})"
+						opacity="0.5"
+						data-testid="rhythm-peak-band"
+					/>
+				{/if}
+			{/snippet}
 			{#snippet marks({ context })}
 				<!--
 					Plain rects, not LayerChart's Bars: one Bar component per segment costs about 1 ms
@@ -235,3 +281,18 @@
 		</BarChart>
 	{/if}
 </div>
+
+<style>
+	/*
+	 * Roles (Majer style): accent = primary; hatching = 1px accent strokes at 45°, every 6px,
+	 * at 0.5 — the same marks as the peak band on the chart, so the key reads as its legend.
+	 */
+	.peak-swatch {
+		background: repeating-linear-gradient(
+			45deg,
+			color-mix(in oklab, var(--color-primary) 50%, transparent) 0 1px,
+			transparent 1px 4px
+		);
+		box-shadow: inset 0 0 0 1px var(--color-outline-variant);
+	}
+</style>

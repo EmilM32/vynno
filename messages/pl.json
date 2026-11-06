@@ -115,6 +115,8 @@
 	"dashboard_weekly_overview": "Przegląd tygodnia",
 	"dashboard_weekly_overview_aria": "Przegląd tygodnia",
 	"dashboard_hours": "Godziny",
+	"dashboard_weekly_target_key": "cel:",
+	"dashboard_weekly_target_met": "dni z celem {met}/{days}",
 	"dashboard_minutes": "Minuty",
 	"dashboard_not_enough_data": "Za mało danych",
 	"dashboard_today_paren": " (dziś)",

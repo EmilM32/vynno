@@ -223,11 +223,12 @@
 	 * ground: surface-container · surface: surface-container-high · hairline: outline-variant
 	 * control-line: outline · ink: on-surface · ink-muted: on-surface-variant · accent: primary
 	 * data-face: font-mono · hover: 150ms ease · exit: --duration-ui-exit
-	 * travel: --duration-travel + --ease-in-out
+	 * travel: --duration-travel + --ease-out — it chases the pointer, so it must start at full
+	 * speed; an in-out curve stalls at the start of every retarget and trails behind fast moves.
 	 */
 	.rl-frame {
 		transition:
-			transform var(--duration-travel) var(--ease-in-out),
+			transform var(--duration-travel) var(--ease-out),
 			opacity var(--duration-ui-exit) ease;
 		will-change: transform;
 	}
@@ -239,7 +240,7 @@
 
 	/* Restart icon: same duration and curve as the frame's glide, so both arrive together. */
 	.rl-act {
-		transition: opacity var(--duration-travel) var(--ease-in-out);
+		transition: opacity var(--duration-travel) var(--ease-out);
 	}
 
 	/* When the frame only fades (first entry, keyboard, leaving), the icon fades with it. */
